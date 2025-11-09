@@ -33,6 +33,9 @@ export const metadata = {
     shortcut: "/icon.png",
     apple: "/icon.png",
   },
+  verification: {
+    google: "-95Bq4XHD66PIeHdHG3cDSad9_yp6kTmOVeUtUKUIc0",
+  },
   openGraph: {
     title: "QuickTruckTax | Trucking Compliance Guides",
     description:
