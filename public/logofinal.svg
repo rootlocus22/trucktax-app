@@ -1,0 +1,69 @@
+<svg width="360" height="200" viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <defs>
+    <linearGradient id="badgeGradient" x1="110" y1="16" x2="250" y2="176" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A4F91"/>
+      <stop offset="1" stop-color="#1D76C4"/>
+    </linearGradient>
+    <linearGradient id="truckPanel" x1="144" y1="70" x2="232" y2="158" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2F3642"/>
+      <stop offset="1" stop-color="#121822"/>
+    </linearGradient>
+    <linearGradient id="streakGradient" x1="128" y1="88" x2="200" y2="116" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7EC6F5" stop-opacity="0"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.75"/>
+    </linearGradient>
+  </defs>
+
+  <!-- subtle USA silhouette -->
+  <path d="M40 146C58 110 96 98 126 102C146 78 196 78 226 98C264 86 308 94 330 118C314 140 294 156 262 170C236 188 202 198 164 194C126 190 98 178 80 164C62 170 48 164 40 146Z" fill="#E6ECF4"/>
+
+  <!-- circular badge -->
+  <circle cx="190" cy="90" r="86" fill="url(#badgeGradient)"/>
+  <circle cx="190" cy="90" r="80" stroke="white" stroke-opacity="0.35" stroke-width="6"/>
+
+  <!-- star field -->
+  <g fill="white" opacity="0.85">
+    <circle cx="142" cy="56" r="6"/>
+    <circle cx="170" cy="44" r="5"/>
+    <circle cx="208" cy="40" r="6"/>
+    <circle cx="236" cy="52" r="6"/>
+    <circle cx="252" cy="70" r="5"/>
+  </g>
+
+  <!-- motion streaks -->
+  <path d="M128 122L182 90H128L138 80H200" stroke="url(#streakGradient)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M132 108H190" stroke="#A7D7F9" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+  <path d="M134 96H198" stroke="#D0E9FF" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- truck body -->
+  <path d="M138 126C132 126 128 120 130 114L144 76C148 64 156 58 168 58H230C238 58 244 64 246 72L258 120C260 124 256 128 252 128H212C208 128 206 130 206 134V150C206 154 202 158 198 158H168C164 158 160 154 160 150V142C160 138 158 134 154 134H138Z" fill="url(#truckPanel)"/>
+
+  <!-- windows & grill -->
+  <path d="M168 124H210C214 124 218 120 218 116V94C218 88 214 84 210 84H180C174 84 170 88 168 94L158 118C156 122 160 124 168 124Z" fill="white"/>
+  <path d="M146 124H158C164 124 168 120 168 114V100C168 96 166 92 160 92H152C146 92 142 96 140 102L134 118C132 122 136 124 146 124Z" fill="white"/>
+  <path d="M236 124H244C248 124 251 126 252 131L256 144C258 148 256 152 252 152H234V132C234 126 236 124 236 124Z" fill="white"/>
+  <rect x="182" y="108" width="34" height="10" rx="4" fill="#1D2734"/>
+  <rect x="184" y="96" width="26" height="8" rx="3" fill="#1D2734"/>
+  <path d="M166 76H214C218 76 222 72 222 68C222 64 218 60 214 60H170C164 60 160 64 160 70V76H166Z" fill="#FFFFFF" opacity="0.8"/>
+
+  <!-- headlights & accents -->
+  <circle cx="146" cy="124" r="6" fill="#FF8B3D"/>
+  <circle cx="234" cy="136" r="6" fill="#FF8B3D"/>
+  <path d="M170 154C170 144.059 178.059 136 188 136C197.941 136 206 144.059 206 154" stroke="#0E1A2A" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="188" cy="154" r="18" fill="#0E1A2A"/>
+  <circle cx="188" cy="154" r="10" fill="white"/>
+  <circle cx="150" cy="154" r="18" fill="#0E1A2A"/>
+  <circle cx="150" cy="154" r="10" fill="white"/>
+
+  <!-- check mark -->
+  <path d="M206 126L266 68" stroke="#FF7A1A" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M176 134L208 126" stroke="#FF7A1A" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- wordmark -->
+  <g transform="translate(34, 170)">
+    <text x="0" y="0" font-family="'Inter', 'Avenir Next', sans-serif" font-size="44" font-weight="700" letter-spacing="0.02em" fill="#0C3770">Quick</text>
+    <text x="146" y="0" font-family="'Inter', 'Avenir Next', sans-serif" font-size="44" font-weight="700" letter-spacing="0.02em" fill="#FF7A1A">Truck</text>
+    <text x="258" y="0" font-family="'Inter', 'Avenir Next', sans-serif" font-size="44" font-weight="700" letter-spacing="0.02em" fill="#0C3770">Tax</text>
+    <text x="12" y="30" font-family="'Inter', 'Avenir Next', sans-serif" font-size="16" font-weight="600" letter-spacing="0.18em" fill="#5F6E86" textLength="280" lengthAdjust="spacing">FILING MADE SIMPLE.</text>
+  </g>
+</svg>
