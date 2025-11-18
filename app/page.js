@@ -59,7 +59,46 @@ export default function Home() {
     }))
     .filter((entry) => entry.guides.length > 0);
 
+  // JSON-LD structured data for Organization
+  const organizationJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'QuickTruckTax',
+    url: 'https://quicktrucktax.com',
+    logo: 'https://quicktrucktax.com/quicktrucktax-logo.png',
+    image: 'https://quicktrucktax.com/quicktrucktax-logo.png',
+    description: 'QuickTruckTax helps carriers, owner-operators, and brokers stay compliant with HVUT, UCR, MCS-150, and fuel tax filings.',
+    sameAs: [
+      'https://twitter.com/quicktrucktax',
+    ],
+  };
+
+  // JSON-LD structured data for WebSite
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'QuickTruckTax',
+    url: 'https://quicktrucktax.com',
+    description: 'Trucking Compliance Guides & Form 2290 Filing Resources',
+    publisher: {
+      '@type': 'Organization',
+      name: 'QuickTruckTax',
+    },
+  };
+
   return (
+    <>
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
+
+      
     <div className="flex flex-col gap-16 sm:gap-20">
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] px-6 py-14 text-white shadow-xl shadow-[rgba(10,23,43,0.2)] sm:px-12">
         <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
@@ -250,5 +289,6 @@ export default function Home() {
         </div>
       </section>
     </div>
+    </>
   );
 }

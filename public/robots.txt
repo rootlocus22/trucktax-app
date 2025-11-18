@@ -1,0 +1,54 @@
+# robots.txt for QuickTruckTax
+# https://quicktrucktax.com
+
+User-agent: *
+Allow: /
+
+# Block Next.js internal files and chunks
+Disallow: /_next/static/chunks/
+Disallow: /_next/webpack/
+Disallow: /_next/hmr/
+Disallow: /api/
+Disallow: /*.json$
+
+# Block development files
+Disallow: /_error
+Disallow: /404
+
+# Allow Next.js assets
+Allow: /_next/static/css/
+Allow: /_next/static/media/
+Allow: /_next/image
+
+# Allow all static files
+Allow: /newlogo.png
+Allow: /icon.png
+Allow: /*.svg$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.webp$
+
+# Sitemap location
+Sitemap: https://quicktrucktax.com/sitemap.xml
+
+# Crawl delay (optional, adjust as needed)
+Crawl-delay: 1
+
+# Additional bots
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Block specific bots (uncomment if needed)
+# User-agent: AhrefsBot
+# Disallow: /
+
+# User-agent: SemrushBot
+# Disallow: /
+
