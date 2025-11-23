@@ -100,7 +100,7 @@ export default function Home() {
 
       
     <div className="flex flex-col gap-16 sm:gap-20">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] px-6 py-14 text-white shadow-xl shadow-[rgba(10,23,43,0.2)] sm:px-12">
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] px-4 py-14 text-white shadow-xl shadow-[rgba(10,23,43,0.2)] sm:px-6 lg:px-8">
         <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute -right-16 top-12 h-48 w-48 rounded-full bg-[var(--color-orange)]/20 blur-3xl" />
         <div className="relative z-10 grid gap-12 lg:grid-cols-[1.6fr,1fr] lg:items-center">
@@ -257,7 +257,7 @@ export default function Home() {
         ))}
       </section>
 
-      <section className="rounded-3xl bg-gradient-to-br from-[var(--color-navy)] via-[var(--color-midnight)] to-[#0e2341] px-8 py-12 text-white shadow-xl shadow-[rgba(10,23,43,0.25)] sm:px-16">
+      <section className="rounded-3xl bg-gradient-to-br from-[var(--color-navy)] via-[var(--color-midnight)] to-[#0e2341] px-4 py-12 text-white shadow-xl shadow-[rgba(10,23,43,0.25)] sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-[2fr,1fr] lg:items-center">
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold sm:text-3xl">

@@ -54,7 +54,7 @@ export default function BlogPage() {
     <div className="min-h-screen bg-[var(--color-page)]">
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy-soft)] text-white py-16">
-        <div className="container mx-auto px-4">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h1 className="text-5xl font-bold mb-4">Form 2290 Expert Blog</h1>
           <p className="text-xl mb-6 max-w-3xl">
             Your comprehensive resource for IRS Form 2290 filing, HVUT compliance, and trucking tax strategies. 
@@ -78,7 +78,7 @@ export default function BlogPage() {
       </section>
 
       {/* Search and Filter Section */}
-      <section className="container mx-auto px-4 py-8">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-2xl font-bold mb-4">Find What You Need</h2>
           <div className="flex flex-wrap gap-2">
@@ -95,7 +95,7 @@ export default function BlogPage() {
       </section>
 
       {/* Blog Grid */}
-      <section className="container mx-auto px-4 pb-16">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {blogPosts.map((post) => (
             <Link
@@ -128,7 +128,7 @@ export default function BlogPage() {
 
       {/* CTA Section */}
       <section className="bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy-soft)] text-white py-16">
-        <div className="container mx-auto px-4 text-center">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold mb-4">Ready to File Your Form 2290?</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
             Stop reading, start filing! E-file your Form 2290 in minutes and get your Schedule 1 instantly.

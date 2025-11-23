@@ -112,7 +112,7 @@ export default function RootLayout({ children }) {
       >
         <div className="flex min-h-screen flex-col">
           <header className="border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] text-white shadow-sm">
-            <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8 sm:flex-row sm:items-center sm:justify-between">
               <Link href="/" className="flex flex-col text-white">
                 <span className="text-xl font-semibold tracking-tight">QuickTruckTax</span>
                 <span className="text-xs font-medium uppercase tracking-[0.35em] text-white/60">
@@ -132,11 +132,11 @@ export default function RootLayout({ children }) {
               </nav>
             </div>
           </header>
-          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 sm:py-16">
+          <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8 sm:py-16">
             {children}
           </main>
           <footer className="border-t border-[var(--color-border)] bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-midnight)] text-white">
-            <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-8 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-8 sm:px-6 lg:px-8 text-sm sm:flex-row sm:items-center sm:justify-between">
               <p className="text-white/80">
                 &copy; {new Date().getFullYear()} QuickTruckTax. All rights reserved.
               </p>

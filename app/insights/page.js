@@ -25,7 +25,7 @@ export default function InsightsIndex() {
 
   return (
     <div className="flex flex-col gap-12 sm:gap-16">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] px-6 py-14 text-white shadow-xl shadow-[rgba(10,23,43,0.2)] sm:px-12">
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] px-4 py-14 text-white shadow-xl shadow-[rgba(10,23,43,0.2)] sm:px-6 lg:px-8">
         <div className="absolute left-0 top-0 h-60 w-60 -translate-x-1/3 -translate-y-1/3 rounded-full bg-[var(--color-orange)]/30 blur-3xl" />
         <div className="relative z-10 grid gap-10 lg:grid-cols-[1.6fr,1fr] lg:items-center">
           <div className="space-y-5">

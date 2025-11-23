@@ -68,7 +68,7 @@ export default async function GuidePage({ params }) {
   };
 
   return (
-    <article className="mx-auto flex w-full max-w-4xl flex-col gap-12">
+    <article className="mx-auto flex w-full max-w-6xl flex-col gap-12">
       <script
         type="application/ld+json"
         suppressHydrationWarning
@@ -76,7 +76,7 @@ export default async function GuidePage({ params }) {
           __html: JSON.stringify(structuredData, null, 2),
         }}
       />
-      <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] px-6 py-12 text-white shadow-xl shadow-[rgba(10,23,43,0.2)] sm:px-12">
+      <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] px-4 py-12 text-white shadow-xl shadow-[rgba(10,23,43,0.2)] sm:px-6 lg:px-8">
         <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-sky)]/25 blur-3xl" />
         <div className="relative z-10 grid gap-10 lg:grid-cols-[1.7fr,1fr] lg:items-center">
           <div className="space-y-5">
@@ -129,7 +129,7 @@ export default async function GuidePage({ params }) {
         </div>
 
         {guide.faq?.length ? (
-          <section className="rounded-3xl bg-gradient-to-br from-[var(--color-navy)] via-[var(--color-midnight)] to-[#0e2341] px-6 py-10 text-white shadow-xl shadow-[rgba(10,23,43,0.25)] sm:px-12">
+          <section className="rounded-3xl bg-gradient-to-br from-[var(--color-navy)] via-[var(--color-midnight)] to-[#0e2341] px-4 py-10 text-white shadow-xl shadow-[rgba(10,23,43,0.25)] sm:px-6 lg:px-8">
             <h2 className="text-xl font-semibold sm:text-2xl">Frequently Asked Questions</h2>
             <div className="mt-6 space-y-6">
               {guide.faq.map((item, index) => (

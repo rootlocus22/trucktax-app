@@ -161,7 +161,7 @@ export default async function BlogPost({ params }) {
       <article className="min-h-screen bg-[var(--color-page)]">
       {/* Breadcrumb */}
       <div className="bg-[var(--color-card)] border-b border-[var(--color-border)]">
-        <div className="container mx-auto px-4 py-4">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center text-sm text-[var(--color-muted)]">
             <Link href="/" className="hover:text-[var(--color-navy)]">Home</Link>
             <span className="mx-2">/</span>
@@ -174,7 +174,7 @@ export default async function BlogPost({ params }) {
 
       {/* Hero Section */}
       <header className="bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy-soft)] text-white py-16">
-        <div className="container mx-auto px-4 max-w-4xl">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 mb-4">
             <span className="bg-[var(--color-sky)]/20 backdrop-blur-sm px-4 py-1 rounded-full text-sm font-semibold text-[var(--color-sky)]">
               {post.category}
@@ -191,7 +191,7 @@ export default async function BlogPost({ params }) {
       </header>
 
       {/* Content */}
-      <main className="container mx-auto px-4 py-12 max-w-4xl">
+      <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-[var(--color-card)] rounded-lg shadow-lg p-8 md:p-12 border border-[var(--color-border)]">
           {/* Table of Contents */}
           {post.tableOfContents && post.tableOfContents.length > 0 && (
