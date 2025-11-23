@@ -57,6 +57,40 @@ export default function InsightsIndex() {
         </div>
       </section>
 
+      <section className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-lg shadow-[rgba(15,38,71,0.08)] sm:p-10">
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-semibold text-[var(--color-text)] mb-4">Comprehensive Compliance Knowledge Base</h2>
+            <p className="text-base leading-7 text-[var(--color-muted)] mb-4">
+              Our guides are written by compliance experts and updated annually to reflect the latest IRS regulations, FMCSA requirements, and state-specific rules. Each guide provides actionable steps, real-world examples, and practical checklists to help you navigate complex trucking compliance requirements.
+            </p>
+            <p className="text-base leading-7 text-[var(--color-muted)]">
+              Whether you're filing Form 2290 for the first time, renewing UCR registration, updating your MCS-150, or managing IFTA quarterly returns, these guides break down each process into clear, manageable steps. Many guides include downloadable resources, FAQ sections, and links to official government forms and portals.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3 pt-4 border-t border-[var(--color-border)]">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-[var(--color-text)]">Step-by-Step Instructions</h3>
+              <p className="text-sm text-[var(--color-muted)]">
+                Every guide includes detailed workflows with screenshots, form examples, and deadline reminders to ensure accurate filings.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-[var(--color-text)]">2025-2026 Updated</h3>
+              <p className="text-sm text-[var(--color-muted)]">
+                All guides reflect current tax rates, filing deadlines, and regulatory changes for the current compliance year.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-[var(--color-text)]">Audit-Ready Documentation</h3>
+              <p className="text-sm text-[var(--color-muted)]">
+                Learn what records to keep, how long to retain them, and how to organize documentation for IRS or DOT audits.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {guidesByCategory.map(({ category, guides }) => (
         <section key={category} className="space-y-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

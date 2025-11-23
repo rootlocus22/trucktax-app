@@ -174,7 +174,7 @@ export default async function BlogPost({ params }) {
 
       {/* Hero Section */}
       <header className="bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy-soft)] text-white py-16">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 mb-4">
             <span className="bg-[var(--color-sky)]/20 backdrop-blur-sm px-4 py-1 rounded-full text-sm font-semibold text-[var(--color-sky)]">
               {post.category}
@@ -191,7 +191,7 @@ export default async function BlogPost({ params }) {
       </header>
 
       {/* Content */}
-      <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12">
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-[var(--color-card)] rounded-lg shadow-lg p-8 md:p-12 border border-[var(--color-border)]">
           {/* Table of Contents */}
           {post.tableOfContents && post.tableOfContents.length > 0 && (

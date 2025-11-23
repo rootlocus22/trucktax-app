@@ -81,6 +81,9 @@ export default function BlogPage() {
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-2xl font-bold mb-4">Find What You Need</h2>
+          <p className="text-base text-[var(--color-muted)] mb-6">
+            Browse our comprehensive collection of Form 2290 and trucking compliance articles. Use the categories below to filter by topic, or scroll through all articles to discover new insights.
+          </p>
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
               <button
@@ -90,6 +93,37 @@ export default function BlogPage() {
                 {category}
               </button>
             ))}
+          </div>
+        </div>
+        <div className="bg-[var(--color-card)] rounded-lg shadow-md p-6 mb-8 border border-[var(--color-border)]">
+          <h2 className="text-2xl font-bold mb-4 text-[var(--color-text)]">Expert Insights for Trucking Professionals</h2>
+          <div className="space-y-4 text-base leading-7 text-[var(--color-muted)]">
+            <p>
+              Our blog covers everything from Form 2290 filing basics to advanced compliance strategies. Whether you're an owner-operator managing your own HVUT filings or a fleet manager coordinating compliance across hundreds of vehicles, you'll find actionable advice, deadline reminders, and expert tips.
+            </p>
+            <p>
+              Articles are written by compliance experts and updated regularly to reflect the latest IRS regulations, FMCSA requirements, and industry best practices. Each post includes practical examples, common pitfalls to avoid, and links to official resources and tools.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-3 pt-4 border-t border-[var(--color-border)]">
+              <div>
+                <h3 className="font-semibold text-[var(--color-text)] mb-2">Filing Guides</h3>
+                <p className="text-sm">
+                  Step-by-step instructions for Form 2290, UCR, MCS-150, and IFTA filings with screenshots and examples.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-[var(--color-text)] mb-2">Deadline Reminders</h3>
+                <p className="text-sm">
+                  Stay ahead of critical compliance deadlines with our calendar guides and reminder strategies.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-[var(--color-text)] mb-2">Tax Strategies</h3>
+                <p className="text-sm">
+                  Learn how to minimize tax liability, claim credits, and optimize your compliance workflow.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
