@@ -103,6 +103,7 @@ export default function ToolsIndex() {
                 <Link
                   href={tool.href}
                   className="mt-6 inline-flex w-fit items-center rounded-full bg-[var(--color-navy-soft)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--color-orange)]"
+                  style={{ color: '#ffffff' }}
                 >
                   Open tool →
                 </Link>
@@ -120,12 +121,14 @@ export default function ToolsIndex() {
             <Link
               href="/insights"
               className="inline-flex items-center justify-center rounded-full bg-[var(--color-orange)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#ff7a20]"
+              style={{ color: '#ffffff' }}
             >
               Browse All Guides
             </Link>
             <Link
               href="/blog"
               className="inline-flex items-center justify-center rounded-full border border-white/40 px-5 py-3 text-sm font-semibold text-white transition hover:border-white hover:bg-white/10"
+              style={{ color: '#ffffff' }}
             >
               Read Latest Articles
             </Link>

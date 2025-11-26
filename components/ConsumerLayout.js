@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,7 +9,12 @@ import { Schedule1Listener } from '@/components/Schedule1Listener';
 
 export function ConsumerLayout({ children }) {
   const { user } = useAuth();
-  const [isExpanded, setIsExpanded] = useState(!user); // Collapsed by default if logged in
+  const [isExpanded, setIsExpanded] = useState(false); // Start collapsed by default
+
+  // Update state when user changes - collapsed if logged in, expanded if not
+  useEffect(() => {
+    setIsExpanded(!user);
+  }, [user]);
 
   const toggleFooter = () => {
     setIsExpanded(!isExpanded);
@@ -31,7 +36,7 @@ export function ConsumerLayout({ children }) {
               className="w-full flex items-center justify-between text-sm text-white/70 hover:text-white transition"
             >
               <span>&copy; {new Date().getFullYear()} QuickTruckTax. All rights reserved.</span>
-              <ChevronDown className="h-4 w-4" />
+              <ChevronUp className="h-4 w-4" />
             </button>
           </div>
         )}
