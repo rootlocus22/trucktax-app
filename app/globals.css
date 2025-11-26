@@ -49,3 +49,23 @@ select,
 textarea {
   font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
+
+@keyframes truck-drive {
+  0% {
+    transform: translateX(-50%) translateX(-100px);
+  }
+  50% {
+    transform: translateX(-50%) translateX(0px);
+  }
+  100% {
+    transform: translateX(-50%) translateX(100px);
+  }
+}
+
+.animate-truck-drive {
+  animation: truck-drive 2s ease-in-out infinite;
+}
+
+.truck-svg {
+  filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+}
