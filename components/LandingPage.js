@@ -1,219 +1,307 @@
 'use client';
 
 import Link from 'next/link';
-import { Shield, Lock, Star, CheckCircle, ArrowRight, AlertCircle, Clock, FileText, Download } from 'lucide-react';
+import Image from 'next/image';
+import { blogPosts as complianceGuides } from '@/app/blog/blogData';
+
+const spotlightSlugs = [
+  "form-2290-ultimate-guide",
+  "ucr-renewal-guide",
+  "mcs150-update-guide",
+  "ifta-filing-basics",
+];
+
+const categoryOrder = [
+  "Form 2290 / HVUT",
+  "UCR",
+  "FMCSA / MCS-150",
+  "IFTA & Fuel Taxes",
+  "Business & Administration",
+  "Resources",
+];
+
+const featureHighlights = [
+  {
+    title: "Interactive Calculators",
+    description:
+      "Model Form 2290 HVUT taxes, prorations, and filing deadlines in seconds with IRS-backed datasets. No more guessing.",
+    icon: "/window.svg",
+  },
+  {
+    title: "Step-by-Step Guidance",
+    description:
+      "Follow proven playbooks for IRS and FMCSA filings, written specifically for owner-operators and fleet managers.",
+    icon: "/file.svg",
+  },
+  {
+    title: "Actionable Reminders",
+    description:
+      "Use calendars, checklists, and timelines to stay ahead of every Form 2290, UCR, and IFTA deadline.",
+    icon: "/globe.svg",
+  },
+];
+
+const stats = [
+  { label: "HVUT & compliance topics", value: "230+" },
+  { label: "2025 deadlines covered", value: "100%" },
+  { label: "Actionable templates", value: "15" },
+];
 
 export function LandingPage() {
+  const spotlightGuides = complianceGuides
+    .filter((guide) => spotlightSlugs.includes(guide.slug))
+    .sort((a, b) => spotlightSlugs.indexOf(a.slug) - spotlightSlugs.indexOf(b.slug));
+
+  const categories = categoryOrder
+    .map((category) => ({
+      category,
+      guides: complianceGuides
+        .filter((guide) => guide.category === category)
+        .slice(0, 3),
+    }))
+    .filter((entry) => entry.guides.length > 0);
+
+  // JSON-LD structured data for Organization
+  const organizationJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'QuickTruckTax',
+    url: 'https://quicktrucktax.com',
+    logo: 'https://quicktrucktax.com/quicktrucktax-logo-new.png',
+    image: 'https://quicktrucktax.com/quicktrucktax-logo-new.png',
+    description: 'QuickTruckTax helps carriers, owner-operators, and brokers stay compliant with HVUT, UCR, MCS-150, and fuel tax filings.',
+    sameAs: [
+      'https://twitter.com/quicktrucktax',
+    ],
+  };
+
   return (
-    <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] px-4 py-16 sm:px-6 lg:px-8 lg:py-24 text-white rounded-3xl sm:rounded-[2rem] lg:rounded-[2.5rem] shadow-xl">
-        <div className="absolute inset-0 bg-[url('/hero-truck.svg')] opacity-10 bg-cover bg-center"></div>
-        <div className="relative z-10 max-w-7xl mx-auto">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-              Stop Fighting With Confusing Tax Forms.
-            </h1>
-            <p className="text-xl sm:text-2xl text-white/90 mb-8 leading-relaxed">
-              We are the <strong>Done-For-You</strong> 2290 Service. Upload your old Schedule 1, and our US-based experts file the new one for you. <span className="text-[var(--color-sand)]">No logins, no typing, no headaches.</span>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
+
+      <div className="flex flex-col gap-20 sm:gap-24">
+        {/* HERO SECTION */}
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] px-4 py-20 text-white shadow-2xl sm:px-6 lg:px-8">
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/hero-truck-sunset.png"
+              alt="Cinematic shot of a semi-truck at sunset"
+              fill
+              priority
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-midnight)]/80 to-transparent" />
+          </div>
+
+          <div className="relative z-10 grid gap-12 lg:grid-cols-[1.5fr,1fr] lg:items-center">
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-orange)] border border-white/10">
+                The #1 Compliance Resource
+              </div>
+              <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl drop-shadow-lg">
+                Master Your Trucking Taxes & Compliance.
+              </h1>
+              <p className="text-lg leading-8 text-white/90 sm:text-xl max-w-2xl drop-shadow-md">
+                Don't let the IRS or FMCSA slow you down. Get expert guides for Form 2290, IFTA, and UCR filings—all in one place.
+              </p>
+
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <Link
+                  href="/insights/form-2290-ultimate-guide"
+                  className="inline-flex items-center justify-center rounded-full bg-[var(--color-orange)] px-8 py-4 text-base font-bold text-white shadow-lg transition hover:bg-[#ff7a20] hover:scale-105 transform duration-200"
+                >
+                  Start Filing Guide
+                </Link>
+                <Link
+                  href="/tools/hvut-calculator"
+                  className="inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 backdrop-blur-sm px-8 py-4 text-base font-bold text-white transition hover:bg-white/20 hover:border-white/50"
+                >
+                  HVUT Calculator
+                </Link>
+              </div>
+
+              <dl className="grid gap-6 rounded-2xl bg-black/30 backdrop-blur-md p-8 text-sm sm:grid-cols-3 border border-white/10">
+                {stats.map((item) => (
+                  <div key={item.label} className="space-y-1 text-center sm:text-left">
+                    <dt className="text-[var(--color-sand)] font-medium uppercase tracking-wider text-xs">{item.label}</dt>
+                    <dd className="text-3xl font-bold text-white">{item.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </div>
+        </section>
+
+        {/* FEATURES GRID */}
+        <section className="grid gap-8 rounded-3xl border border-[var(--color-border)] bg-[var(--color-card)]/50 p-8 shadow-xl backdrop-blur-sm sm:p-12 md:grid-cols-3">
+          {featureHighlights.map((feature) => (
+            <article key={feature.title} className="group flex flex-col gap-6 p-4 rounded-2xl transition hover:bg-white/50">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--color-sand)]/20 group-hover:bg-[var(--color-orange)]/20 transition-colors">
+                <Image src={feature.icon} alt="" width={32} height={32} className="h-8 w-8 text-[var(--color-orange)]" />
+              </div>
+              <h2 className="text-xl font-bold text-[var(--color-text)]">{feature.title}</h2>
+              <p className="text-base leading-7 text-[var(--color-muted)]">{feature.description}</p>
+            </article>
+          ))}
+        </section>
+
+        {/* WHY CHOOSE US (New Content Section) */}
+        <section className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="relative h-[500px] rounded-3xl overflow-hidden shadow-2xl">
+            <Image
+              src="/mobile-filing-app.png"
+              alt="Trucker using mobile app"
+              fill
+              className="object-cover hover:scale-105 transition-transform duration-700"
+            />
+          </div>
+          <div className="space-y-8">
+            <h2 className="text-3xl font-bold text-[var(--color-text)] sm:text-4xl">
+              Built for the Modern Owner-Operator
+            </h2>
+            <p className="text-lg text-[var(--color-muted)] leading-relaxed">
+              We understand that your office is the cab of your truck. That's why QuickTruckTax is designed to be mobile-first, fast, and jargon-free.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Link
-                href="/signup"
-                className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white px-8 py-4 rounded-lg font-semibold text-lg transition shadow-lg hover:shadow-xl"
-                style={{ color: '#ffffff' }}
-              >
-                Start Filing Now
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            </div>
-            <p className="text-white/70 text-sm mb-8">Gets your Stamped Schedule 1 in minutes.</p>
-            
-            {/* Trust Badges */}
-            <div className="flex flex-wrap gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <Lock className="w-5 h-5 text-[var(--color-sand)]" />
-                <span>Bank-Level Security</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-[var(--color-sand)]" />
-                <span>Delaware, USA Company</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Star className="w-5 h-5 text-[var(--color-amber)] fill-[var(--color-amber)]" />
-                <span>5-Star Support</span>
-              </div>
-            </div>
+            <ul className="space-y-6">
+              <li className="flex gap-4">
+                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold">✓</div>
+                <div>
+                  <h3 className="font-bold text-lg text-[var(--color-text)]">Mobile Optimized</h3>
+                  <p className="text-[var(--color-muted)]">File your taxes and check compliance from your phone, tablet, or laptop.</p>
+                </div>
+              </li>
+              <li className="flex gap-4">
+                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">✓</div>
+                <div>
+                  <h3 className="font-bold text-lg text-[var(--color-text)]">Instant Schedule 1</h3>
+                  <p className="text-[var(--color-muted)]">Get your stamped Schedule 1 proof in minutes, not weeks.</p>
+                </div>
+              </li>
+              <li className="flex gap-4">
+                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold">✓</div>
+                <div>
+                  <h3 className="font-bold text-lg text-[var(--color-text)]">Bank-Level Security</h3>
+                  <p className="text-[var(--color-muted)]">Your data is protected with 256-bit SSL encryption and secure cloud storage.</p>
+                </div>
+              </li>
+            </ul>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Problem Section */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12 text-slate-900">
-            Why do other tax sites make it so hard?
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <AlertCircle className="w-8 h-8 text-red-600" />
-                <h3 className="text-xl font-semibold text-slate-900">The Old Way</h3>
-              </div>
-              <p className="text-slate-700">
-                You have to remember your VIN, Gross Weight, and EIN. You have to navigate 10+ confusing screens. If you make a typo, you get rejected.
+        {/* SPOTLIGHT GUIDES */}
+        <section className="space-y-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-[var(--color-border)] pb-6">
+            <div>
+              <h2 className="text-3xl font-bold text-[var(--color-text)]">Spotlight Guides</h2>
+              <p className="mt-2 text-lg text-[var(--color-muted)]">
+                Essential reading for the current tax season.
               </p>
             </div>
-            <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <AlertCircle className="w-8 h-8 text-orange-600" />
-                <h3 className="text-xl font-semibold text-slate-900">The Risk</h3>
-              </div>
-              <p className="text-slate-700">
-                One wrong click on "Suspended Vehicles" or "Credit Vehicles" can cost you thousands in IRS penalties.
-              </p>
-            </div>
-            <div className="bg-[var(--color-page-alt)] border-2 border-[var(--color-orange)] rounded-xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <CheckCircle className="w-8 h-8 text-[var(--color-orange)]" />
-                <h3 className="text-xl font-semibold text-[var(--color-text)]">The QuickTruckTax Way</h3>
-              </div>
-              <p className="text-[var(--color-muted)]">
-                You snap a photo of last year's form. We type it. We verify it. We file it. You just pay and drive.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 bg-[var(--color-page-alt)]">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-semibold text-center mb-3 text-[var(--color-text)]">
-            How Our Service Works
-          </h2>
-          <p className="text-center text-sm text-[var(--color-muted)] mb-10 max-w-2xl mx-auto">
-            From signup to stamped Schedule 1, we handle everything. Our AI and expert agents make filing effortless.
-          </p>
-          <div className="grid md:grid-cols-5 gap-4 mb-6">
-            <div className="bg-[var(--color-card)] rounded-xl p-5 shadow-md text-center border border-[var(--color-border)]">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <FileText className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="text-xs font-semibold text-blue-600 mb-1">Step 1</div>
-              <h3 className="text-sm font-semibold mb-1 text-[var(--color-text)]">Sign Up / Login</h3>
-              <p className="text-xs text-[var(--color-muted)]">
-                One-click Google login or email signup
-              </p>
-            </div>
-            <div className="bg-[var(--color-card)] rounded-xl p-5 shadow-md text-center border border-[var(--color-border)]">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <FileText className="w-6 h-6 text-purple-600" />
-              </div>
-              <div className="text-xs font-semibold text-purple-600 mb-1">Step 2</div>
-              <h3 className="text-sm font-semibold mb-1 text-[var(--color-text)]">Upload Schedule 1</h3>
-              <p className="text-xs text-[var(--color-muted)]">
-                Upload PDF or photo of your Schedule 1
-              </p>
-            </div>
-            <div className="bg-[var(--color-card)] rounded-xl p-5 shadow-md text-center border border-[var(--color-border)]">
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <FileText className="w-6 h-6 text-[var(--color-orange)]" />
-              </div>
-              <div className="text-xs font-semibold text-[var(--color-orange)] mb-1">Step 3</div>
-              <h3 className="text-sm font-semibold mb-1 text-[var(--color-text)]">AI Extracts Data</h3>
-              <p className="text-xs text-[var(--color-muted)]">
-                AI automatically extracts all information
-              </p>
-            </div>
-            <div className="bg-[var(--color-card)] rounded-xl p-5 shadow-md text-center border border-[var(--color-border)]">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="text-xs font-semibold text-green-600 mb-1">Step 4</div>
-              <h3 className="text-sm font-semibold mb-1 text-[var(--color-text)]">Agents File</h3>
-              <p className="text-xs text-[var(--color-muted)]">
-                Expert agents review and file with IRS
-              </p>
-            </div>
-            <div className="bg-[var(--color-card)] rounded-xl p-5 shadow-md text-center border border-[var(--color-border)]">
-              <div className="w-12 h-12 bg-[var(--color-page-alt)] rounded-full flex items-center justify-center mx-auto mb-3">
-                <Download className="w-6 h-6 text-[var(--color-orange)]" />
-              </div>
-              <div className="text-xs font-semibold text-[var(--color-orange)] mb-1">Step 5</div>
-              <h3 className="text-sm font-semibold mb-1 text-[var(--color-text)]">Get Schedule 1</h3>
-              <p className="text-xs text-[var(--color-muted)]">
-                Receive stamped Schedule 1 within hours
-              </p>
-            </div>
-          </div>
-          <div className="text-center">
             <Link
-              href="/how-it-works"
-              className="inline-flex items-center gap-2 text-sm text-[var(--color-navy)] font-medium hover:text-[var(--color-orange)] transition"
+              href="/insights"
+              className="inline-flex items-center text-sm font-bold text-[var(--color-navy-soft)] hover:text-[var(--color-orange)] transition-colors"
             >
-              Learn More About Our Process
-              <ArrowRight className="w-4 h-4" />
+              View all insights →
             </Link>
           </div>
-        </div>
-      </section>
-
-      {/* Pricing CTA */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-[var(--color-text)]">
-            Simple, Transparent Pricing
-          </h2>
-          <p className="text-lg text-[var(--color-muted)] mb-8">
-            One flat rate. No hidden fees. Everything included.
-          </p>
-          <Link
-            href="/pricing"
-            className="inline-block bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white px-8 py-4 rounded-lg font-semibold text-lg transition shadow-lg hover:shadow-xl"
-            style={{ color: '#ffffff' }}
-          >
-            View Full Pricing Details
-          </Link>
-        </div>
-      </section>
-
-      {/* Trust & Compliance */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] text-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <Shield className="w-16 h-16 mx-auto mb-6 text-[var(--color-sand)]" />
-          <h2 className="text-3xl sm:text-4xl font-bold mb-6">Authorized & Secure</h2>
-          <p className="text-lg text-white/80 mb-4">
-            QuickTruckTax is a registered US Company based in Delaware.
-          </p>
-          <div className="inline-block bg-white/10 px-6 py-3 rounded-lg mb-6">
-            <p className="text-sm font-semibold">Authorized IRS E-File Provider (via Partner Network)</p>
+          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+            {spotlightGuides.map((guide) => (
+              <article
+                key={guide.slug}
+                className="flex h-full flex-col justify-between rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-lg transition hover:-translate-y-2 hover:shadow-2xl hover:border-[var(--color-orange)]/30 group"
+              >
+                <div className="space-y-4">
+                  <span className="inline-flex rounded-full bg-[var(--color-sand)] px-3 py-1 text-xs font-bold uppercase tracking-wide text-[var(--color-navy)]">
+                    {guide.category}
+                  </span>
+                  <h3 className="text-xl font-bold text-[var(--color-text)] group-hover:text-[var(--color-orange)] transition-colors">
+                    <Link href={`/insights/${guide.slug}`}>{guide.title}</Link>
+                  </h3>
+                  <p className="text-sm text-[var(--color-muted)] leading-relaxed">{guide.description}</p>
+                </div>
+                <div className="mt-6 flex items-center justify-between text-xs font-medium text-[var(--color-muted)] border-t border-[var(--color-border)] pt-4">
+                  <span>
+                    Updated {new Date(guide.updatedAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                  <Link
+                    href={`/insights/${guide.slug}`}
+                    className="text-[var(--color-navy-soft)] group-hover:text-[var(--color-orange)] transition-colors"
+                  >
+                    Read Guide →
+                  </Link>
+                </div>
+              </article>
+            ))}
           </div>
-          <p className="text-white/70 text-sm">
-            We employ PTIN-certified tax professionals to sign and review every single return for accuracy.
-          </p>
-        </div>
-      </section>
+        </section>
 
-      {/* FAQ CTA */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-[var(--color-page-alt)]">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-[var(--color-text)]">
-            Have Questions?
-          </h2>
-          <p className="text-lg text-[var(--color-muted)] mb-8">
-            Get answers to common questions about Form 2290 filing.
-          </p>
-          <Link
-            href="/faq"
-            className="inline-block bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-navy-soft)] text-white px-8 py-4 rounded-lg font-semibold text-lg transition shadow-lg hover:shadow-xl"
-            style={{ color: '#ffffff' }}
-          >
-            View FAQ
-          </Link>
-        </div>
-      </section>
-    </div>
+        {/* CATEGORIES SECTION */}
+        <section className="space-y-16">
+          {categories.map(({ category, guides }) => (
+            <div key={category} className="space-y-8">
+              <div className="flex items-center gap-4">
+                <div className="h-8 w-2 bg-[var(--color-orange)] rounded-full"></div>
+                <h3 className="text-2xl font-bold text-[var(--color-text)]">{category}</h3>
+              </div>
+              <div className="grid gap-8 md:grid-cols-3">
+                {guides.map((guide) => (
+                  <article
+                    key={guide.slug}
+                    className="flex h-full flex-col justify-between rounded-2xl bg-[var(--color-card)] p-8 shadow-md transition hover:shadow-xl hover:bg-white border border-transparent hover:border-[var(--color-border)]"
+                  >
+                    <div className="space-y-4">
+                      <h4 className="text-lg font-bold text-[var(--color-text)]">
+                        <Link href={`/insights/${guide.slug}`} className="hover:text-[var(--color-navy)] transition-colors">
+                          {guide.title}
+                        </Link>
+                      </h4>
+                      <p className="text-sm text-[var(--color-muted)] leading-relaxed">{guide.description}</p>
+                    </div>
+                    <div className="mt-6 flex items-center gap-2 text-xs font-medium text-[var(--color-muted)]">
+                      <span className="bg-[var(--color-page)] px-2 py-1 rounded">{guide.estimatedReadMinutes} min read</span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+
+        {/* CTA SECTION */}
+        <section className="relative overflow-hidden rounded-3xl bg-[var(--color-navy)] px-6 py-20 text-center text-white shadow-2xl sm:px-12">
+          <div className="absolute inset-0 bg-[url('/hero-truck.svg')] opacity-10 bg-center bg-no-repeat bg-cover mix-blend-overlay"></div>
+          <div className="relative z-10 max-w-3xl mx-auto space-y-8">
+            <h2 className="text-3xl font-bold sm:text-4xl">
+              Ready to Simplify Your Compliance?
+            </h2>
+            <p className="text-lg text-white/80 leading-relaxed">
+              Join thousands of truckers who trust QuickTruckTax for their HVUT, IFTA, and UCR needs. Get started today and drive with peace of mind.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/tools/hvut-calculator"
+                className="inline-flex items-center justify-center rounded-full bg-[var(--color-orange)] px-8 py-4 text-base font-bold text-white shadow-lg transition hover:bg-[#ff7a20] hover:scale-105 transform duration-200"
+              >
+                Calculate Your Tax
+              </Link>
+              <Link
+                href="/insights"
+                className="inline-flex items-center justify-center rounded-full bg-white px-8 py-4 text-base font-bold shadow-lg transition hover:bg-gray-100"
+                style={{ color: '#0f2647', backgroundColor: '#ffffff' }}
+              >
+                Browse Guides
+              </Link>
+            </div>
+          </div>
+        </section>
+      </div>
+    </>
   );
 }
-
