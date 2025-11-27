@@ -57,9 +57,9 @@ export const metadata = {
     },
   },
   icons: {
-    icon: "/icon.png",
-    shortcut: "/icon.png",
-    apple: "/icon.png",
+    icon: "/quicktrucktax-logo-new.png",
+    shortcut: "/quicktrucktax-logo-new.png",
+    apple: "/quicktrucktax-logo-new.png",
   },
   verification: {
     google: "-95Bq4XHD66PIeHdHG3cDSad9_yp6kTmOVeUtUKUIc0",
@@ -74,7 +74,7 @@ export const metadata = {
     locale: "en_US",
     images: [
       {
-        url: "https://quicktrucktax.com/quicktrucktax-logo.png",
+        url: "https://quicktrucktax.com/quicktrucktax-logo-new.png",
         width: 1280,
         height: 720,
         alt: "QuickTruckTax - Trucking Tax Compliance Guide",
@@ -89,7 +89,7 @@ export const metadata = {
     title: "QuickTruckTax | Trucking Compliance Guides",
     description:
       "Stay ahead of trucking compliance deadlines with detailed Form 2290 and HVUT guides.",
-    images: ["https://quicktrucktax.com/quicktrucktax-logo.png"],
+    images: ["https://quicktrucktax.com/quicktrucktax-logo-new.png"],
   },
 };
 
@@ -113,11 +113,14 @@ export default function RootLayout({ children }) {
         <div className="flex min-h-screen flex-col">
           <header className="border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] text-white shadow-sm">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8 sm:flex-row sm:items-center sm:justify-between">
-              <Link href="/" className="flex flex-col text-white">
-                <span className="text-xl font-semibold tracking-tight">QuickTruckTax</span>
-                <span className="text-xs font-medium uppercase tracking-[0.35em] text-white/60">
-                  Filing Made Simple
-                </span>
+              <Link href="/" className="flex items-center gap-3">
+                <img src="/quicktrucktax-logo-new.png" alt="QuickTruckTax Logo" className="h-10 w-auto" />
+                <div className="flex flex-col text-white">
+                  <span className="text-xl font-semibold tracking-tight">QuickTruckTax</span>
+                  <span className="text-[10px] font-medium uppercase tracking-[0.35em] text-white/60">
+                    Filing Made Simple
+                  </span>
+                </div>
               </Link>
               <nav className="flex flex-wrap items-center gap-2 text-sm font-medium sm:justify-end">
                 {navLinks.map((link) => (

@@ -20,19 +20,19 @@ const categoryOrder = [
 
 const featureHighlights = [
   {
-    title: "Interactive calculators",
+    title: "Interactive Calculators",
     description:
-      "Model Form 2290 HVUT taxes, prorations, and filing deadlines in seconds with IRS-backed datasets.",
+      "Model Form 2290 HVUT taxes, prorations, and filing deadlines in seconds with IRS-backed datasets. No more guessing.",
     icon: "/window.svg",
   },
   {
-    title: "Step-by-step guidance",
+    title: "Step-by-Step Guidance",
     description:
-      "Follow proven playbooks for IRS and FMCSA filings, written for owner-operators and fleet managers.",
+      "Follow proven playbooks for IRS and FMCSA filings, written specifically for owner-operators and fleet managers.",
     icon: "/file.svg",
   },
   {
-    title: "Actionable reminders",
+    title: "Actionable Reminders",
     description:
       "Use calendars, checklists, and timelines to stay ahead of every Form 2290, UCR, and IFTA deadline.",
     icon: "/globe.svg",
@@ -40,9 +40,9 @@ const featureHighlights = [
 ];
 
 const stats = [
-  { label: "HVUT & compliance topics", value: "23+" },
+  { label: "HVUT & compliance topics", value: "230+" },
   { label: "2025 deadlines covered", value: "100%" },
-  { label: "Actionable templates", value: "10" },
+  { label: "Actionable templates", value: "15" },
 ];
 
 export default function Home() {
@@ -65,230 +65,240 @@ export default function Home() {
     '@type': 'Organization',
     name: 'QuickTruckTax',
     url: 'https://quicktrucktax.com',
-    logo: 'https://quicktrucktax.com/quicktrucktax-logo.png',
-    image: 'https://quicktrucktax.com/quicktrucktax-logo.png',
+    logo: 'https://quicktrucktax.com/quicktrucktax-logo-new.png',
+    image: 'https://quicktrucktax.com/quicktrucktax-logo-new.png',
     description: 'QuickTruckTax helps carriers, owner-operators, and brokers stay compliant with HVUT, UCR, MCS-150, and fuel tax filings.',
     sameAs: [
       'https://twitter.com/quicktrucktax',
     ],
   };
 
-  // JSON-LD structured data for WebSite
-  const websiteJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'QuickTruckTax',
-    url: 'https://quicktrucktax.com',
-    description: 'Trucking Compliance Guides & Form 2290 Filing Resources',
-    publisher: {
-      '@type': 'Organization',
-      name: 'QuickTruckTax',
-    },
-  };
-
   return (
     <>
-      {/* JSON-LD Structured Data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-      />
 
-      
-    <div className="flex flex-col gap-16 sm:gap-20">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] px-4 py-14 text-white shadow-xl shadow-[rgba(10,23,43,0.2)] sm:px-6 lg:px-8">
-        <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -right-16 top-12 h-48 w-48 rounded-full bg-[var(--color-orange)]/20 blur-3xl" />
-        <div className="relative z-10 grid gap-12 lg:grid-cols-[1.6fr,1fr] lg:items-center">
-          <div className="space-y-6">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-sand)]">
-              Trusted HVUT knowledge
-            </span>
-            <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl lg:text-5xl">
-              QuickTruckTax keeps your trucks compliant—without the paperwork chaos.
-            </h1>
-            <p className="text-base leading-7 text-white/80 sm:text-lg">
-              Explore expert-written guides covering Heavy Vehicle Use Tax (Form 2290), Unified Carrier Registration, MCS-150 updates, and IFTA filings. Stay informed, prepared, and ready for every audit.
+      <div className="flex flex-col gap-20 sm:gap-24">
+        {/* HERO SECTION */}
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] px-4 py-20 text-white shadow-2xl sm:px-6 lg:px-8">
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/hero-truck-sunset.png"
+              alt="Cinematic shot of a semi-truck at sunset"
+              fill
+              priority
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-midnight)]/80 to-transparent" />
+          </div>
+
+          <div className="relative z-10 grid gap-12 lg:grid-cols-[1.5fr,1fr] lg:items-center">
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-orange)] border border-white/10">
+                The #1 Compliance Resource
+              </div>
+              <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl drop-shadow-lg">
+                Master Your Trucking Taxes & Compliance.
+              </h1>
+              <p className="text-lg leading-8 text-white/90 sm:text-xl max-w-2xl drop-shadow-md">
+                Don't let the IRS or FMCSA slow you down. Get expert guides for Form 2290, IFTA, and UCR filings—all in one place.
+              </p>
+
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <Link
+                  href="/insights/form-2290-ultimate-guide"
+                  className="inline-flex items-center justify-center rounded-full bg-[var(--color-orange)] px-8 py-4 text-base font-bold text-white shadow-lg transition hover:bg-[#ff7a20] hover:scale-105 transform duration-200"
+                >
+                  Start Filing Guide
+                </Link>
+                <Link
+                  href="/tools/hvut-calculator"
+                  className="inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 backdrop-blur-sm px-8 py-4 text-base font-bold text-white transition hover:bg-white/20 hover:border-white/50"
+                >
+                  HVUT Calculator
+                </Link>
+              </div>
+
+              <dl className="grid gap-6 rounded-2xl bg-black/30 backdrop-blur-md p-8 text-sm sm:grid-cols-3 border border-white/10">
+                {stats.map((item) => (
+                  <div key={item.label} className="space-y-1 text-center sm:text-left">
+                    <dt className="text-[var(--color-sand)] font-medium uppercase tracking-wider text-xs">{item.label}</dt>
+                    <dd className="text-3xl font-bold text-white">{item.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </div>
+        </section>
+
+        {/* FEATURES GRID */}
+        <section className="grid gap-8 rounded-3xl border border-[var(--color-border)] bg-[var(--color-card)]/50 p-8 shadow-xl backdrop-blur-sm sm:p-12 md:grid-cols-3">
+          {featureHighlights.map((feature) => (
+            <article key={feature.title} className="group flex flex-col gap-6 p-4 rounded-2xl transition hover:bg-white/50">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--color-sand)]/20 group-hover:bg-[var(--color-orange)]/20 transition-colors">
+                <Image src={feature.icon} alt="" width={32} height={32} className="h-8 w-8 text-[var(--color-orange)]" />
+              </div>
+              <h2 className="text-xl font-bold text-[var(--color-text)]">{feature.title}</h2>
+              <p className="text-base leading-7 text-[var(--color-muted)]">{feature.description}</p>
+            </article>
+          ))}
+        </section>
+
+        {/* WHY CHOOSE US (New Content Section) */}
+        <section className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="relative h-[500px] rounded-3xl overflow-hidden shadow-2xl">
+            <Image
+              src="/mobile-filing-app.png"
+              alt="Trucker using mobile app"
+              fill
+              className="object-cover hover:scale-105 transition-transform duration-700"
+            />
+          </div>
+          <div className="space-y-8">
+            <h2 className="text-3xl font-bold text-[var(--color-text)] sm:text-4xl">
+              Built for the Modern Owner-Operator
+            </h2>
+            <p className="text-lg text-[var(--color-muted)] leading-relaxed">
+              We understand that your office is the cab of your truck. That's why QuickTruckTax is designed to be mobile-first, fast, and jargon-free.
             </p>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <Link
-                href="/insights/form-2290-ultimate-guide"
-                className="inline-flex items-center justify-center rounded-full bg-[var(--color-orange)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#ff7a20]"
+            <ul className="space-y-6">
+              <li className="flex gap-4">
+                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold">✓</div>
+                <div>
+                  <h3 className="font-bold text-lg text-[var(--color-text)]">Mobile Optimized</h3>
+                  <p className="text-[var(--color-muted)]">File your taxes and check compliance from your phone, tablet, or laptop.</p>
+                </div>
+              </li>
+              <li className="flex gap-4">
+                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">✓</div>
+                <div>
+                  <h3 className="font-bold text-lg text-[var(--color-text)]">Instant Schedule 1</h3>
+                  <p className="text-[var(--color-muted)]">Get your stamped Schedule 1 proof in minutes, not weeks.</p>
+                </div>
+              </li>
+              <li className="flex gap-4">
+                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold">✓</div>
+                <div>
+                  <h3 className="font-bold text-lg text-[var(--color-text)]">Bank-Level Security</h3>
+                  <p className="text-[var(--color-muted)]">Your data is protected with 256-bit SSL encryption and secure cloud storage.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        {/* SPOTLIGHT GUIDES */}
+        <section className="space-y-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-[var(--color-border)] pb-6">
+            <div>
+              <h2 className="text-3xl font-bold text-[var(--color-text)]">Spotlight Guides</h2>
+              <p className="mt-2 text-lg text-[var(--color-muted)]">
+                Essential reading for the current tax season.
+              </p>
+            </div>
+            <Link
+              href="/insights"
+              className="inline-flex items-center text-sm font-bold text-[var(--color-navy-soft)] hover:text-[var(--color-orange)] transition-colors"
+            >
+              View all insights →
+            </Link>
+          </div>
+          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+            {spotlightGuides.map((guide) => (
+              <article
+                key={guide.slug}
+                className="flex h-full flex-col justify-between rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-lg transition hover:-translate-y-2 hover:shadow-2xl hover:border-[var(--color-orange)]/30 group"
               >
-                Start with Form 2290 Guide
-              </Link>
+                <div className="space-y-4">
+                  <span className="inline-flex rounded-full bg-[var(--color-sand)] px-3 py-1 text-xs font-bold uppercase tracking-wide text-[var(--color-navy)]">
+                    {guide.category}
+                  </span>
+                  <h3 className="text-xl font-bold text-[var(--color-text)] group-hover:text-[var(--color-orange)] transition-colors">
+                    <Link href={`/insights/${guide.slug}`}>{guide.title}</Link>
+                  </h3>
+                  <p className="text-sm text-[var(--color-muted)] leading-relaxed">{guide.description}</p>
+                </div>
+                <div className="mt-6 flex items-center justify-between text-xs font-medium text-[var(--color-muted)] border-t border-[var(--color-border)] pt-4">
+                  <span>
+                    Updated {new Date(guide.updatedAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                  <Link
+                    href={`/insights/${guide.slug}`}
+                    className="text-[var(--color-navy-soft)] group-hover:text-[var(--color-orange)] transition-colors"
+                  >
+                    Read Guide →
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* CATEGORIES SECTION */}
+        <section className="space-y-16">
+          {categories.map(({ category, guides }) => (
+            <div key={category} className="space-y-8">
+              <div className="flex items-center gap-4">
+                <div className="h-8 w-2 bg-[var(--color-orange)] rounded-full"></div>
+                <h3 className="text-2xl font-bold text-[var(--color-text)]">{category}</h3>
+              </div>
+              <div className="grid gap-8 md:grid-cols-3">
+                {guides.map((guide) => (
+                  <article
+                    key={guide.slug}
+                    className="flex h-full flex-col justify-between rounded-2xl bg-[var(--color-card)] p-8 shadow-md transition hover:shadow-xl hover:bg-white border border-transparent hover:border-[var(--color-border)]"
+                  >
+                    <div className="space-y-4">
+                      <h4 className="text-lg font-bold text-[var(--color-text)]">
+                        <Link href={`/insights/${guide.slug}`} className="hover:text-[var(--color-navy)] transition-colors">
+                          {guide.title}
+                        </Link>
+                      </h4>
+                      <p className="text-sm text-[var(--color-muted)] leading-relaxed">{guide.description}</p>
+                    </div>
+                    <div className="mt-6 flex items-center gap-2 text-xs font-medium text-[var(--color-muted)]">
+                      <span className="bg-[var(--color-page)] px-2 py-1 rounded">{guide.estimatedReadMinutes} min read</span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+
+        {/* CTA SECTION */}
+        <section className="relative overflow-hidden rounded-3xl bg-[var(--color-navy)] px-6 py-20 text-center text-white shadow-2xl sm:px-12">
+          <div className="absolute inset-0 bg-[url('/hero-truck.svg')] opacity-10 bg-center bg-no-repeat bg-cover mix-blend-overlay"></div>
+          <div className="relative z-10 max-w-3xl mx-auto space-y-8">
+            <h2 className="text-3xl font-bold sm:text-4xl">
+              Ready to Simplify Your Compliance?
+            </h2>
+            <p className="text-lg text-white/80 leading-relaxed">
+              Join thousands of truckers who trust QuickTruckTax for their HVUT, IFTA, and UCR needs. Get started today and drive with peace of mind.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/tools/hvut-calculator"
-                className="inline-flex items-center justify-center rounded-full border border-white/40 px-5 py-3 text-sm font-semibold text-white transition hover:border-white hover:bg-white/10"
+                className="inline-flex items-center justify-center rounded-full bg-[var(--color-orange)] px-8 py-4 text-base font-bold text-white shadow-lg transition hover:bg-[#ff7a20] hover:scale-105 transform duration-200"
               >
-                Open HVUT calculator
+                Calculate Your Tax
               </Link>
               <Link
                 href="/insights"
-                className="inline-flex items-center justify-center rounded-full border border-white/40 px-5 py-3 text-sm font-semibold text-white transition hover:border-white hover:bg-white/10"
+                className="inline-flex items-center justify-center rounded-full bg-white text-[var(--color-navy)] px-8 py-4 text-base font-bold shadow-lg transition hover:bg-gray-100"
               >
-                Browse all insights
+                Browse Guides
               </Link>
             </div>
-            <dl className="grid gap-4 rounded-2xl bg-white/10 p-6 text-sm sm:grid-cols-3 sm:text-left">
-              {stats.map((item) => (
-                <div key={item.label} className="space-y-1 text-center sm:text-left">
-                  <dt className="text-[var(--color-sand)]">{item.label}</dt>
-                  <dd className="text-2xl font-semibold text-white">{item.value}</dd>
-                </div>
-              ))}
-            </dl>
           </div>
-          <div className="relative h-56 w-full sm:h-72 lg:h-80">
-            <div className="absolute inset-0 rounded-3xl bg-[var(--color-sky)]/20 blur-3xl" />
-            <Image
-              src="/hero-truck.svg"
-              alt="Illustration of a compliant trucking fleet dashboard"
-              fill
-              priority
-              className="relative rounded-3xl object-cover"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-6 rounded-3xl border border-[var(--color-border)] bg-[var(--color-card)]/95 p-6 shadow-lg shadow-[rgba(15,38,71,0.08)] backdrop-blur sm:p-10 md:grid-cols-3">
-        {featureHighlights.map((feature) => (
-          <article key={feature.title} className="flex flex-col gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-sand)]/80">
-              <Image src={feature.icon} alt="" width={28} height={28} className="h-7 w-7 text-[var(--color-orange)]" />
-            </div>
-            <h2 className="text-lg font-semibold text-[var(--color-text)]">{feature.title}</h2>
-            <p className="text-sm leading-6 text-[var(--color-muted)]">{feature.description}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold text-[var(--color-text)] sm:text-3xl">Spotlight guides</h2>
-            <p className="mt-1 text-sm text-[var(--color-muted)]">
-              High-impact reads to keep compliance on schedule this quarter.
-            </p>
-          </div>
-          <Link
-            href="/insights"
-            className="inline-flex items-center text-sm font-medium text-[var(--color-navy-soft)] hover:text-[var(--color-orange)]"
-          >
-            View all insights →
-          </Link>
-        </div>
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {spotlightGuides.map((guide) => (
-            <article
-              key={guide.slug}
-              className="flex h-full flex-col justify-between rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-lg shadow-[rgba(15,38,71,0.08)] transition hover:-translate-y-1 hover:border-[var(--color-amber)]/60 hover:shadow-xl"
-            >
-              <div className="space-y-3">
-                <span className="inline-flex rounded-full bg-[var(--color-sand)] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[var(--color-orange)]">
-                  {guide.category}
-                </span>
-                <h3 className="text-lg font-semibold text-[var(--color-text)]">
-                  <Link href={`/insights/${guide.slug}`}>{guide.title}</Link>
-                </h3>
-                <p className="text-sm text-[var(--color-muted)]">{guide.description}</p>
-              </div>
-              <div className="mt-6 flex items-center justify-between text-xs text-[var(--color-muted)]">
-                <span>
-                  Updated {new Date(guide.updatedAt).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </span>
-                <Link
-                  href={`/insights/${guide.slug}`}
-                  className="font-semibold text-[var(--color-navy-soft)] hover:text-[var(--color-orange)]"
-                >
-                  Read guide
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-10">
-        {categories.map(({ category, guides }) => (
-          <div key={category} className="space-y-6">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-xl font-semibold text-[var(--color-text)] sm:text-2xl">{category}</h3>
-              <span className="text-sm text-[var(--color-muted)]">
-                {guides.length} guide{guides.length === 1 ? "" : "s"} curated for you
-              </span>
-            </div>
-            <div className="grid gap-6 md:grid-cols-2">
-              {guides.map((guide) => (
-                <article
-                  key={guide.slug}
-                  className="flex h-full flex-col justify-between rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-lg shadow-[rgba(15,38,71,0.08)] transition hover:-translate-y-1 hover:border-[var(--color-sky)]/60 hover:shadow-xl"
-                >
-                  <div className="space-y-3">
-                    <h4 className="text-lg font-semibold text-[var(--color-text)]">
-                      <Link href={`/insights/${guide.slug}`}>{guide.title}</Link>
-                    </h4>
-                    <p className="text-sm text-[var(--color-muted)]">{guide.description}</p>
-                  </div>
-                  <div className="mt-6 flex flex-wrap items-center gap-3 text-xs text-[var(--color-muted)]">
-                    <span>{guide.estimatedReadMinutes}-minute read</span>
-                    <span>•</span>
-                    <span>
-                      Updated {new Date(guide.updatedAt).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        ))}
-      </section>
-
-      <section className="rounded-3xl bg-gradient-to-br from-[var(--color-navy)] via-[var(--color-midnight)] to-[#0e2341] px-4 py-12 text-white shadow-xl shadow-[rgba(10,23,43,0.25)] sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[2fr,1fr] lg:items-center">
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold sm:text-3xl">
-              Stay ahead of every compliance deadline.
-            </h2>
-            <p className="text-sm leading-6 text-white/80">
-              Sign up for the QuickTruckTax digest (coming soon) to receive Form 2290 reminders, safety audit tips, and new template drops. In the meantime, bookmark your favorite guides and share them with dispatch and safety teams.
-            </p>
-          </div>
-          <div className="relative">
-            <div className="rounded-2xl bg-white/15 p-6 text-sm text-white/85">
-              <p className="font-semibold text-white">Next steps</p>
-              <ul className="mt-3 space-y-2">
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-[var(--color-amber)]" />
-                  Download the Form 2290 checklist before the July rush.
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-[var(--color-amber)]" />
-                  Add the 2025 compliance calendar to your shared planner.
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-[var(--color-amber)]" />
-                  Share guides with drivers who manage their own HVUT filings.
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
     </>
   );
 }
