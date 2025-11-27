@@ -1,6 +1,425 @@
 import React from 'react';
+import { generateStatePosts } from './stateData';
+import { generateVehiclePosts } from './vehicleData';
+import { generateCityPosts } from './cityData';
+
+const statePosts = generateStatePosts();
+const vehiclePosts = generateVehiclePosts();
+const cityPosts = generateCityPosts();
 
 export const blogPosts = [
+  ...statePosts,
+  ...vehiclePosts,
+  ...cityPosts,
+  {
+    id: 'truckers-guide-dot-audits-record-keeping',
+    title: 'The Trucker\'s Guide to DOT Audits and Record Keeping',
+    excerpt: 'Dreading a DOT audit? Learn exactly what records to keep, how long to keep them, and how to pass an inspection with flying colors.',
+    category: 'Compliance',
+    readTime: '8 min',
+    date: 'November 2025',
+    dateISO: '2025-11-27',
+    keywords: ['DOT audit checklist', 'trucking record keeping', 'schedule 1 retention', 'IFTA records', 'driver qualification file'],
+    tableOfContents: [
+      { id: 'audit-types', title: 'Types of DOT Audits' },
+      { id: 'record-checklist', title: 'Essential Records Checklist' },
+      { id: 'retention-rules', title: 'How Long to Keep Documents?' },
+      { id: 'digital-records', title: 'Going Digital: Best Practices' },
+    ],
+    relatedPosts: ['ultimate-2026-guide-filing-irs-form-2290', 'file-form-2290-from-phone-guide'],
+    content: (
+      <>
+        <div className="bg-red-50 border-l-4 border-red-400 p-6 mb-8">
+          <p className="font-bold text-lg mb-2">👮 Audit Alert</p>
+          <p>The FMCSA conducts thousands of audits annually. A "Conditional" or "Unsatisfactory" safety rating can skyrocket your insurance premiums or even shut down your operations.</p>
+        </div>
+
+        <p className="mb-6">
+          Compliance isn't just about following rules; it's about survival. Whether you're a single owner-operator or managing a fleet, keeping your paperwork in order is the best defense against a DOT audit.
+        </p>
+
+        <h2 id="audit-types" className="text-3xl font-bold mt-12 mb-6">Types of DOT Audits</h2>
+
+        <p className="mb-4">Not all audits are the same. Here are the three main types you might face:</p>
+
+        <div className="space-y-4 mb-6">
+          <div className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
+            <h3 className="font-bold text-lg mb-1">1. New Entrant Safety Audit</h3>
+            <p className="text-sm">Occurs within the first 12 months of operations. Focuses on educational compliance and setting up safety systems.</p>
+          </div>
+          <div className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
+            <h3 className="font-bold text-lg mb-1">2. Compliance Review</h3>
+            <p className="text-sm">A comprehensive on-site examination of your records, usually triggered by high CSA scores or a severe accident.</p>
+          </div>
+          <div className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
+            <h3 className="font-bold text-lg mb-1">3. Focused Review</h3>
+            <p className="text-sm">Targeted audit on a specific area (e.g., Hours of Service or Drug & Alcohol testing) where you show deficiencies.</p>
+          </div>
+        </div>
+
+        <h2 id="record-checklist" className="text-3xl font-bold mt-12 mb-6">Essential Records Checklist</h2>
+
+        <p className="mb-4">When the auditor knocks, have these files ready:</p>
+
+        <div className="bg-blue-50 rounded-lg p-6 mb-6">
+          <h3 className="font-bold text-xl mb-4">📂 The "Must-Have" List</h3>
+          <ul className="space-y-3">
+            <li className="flex items-start">
+              <span className="text-blue-600 mr-2">✓</span>
+              <div>
+                <strong>Driver Qualification Files (DQF):</strong> Application, CDL copy, medical card, MVR report, road test certificate.
+              </div>
+            </li>
+            <li className="flex items-start">
+              <span className="text-blue-600 mr-2">✓</span>
+              <div>
+                <strong>Hours of Service (HOS):</strong> ELD records and supporting documents (fuel receipts, bills of lading) for the past 6 months.
+              </div>
+            </li>
+            <li className="flex items-start">
+              <span className="text-blue-600 mr-2">✓</span>
+              <div>
+                <strong>Vehicle Maintenance Files:</strong> Inspection reports (DVIRs), maintenance records, and annual inspection proof for each truck.
+              </div>
+            </li>
+            <li className="flex items-start">
+              <span className="text-blue-600 mr-2">✓</span>
+              <div>
+                <strong>Drug & Alcohol Testing:</strong> Pre-employment results, random testing pool proof, and policy documents.
+              </div>
+            </li>
+            <li className="flex items-start">
+              <span className="text-blue-600 mr-2">✓</span>
+              <div>
+                <strong>Tax & Insurance:</strong> Proof of insurance (MCS-90), IFTA licenses, and <strong>IRS Form 2290 Schedule 1</strong>.
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <h2 id="retention-rules" className="text-3xl font-bold mt-12 mb-6">How Long to Keep Documents?</h2>
+
+        <p className="mb-4">Throwing away records too soon is a common violation. Follow these retention guidelines:</p>
+
+        <table className="w-full border-collapse border border-gray-300 mb-6 text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border border-gray-300 p-2 text-left">Document Type</th>
+              <th className="border border-gray-300 p-2 text-left">Retention Period</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border border-gray-300 p-2">Logbooks / ELD Data</td>
+              <td className="border border-gray-300 p-2">6 Months</td>
+            </tr>
+            <tr className="bg-gray-50">
+              <td className="border border-gray-300 p-2">Vehicle Maintenance Records</td>
+              <td className="border border-gray-300 p-2">1 Year (after vehicle leaves fleet)</td>
+            </tr>
+            <tr>
+              <td className="border border-gray-300 p-2">Driver Qualification Files</td>
+              <td className="border border-gray-300 p-2">3 Years (after employment ends)</td>
+            </tr>
+            <tr className="bg-gray-50">
+              <td className="border border-gray-300 p-2">Drug & Alcohol Records</td>
+              <td className="border border-gray-300 p-2">5 Years (for positive results)</td>
+            </tr>
+            <tr>
+              <td className="border border-gray-300 p-2"><strong>Form 2290 Schedule 1</strong></td>
+              <td className="border border-gray-300 p-2 font-bold text-blue-600">3 Years</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="digital-records" className="text-3xl font-bold mt-12 mb-6">Going Digital: Best Practices</h2>
+
+        <p className="mb-4">Paper files are easily lost or damaged. The FMCSA accepts digital records as long as they are legible and accessible.</p>
+
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+          <h3 className="font-bold text-lg mb-3">💡 Digital Record Tips:</h3>
+          <ul className="space-y-2 text-sm">
+            <li>• <strong>Cloud Storage:</strong> Use Google Drive or Dropbox to back up files.</li>
+            <li>• <strong>Organize by Folder:</strong> Create separate folders for "Driver Files," "Maintenance," and "Tax Documents."</li>
+            <li>• <strong>E-File Your Taxes:</strong> E-filing Form 2290 ensures you always have a digital PDF copy of your Schedule 1 stored in your provider's portal.</li>
+          </ul>
+        </div>
+
+        <div className="bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy-soft)] text-white rounded-lg p-8 mt-12 text-center shadow-lg">
+          <h2 className="text-3xl font-bold mb-4">Secure Your Schedule 1 Today</h2>
+          <p className="text-xl mb-6 opacity-90">
+            Don't let a missing tax document fail your audit. E-file Form 2290 and keep your Schedule 1 safe in the cloud.
+          </p>
+          <div className="flex justify-center gap-4">
+            <a href="https://www.expresstrucktax.com" target="_blank" rel="nofollow" className="bg-[var(--color-sky)] text-white px-6 py-3 rounded font-bold hover:bg-blue-600 transition">Get Schedule 1 Now</a>
+          </div>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: 'file-form-2290-from-phone-guide',
+    title: 'How to File Form 2290 From Your Phone (2025 Edition)',
+    excerpt: 'No computer? No problem. Learn how to file your HVUT return and get your Schedule 1 in minutes using just your smartphone.',
+    category: 'Guides',
+    readTime: '6 min',
+    date: 'November 2025',
+    dateISO: '2025-11-27',
+    keywords: ['file 2290 on phone', 'mobile form 2290', 'truck tax app', 'file hvut mobile', 'iphone form 2290'],
+    tableOfContents: [
+      { id: 'why-mobile', title: 'Why File on Mobile?' },
+      { id: 'step-by-step', title: 'Step-by-Step Mobile Filing' },
+      { id: 'payment-methods', title: 'Modern Payment Options (Apple Pay/Google Pay)' },
+      { id: 'security', title: 'Is Mobile Filing Secure?' },
+    ],
+    relatedPosts: ['how-to-check-form-2290-filing-status', 'ultimate-2026-guide-filing-irs-form-2290'],
+    content: (
+      <>
+        <div className="bg-green-50 border-l-4 border-green-400 p-6 mb-8">
+          <p className="font-bold text-lg mb-2">📱 Trucking on the Go</p>
+          <p>Gone are the days of needing a desktop computer or a fax machine. Over 60% of independent owner-operators now file their taxes directly from their cab using a smartphone.</p>
+        </div>
+
+        <p className="mb-6">
+          As a trucker, your office is your cab. You don't always have access to a printer, scanner, or laptop. The good news is that modern e-file providers have optimized their platforms for mobile devices, allowing you to file Form 2290, pay your tax, and download your Schedule 1—all from your phone.
+        </p>
+
+        <h2 id="why-mobile" className="text-3xl font-bold mt-12 mb-6">Why File on Mobile?</h2>
+
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
+          <div className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
+            <h3 className="font-bold text-lg mb-2">⚡ Speed</h3>
+            <p className="text-sm">File in under 5 minutes while waiting at a dock or rest stop.</p>
+          </div>
+          <div className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
+            <h3 className="font-bold text-lg mb-2">📸 Camera Integration</h3>
+            <p className="text-sm">Use your phone's camera to scan VINs (on supported apps) or take photos of documents.</p>
+          </div>
+          <div className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
+            <h3 className="font-bold text-lg mb-2">🔔 Instant Notifications</h3>
+            <p className="text-sm">Get push notifications or text messages the second your Schedule 1 is accepted.</p>
+          </div>
+          <div className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
+            <h3 className="font-bold text-lg mb-2">📂 Digital Wallet</h3>
+            <p className="text-sm">Save your Schedule 1 directly to Apple Files or Google Drive on your phone.</p>
+          </div>
+        </div>
+
+        <h2 id="step-by-step" className="text-3xl font-bold mt-12 mb-6">Step-by-Step Mobile Filing</h2>
+
+        <div className="space-y-6">
+          <div className="flex items-start">
+            <div className="bg-[var(--color-sky)] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 flex-shrink-0">1</div>
+            <div>
+              <h3 className="font-bold text-xl mb-2">Choose a Mobile-Friendly Provider</h3>
+              <p className="mb-2">Not all e-file sites work well on small screens. Look for providers with dedicated apps or responsive websites like <a href="https://www.expresstrucktax.com" className="text-blue-600 hover:underline">ExpressTruckTax</a> or <a href="https://www.form2290.com" className="text-blue-600 hover:underline">Form2290.com</a>.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start">
+            <div className="bg-[var(--color-sky)] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 flex-shrink-0">2</div>
+            <div>
+              <h3 className="font-bold text-xl mb-2">Create Account & Add Vehicle</h3>
+              <p className="mb-2">Sign up with your email. Enter your Business Name and EIN. Then, add your vehicle details. Pro tip: Copy-paste the VIN from a photo to avoid typos.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start">
+            <div className="bg-[var(--color-sky)] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 flex-shrink-0">3</div>
+            <div>
+              <h3 className="font-bold text-xl mb-2">Select Tax Period</h3>
+              <p className="mb-2">Choose the current tax year (e.g., July 1, 2025 - June 30, 2026). If you just bought the truck, select the "First Used Month".</p>
+            </div>
+          </div>
+
+          <div className="flex items-start">
+            <div className="bg-[var(--color-sky)] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 flex-shrink-0">4</div>
+            <div>
+              <h3 className="font-bold text-xl mb-2">Pay & Submit</h3>
+              <p className="mb-2">Review your return. Pay the service fee using your credit card or mobile wallet. Transmit the return to the IRS.</p>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="payment-methods" className="text-3xl font-bold mt-12 mb-6">Modern Payment Options</h2>
+
+        <p className="mb-4">One of the biggest advantages of mobile filing is the ability to use modern payment methods for the <strong>service fee</strong> (note: IRS tax payments still go through EFW/EFTPS/Card).</p>
+
+        <div className="bg-gray-50 rounded-lg p-6 mb-6">
+          <h3 className="font-bold text-lg mb-4">Supported by Top Providers:</h3>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center bg-white px-4 py-2 rounded shadow-sm border border-gray-200">
+              <span className="text-2xl mr-2"></span>
+              <span className="font-bold">Apple Pay</span>
+            </div>
+            <div className="flex items-center bg-white px-4 py-2 rounded shadow-sm border border-gray-200">
+              <span className="text-2xl mr-2 text-blue-500">G</span>
+              <span className="font-bold">Google Pay</span>
+            </div>
+            <div className="flex items-center bg-white px-4 py-2 rounded shadow-sm border border-gray-200">
+              <span className="text-2xl mr-2 text-blue-800">Pay</span>
+              <span className="font-bold text-blue-400">Pal</span>
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 mt-4"><em>*Availability depends on the specific e-file provider.</em></p>
+        </div>
+
+        <h2 id="security" className="text-3xl font-bold mt-12 mb-6">Is Mobile Filing Secure?</h2>
+
+        <p className="mb-4">Yes. IRS-authorized providers use the same encryption standards on their mobile sites/apps as they do on desktop.</p>
+
+        <ul className="list-disc ml-6 mb-6 space-y-2">
+          <li><strong>256-bit SSL Encryption:</strong> Protects your data during transmission.</li>
+          <li><strong>Biometric Login:</strong> Many apps support FaceID or Fingerprint login for added security.</li>
+          <li><strong>IRS Authorization:</strong> Only approved providers can submit returns.</li>
+        </ul>
+
+        <div className="bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy-soft)] text-white rounded-lg p-8 mt-12 text-center shadow-lg">
+          <h2 className="text-3xl font-bold mb-4">File From Your Cab Today</h2>
+          <p className="text-xl mb-6 opacity-90">
+            Don't wait until you're back at the office. Get your Schedule 1 in minutes on your phone.
+          </p>
+          <div className="flex justify-center gap-4">
+            <a href="https://www.expresstrucktax.com" target="_blank" rel="nofollow" className="bg-[var(--color-sky)] text-white px-6 py-3 rounded font-bold hover:bg-blue-600 transition">File on Mobile</a>
+          </div>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: 'how-to-check-form-2290-filing-status',
+    title: 'How to Check Your Form 2290 Filing Status (2025 Guide)',
+    excerpt: 'Waiting on your Schedule 1? Here are 3 fast ways to check your Form 2290 status with the IRS or your e-file provider.',
+    category: 'Guides',
+    readTime: '5 min',
+    date: 'November 2025',
+    dateISO: '2025-11-27',
+    keywords: ['check form 2290 status', 'IRS Form 2290 status', 'where is my schedule 1', 'check hvut status', 'form 2290 pending'],
+    tableOfContents: [
+      { id: 'why-check', title: 'Why Is My Status Important?' },
+      { id: 'method-1', title: 'Method 1: Check with Your E-File Provider (Fastest)' },
+      { id: 'method-2', title: 'Method 2: Check with the IRS' },
+      { id: 'status-meanings', title: 'What Does My Status Mean?' },
+      { id: 'troubleshooting', title: 'Troubleshooting Common Issues' },
+    ],
+    relatedPosts: ['ultimate-2026-guide-filing-irs-form-2290', 'top-10-common-mistakes-form-2290'],
+    content: (
+      <>
+        <div className="bg-blue-50 border-l-4 border-blue-400 p-6 mb-8">
+          <p className="font-bold text-lg mb-2">🚀 Quick Answer</p>
+          <p>The fastest way to check your Form 2290 status is through your <strong>e-file provider's dashboard</strong>. If you e-filed, you should receive your Schedule 1 within minutes. If it's been longer than 24 hours, check your email spam folder or log in to your provider account.</p>
+        </div>
+
+        <p className="mb-6">
+          After hitting "submit" on your Form 2290, the waiting game begins. Usually, it's a short wait—minutes, even. But if you haven't received your stamped Schedule 1 yet, you might be worried. Has the IRS received it? Was it rejected?
+        </p>
+
+        <p className="mb-6">
+          Don't panic. Here is a step-by-step guide on how to check your Form 2290 filing status and get your Schedule 1 proof of payment quickly.
+        </p>
+
+        <h2 id="why-check" className="text-3xl font-bold mt-12 mb-6">Why Is My Status Important?</h2>
+
+        <p className="mb-4">Your filing status tells you exactly where your return is in the IRS system. Knowing this is crucial because:</p>
+        <ul className="list-disc ml-6 mb-6 space-y-2">
+          <li><strong>Pending:</strong> The IRS is still processing it (usually quick).</li>
+          <li><strong>Accepted:</strong> Success! Your Schedule 1 is ready.</li>
+          <li><strong>Rejected:</strong> There's an error you need to fix immediately to avoid penalties.</li>
+        </ul>
+
+        <h2 id="method-1" className="text-3xl font-bold mt-12 mb-6">Method 1: Check with Your E-File Provider (Fastest)</h2>
+
+        <p className="mb-4">If you used an e-file provider (like ExpressTruckTax, J.J. Keller, or others), this is the easiest method.</p>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
+          <h3 className="font-bold text-xl mb-4">Steps:</h3>
+          <ol className="space-y-4">
+            <li className="flex items-start">
+              <span className="bg-blue-100 text-blue-800 font-bold rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-1">1</span>
+              <span><strong>Log in</strong> to your e-file provider account.</span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-blue-100 text-blue-800 font-bold rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-1">2</span>
+              <span>Navigate to the <strong>Dashboard</strong> or "My Returns" section.</span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-blue-100 text-blue-800 font-bold rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-1">3</span>
+              <span>Locate your current tax year return (e.g., 2025-2026).</span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-blue-100 text-blue-800 font-bold rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-1">4</span>
+              <span>Look for the status indicator (Accepted, Pending, Rejected).</span>
+            </li>
+          </ol>
+        </div>
+
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <p className="text-sm"><strong>💡 Pro Tip:</strong> Most providers also send an email notification. Search your inbox (and spam/junk folders) for "Schedule 1" or "IRS Acceptance".</p>
+        </div>
+
+        <h2 id="method-2" className="text-3xl font-bold mt-12 mb-6">Method 2: Check with the IRS</h2>
+
+        <p className="mb-4">If you paper filed, or if you want to verify directly with the IRS, you have a few options, though they are slower.</p>
+
+        <h3 className="text-xl font-bold mb-3">Option A: Call the IRS Hotline</h3>
+        <p className="mb-4">You can call the IRS Form 2290 Hotline at <strong>866-699-4096</strong> (toll-free) or 859-669-5700 (international).</p>
+        <ul className="list-disc ml-6 mb-6 space-y-2 text-sm">
+          <li><strong>Hours:</strong> Monday - Friday, 8:00 a.m. to 6:00 p.m. Eastern Time.</li>
+          <li><strong>Have ready:</strong> Your EIN, Name Control, and vehicle details.</li>
+          <li><strong>Note:</strong> Wait times can be long during peak season (August/September).</li>
+        </ul>
+
+        <h3 className="text-xl font-bold mb-3">Option B: Check Your Bank Account</h3>
+        <p className="mb-4">If you paid via EFW (direct debit) or EFTPS, check your bank statement. If you see a transaction from the US Treasury, it's a good sign your return was processed.</p>
+
+        <h2 id="status-meanings" className="text-3xl font-bold mt-12 mb-6">What Does My Status Mean?</h2>
+
+        <div className="grid md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+            <h4 className="font-bold text-yellow-800 mb-2">⏳ Pending</h4>
+            <p className="text-sm">The IRS has received your return but hasn't finished processing it. This usually lasts a few minutes to an hour.</p>
+          </div>
+          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+            <h4 className="font-bold text-green-800 mb-2">✅ Accepted</h4>
+            <p className="text-sm">Success! Your return is approved. You can download your Schedule 1 immediately.</p>
+          </div>
+          <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+            <h4 className="font-bold text-red-800 mb-2">❌ Rejected</h4>
+            <p className="text-sm">There is an error (e.g., VIN mismatch, name mismatch). You must fix it and re-submit.</p>
+          </div>
+        </div>
+
+        <h2 id="troubleshooting" className="text-3xl font-bold mt-12 mb-6">Troubleshooting Common Issues</h2>
+
+        <div className="space-y-4">
+          <div className="border-l-4 border-orange-400 pl-4">
+            <h3 className="font-bold text-lg mb-1">"I e-filed yesterday but still no Schedule 1."</h3>
+            <p className="text-sm">First, check your spam folder. If it's not there, log in to your provider. If the status is "Pending" for more than 24 hours, contact your provider's support. The IRS system might be experiencing delays.</p>
+          </div>
+
+          <div className="border-l-4 border-orange-400 pl-4">
+            <h3 className="font-bold text-lg mb-1">"My return was rejected. Do I have to pay again?"</h3>
+            <p className="text-sm"><strong>No!</strong> You do not need to pay the tax again. You just need to correct the error (like a typo in the VIN) and re-transmit the return. Most providers let you do this for free.</p>
+          </div>
+
+          <div className="border-l-4 border-orange-400 pl-4">
+            <h3 className="font-bold text-lg mb-1">"I lost my Schedule 1. How do I get a copy?"</h3>
+            <p className="text-sm">Log in to your e-file provider account; they store your Schedule 1 indefinitely. You can download it again for free. If you paper filed, you'll need to request a copy from the IRS using Form 6112.</p>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy-soft)] text-white rounded-lg p-8 mt-12 text-center shadow-lg">
+          <h2 className="text-3xl font-bold mb-4">Need to File or Fix a Rejection?</h2>
+          <p className="text-xl mb-6 opacity-90">
+            Get instant status updates and 24/7 support with top-rated e-file providers.
+          </p>
+          <div className="flex justify-center gap-4">
+            <a href="https://www.expresstrucktax.com" target="_blank" rel="nofollow" className="bg-[var(--color-sky)] text-white px-6 py-3 rounded font-bold hover:bg-blue-600 transition">File Now</a>
+          </div>
+        </div>
+      </>
+    ),
+  },
   {
     id: 'ultimate-2026-guide-filing-irs-form-2290',
     title: 'Ultimate 2026 Guide to Filing IRS Form 2290: Step-by-Step for Beginners',
@@ -28,7 +447,7 @@ export const blogPosts = [
         </div>
 
         <h2 id="what-is-form-2290" className="text-3xl font-bold mt-12 mb-6">What is Form 2290 and Who Needs to File?</h2>
-        
+
         <p className="mb-4">
           Form 2290, officially known as the Heavy Highway Vehicle Use Tax (HVUT) Return, is an annual federal tax form required by the <a href="https://www.irs.gov/forms-pubs/about-form-2290" target="_blank" rel="nofollow" className="text-blue-600 hover:underline">IRS</a> for vehicles with a taxable gross weight of 55,000 pounds or more that operate on public highways. This tax generates approximately $1.2 billion annually for the <a href="https://www.transportation.gov/policy-initiatives/highway-trust-fund" target="_blank" rel="nofollow" className="text-blue-600 hover:underline">Highway Trust Fund</a>, which maintains and improves America's highway infrastructure.
         </p>
@@ -60,7 +479,7 @@ export const blogPosts = [
         </div>
 
         <h2 id="eligibility-quiz" className="text-3xl font-bold mt-12 mb-6">Eligibility Quiz: Do You Need to File?</h2>
-        
+
         <p className="mb-4">Answer these quick questions to determine if you need to file Form 2290:</p>
 
         <div className="bg-gray-50 rounded-lg p-6 mb-6">
@@ -107,7 +526,7 @@ export const blogPosts = [
           <div className="border-l-4 border-blue-500 pl-6">
             <h3 className="text-xl font-bold mb-3">Step 2: Choose Your Filing Method</h3>
             <p className="mb-3">You have two options for filing Form 2290:</p>
-            
+
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <h4 className="font-bold text-green-800 mb-2">✅ E-Filing (Recommended)</h4>
@@ -119,7 +538,7 @@ export const blogPosts = [
                   <li>• <strong>Required for 25+ vehicles</strong></li>
                 </ul>
               </div>
-              
+
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                 <h4 className="font-bold text-gray-800 mb-2">📄 Paper Filing</h4>
                 <ul className="text-sm space-y-1">
@@ -131,7 +550,7 @@ export const blogPosts = [
                 </ul>
               </div>
             </div>
-            
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm"><strong>💡 Pro Tip:</strong> 90% of truckers choose e-filing for instant Schedule 1 proof, which is required for vehicle registration and IRP renewals.</p>
             </div>
@@ -140,7 +559,7 @@ export const blogPosts = [
           <div className="border-l-4 border-blue-500 pl-6">
             <h3 className="text-xl font-bold mb-3">Step 3: Calculate Your Tax Amount</h3>
             <p className="mb-3">HVUT is calculated based on your vehicle's taxable gross weight category:</p>
-            
+
             <table className="w-full border-collapse border border-gray-300 mb-4">
               <thead className="bg-gray-100">
                 <tr>
@@ -191,7 +610,7 @@ export const blogPosts = [
           <div className="border-l-4 border-blue-500 pl-6">
             <h3 className="text-xl font-bold mb-3">Step 4: Complete the Form</h3>
             <p className="mb-3">Fill out Form 2290 with the following information:</p>
-            
+
             <div className="bg-gray-50 rounded-lg p-4 mb-4">
               <h4 className="font-bold mb-3">Part I: Business Information</h4>
               <ul className="space-y-2 text-sm">
@@ -225,7 +644,7 @@ export const blogPosts = [
           <div className="border-l-4 border-blue-500 pl-6">
             <h3 className="text-xl font-bold mb-3">Step 5: Submit Payment</h3>
             <p className="mb-3">Pay your HVUT using one of these IRS-approved methods:</p>
-            
+
             <ul className="space-y-2">
               <li className="flex items-start">
                 <span className="text-blue-600 mr-2">1.</span>
@@ -487,9 +906,9 @@ export const blogPosts = [
         </p>
 
         <h2 id="mistake-1" className="text-3xl font-bold mt-12 mb-6">Mistake #1: Incorrect or Incomplete VIN</h2>
-        
+
         <p className="mb-4"><strong>The Problem:</strong> VIN errors are the #1 cause of Form 2290 rejections. Common issues include:</p>
-        
+
         <ul className="list-disc ml-6 mb-6 space-y-2">
           <li>Entering only 16 characters instead of the required 17</li>
           <li>Transposing numbers (e.g., 1 and I, 0 and O)</li>
@@ -509,9 +928,9 @@ export const blogPosts = [
         </div>
 
         <h2 id="mistake-2" className="text-3xl font-bold mt-12 mb-6">Mistake #2: Wrong Weight Category</h2>
-        
+
         <p className="mb-4"><strong>The Problem:</strong> Selecting the wrong taxable gross weight category can result in underpayment or overpayment of HVUT. Many truckers confuse:</p>
-        
+
         <ul className="list-disc ml-6 mb-6 space-y-2">
           <li>Unladen weight vs. taxable gross weight</li>
           <li>Truck weight alone vs. truck + trailer + maximum load</li>
@@ -528,9 +947,9 @@ export const blogPosts = [
         </div>
 
         <h2 id="mistake-3" className="text-3xl font-bold mt-12 mb-6">Mistake #3: Missing or Late Filing</h2>
-        
+
         <p className="mb-4"><strong>The Problem:</strong> Missing the August 31 deadline or not filing when a vehicle is first used can result in:</p>
-        
+
         <ul className="list-disc ml-6 mb-6 space-y-2">
           <li><strong>4.5% penalty per month</strong> (or partial month) of unpaid tax</li>
           <li><strong>Interest charges</strong> that accumulate daily</li>
@@ -548,9 +967,9 @@ export const blogPosts = [
         </div>
 
         <h2 id="mistake-4" className="text-3xl font-bold mt-12 mb-6">Mistake #4: Incorrect EIN Information</h2>
-        
+
         <p className="mb-4"><strong>The Problem:</strong> Your EIN must exactly match IRS records. Common errors include:</p>
-        
+
         <ul className="list-disc ml-6 mb-6 space-y-2">
           <li>Using SSN instead of EIN for business entities</li>
           <li>Entering EIN with dashes when system requires no dashes (or vice versa)</li>
@@ -558,7 +977,7 @@ export const blogPosts = [
         </ul>
 
         <h2 id="mistake-5" className="text-3xl font-bold mt-12 mb-6">Mistake #5: Not Claiming Suspension for Low-Mileage Vehicles</h2>
-        
+
         <p className="mb-4"><strong>The Problem:</strong> If your vehicle will travel less than 5,000 miles (7,500 for agricultural), you can file for suspension and avoid paying tax—but many truckers don't realize this and pay unnecessarily.</p>
 
         <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
@@ -686,12 +1105,12 @@ export const blogPosts = [
 
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-6 mb-6 border border-blue-200">
           <h3 className="font-bold text-xl mb-4 text-blue-900">📅 2026 HVUT Tax Year: July 1, 2025 - June 30, 2026</h3>
-          
+
           <div className="space-y-4">
             <div className="bg-white rounded p-4 shadow-sm">
               <div className="flex items-start">
                 <div className="bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold mr-4 flex-shrink-0 text-lg">
-                  Aug<br/>31
+                  Aug<br />31
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-1">Primary Deadline: August 31, 2026</h4>
@@ -704,7 +1123,7 @@ export const blogPosts = [
             <div className="bg-white rounded p-4 shadow-sm">
               <div className="flex items-start">
                 <div className="bg-orange-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold mr-4 flex-shrink-0 text-xs">
-                  Last<br/>Day
+                  Last<br />Day
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-1">First-Use Vehicle Deadline</h4>
@@ -816,7 +1235,7 @@ export const blogPosts = [
           <div className="border-l-4 border-red-500 bg-red-50 p-6">
             <h3 className="font-bold text-xl mb-3 text-red-800">1. Late Filing Penalty: 4.5% per Month</h3>
             <p className="mb-3">Calculated as 4.5% of the unpaid tax for each month (or partial month) the return is late, up to a maximum of 5 months (22.5%).</p>
-            
+
             <div className="bg-white p-4 rounded border border-red-200">
               <p className="font-bold mb-2">Example Calculation:</p>
               <p className="text-sm">Vehicle with $550 HVUT (Category F, 85,000+ lbs):</p>
@@ -2295,10 +2714,10 @@ export const blogPosts = [
           <h3 className="font-bold text-xl mb-4 text-center text-blue-900">Taxable Gross Weight Formula</h3>
           <div className="bg-blue-50 p-6 rounded-lg text-center mb-4">
             <p className="text-2xl font-bold text-blue-800 mb-2">
-              Unloaded Weight<br/>
-              <span className="text-lg">+</span><br/>
-              Trailer(s) Weight<br/>
-              <span className="text-lg">+</span><br/>
+              Unloaded Weight<br />
+              <span className="text-lg">+</span><br />
+              Trailer(s) Weight<br />
+              <span className="text-lg">+</span><br />
               Maximum Load Customarily Carried
             </p>
             <div className="border-t-2 border-blue-800 mt-4 pt-4">
@@ -2712,8 +3131,8 @@ export const blogPosts = [
                 <p className="font-bold mb-1">Calculate Credit Amount</p>
                 <p className="text-sm text-gray-600 mb-2">Credit = (Months remaining in tax year / 12) × Original tax paid</p>
                 <div className="bg-gray-50 p-3 rounded text-xs">
-                  <strong>Example:</strong> Truck stolen November 2025. Original tax: $188.<br/>
-                  Remaining months: December 2025 - June 2026 = 7 months<br/>
+                  <strong>Example:</strong> Truck stolen November 2025. Original tax: $188.<br />
+                  Remaining months: December 2025 - June 2026 = 7 months<br />
                   Credit: (7/12) × $188 = <strong>$109.67</strong>
                 </div>
               </div>
@@ -2790,23 +3209,23 @@ export const blogPosts = [
           <h3 className="font-bold text-lg mb-3">📋 Required Documents Checklist</h3>
           <div className="space-y-2 text-sm">
             <div className="flex items-start">
-              <input type="checkbox" disabled className="mt-1 mr-2"/>
+              <input type="checkbox" disabled className="mt-1 mr-2" />
               <span>Form 8849, Schedule 6 (completed and signed)</span>
             </div>
             <div className="flex items-start">
-              <input type="checkbox" disabled className="mt-1 mr-2"/>
+              <input type="checkbox" disabled className="mt-1 mr-2" />
               <span>Copy of original Form 2290 Schedule 1 (proof of tax payment)</span>
             </div>
             <div className="flex items-start">
-              <input type="checkbox" disabled className="mt-1 mr-2"/>
+              <input type="checkbox" disabled className="mt-1 mr-2" />
               <span>Proof of qualifying event (police report, insurance letter, bill of sale, etc.)</span>
             </div>
             <div className="flex items-start">
-              <input type="checkbox" disabled className="mt-1 mr-2"/>
+              <input type="checkbox" disabled className="mt-1 mr-2" />
               <span>VIN documentation</span>
             </div>
             <div className="flex items-start">
-              <input type="checkbox" disabled className="mt-1 mr-2"/>
+              <input type="checkbox" disabled className="mt-1 mr-2" />
               <span>Calculation worksheet showing credit amount</span>
             </div>
           </div>
@@ -3466,8 +3885,8 @@ export const blogPosts = [
               <tr className="bg-white">
                 <td className="border border-gray-300 p-2 font-bold">ExpressTruckTax</td>
                 <td className="border border-gray-300 p-2 text-xs">
-                  • VIN scanning<br/>
-                  • Error pre-check<br/>
+                  • VIN scanning<br />
+                  • Error pre-check<br />
                   • Smart reminders
                 </td>
                 <td className="border border-gray-300 p-2">$7.99-$9.99/vehicle</td>
@@ -3476,8 +3895,8 @@ export const blogPosts = [
               <tr className="bg-gray-50">
                 <td className="border border-gray-300 p-2 font-bold">Tax2290</td>
                 <td className="border border-gray-300 p-2 text-xs">
-                  • AI chatbot<br/>
-                  • Weight calculator<br/>
+                  • AI chatbot<br />
+                  • Weight calculator<br />
                   • Bulk upload
                 </td>
                 <td className="border border-gray-300 p-2">$9.90/vehicle (discount for fleets)</td>
@@ -3486,8 +3905,8 @@ export const blogPosts = [
               <tr className="bg-white">
                 <td className="border border-gray-300 p-2 font-bold">Form2290.com</td>
                 <td className="border border-gray-300 p-2 text-xs">
-                  • Predictive filing<br/>
-                  • Data validation<br/>
+                  • Predictive filing<br />
+                  • Data validation<br />
                   • Mobile app AI
                 </td>
                 <td className="border border-gray-300 p-2">$6.99-$8.99/vehicle</td>
@@ -3496,8 +3915,8 @@ export const blogPosts = [
               <tr className="bg-gray-50">
                 <td className="border border-gray-300 p-2 font-bold">J.J. Keller</td>
                 <td className="border border-gray-300 p-2 text-xs">
-                  • Enterprise AI suite<br/>
-                  • Fleet management integration<br/>
+                  • Enterprise AI suite<br />
+                  • Fleet management integration<br />
                   • Compliance tracking
                 </td>
                 <td className="border border-gray-300 p-2">Enterprise pricing</td>
@@ -4118,9 +4537,9 @@ export const blogPosts = [
                 <td className="border border-gray-300 p-2 font-bold">ExpressTruckTax Mobile</td>
                 <td className="border border-gray-300 p-2 text-xs">iOS & Android</td>
                 <td className="border border-gray-300 p-2 text-xs">
-                  • VIN scanner<br/>
-                  • Offline mode<br/>
-                  • Push notifications<br/>
+                  • VIN scanner<br />
+                  • Offline mode<br />
+                  • Push notifications<br />
                   • Bulk upload
                 </td>
                 <td className="border border-gray-300 p-2">$7.99/vehicle</td>
@@ -4130,9 +4549,9 @@ export const blogPosts = [
                 <td className="border border-gray-300 p-2 font-bold">Tax2290 App</td>
                 <td className="border border-gray-300 p-2 text-xs">iOS & Android</td>
                 <td className="border border-gray-300 p-2 text-xs">
-                  • AI chatbot<br/>
-                  • Multi-vehicle filing<br/>
-                  • Document storage<br/>
+                  • AI chatbot<br />
+                  • Multi-vehicle filing<br />
+                  • Document storage<br />
                   • Schedule 1 download
                 </td>
                 <td className="border border-gray-300 p-2">$9.90/vehicle</td>
@@ -4142,9 +4561,9 @@ export const blogPosts = [
                 <td className="border border-gray-300 p-2 font-bold">Form2290.com Mobile</td>
                 <td className="border border-gray-300 p-2 text-xs">iOS & Android</td>
                 <td className="border border-gray-300 p-2 text-xs">
-                  • Photo VIN capture<br/>
-                  • Biometric login<br/>
-                  • Quick repeat filing<br/>
+                  • Photo VIN capture<br />
+                  • Biometric login<br />
+                  • Quick repeat filing<br />
                   • Email Schedule 1
                 </td>
                 <td className="border border-gray-300 p-2">$6.99-$8.99/vehicle</td>
@@ -4154,9 +4573,9 @@ export const blogPosts = [
                 <td className="border border-gray-300 p-2 font-bold">TaxBandits HVUT</td>
                 <td className="border border-gray-300 p-2 text-xs">iOS & Android</td>
                 <td className="border border-gray-300 p-2 text-xs">
-                  • Voice input<br/>
-                  • Smart error detection<br/>
-                  • Cloud sync<br/>
+                  • Voice input<br />
+                  • Smart error detection<br />
+                  • Cloud sync<br />
                   • Prior year access
                 </td>
                 <td className="border border-gray-300 p-2">$8.95/vehicle</td>
@@ -5019,7 +5438,7 @@ export const blogPosts = [
 
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6 shadow-sm">
           <h3 className="font-bold text-xl mb-4">Fleet Budget Examples</h3>
-          
+
           <div className="space-y-6">
             <div className="bg-blue-50 rounded p-4">
               <h4 className="font-bold mb-2">Small Fleet: 5 Trucks</h4>
@@ -5715,7 +6134,7 @@ export const blogPosts = [
 
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6 shadow-sm">
           <h3 className="font-bold text-xl mb-4">Three Scenarios for Used Truck HVUT</h3>
-          
+
           <div className="space-y-4">
             <div className="bg-green-50 border-l-4 border-green-500 p-4">
               <h4 className="font-bold mb-2">Scenario 1: Seller Already Paid for Current Tax Year</h4>
@@ -6252,28 +6671,28 @@ export const blogPosts = [
           <h3 className="font-bold text-xl mb-4">Q2 (April-June): Preparation Phase</h3>
           <div className="space-y-3 text-sm">
             <div className="flex items-start">
-              <input type="checkbox" disabled className="mt-1 mr-3"/>
+              <input type="checkbox" disabled className="mt-1 mr-3" />
               <div>
                 <p className="font-bold">Update Fleet Records</p>
                 <p className="text-xs text-gray-600">Verify VINs, weights, and vehicle statuses in preparation for July filing</p>
               </div>
             </div>
             <div className="flex items-start">
-              <input type="checkbox" disabled className="mt-1 mr-3"/>
+              <input type="checkbox" disabled className="mt-1 mr-3" />
               <div>
                 <p className="font-bold">Review Suspended Vehicles</p>
                 <p className="text-xs text-gray-600">Determine which trucks will be under 5,000 miles (or 7,500 for ag vehicles)</p>
               </div>
             </div>
             <div className="flex items-start">
-              <input type="checkbox" disabled className="mt-1 mr-3"/>
+              <input type="checkbox" disabled className="mt-1 mr-3" />
               <div>
                 <p className="font-bold">Budget HVUT Costs</p>
                 <p className="text-xs text-gray-600">Calculate total tax owed based on fleet size and weights ($100-$550 per vehicle)</p>
               </div>
             </div>
             <div className="flex items-start">
-              <input type="checkbox" disabled className="mt-1 mr-3"/>
+              <input type="checkbox" disabled className="mt-1 mr-3" />
               <div>
                 <p className="font-bold">Set Calendar Reminders</p>
                 <p className="text-xs text-gray-600">July 1: E-file opens | July 15: Target early filing date | August 31: Deadline</p>
@@ -6286,28 +6705,28 @@ export const blogPosts = [
           <h3 className="font-bold text-xl mb-4">Q3 (July-September): Filing & Execution</h3>
           <div className="space-y-3 text-sm">
             <div className="flex items-start">
-              <input type="checkbox" disabled className="mt-1 mr-3"/>
+              <input type="checkbox" disabled className="mt-1 mr-3" />
               <div>
                 <p className="font-bold">File Form 2290 (July 1-15)</p>
                 <p className="text-xs text-gray-600">E-file as soon as system opens; pay HVUT; receive Schedule 1 instantly</p>
               </div>
             </div>
             <div className="flex items-start">
-              <input type="checkbox" disabled className="mt-1 mr-3"/>
+              <input type="checkbox" disabled className="mt-1 mr-3" />
               <div>
                 <p className="font-bold">Update Vehicle Registrations</p>
                 <p className="text-xs text-gray-600">Present Schedule 1 to DMV for registration renewals throughout July-September</p>
               </div>
             </div>
             <div className="flex items-start">
-              <input type="checkbox" disabled className="mt-1 mr-3"/>
+              <input type="checkbox" disabled className="mt-1 mr-3" />
               <div>
                 <p className="font-bold">File Q3 Estimated Taxes</p>
                 <p className="text-xs text-gray-600">Federal/state income tax estimates due September 15</p>
               </div>
             </div>
             <div className="flex items-start">
-              <input type="checkbox" disabled className="mt-1 mr-3"/>
+              <input type="checkbox" disabled className="mt-1 mr-3" />
               <div>
                 <p className="font-bold">Review IFTA Filings</p>
                 <p className="text-xs text-gray-600">Q2 IFTA due July 31; Q3 IFTA due October 31</p>
@@ -6659,7 +7078,7 @@ export const blogPosts = [
 
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6 shadow-sm">
           <h3 className="font-bold text-xl mb-4">Annual Compliance Calendar</h3>
-          
+
           <div className="space-y-4 text-sm">
             <div className="bg-blue-50 p-4 rounded">
               <p className="font-bold mb-2">Q2 (April-June)</p>
