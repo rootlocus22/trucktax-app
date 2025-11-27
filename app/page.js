@@ -291,7 +291,8 @@ export default function Home() {
               </Link>
               <Link
                 href="/insights"
-                className="inline-flex items-center justify-center rounded-full bg-white text-[var(--color-navy)] px-8 py-4 text-base font-bold shadow-lg transition hover:bg-gray-100"
+                className="inline-flex items-center justify-center rounded-full bg-white px-8 py-4 text-base font-bold shadow-lg transition hover:bg-gray-100"
+                style={{ color: '#0f2647', backgroundColor: '#ffffff' }}
               >
                 Browse Guides
               </Link>
