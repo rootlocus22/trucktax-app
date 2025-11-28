@@ -26,9 +26,15 @@ FIREBASE_STORAGE_BUCKET=modern-eform2290.appspot.com
 # FIREBASE_STORAGE_BUCKET=modern-eform2290.firebasestorage.app
 # To find your bucket name: Firebase Console → Storage → Settings → Bucket name
 
-# Gemini API Key (already set)
-NEXT_PUBLIC_GEMINI_API_KEY=AIzaSyCxMEoVEKqb73dILB3iCxCO1rqNTufb_3U
+# Gemini API Key (get from Google AI Studio)
+NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
 ```
+
+**SECURITY WARNING:**
+- NEVER commit your actual API keys to this file
+- This file is committed to git as a template only
+- Add your actual keys to `.env.local` which is gitignored
+- Rotate your API key immediately if it was committed to git
 
 **Important Notes:**
 - Copy the entire private key including `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----`
