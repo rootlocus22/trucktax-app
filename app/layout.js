@@ -25,17 +25,9 @@ export const metadata = {
   description:
     "QuickTruckTax helps carriers, owner-operators, and brokers stay compliant with HVUT, UCR, MCS-150, and fuel tax filings. Expert Form 2290 guides, IFTA resources, and trucking compliance tools.",
   keywords: [
-    "form 2290",
-    "HVUT",
-    "UCR",
-    "MCS-150",
-    "IFTA",
-    "trucking compliance",
-    "heavy vehicle use tax",
-    "IRS Form 2290",
-    "schedule 1",
-    "e-file form 2290",
-    "trucking tax",
+    "form 2290", "HVUT", "UCR", "MCS-150", "IFTA",
+    "trucking compliance", "heavy vehicle use tax",
+    "IRS Form 2290", "schedule 1", "e-file form 2290", "trucking tax"
   ],
   authors: [{ name: "QuickTruckTax Team" }],
   creator: "QuickTruckTax",
