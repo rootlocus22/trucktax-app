@@ -6,15 +6,15 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { subscribeToFiling, getBusiness, getVehicle } from '@/lib/db';
-import { 
-  ArrowLeft, 
-  CheckCircle, 
-  Clock, 
-  AlertCircle, 
-  Building2, 
-  Truck, 
-  FileText, 
-  Calendar, 
+import {
+  ArrowLeft,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  Building2,
+  Truck,
+  FileText,
+  Calendar,
   Download,
   FileCheck,
   Copy,
@@ -39,9 +39,9 @@ export default function FilingDetailPage() {
 
   const subscribeToFilingData = () => {
     if (!user) return;
-    
+
     setLoading(true);
-    
+
     // Subscribe to real-time filing updates
     const unsubscribe = subscribeToFiling(params.id, async (filingData) => {
       if (!filingData) {
@@ -134,6 +134,29 @@ export default function FilingDetailPage() {
     }
   };
 
+  const [elapsedTime, setElapsedTime] = useState(0);
+
+  useEffect(() => {
+    if (filing?.status === 'submitted' || filing?.status === 'processing') {
+      // Calculate initial elapsed time based on createdAt
+      const startTime = filing.createdAt ? new Date(filing.createdAt).getTime() : Date.now();
+
+      const timer = setInterval(() => {
+        const now = Date.now();
+        const diffInSeconds = Math.floor((now - startTime) / 1000);
+        setElapsedTime(diffInSeconds);
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [filing?.status, filing?.createdAt]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const handleCopy = async (text, field) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -178,257 +201,383 @@ export default function FilingDetailPage() {
   return (
     <ProtectedRoute>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        {/* Header */}
-        <div className="mb-6">
-          <Link 
-            href="/dashboard" 
-            className="inline-flex items-center gap-1.5 text-sm text-[var(--color-navy)] hover:underline mb-3"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h1 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)]">
-              Filing Details
-            </h1>
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border} w-fit`}>
-              <StatusIcon className={`w-3.5 h-3.5 ${statusConfig.iconColor}`} />
-              {statusConfig.label}
-            </span>
-          </div>
+        {/* Header - Optimized for space */}
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)]">
+            Filing Details
+          </h1>
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border} w-fit`}>
+            <StatusIcon className={`w-3.5 h-3.5 ${statusConfig.iconColor}`} />
+            {statusConfig.label}
+          </span>
         </div>
 
-        <div className="space-y-4">
-          {/* Status Alert */}
-          {filing.status === 'completed' && filing.finalSchedule1Url && (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-sm font-semibold text-green-800 mb-1">Your Schedule 1 is Ready!</h2>
-                  <p className="text-xs text-green-700 mb-3">Your Form 2290 filing has been completed.</p>
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Unified Dynamic Hero Section - Spans 2 columns on large screens */}
+          <div className={`lg:col-span-2 border rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center relative overflow-hidden transition-all duration-500 ${filing.status === 'action_required'
+            ? 'bg-gradient-to-br from-orange-50 to-red-50 border-orange-200'
+            : filing.status === 'completed'
+              ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'
+              : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200'
+            }`}>
+            {/* Background Effects */}
+            <div className={`absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 rounded-full opacity-50 blur-2xl ${filing.status === 'action_required' ? 'bg-orange-200' : filing.status === 'completed' ? 'bg-green-200' : 'bg-blue-200'
+              }`}></div>
+            <div className={`absolute bottom-0 left-0 -mb-4 -ml-4 w-24 h-24 rounded-full opacity-50 blur-2xl ${filing.status === 'action_required' ? 'bg-red-200' : filing.status === 'completed' ? 'bg-emerald-200' : 'bg-indigo-200'
+              }`}></div>
+
+            {/* Shimmer Effect for Processing */}
+            {(filing.status === 'submitted' || filing.status === 'processing') && (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer" style={{ backgroundSize: '200% 100%' }}></div>
+            )}
+
+            <div className="relative z-10 flex flex-col items-center justify-center h-full">
+              {/* Dynamic Icon */}
+              <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mb-4 shadow-sm transition-all duration-500 ${filing.status === 'action_required'
+                ? 'bg-orange-100 text-orange-600'
+                : filing.status === 'completed'
+                  ? 'bg-green-100 text-green-600 animate-bounce-subtle'
+                  : 'bg-blue-100 text-blue-600 animate-pulse'
+                }`}>
+                {filing.status === 'action_required' ? (
+                  <AlertCircle className="w-8 h-8 sm:w-10 sm:h-10" />
+                ) : filing.status === 'completed' ? (
+                  <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10" />
+                ) : (
+                  <Clock className="w-8 h-8 sm:w-10 sm:h-10" />
+                )}
+              </div>
+
+              {/* Dynamic Title & Message */}
+              <h2 className={`text-2xl sm:text-3xl font-bold mb-3 transition-colors duration-300 ${filing.status === 'action_required' ? 'text-orange-900' : filing.status === 'completed' ? 'text-green-900' : 'text-blue-900'
+                }`}>
+                {filing.status === 'action_required'
+                  ? 'Action Required'
+                  : filing.status === 'completed'
+                    ? 'Filing Accepted!'
+                    : 'Processing Your Filing'}
+              </h2>
+
+              <p className={`max-w-lg mx-auto text-base sm:text-lg mb-6 transition-colors duration-300 ${filing.status === 'action_required' ? 'text-orange-800' : filing.status === 'completed' ? 'text-green-800' : 'text-blue-800'
+                }`}>
+                {filing.status === 'action_required'
+                  ? 'We need some additional information to proceed. Please check the notes below.'
+                  : filing.status === 'completed'
+                    ? 'Great news! Your Form 2290 has been accepted by the IRS. Your Schedule 1 is ready.'
+                    : 'Sit back and relax. We are preparing your return for IRS submission.'}
+              </p>
+
+              {/* Dynamic Action Area */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
+                {filing.status === 'completed' && filing.finalSchedule1Url ? (
                   <a
                     href={filing.finalSchedule1Url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-green-700 transition"
+                    className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-green-700 hover:shadow-xl transition transform hover:-translate-y-0.5 w-full sm:w-auto justify-center"
                   >
-                    <Download className="w-3.5 h-3.5" />
-                    Download Schedule 1 PDF
+                    <Download className="w-5 h-5" />
+                    Download Schedule 1
                   </a>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {filing.status === 'processing' && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <Clock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <h2 className="text-sm font-semibold text-amber-800 mb-1">Processing Your Filing</h2>
-                  <p className="text-xs text-amber-700">We are currently preparing your Form 2290 return. You'll be notified when it's ready.</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {filing.status === 'action_required' && (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-sm font-semibold text-orange-800 mb-1">Action Required</h2>
-                  <p className="text-xs text-orange-700 mb-2">We need additional information to process your filing.</p>
-                  {filing.agentNotes && (
-                    <div className="mt-3 p-3 bg-white rounded border border-orange-100">
-                      <p className="text-xs text-gray-700 whitespace-pre-wrap">{filing.agentNotes}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Main Content Grid */}
-          <div className="grid md:grid-cols-2 gap-4">
-            {/* Business Information */}
-            <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Building2 className="w-4 h-4 text-[var(--color-navy)]" />
-                <h2 className="text-sm font-semibold text-[var(--color-text)]">Business Information</h2>
-              </div>
-              {business && (
-                <div className="space-y-2.5 text-xs">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-[var(--color-muted)] min-w-[100px]">Name:</span>
-                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                      <span className="text-[var(--color-text)] font-medium truncate">{business.businessName}</span>
-                      <button
-                        onClick={() => handleCopy(business.businessName, 'businessName')}
-                        className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-navy)] transition"
-                        title="Copy"
-                      >
-                        {copied === 'businessName' ? (
-                          <Check className="w-3 h-3" />
-                        ) : (
-                          <Copy className="w-3 h-3" />
-                        )}
-                      </button>
-                    </div>
+                ) : filing.status === 'action_required' ? (
+                  <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-orange-200 text-orange-800 text-sm font-medium">
+                    Please review the notes below
                   </div>
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-[var(--color-muted)] min-w-[100px]">EIN:</span>
-                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                      <span className="text-[var(--color-text)] font-medium font-mono">{business.ein}</span>
-                      <button
-                        onClick={() => handleCopy(business.ein, 'ein')}
-                        className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-navy)] transition"
-                        title="Copy"
-                      >
-                        {copied === 'ein' ? (
-                          <Check className="w-3 h-3" />
-                        ) : (
-                          <Copy className="w-3 h-3" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  {business.address && (
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-[var(--color-muted)] min-w-[100px]">Address:</span>
-                      <span className="text-[var(--color-text)] flex-1 text-right">{business.address}</span>
-                    </div>
-                  )}
-                  {business.phone && (
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-[var(--color-muted)] min-w-[100px]">Phone:</span>
-                      <span className="text-[var(--color-text)] flex-1 text-right">{business.phone}</span>
-                    </div>
-                  )}
-                  {business.signingAuthorityName && (
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-[var(--color-muted)] min-w-[100px]">Signing Authority:</span>
-                      <span className="text-[var(--color-text)] flex-1 text-right">
-                        {business.signingAuthorityName}
-                        {business.signingAuthorityTitle && ` (${business.signingAuthorityTitle})`}
+                ) : (
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full border border-blue-200/50 shadow-sm">
+                      <div className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                      </div>
+                      <span className="text-sm font-mono font-semibold text-blue-900">
+                        {formatTime(elapsedTime)}
                       </span>
                     </div>
-                  )}
+                    <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full border border-blue-200/50 shadow-sm">
+                      <Clock className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">Est. ~15 mins</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Timeline & Notes */}
+          <div className="space-y-4 lg:col-span-1 h-full flex flex-col">
+            {/* Agent Notes for Action Required */}
+            {filing.status === 'action_required' && filing.agentNotes && (
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-5 animate-in fade-in slide-in-from-top-2 shadow-sm">
+                <h3 className="text-sm font-bold text-orange-900 mb-2 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  Agent Notes
+                </h3>
+                <p className="text-sm text-orange-800 whitespace-pre-wrap leading-relaxed">{filing.agentNotes}</p>
+              </div>
+            )}
+
+            {/* Unified Visual Timeline - Vertical on Desktop for side-by-side */}
+            <div className="bg-white border border-[var(--color-border)] rounded-xl p-5 sm:p-6 flex-1 shadow-sm flex flex-col justify-center">
+              <h3 className="text-xs font-bold text-[var(--color-muted)] mb-6 uppercase tracking-wider flex items-center justify-between">
+                <span>Filing Progress</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${filing.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-blue-50 text-blue-700'
+                  }`}>
+                  {filing.status === 'completed' ? '100%' : 'Live'}
+                </span>
+              </h3>
+
+              <div className="relative flex flex-col gap-8 pl-2">
+                {/* Vertical Line */}
+                <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gray-100 -z-10"></div>
+
+                {/* Step 1: Submitted */}
+                <div className="flex items-center gap-4 relative">
+                  <div className={`w-6 h-6 rounded-full text-white flex items-center justify-center shadow-sm ring-4 ring-white z-10 transition-colors duration-300 ${filing.status === 'completed' ? 'bg-green-500' : 'bg-blue-500'
+                    }`}>
+                    <Check className="w-3 h-3" />
+                  </div>
+                  <div>
+                    <span className={`text-sm font-semibold block ${filing.status === 'completed' ? 'text-green-900' : 'text-blue-900'
+                      }`}>Submitted</span>
+                    <span className="text-xs text-[var(--color-muted)]">Filing received</span>
+                  </div>
+                </div>
+
+                {/* Step 2: Processing */}
+                <div className="flex items-center gap-4 relative">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-sm ring-4 ring-white z-10 transition-all duration-300 ${filing.status === 'completed'
+                    ? 'bg-green-500 text-white'
+                    : filing.status === 'action_required'
+                      ? 'bg-orange-500 text-white'
+                      : 'bg-blue-500 text-white animate-pulse'
+                    }`}>
+                    {filing.status === 'completed' ? (
+                      <Check className="w-3 h-3" />
+                    ) : filing.status === 'action_required' ? (
+                      <AlertCircle className="w-3 h-3" />
+                    ) : (
+                      <Clock className="w-3 h-3" />
+                    )}
+                  </div>
+                  <div>
+                    <span className={`text-sm font-semibold block ${filing.status === 'completed'
+                      ? 'text-green-900'
+                      : filing.status === 'action_required'
+                        ? 'text-orange-900'
+                        : 'text-blue-900'
+                      }`}>Processing</span>
+                    <span className="text-xs text-[var(--color-muted)]">
+                      {filing.status === 'completed'
+                        ? 'Validation complete'
+                        : filing.status === 'action_required'
+                          ? 'Attention needed'
+                          : 'Validating details...'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Step 3: IRS Accepted */}
+                <div className="flex items-center gap-4 relative">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-sm ring-4 ring-white z-10 transition-colors duration-300 ${filing.status === 'completed' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'
+                    }`}>
+                    {filing.status === 'completed' ? (
+                      <Check className="w-3 h-3" />
+                    ) : (
+                      <Building2 className="w-3 h-3" />
+                    )}
+                  </div>
+                  <div>
+                    <span className={`text-sm font-semibold block ${filing.status === 'completed' ? 'text-green-900' : 'text-gray-500'
+                      }`}>IRS Acceptance</span>
+                    <span className="text-xs text-[var(--color-muted)]">
+                      {filing.status === 'completed' ? 'Officially accepted' : 'Pending IRS response'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid md:grid-cols-2 gap-4 mt-6">
+          {/* Business Information */}
+          <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Building2 className="w-4 h-4 text-[var(--color-navy)]" />
+              <h2 className="text-sm font-semibold text-[var(--color-text)]">Business Information</h2>
+            </div>
+            {business && (
+              <div className="space-y-2.5 text-xs">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[var(--color-muted)] min-w-[100px]">Name:</span>
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <span className="text-[var(--color-text)] font-medium truncate">{business.businessName}</span>
+                    <button
+                      onClick={() => handleCopy(business.businessName, 'businessName')}
+                      className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-navy)] transition"
+                      title="Copy"
+                    >
+                      {copied === 'businessName' ? (
+                        <Check className="w-3 h-3" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[var(--color-muted)] min-w-[100px]">EIN:</span>
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <span className="text-[var(--color-text)] font-medium font-mono">{business.ein}</span>
+                    <button
+                      onClick={() => handleCopy(business.ein, 'ein')}
+                      className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-navy)] transition"
+                      title="Copy"
+                    >
+                      {copied === 'ein' ? (
+                        <Check className="w-3 h-3" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                {business.address && (
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[100px]">Address:</span>
+                    <span className="text-[var(--color-text)] flex-1 text-right">{business.address}</span>
+                  </div>
+                )}
+                {business.phone && (
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[100px]">Phone:</span>
+                    <span className="text-[var(--color-text)] flex-1 text-right">{business.phone}</span>
+                  </div>
+                )}
+                {business.signingAuthorityName && (
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[100px]">Signing Authority:</span>
+                    <span className="text-[var(--color-text)] flex-1 text-right">
+                      {business.signingAuthorityName}
+                      {business.signingAuthorityTitle && ` (${business.signingAuthorityTitle})`}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Filing Details */}
+          <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar className="w-4 h-4 text-[var(--color-navy)]" />
+              <h2 className="text-sm font-semibold text-[var(--color-text)]">Filing Details</h2>
+            </div>
+            <div className="space-y-2.5 text-xs">
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-[var(--color-muted)] min-w-[120px]">Tax Year:</span>
+                <span className="text-[var(--color-text)] font-medium">{filing.taxYear}</span>
+              </div>
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-[var(--color-muted)] min-w-[120px]">First Used:</span>
+                <span className="text-[var(--color-text)] font-medium">{filing.firstUsedMonth}</span>
+              </div>
+              {filing.createdAt && (
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[var(--color-muted)] min-w-[120px]">Submitted:</span>
+                  <span className="text-[var(--color-text)]">
+                    {filing.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+              )}
+              {filing.updatedAt && (
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[var(--color-muted)] min-w-[120px]">Last Updated:</span>
+                  <span className="text-[var(--color-text)]">
+                    {filing.updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
                 </div>
               )}
             </div>
-
-            {/* Filing Details */}
-            <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Calendar className="w-4 h-4 text-[var(--color-navy)]" />
-                <h2 className="text-sm font-semibold text-[var(--color-text)]">Filing Details</h2>
-              </div>
-              <div className="space-y-2.5 text-xs">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-[var(--color-muted)] min-w-[120px]">Tax Year:</span>
-                  <span className="text-[var(--color-text)] font-medium">{filing.taxYear}</span>
-                </div>
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-[var(--color-muted)] min-w-[120px]">First Used:</span>
-                  <span className="text-[var(--color-text)] font-medium">{filing.firstUsedMonth}</span>
-                </div>
-                {filing.createdAt && (
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-[var(--color-muted)] min-w-[120px]">Submitted:</span>
-                    <span className="text-[var(--color-text)]">
-                      {filing.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </span>
-                  </div>
-                )}
-                {filing.updatedAt && (
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-[var(--color-muted)] min-w-[120px]">Last Updated:</span>
-                    <span className="text-[var(--color-text)]">
-                      {filing.updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
+        </div>
 
-          {/* Vehicles */}
+        {/* Vehicles */}
+        <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Truck className="w-4 h-4 text-[var(--color-navy)]" />
+            <h2 className="text-sm font-semibold text-[var(--color-text)]">
+              Vehicles ({vehicles.length})
+            </h2>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-2.5">
+            {vehicles.map((vehicle) => (
+              <div
+                key={vehicle.id}
+                className="bg-[var(--color-page-alt)] rounded border border-[var(--color-border)] p-3"
+              >
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[80px]">VIN:</span>
+                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                      <span className="text-[var(--color-text)] font-medium font-mono truncate">{vehicle.vin}</span>
+                      <button
+                        onClick={() => handleCopy(vehicle.vin, `vin-${vehicle.id}`)}
+                        className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-navy)] transition"
+                        title="Copy VIN"
+                      >
+                        {copied === `vin-${vehicle.id}` ? (
+                          <Check className="w-3 h-3" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[80px]">Weight:</span>
+                    <span className="text-[var(--color-text)] font-medium">{vehicle.grossWeightCategory}</span>
+                  </div>
+                  {vehicle.isSuspended && (
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <AlertCircle className="w-3 h-3 text-orange-600" />
+                      <span className="text-xs font-medium text-orange-600">Suspended Vehicle</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Input Documents */}
+        {filing.inputDocuments && filing.inputDocuments.length > 0 && (
           <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Truck className="w-4 h-4 text-[var(--color-navy)]" />
+              <FileText className="w-4 h-4 text-[var(--color-navy)]" />
               <h2 className="text-sm font-semibold text-[var(--color-text)]">
-                Vehicles ({vehicles.length})
+                Uploaded Documents ({filing.inputDocuments.length})
               </h2>
             </div>
             <div className="grid sm:grid-cols-2 gap-2.5">
-              {vehicles.map((vehicle) => (
-                <div 
-                  key={vehicle.id} 
-                  className="bg-[var(--color-page-alt)] rounded border border-[var(--color-border)] p-3"
+              {filing.inputDocuments.map((url, index) => (
+                <a
+                  key={index}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-2.5 bg-[var(--color-page-alt)] rounded border border-[var(--color-border)] hover:border-[var(--color-navy)] hover:bg-[var(--color-page-alt)] transition text-xs"
                 >
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-[var(--color-muted)] min-w-[80px]">VIN:</span>
-                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                        <span className="text-[var(--color-text)] font-medium font-mono truncate">{vehicle.vin}</span>
-                        <button
-                          onClick={() => handleCopy(vehicle.vin, `vin-${vehicle.id}`)}
-                          className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-navy)] transition"
-                          title="Copy VIN"
-                        >
-                          {copied === `vin-${vehicle.id}` ? (
-                            <Check className="w-3 h-3" />
-                          ) : (
-                            <Copy className="w-3 h-3" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-[var(--color-muted)] min-w-[80px]">Weight:</span>
-                      <span className="text-[var(--color-text)] font-medium">{vehicle.grossWeightCategory}</span>
-                    </div>
-                    {vehicle.isSuspended && (
-                      <div className="flex items-center gap-1.5 pt-1">
-                        <AlertCircle className="w-3 h-3 text-orange-600" />
-                        <span className="text-xs font-medium text-orange-600">Suspended Vehicle</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  <FileText className="w-3.5 h-3.5 text-[var(--color-muted)] flex-shrink-0" />
+                  <span className="text-[var(--color-text)] font-medium truncate">Document {index + 1}</span>
+                  <Download className="w-3 h-3 text-[var(--color-muted)] ml-auto flex-shrink-0" />
+                </a>
               ))}
             </div>
           </div>
-
-          {/* Input Documents */}
-          {filing.inputDocuments && filing.inputDocuments.length > 0 && (
-            <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <FileText className="w-4 h-4 text-[var(--color-navy)]" />
-                <h2 className="text-sm font-semibold text-[var(--color-text)]">
-                  Uploaded Documents ({filing.inputDocuments.length})
-                </h2>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-2.5">
-                {filing.inputDocuments.map((url, index) => (
-                  <a
-                    key={index}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 p-2.5 bg-[var(--color-page-alt)] rounded border border-[var(--color-border)] hover:border-[var(--color-navy)] hover:bg-[var(--color-page-alt)] transition text-xs"
-                  >
-                    <FileText className="w-3.5 h-3.5 text-[var(--color-muted)] flex-shrink-0" />
-                    <span className="text-[var(--color-text)] font-medium truncate">Document {index + 1}</span>
-                    <Download className="w-3 h-3 text-[var(--color-muted)] ml-auto flex-shrink-0" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </ProtectedRoute>
   );

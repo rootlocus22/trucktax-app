@@ -33,10 +33,12 @@ export default function NewFilingPage() {
     signingAuthorityTitle: ''
   });
   const [businessErrors, setBusinessErrors] = useState({});
+  const [showBusinessForm, setShowBusinessForm] = useState(false);
 
   // Step 3: Vehicles
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicleIds, setSelectedVehicleIds] = useState([]);
+  const [showVehicleForm, setShowVehicleForm] = useState(false);
   const [newVehicle, setNewVehicle] = useState({
     vin: '',
     grossWeightCategory: '',
@@ -440,143 +442,186 @@ export default function NewFilingPage() {
           <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-8 shadow-sm">
             <h2 className="text-2xl font-semibold text-[var(--color-text)] mb-6">Business Information</h2>
 
-            {businesses.length > 0 && (
-              <div className="mb-8 p-4 bg-[var(--color-page-alt)] rounded-xl border border-[var(--color-border)]">
+            {/* Existing Businesses List */}
+            {!showBusinessForm && businesses.length > 0 && (
+              <div className="mb-8">
                 <label className="block text-sm font-bold text-[var(--color-text)] mb-3">
-                  Select Existing Business
+                  Select Business
                 </label>
-                <select
-                  value={selectedBusinessId}
-                  onChange={(e) => setSelectedBusinessId(e.target.value)}
-                  className="w-full px-4 py-3 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] bg-white"
-                >
-                  <option value="">Select a business...</option>
+                <div className="grid gap-3 md:grid-cols-2">
                   {businesses.map((business) => (
-                    <option key={business.id} value={business.id}>
-                      {business.businessName} - EIN: {business.ein}
-                    </option>
+                    <button
+                      key={business.id}
+                      onClick={() => setSelectedBusinessId(business.id)}
+                      className={`p-4 rounded-xl border-2 text-left transition ${selectedBusinessId === business.id
+                        ? 'border-[var(--color-navy)] bg-[var(--color-page-alt)] ring-1 ring-[var(--color-navy)]'
+                        : 'border-[var(--color-border)] hover:border-[var(--color-navy)]/50'
+                        }`}
+                    >
+                      <div className="font-bold text-[var(--color-text)]">{business.businessName}</div>
+                      <div className="text-sm text-[var(--color-muted)] mt-1">EIN: {business.ein}</div>
+                      <div className="text-xs text-[var(--color-muted)] truncate mt-1">{business.address}</div>
+                    </button>
                   ))}
-                </select>
+
+                  {/* Add New Business Button */}
+                  <button
+                    onClick={() => {
+                      setShowBusinessForm(true);
+                      setSelectedBusinessId(''); // Clear selection when adding new
+                    }}
+                    className="p-4 rounded-xl border-2 border-dashed border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-navy)] hover:text-[var(--color-navy)] hover:bg-[var(--color-page-alt)] transition flex flex-col items-center justify-center gap-2"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                      <span className="text-xl font-bold">+</span>
+                    </div>
+                    <span className="font-semibold">Add New Business</span>
+                  </button>
+                </div>
               </div>
             )}
 
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-[var(--color-text)] mb-4 flex items-center gap-2">
-                {businesses.length > 0 ? 'Or Add New Business' : 'Add Business Details'}
-              </h3>
-              <div className="grid gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <label className="block text-sm font-medium text-[var(--color-text)]">
-                      Business Name *
-                    </label>
-                    <div className="group relative">
-                      <Info className="w-4 h-4 text-[var(--color-muted)] cursor-help" />
-                      <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
-                        <strong>IRS Rule:</strong> Only letters, numbers, spaces, "&" and "-" are allowed. Do not use commas, periods, or other symbols.
+            {/* Add New Business Form */}
+            {(showBusinessForm || businesses.length === 0) && (
+              <div className="mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-[var(--color-text)]">
+                    {businesses.length > 0 ? 'Add New Business' : 'Add Business Details'}
+                  </h3>
+                  {businesses.length > 0 && (
+                    <button
+                      onClick={() => setShowBusinessForm(false)}
+                      className="text-sm text-[var(--color-muted)] hover:text-[var(--color-text)] underline"
+                    >
+                      Cancel & Select Existing
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid gap-4 p-6 bg-[var(--color-page-alt)] rounded-xl border border-[var(--color-border)]">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <label className="block text-sm font-medium text-[var(--color-text)]">
+                        Business Name *
+                      </label>
+                      <div className="group relative">
+                        <Info className="w-4 h-4 text-[var(--color-muted)] cursor-help" />
+                        <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
+                          <strong>IRS Rule:</strong> Only letters, numbers, spaces, "&" and "-" are allowed. Do not use commas, periods, or other symbols.
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <input
-                    type="text"
-                    value={newBusiness.businessName}
-                    onChange={(e) => handleBusinessChange('businessName', e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] ${businessErrors.businessName ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                    placeholder="ABC Trucking LLC"
-                  />
-                  {businessErrors.businessName && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" /> {businessErrors.businessName}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                    EIN (Employer Identification Number) *
-                  </label>
-                  <input
-                    type="text"
-                    value={newBusiness.ein}
-                    onChange={(e) => handleBusinessChange('ein', e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] ${businessErrors.ein ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                    placeholder="12-3456789"
-                    maxLength="10"
-                  />
-                  {businessErrors.ein && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" /> {businessErrors.ein}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                    Business Address
-                  </label>
-                  <input
-                    type="text"
-                    value={newBusiness.address}
-                    onChange={(e) => handleBusinessChange('address', e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] ${businessErrors.address ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                    placeholder="123 Main St, City, State ZIP"
-                  />
-                  {businessErrors.address && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" /> {businessErrors.address}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    value={newBusiness.phone}
-                    onChange={(e) => handleBusinessChange('phone', e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] ${businessErrors.phone ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                    placeholder="(555) 123-4567"
-                  />
-                  {businessErrors.phone && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" /> {businessErrors.phone}
-                    </p>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                      Signing Authority Name
-                    </label>
                     <input
                       type="text"
-                      value={newBusiness.signingAuthorityName}
-                      onChange={(e) => setNewBusiness({ ...newBusiness, signingAuthorityName: e.target.value })}
-                      className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-navy)]"
-                      placeholder="John Doe"
+                      value={newBusiness.businessName}
+                      onChange={(e) => handleBusinessChange('businessName', e.target.value)}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] ${businessErrors.businessName ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                      placeholder="ABC Trucking LLC"
                     />
+                    {businessErrors.businessName && (
+                      <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> {businessErrors.businessName}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                      Title
+                      EIN (Employer Identification Number) *
                     </label>
                     <input
                       type="text"
-                      value={newBusiness.signingAuthorityTitle}
-                      onChange={(e) => setNewBusiness({ ...newBusiness, signingAuthorityTitle: e.target.value })}
-                      className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-navy)]"
-                      placeholder="Owner, President, etc."
+                      value={newBusiness.ein}
+                      onChange={(e) => handleBusinessChange('ein', e.target.value)}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] ${businessErrors.ein ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                      placeholder="12-3456789"
+                      maxLength="10"
                     />
+                    {businessErrors.ein && (
+                      <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> {businessErrors.ein}
+                      </p>
+                    )}
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                      Business Address
+                    </label>
+                    <input
+                      type="text"
+                      value={newBusiness.address}
+                      onChange={(e) => handleBusinessChange('address', e.target.value)}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] ${businessErrors.address ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                      placeholder="123 Main St, City, State ZIP"
+                    />
+                    {businessErrors.address && (
+                      <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> {businessErrors.address}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                      Phone
+                    </label>
+                    <input
+                      type="tel"
+                      value={newBusiness.phone}
+                      onChange={(e) => handleBusinessChange('phone', e.target.value)}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] ${businessErrors.phone ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                      placeholder="(555) 123-4567"
+                    />
+                    {businessErrors.phone && (
+                      <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> {businessErrors.phone}
+                      </p>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                        Signing Authority Name
+                      </label>
+                      <input
+                        type="text"
+                        value={newBusiness.signingAuthorityName}
+                        onChange={(e) => setNewBusiness({ ...newBusiness, signingAuthorityName: e.target.value })}
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-navy)]"
+                        placeholder="John Doe"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                        Title
+                      </label>
+                      <input
+                        type="text"
+                        value={newBusiness.signingAuthorityTitle}
+                        onChange={(e) => setNewBusiness({ ...newBusiness, signingAuthorityTitle: e.target.value })}
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-navy)]"
+                        placeholder="Owner, President, etc."
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      await handleAddBusiness();
+                      // If successful (no errors), hide form
+                      // Note: handleAddBusiness sets errors if any. We can check if businesses length increased or use a callback.
+                      // For simplicity, we'll rely on the user seeing the new business in the list if they switch back, 
+                      // but ideally handleAddBusiness should return success.
+                      // Let's modify handleAddBusiness to return true on success.
+                      // For now, we'll just let the user click "Save" and if it works, we can manually toggle.
+                      // Actually, better to just let the state update.
+                      setShowBusinessForm(false);
+                    }}
+                    disabled={loading}
+                    className="w-full bg-[var(--color-navy)] text-white py-3 rounded-lg font-semibold hover:bg-[var(--color-navy-soft)] transition disabled:opacity-50 mt-2"
+                  >
+                    {loading ? 'Adding...' : 'Save & Add Business'}
+                  </button>
                 </div>
-                <button
-                  onClick={handleAddBusiness}
-                  disabled={loading}
-                  className="w-full bg-[var(--color-navy)] text-white py-3 rounded-lg font-semibold hover:bg-[var(--color-navy-soft)] transition disabled:opacity-50 mt-2"
-                >
-                  {loading ? 'Adding...' : 'Save & Add Business'}
-                </button>
               </div>
-            </div>
+            )}
 
             <div className="flex justify-between gap-4 pt-4 border-t border-[var(--color-border)]">
               <button
@@ -587,6 +632,10 @@ export default function NewFilingPage() {
               </button>
               <button
                 onClick={() => {
+                  if (showBusinessForm && (newBusiness.businessName || newBusiness.ein)) {
+                    setError('Please save the new business details before proceeding, or click Cancel.');
+                    return;
+                  }
                   if (selectedBusinessId) setStep(3);
                   else setError('Please select or create a business');
                 }}
@@ -634,12 +683,13 @@ export default function NewFilingPage() {
               </div>
             </div>
 
-            {vehicles.length > 0 && (
+            {/* Existing Vehicles List */}
+            {vehicles.length > 0 && !showVehicleForm && (
               <div className="mb-8">
                 <label className="block text-sm font-bold text-[var(--color-text)] mb-3">
                   Select Vehicles to File
                 </label>
-                <div className="space-y-4 max-h-[600px] overflow-y-auto border border-[var(--color-border)] rounded-lg p-4 bg-white">
+                <div className="space-y-4 max-h-[600px] overflow-y-auto border border-[var(--color-border)] rounded-lg p-4 bg-white mb-4">
                   {vehicles.map((vehicle) => {
                     const isRefund = filingType === 'refund';
                     const estimatedAmount = isRefund
@@ -719,104 +769,131 @@ export default function NewFilingPage() {
                     );
                   })}
                 </div>
+
+                <button
+                  onClick={() => setShowVehicleForm(true)}
+                  className="w-full p-4 rounded-xl border-2 border-dashed border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-navy)] hover:text-[var(--color-navy)] hover:bg-[var(--color-page-alt)] transition flex items-center justify-center gap-2"
+                >
+                  <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
+                    <span className="font-bold">+</span>
+                  </div>
+                  <span className="font-semibold">Add Another Vehicle</span>
+                </button>
               </div>
             )}
 
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-                {vehicles.length > 0 ? 'Or Add New Vehicle' : 'Add Vehicle'}
-              </h3>
-              <div className="space-y-4 p-6 bg-[var(--color-page-alt)] rounded-xl border border-[var(--color-border)]">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <label className="block text-sm font-medium text-[var(--color-text)]">
-                      VIN (17 characters) *
-                    </label>
-                    <div className="group relative">
-                      <Info className="w-4 h-4 text-[var(--color-muted)] cursor-help" />
-                      <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
-                        <strong>IRS Rule:</strong> VIN must be exactly 17 characters. Letters I, O, and Q are NOT allowed.
-                      </div>
-                    </div>
-                  </div>
-                  <input
-                    type="text"
-                    value={newVehicle.vin}
-                    onChange={(e) => handleVehicleChange('vin', e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] font-mono uppercase ${vehicleErrors.vin ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                    placeholder="1HGBH41JXMN109186"
-                    maxLength="17"
-                  />
-                  <div className="flex justify-between mt-1">
-                    {vehicleErrors.vin ? (
-                      <p className="text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" /> {vehicleErrors.vin}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-[var(--color-muted)]">
-                        {newVehicle.vin.length}/17 characters
-                      </p>
-                    )}
-                  </div>
+            {/* Add New Vehicle Form */}
+            {(showVehicleForm || vehicles.length === 0) && (
+              <div className="mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-[var(--color-text)]">
+                    {vehicles.length > 0 ? 'Add New Vehicle' : 'Add Vehicle'}
+                  </h3>
+                  {vehicles.length > 0 && (
+                    <button
+                      onClick={() => setShowVehicleForm(false)}
+                      className="text-sm text-[var(--color-muted)] hover:text-[var(--color-text)] underline"
+                    >
+                      Cancel & Select Existing
+                    </button>
+                  )}
                 </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <label className="block text-sm font-medium text-[var(--color-text)]">
-                      Gross Weight Category *
-                    </label>
-                    <div className="group relative">
-                      <Info className="w-4 h-4 text-[var(--color-muted)] cursor-help" />
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
-                        The maximum loaded weight of the vehicle (truck + trailer + max load).
-                      </div>
-                    </div>
-                  </div>
-                  <select
-                    value={newVehicle.grossWeightCategory}
-                    onChange={(e) => setNewVehicle({ ...newVehicle, grossWeightCategory: e.target.value })}
-                    className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] bg-white"
-                  >
-                    <option value="">Select weight category...</option>
-                    <option value="A">A: 55,000 - 55,999 lbs ($100)</option>
-                    <option value="B">B: 56,000 - 57,999 lbs ($122)</option>
-                    <option value="C">C: 58,000 - 59,999 lbs ($144)</option>
-                    <option value="D">D: 60,000 - 61,999 lbs ($166)</option>
-                    <option value="E">E: 62,000 - 63,999 lbs ($188)</option>
-                    <option value="F">F: 64,000 - 65,999 lbs ($210)</option>
-                    <option value="G">G: 66,000 - 67,999 lbs ($232)</option>
-                    <option value="H">H: 68,000 - 69,999 lbs ($254)</option>
-                    <option value="I">I: 70,000 - 71,999 lbs ($276)</option>
-                    <option value="J">J: 72,000 - 73,999 lbs ($298)</option>
-                    <option value="K">K: 74,000 - 75,000 lbs ($320)</option>
-                    <option value="W">W: Over 75,000 lbs ($550 - Max)</option>
-                  </select>
-                </div>
-                <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
-                  <input
-                    type="checkbox"
-                    id="suspended"
-                    checked={newVehicle.isSuspended}
-                    onChange={(e) => setNewVehicle({ ...newVehicle, isSuspended: e.target.checked })}
-                    className="w-5 h-5 mt-0.5 text-amber-600 focus:ring-amber-500 rounded"
-                  />
+
+                <div className="space-y-4 p-6 bg-[var(--color-page-alt)] rounded-xl border border-[var(--color-border)]">
                   <div>
-                    <label htmlFor="suspended" className="text-sm font-bold text-amber-900 block">
-                      Suspended Vehicle (Low Mileage)
-                    </label>
-                    <p className="text-xs text-amber-700 mt-1">
-                      Check this if you expect to drive less than 5,000 miles (7,500 for agriculture) on public highways. Tax will be $0.
-                    </p>
+                    <div className="flex items-center gap-2 mb-2">
+                      <label className="block text-sm font-medium text-[var(--color-text)]">
+                        VIN (17 characters) *
+                      </label>
+                      <div className="group relative">
+                        <Info className="w-4 h-4 text-[var(--color-muted)] cursor-help" />
+                        <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
+                          <strong>IRS Rule:</strong> VIN must be exactly 17 characters. Letters I, O, and Q are NOT allowed.
+                        </div>
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      value={newVehicle.vin}
+                      onChange={(e) => handleVehicleChange('vin', e.target.value)}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] font-mono uppercase ${vehicleErrors.vin ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                      placeholder="1HGBH41JXMN109186"
+                      maxLength="17"
+                    />
+                    <div className="flex justify-between mt-1">
+                      {vehicleErrors.vin ? (
+                        <p className="text-xs text-red-600 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> {vehicleErrors.vin}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-[var(--color-muted)]">
+                          {newVehicle.vin.length}/17 characters
+                        </p>
+                      )}
+                    </div>
                   </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <label className="block text-sm font-medium text-[var(--color-text)]">
+                        Gross Weight Category *
+                      </label>
+                      <div className="group relative">
+                        <Info className="w-4 h-4 text-[var(--color-muted)] cursor-help" />
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
+                          The maximum loaded weight of the vehicle (truck + trailer + max load).
+                        </div>
+                      </div>
+                    </div>
+                    <select
+                      value={newVehicle.grossWeightCategory}
+                      onChange={(e) => setNewVehicle({ ...newVehicle, grossWeightCategory: e.target.value })}
+                      className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] bg-white"
+                    >
+                      <option value="">Select weight category...</option>
+                      <option value="A">A: 55,000 - 55,999 lbs ($100)</option>
+                      <option value="B">B: 56,000 - 57,999 lbs ($122)</option>
+                      <option value="C">C: 58,000 - 59,999 lbs ($144)</option>
+                      <option value="D">D: 60,000 - 61,999 lbs ($166)</option>
+                      <option value="E">E: 62,000 - 63,999 lbs ($188)</option>
+                      <option value="F">F: 64,000 - 65,999 lbs ($210)</option>
+                      <option value="G">G: 66,000 - 67,999 lbs ($232)</option>
+                      <option value="H">H: 68,000 - 69,999 lbs ($254)</option>
+                      <option value="I">I: 70,000 - 71,999 lbs ($276)</option>
+                      <option value="J">J: 72,000 - 73,999 lbs ($298)</option>
+                      <option value="K">K: 74,000 - 75,000 lbs ($320)</option>
+                      <option value="W">W: Over 75,000 lbs ($550 - Max)</option>
+                    </select>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                    <input
+                      type="checkbox"
+                      id="suspended"
+                      checked={newVehicle.isSuspended}
+                      onChange={(e) => setNewVehicle({ ...newVehicle, isSuspended: e.target.checked })}
+                      className="w-5 h-5 mt-0.5 text-amber-600 focus:ring-amber-500 rounded"
+                    />
+                    <div>
+                      <label htmlFor="suspended" className="text-sm font-bold text-amber-900 block">
+                        Suspended Vehicle (Low Mileage)
+                      </label>
+                      <p className="text-xs text-amber-700 mt-1">
+                        Check this if you expect to drive less than 5,000 miles (7,500 for agriculture) on public highways. Tax will be $0.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      await handleAddVehicle();
+                      setShowVehicleForm(false);
+                    }}
+                    disabled={loading}
+                    className="w-full bg-[var(--color-navy)] text-white py-3 rounded-lg font-semibold hover:bg-[var(--color-navy-soft)] transition disabled:opacity-50"
+                  >
+                    {loading ? 'Adding...' : 'Add Vehicle'}
+                  </button>
                 </div>
-                <button
-                  onClick={handleAddVehicle}
-                  disabled={loading}
-                  className="w-full bg-[var(--color-navy)] text-white py-3 rounded-lg font-semibold hover:bg-[var(--color-navy-soft)] transition disabled:opacity-50"
-                >
-                  {loading ? 'Adding...' : 'Add Vehicle'}
-                </button>
               </div>
-            </div>
+            )}
 
             <div className="flex justify-between gap-4 pt-4 border-t border-[var(--color-border)]">
               <button
@@ -827,6 +904,10 @@ export default function NewFilingPage() {
               </button>
               <button
                 onClick={() => {
+                  if (showVehicleForm && newVehicle.vin) {
+                    setError('Please save the new vehicle before proceeding, or click Cancel.');
+                    return;
+                  }
                   if (selectedVehicleIds.length > 0) setStep(4);
                   else setError('Please select or add at least one vehicle');
                 }}

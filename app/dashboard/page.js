@@ -219,49 +219,92 @@ export default function DashboardPage() {
               })}
             </div>
 
-            {/* Quick Actions */}
-            <div className="bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-navy-soft)] rounded-xl p-5 sm:p-6">
-              <h2 className="text-base sm:text-lg font-semibold text-white mb-4">Quick Actions</h2>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link
-                  href="/dashboard/upload-schedule1"
-                  className="inline-flex items-center justify-center gap-2 bg-white text-[var(--color-navy)] px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-gray-50 transition shadow-sm"
-                  style={{ color: '#1b2838' }}
-                >
-                  <Upload className="w-4 h-4" />
-                  Upload Schedule 1 PDF
-                </Link>
+            {/* Pending Actions Alert */}
+            {stats.actionRequired > 0 && (
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-start gap-4">
+                <div className="p-2 bg-orange-100 rounded-full">
+                  <AlertCircle className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-orange-800">Action Required</h3>
+                  <p className="text-sm text-orange-700 mt-1">
+                    You have {stats.actionRequired} filing{stats.actionRequired !== 1 ? 's' : ''} that require your attention. Please review them to proceed.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Actions Grid */}
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">Quick Actions</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Link
                   href="/dashboard/new-filing"
-                  className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-white/20 transition"
-                  style={{ color: '#ffffff' }}
+                  className="group p-5 bg-white rounded-xl border border-[var(--color-border)] hover:border-[var(--color-navy)] hover:shadow-md transition flex flex-col gap-3"
                 >
-                  <Edit className="w-4 h-4" />
-                  Manual Entry
+                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-[var(--color-text)]">New 2290 Filing</h3>
+                    <p className="text-xs text-[var(--color-muted)] mt-1">File for current tax year</p>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/dashboard/new-filing?type=refund"
+                  className="group p-5 bg-white rounded-xl border border-[var(--color-border)] hover:border-[var(--color-navy)] hover:shadow-md transition flex flex-col gap-3"
+                >
+                  <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition">
+                    <ArrowRight className="w-5 h-5 text-green-600 rotate-45" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-[var(--color-text)]">8849 Refund</h3>
+                    <p className="text-xs text-[var(--color-muted)] mt-1">Claim credits for sold/destroyed</p>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/dashboard/new-filing?type=amendment"
+                  className="group p-5 bg-white rounded-xl border border-[var(--color-border)] hover:border-[var(--color-navy)] hover:shadow-md transition flex flex-col gap-3"
+                >
+                  <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition">
+                    <Edit className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-[var(--color-text)]">Amendment</h3>
+                    <p className="text-xs text-[var(--color-muted)] mt-1">Correct VIN or weight</p>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/dashboard/upload-schedule1"
+                  className="group p-5 bg-white rounded-xl border border-[var(--color-border)] hover:border-[var(--color-navy)] hover:shadow-md transition flex flex-col gap-3"
+                >
+                  <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition">
+                    <Upload className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-[var(--color-text)]">Upload Schedule 1</h3>
+                    <p className="text-xs text-[var(--color-muted)] mt-1">AI-powered extraction</p>
+                  </div>
                 </Link>
               </div>
             </div>
 
-            {/* Filings List */}
+            {/* Recent Activity (Top 5) */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg sm:text-xl font-semibold text-[var(--color-text)]">Your Filings</h2>
-                <div className="flex items-center gap-3">
-                  <Link
-                    href="/dashboard/schedule1"
-                    className="text-sm text-[var(--color-navy)] hover:underline font-medium"
-                  >
-                    Schedule 1 Documents
-                  </Link>
-                  {stats.actionRequired > 0 && (
-                    <span className="bg-orange-50 text-orange-700 border border-orange-200 px-3 py-1 rounded-full text-xs font-semibold">
-                      {stats.actionRequired} Need Attention
-                    </span>
-                  )}
-                </div>
+                <h2 className="text-lg font-semibold text-[var(--color-text)]">Recent Activity</h2>
+                <Link
+                  href="/dashboard/filings"
+                  className="text-sm text-[var(--color-navy)] hover:underline font-medium"
+                >
+                  View All Filings
+                </Link>
               </div>
               <div className="grid gap-3">
-                {filings.map((filing) => (
+                {filings.slice(0, 5).map((filing) => (
                   <Link
                     key={filing.id}
                     href={`/dashboard/filings/${filing.id}`}
@@ -296,6 +339,11 @@ export default function DashboardPage() {
                     </div>
                   </Link>
                 ))}
+                {filings.length === 0 && (
+                  <div className="text-center py-8 text-[var(--color-muted)] bg-[var(--color-page-alt)] rounded-lg border border-dashed border-[var(--color-border)]">
+                    No recent activity
+                  </div>
+                )}
               </div>
             </div>
           </div>
