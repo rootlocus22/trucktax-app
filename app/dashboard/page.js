@@ -303,7 +303,7 @@ export default function DashboardPage() {
                   View All Filings
                 </Link>
               </div>
-              <div className="grid gap-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {filings.slice(0, 5).map((filing) => (
                   <Link
                     key={filing.id}
