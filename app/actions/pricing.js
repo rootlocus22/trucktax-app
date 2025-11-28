@@ -57,11 +57,28 @@ function calculateServiceFee(filingType, vehicleCount) {
 export async function calculateFilingCost(filingData, vehicles, businessAddress) {
     try {
         // 1. Calculate IRS Tax (HVUT)
+        // 1. Calculate IRS Tax (HVUT) or Refund Amount
         let totalTax = 0;
+        let totalRefund = 0;
+
         const vehicleBreakdown = vehicles.map(v => {
-            const tax = calculateVehicleTax(v.grossWeightCategory, v.isSuspended, filingData.firstUsedMonth);
-            totalTax += tax;
-            return { ...v, taxAmount: tax };
+            if (filingData.filingType === 'refund') {
+                // For refunds, Tax Due is $0. We calculate the *Refund Amount* the user gets back.
+                // Refund is prorated based on remaining months.
+                // Example: Paid full year ($550), sold in October (used July-Sept = 3 months).
+                // Refund = 9/12 of tax paid.
+
+                // For this MVP, we'll estimate refund based on "First Used Month" being the month of sale/destruction
+                // effectively treating "months remaining" as the refund period.
+                const tax = calculateVehicleTax(v.grossWeightCategory, v.isSuspended, filingData.firstUsedMonth);
+                totalRefund += tax;
+
+                return { ...v, taxAmount: 0, refundAmount: tax };
+            } else {
+                const tax = calculateVehicleTax(v.grossWeightCategory, v.isSuspended, filingData.firstUsedMonth);
+                totalTax += tax;
+                return { ...v, taxAmount: tax };
+            }
         });
 
         // 2. Calculate Service Fee
@@ -82,6 +99,8 @@ export async function calculateFilingCost(filingData, vehicles, businessAddress)
                 salesTax: salesTaxResult.amount,
                 salesTaxRate: salesTaxResult.rate,
                 grandTotal: parseFloat(grandTotal.toFixed(2)),
+                grandTotal: parseFloat(grandTotal.toFixed(2)),
+                totalRefund: parseFloat(totalRefund.toFixed(2)),
                 vehicleBreakdown
             }
         };

@@ -7,7 +7,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { getBusinessesByUser, createBusiness, getVehiclesByUser, createVehicle, createFiling } from '@/lib/db';
 import { uploadInputDocument } from '@/lib/storage';
 import { calculateFilingCost } from '@/app/actions/pricing'; // Server Action
-import { calculateTax } from '@/lib/pricing'; // Keep for client-side estimation only
+import { calculateTax, calculateRefundAmount } from '@/lib/pricing'; // Keep for client-side estimation only
 import { validateBusinessName, validateEIN, formatEIN, validateVIN, validateAddress, validatePhone } from '@/lib/validation';
 import { FileText, AlertTriangle, RefreshCw, Truck, Info, CreditCard, CheckCircle, ShieldCheck, AlertCircle } from 'lucide-react';
 
@@ -43,6 +43,9 @@ export default function NewFilingPage() {
     isSuspended: false
   });
   const [vehicleErrors, setVehicleErrors] = useState({});
+
+  // Refund Details (for 8849)
+  const [refundDetails, setRefundDetails] = useState({}); // { vehicleId: { reason: '', date: '' } }
 
   // Step 4: Documents
   const [documents, setDocuments] = useState([]);
@@ -286,6 +289,7 @@ export default function NewFilingPage() {
         taxYear: filingData.taxYear,
         firstUsedMonth: filingData.firstUsedMonth,
         filingType: filingType, // Add filing type
+        refundDetails: filingType === 'refund' ? refundDetails : {}, // Add refund details
         inputDocuments: [],
         pricing: pricing // Save pricing snapshot
       });
@@ -635,37 +639,83 @@ export default function NewFilingPage() {
                 <label className="block text-sm font-bold text-[var(--color-text)] mb-3">
                   Select Vehicles to File
                 </label>
-                <div className="space-y-2 max-h-60 overflow-y-auto border border-[var(--color-border)] rounded-lg p-4 bg-white">
+                <div className="space-y-4 max-h-[600px] overflow-y-auto border border-[var(--color-border)] rounded-lg p-4 bg-white">
                   {vehicles.map((vehicle) => {
-                    const estimatedTax = calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
+                    const isRefund = filingType === 'refund';
+                    const estimatedAmount = isRefund
+                      ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
+                      : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
+
+                    const isSelected = selectedVehicleIds.includes(vehicle.id);
+
                     return (
-                      <label key={vehicle.id} className="flex items-center gap-3 p-3 hover:bg-[var(--color-page-alt)] rounded-lg cursor-pointer border border-transparent hover:border-[var(--color-border)] transition">
-                        <input
-                          type="checkbox"
-                          checked={selectedVehicleIds.includes(vehicle.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedVehicleIds([...selectedVehicleIds, vehicle.id]);
-                            } else {
-                              setSelectedVehicleIds(selectedVehicleIds.filter(id => id !== vehicle.id));
-                            }
-                          }}
-                          className="w-5 h-5 text-[var(--color-navy)] rounded focus:ring-[var(--color-navy)]"
-                        />
-                        <div className="flex-1 flex justify-between items-center">
-                          <div>
-                            <span className="font-bold text-[var(--color-text)] font-mono">{vehicle.vin}</span>
-                            <div className="text-sm text-[var(--color-muted)] flex items-center gap-2">
-                              <span>Cat: {vehicle.grossWeightCategory}</span>
-                              {vehicle.isSuspended && <span className="text-amber-600 font-medium text-xs bg-amber-50 px-2 py-0.5 rounded-full">Suspended</span>}
+                      <div key={vehicle.id} className={`p-3 rounded-lg border transition ${isSelected ? 'bg-[var(--color-page-alt)] border-[var(--color-navy)]' : 'border-transparent hover:border-[var(--color-border)]'}`}>
+                        <label className="flex items-center gap-3 cursor-pointer mb-2">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedVehicleIds([...selectedVehicleIds, vehicle.id]);
+                              } else {
+                                setSelectedVehicleIds(selectedVehicleIds.filter(id => id !== vehicle.id));
+                              }
+                            }}
+                            className="w-5 h-5 text-[var(--color-navy)] rounded focus:ring-[var(--color-navy)]"
+                          />
+                          <div className="flex-1 flex justify-between items-center">
+                            <div>
+                              <span className="font-bold text-[var(--color-text)] font-mono">{vehicle.vin}</span>
+                              <div className="text-sm text-[var(--color-muted)] flex items-center gap-2">
+                                <span>Cat: {vehicle.grossWeightCategory}</span>
+                                {vehicle.isSuspended && <span className="text-amber-600 font-medium text-xs bg-amber-50 px-2 py-0.5 rounded-full">Suspended</span>}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <span className={`font-bold ${isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>
+                                ${estimatedAmount.toFixed(2)}
+                              </span>
+                              <p className="text-xs text-[var(--color-muted)]">
+                                {isRefund ? 'Est. Refund' : 'Est. Tax'}
+                              </p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <span className="font-bold text-[var(--color-text)]">${estimatedTax.toFixed(2)}</span>
-                            <p className="text-xs text-[var(--color-muted)]">Est. Tax</p>
+                        </label>
+
+                        {/* Refund Details Inputs */}
+                        {isRefund && isSelected && (
+                          <div className="ml-8 mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-white rounded border border-dashed border-green-200">
+                            <div>
+                              <label className="block text-xs font-medium text-[var(--color-text)] mb-1">Refund Reason</label>
+                              <select
+                                className="w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-green-500"
+                                value={refundDetails[vehicle.id]?.reason || ''}
+                                onChange={(e) => setRefundDetails(prev => ({
+                                  ...prev,
+                                  [vehicle.id]: { ...prev[vehicle.id], reason: e.target.value }
+                                }))}
+                              >
+                                <option value="">Select Reason...</option>
+                                <option value="sold">Sold / Transferred</option>
+                                <option value="destroyed">Destroyed / Stolen</option>
+                                <option value="mileage">Low Mileage (Overpaid)</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-[var(--color-text)] mb-1">Date of Event</label>
+                              <input
+                                type="date"
+                                className="w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-green-500"
+                                value={refundDetails[vehicle.id]?.date || ''}
+                                onChange={(e) => setRefundDetails(prev => ({
+                                  ...prev,
+                                  [vehicle.id]: { ...prev[vehicle.id], date: e.target.value }
+                                }))}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </label>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
@@ -897,17 +947,32 @@ export default function NewFilingPage() {
                 <div>
                   <h3 className="font-bold text-[var(--color-text)] mb-4">Vehicle List</h3>
                   <div className="space-y-2">
-                    {selectedVehicles.map((vehicle) => (
-                      <div key={vehicle.id} className="flex justify-between items-center p-3 border border-[var(--color-border)] rounded-lg text-sm">
-                        <div>
-                          <span className="font-mono font-bold">{vehicle.vin}</span>
-                          <span className="text-[var(--color-muted)] ml-2">({vehicle.grossWeightCategory})</span>
+                    {selectedVehicles.map((vehicle) => {
+                      const isRefund = filingType === 'refund';
+                      const amount = isRefund
+                        ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
+                        : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
+
+                      return (
+                        <div key={vehicle.id} className="flex justify-between items-center p-3 border border-[var(--color-border)] rounded-lg text-sm">
+                          <div>
+                            <span className="font-mono font-bold">{vehicle.vin}</span>
+                            <span className="text-[var(--color-muted)] ml-2">({vehicle.grossWeightCategory})</span>
+                            {isRefund && refundDetails[vehicle.id] && (
+                              <div className="text-xs text-[var(--color-muted)] mt-1">
+                                Reason: <span className="capitalize">{refundDetails[vehicle.id].reason}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <span className={`font-semibold ${isRefund ? 'text-green-600' : ''}`}>
+                              ${amount.toFixed(2)}
+                            </span>
+                            {isRefund && <p className="text-xs text-[var(--color-muted)]">Refund</p>}
+                          </div>
                         </div>
-                        <span className="font-semibold">
-                          ${calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth).toFixed(2)}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -924,10 +989,24 @@ export default function NewFilingPage() {
                   ) : (
                     <>
                       <div className="space-y-3 mb-6 pb-6 border-b border-white/20">
-                        <div className="flex justify-between">
-                          <span className="text-white/80">IRS Tax Amount</span>
-                          <span className="font-bold">${pricing.totalTax.toFixed(2)}</span>
-                        </div>
+                        {filingType === 'refund' ? (
+                          <>
+                            <div className="flex justify-between text-green-200">
+                              <span className="text-white/80">Est. Refund Amount</span>
+                              <span className="font-bold">${(pricing.totalRefund || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-white/80">Tax Due</span>
+                              <span className="font-bold">$0.00</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex justify-between">
+                            <span className="text-white/80">IRS Tax Amount</span>
+                            <span className="font-bold">${pricing.totalTax.toFixed(2)}</span>
+                          </div>
+                        )}
+
                         <div className="flex justify-between">
                           <span className="text-white/80">Service Fee</span>
                           <span className="font-bold">${pricing.serviceFee.toFixed(2)}</span>
