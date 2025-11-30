@@ -230,9 +230,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing file' }, { status: 400 });
     }
 
-    if (!filingId) {
-      return NextResponse.json({ error: 'Missing filingId' }, { status: 400 });
-    }
+    // filingId is optional - can be 'temp' for initial upload before filing creation
+    const isTempFiling = !filingId || filingId === 'temp';
 
     if (file.size === 0) {
       return NextResponse.json({ error: 'File is empty' }, { status: 400 });
@@ -284,7 +283,11 @@ export async function POST(request) {
         // Continue anyway - the upload will fail if bucket doesn't exist
       }
       
-      fileName = `filings/${filingId}/input-docs/schedule1-${Date.now()}.pdf`;
+      // Use a temporary path if filingId is 'temp' or missing
+      const storagePath = isTempFiling 
+        ? `temp-uploads/${userId}/schedule1-${Date.now()}.pdf`
+        : `filings/${filingId}/input-docs/schedule1-${Date.now()}.pdf`;
+      fileName = storagePath;
       const fileRef = bucket.file(fileName);
       
       console.log('Uploading file to:', fileName, 'in bucket:', bucketName);
@@ -324,36 +327,59 @@ export async function POST(request) {
     // Get form data (already read above, but get isFinal flag)
     const isFinal = formData.get('isFinal') === 'true';
     
-    console.log('Upload request - isFinal:', isFinal, 'filingId:', filingId);
-    const updateData = {
-      updatedAt: new Date(),
-    };
+    console.log('Upload request - isFinal:', isFinal, 'filingId:', filingId, 'isTemp:', isTempFiling);
+    
+    // Only update Firestore if we have a valid filingId (not 'temp')
+    if (!isTempFiling && filingId) {
+      const updateData = {
+        updatedAt: new Date(),
+      };
 
-    if (isFinal) {
-      // Agent uploading final Schedule 1
-      updateData.finalSchedule1Url = publicUrl;
-      updateData.status = 'completed';
-      console.log('Updating as final Schedule 1 and marking as completed');
+      if (isFinal) {
+        // Agent uploading final Schedule 1
+        updateData.finalSchedule1Url = publicUrl;
+        updateData.status = 'completed';
+        console.log('Updating as final Schedule 1 and marking as completed');
+      } else {
+        // Customer uploading input document
+        updateData.schedule1Url = publicUrl;
+        // Get existing inputDocuments or create new array
+        try {
+          const filingDoc = await db.collection('filings').doc(filingId).get();
+          if (filingDoc.exists) {
+            const existingInputDocs = filingDoc.data()?.inputDocuments || [];
+            updateData.inputDocuments = [...existingInputDocs, publicUrl];
+            console.log('Updating as input document');
+          } else {
+            // Filing doesn't exist yet, just set inputDocuments
+            updateData.inputDocuments = [publicUrl];
+            console.log('Filing does not exist yet, setting inputDocuments');
+          }
+        } catch (docError) {
+          console.warn('Error reading filing document:', docError?.message || 'Unknown error');
+          // Continue with just the URL
+          updateData.inputDocuments = [publicUrl];
+        }
+      }
+
+      // Update filing in Firestore
+      try {
+        const filingRef = db.collection('filings').doc(filingId);
+        await filingRef.update(updateData);
+        console.log('Filing updated in Firestore successfully');
+      } catch (firestoreError) {
+        // Safely log the error without causing issues
+        const errorMessage = firestoreError?.message || 'Unknown error';
+        const errorCode = firestoreError?.code || 'UNKNOWN';
+        console.error('Error updating Firestore:', errorMessage);
+        console.error('Error code:', errorCode);
+        
+        // Don't fail the whole request if Firestore update fails
+        // The file is already uploaded
+        console.warn('File uploaded but Firestore update failed - file URL:', publicUrl);
+      }
     } else {
-      // Customer uploading input document
-      updateData.schedule1Url = publicUrl;
-      // Get existing inputDocuments or create new array
-      const filingDoc = await db.collection('filings').doc(filingId).get();
-      const existingInputDocs = filingDoc.data()?.inputDocuments || [];
-      updateData.inputDocuments = [...existingInputDocs, publicUrl];
-      console.log('Updating as input document');
-    }
-
-    // Update filing in Firestore
-    try {
-      const filingRef = db.collection('filings').doc(filingId);
-      await filingRef.update(updateData);
-      console.log('Filing updated in Firestore:', updateData);
-    } catch (firestoreError) {
-      console.error('Error updating Firestore:', firestoreError);
-      // Don't fail the whole request if Firestore update fails
-      // The file is already uploaded
-      console.warn('File uploaded but Firestore update failed');
+      console.log('Skipping Firestore update - temporary upload (filing will be created later)');
     }
 
     return NextResponse.json({
@@ -363,10 +389,18 @@ export async function POST(request) {
     });
 
   } catch (error) {
-    console.error('Error uploading Schedule 1:', error);
-    console.error('Error stack:', error.stack);
-    console.error('Error name:', error.name);
-    console.error('Error code:', error.code);
+    // Safely log error information
+    const errorMessage = error?.message || 'Unknown error';
+    const errorStack = error?.stack || 'No stack trace';
+    const errorName = error?.name || 'Error';
+    const errorCode = error?.code || 'UNKNOWN';
+    
+    console.error('Error uploading Schedule 1:', errorMessage);
+    if (errorStack && errorStack !== 'No stack trace') {
+      console.error('Error stack:', errorStack);
+    }
+    console.error('Error name:', errorName);
+    console.error('Error code:', errorCode);
     
     return NextResponse.json(
       { 

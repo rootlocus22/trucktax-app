@@ -177,14 +177,15 @@ export default function AgentWorkStationPage() {
       });
 
       setStatus('completed');
+      // Update local state immediately for better UX
       setFiling({ ...filing, finalSchedule1Url: url, status: 'completed' });
       setSchedule1File(null);
 
       // Show success message
       alert('Schedule 1 uploaded successfully! The filing has been marked as completed.');
 
-      // Optionally reload the filing to get fresh data
-      await loadFiling();
+      // Note: The real-time subscription (subscribeToFiling) will automatically update
+      // the filing data when Firestore is updated, so no manual reload is needed
     } catch (error) {
       console.error('Error uploading Schedule 1:', error);
       setError(error.message || 'Failed to upload Schedule 1. Please try again.');

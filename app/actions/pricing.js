@@ -4,11 +4,45 @@ import { calculateSalesTax } from '@/lib/tax-service';
 import { calculateAmendmentPricing, calculateWeightIncreaseAdditionalTax, calculateMileageExceededTax, getAnnualTax } from '@/lib/pricing';
 
 // HVUT Tax Rates (Annual)
+// Formula: $100 + ($22 * index) for categories A-V
+// Category V (75,000 lbs) = $540
+// Category W (75,001+ lbs) = $550 (maximum)
 const TAX_RATES = {
     'A': 100.00, 'B': 122.00, 'C': 144.00, 'D': 166.00, 'E': 188.00,
     'F': 210.00, 'G': 232.00, 'H': 254.00, 'I': 276.00, 'J': 298.00,
-    'K': 320.00, 'W': 550.00
+    'K': 320.00, 'L': 342.00, 'M': 364.00, 'N': 386.00, 'O': 408.00,
+    'P': 430.00, 'Q': 452.00, 'R': 474.00, 'S': 496.00, 'T': 518.00,
+    'U': 540.00, 'V': 540.00, 'W': 550.00
 };
+
+// Helper function to calculate tax for any category (including missing ones)
+function getAnnualTaxForCategory(category) {
+    if (!category) return 0.00;
+    const normalizedCategory = category.toUpperCase().trim();
+    
+    // Check direct lookup first
+    if (TAX_RATES[normalizedCategory]) {
+        return TAX_RATES[normalizedCategory];
+    }
+    
+    // Use formula for categories A-V: $100 + ($22 * index)
+    if (normalizedCategory === 'W') {
+        return 550.00;
+    }
+    
+    const startChar = 'A'.charCodeAt(0);
+    const currentChar = normalizedCategory.charCodeAt(0);
+    const index = currentChar - startChar;
+    
+    if (index < 0 || index > 21) return 0.00; // Out of range
+    
+    // Categories U and V both map to 75,000 lbs = $540
+    if (index === 20 || index === 21) {
+        return 540.00;
+    }
+    
+    return 100.00 + (22.00 * index);
+}
 
 const MONTHS = [
     'July', 'August', 'September', 'October', 'November', 'December',
@@ -20,9 +54,11 @@ const MONTHS = [
  */
 function calculateVehicleTax(category, isSuspended, firstUsedMonth) {
     if (isSuspended) return 0.00;
-    if (!category || !TAX_RATES[category]) return 0.00;
+    if (!category) return 0.00;
+    
+    const annualTax = getAnnualTaxForCategory(category);
+    if (annualTax === 0) return 0.00;
 
-    const annualTax = TAX_RATES[category];
     const monthIndex = MONTHS.indexOf(firstUsedMonth);
 
     // If month not found or July (index 0), full tax

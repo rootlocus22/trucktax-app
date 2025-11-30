@@ -56,6 +56,21 @@ service cloud.firestore {
       allow create: if request.auth != null && 
         request.resource.data.userId == request.auth.uid;
     }
+    
+    // Draft Filings collection - users can only access their own drafts
+    match /draftFilings/{draftId} {
+      // Allow read for queries (where clause filters by userId) and own documents
+      allow read: if request.auth != null && 
+        (resource == null || resource.data.userId == request.auth.uid);
+      
+      // Allow write only for own drafts
+      allow write: if request.auth != null && 
+        (resource == null || resource.data.userId == request.auth.uid);
+      
+      // Allow creation if userId matches
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+    }
   }
 }
 

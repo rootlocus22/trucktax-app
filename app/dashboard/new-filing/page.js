@@ -1,23 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { getBusinessesByUser, createBusiness, getVehiclesByUser, createVehicle, createFiling, getFilingsByUser, getVehicle } from '@/lib/db';
+import { saveDraftFiling, getDraftFiling, deleteDraftFiling } from '@/lib/draftHelpers';
+import { detectDuplicateFiling, formatIncompleteFiling } from '@/lib/filingIntelligence';
 import { uploadInputDocument } from '@/lib/storage';
 import { calculateFilingCost } from '@/app/actions/pricing'; // Server Action
 import { calculateTax, calculateRefundAmount, calculateWeightIncreaseAdditionalTax, calculateMileageExceededTax } from '@/lib/pricing'; // Keep for client-side estimation only
 import { validateBusinessName, validateEIN, formatEIN, validateVIN, validateAddress, validatePhone } from '@/lib/validation';
 import { validateVINCorrection, validateWeightIncrease, validateMileageExceeded, calculateWeightIncreaseDueDate, getAmendmentTypeConfig } from '@/lib/amendmentHelpers';
-import { FileText, AlertTriangle, RefreshCw, Truck, Info, CreditCard, CheckCircle, ShieldCheck, AlertCircle } from 'lucide-react';
+import { FileText, AlertTriangle, RefreshCw, Truck, Info, CreditCard, CheckCircle, ShieldCheck, AlertCircle, RotateCcw } from 'lucide-react';
 
 export default function NewFilingPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [draftId, setDraftId] = useState(null);
+  const draftSavingRef = useRef(false);
 
   // Step 1: Filing Type
   const [filingType, setFilingType] = useState('standard'); // standard, amendment, refund
@@ -60,6 +65,8 @@ export default function NewFilingPage() {
   const [previousFilings, setPreviousFilings] = useState([]); // For VIN correction dropdown
   const [previousFilingsVINs, setPreviousFilingsVINs] = useState([]); // List of VINs from previous filings
   const [vinInputMode, setVinInputMode] = useState('select'); // 'select' or 'manual'
+  const [duplicateFiling, setDuplicateFiling] = useState(null); // Detected duplicate filing
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
   const [weightIncreaseData, setWeightIncreaseData] = useState({
     vehicleId: '',
     originalWeightCategory: '',
@@ -93,6 +100,37 @@ export default function NewFilingPage() {
     grandTotal: 0
   });
   const [pricingLoading, setPricingLoading] = useState(false);
+
+  // Load draft if resuming
+  useEffect(() => {
+    const loadDraft = async () => {
+      if (!searchParams || !user) return;
+      const draftParam = searchParams.get('draft');
+      if (draftParam) {
+        try {
+          const draft = await getDraftFiling(draftParam);
+          if (draft && draft.userId === user.uid) {
+            // Restore draft state
+            setDraftId(draft.id);
+            if (draft.step) setStep(draft.step);
+            if (draft.filingType) setFilingType(draft.filingType);
+            if (draft.selectedBusinessId) setSelectedBusinessId(draft.selectedBusinessId);
+            if (draft.selectedVehicleIds) setSelectedVehicleIds(draft.selectedVehicleIds);
+            if (draft.filingData) setFilingData(draft.filingData);
+            if (draft.amendmentType) setAmendmentType(draft.amendmentType);
+            if (draft.vinCorrectionData) setVinCorrectionData(draft.vinCorrectionData);
+            if (draft.weightIncreaseData) setWeightIncreaseData(draft.weightIncreaseData);
+            if (draft.mileageExceededData) setMileageExceededData(draft.mileageExceededData);
+            if (draft.refundDetails) setRefundDetails(draft.refundDetails);
+            if (draft.pricing) setPricing(draft.pricing);
+          }
+        } catch (error) {
+          console.error('Error loading draft:', error);
+        }
+      }
+    };
+    loadDraft();
+  }, [user, searchParams]);
 
   useEffect(() => {
     if (user) {
@@ -182,6 +220,117 @@ export default function NewFilingPage() {
     fetchPricing();
   }, [step, selectedVehicleIds, filingType, filingData.firstUsedMonth, vehicles, selectedBusinessId, businesses, amendmentType, weightIncreaseData, mileageExceededData]);
 
+  // Duplicate Detection: Check for existing incomplete filings with same data
+  useEffect(() => {
+    const checkForDuplicate = async () => {
+      // Only check on steps 2-4 when we have some data
+      if (step < 2 || step > 4 || !user || previousFilings.length === 0) {
+        setDuplicateFiling(null);
+        setShowDuplicateWarning(false);
+        return;
+      }
+
+      // Build filing data to check
+      const filingDataToCheck = {
+        filingType,
+        taxYear: filingData.taxYear,
+        businessId: selectedBusinessId,
+        vehicleIds: selectedVehicleIds,
+        amendmentType: filingType === 'amendment' ? amendmentType : null,
+        amendmentDetails: {}
+      };
+
+      // Add amendment details if applicable
+      if (filingType === 'amendment') {
+        if (amendmentType === 'vin_correction') {
+          filingDataToCheck.amendmentDetails = {
+            vinCorrection: {
+              originalVIN: vinCorrectionData.originalVIN
+            }
+          };
+        } else if (amendmentType === 'weight_increase' && weightIncreaseData.vehicleId) {
+          filingDataToCheck.amendmentDetails = {
+            weightIncrease: {
+              vehicleId: weightIncreaseData.vehicleId
+            }
+          };
+        } else if (amendmentType === 'mileage_exceeded' && mileageExceededData.vehicleId) {
+          filingDataToCheck.amendmentDetails = {
+            mileageExceeded: {
+              vehicleId: mileageExceededData.vehicleId
+            }
+          };
+        }
+      }
+
+      // Check for duplicates
+      const duplicate = detectDuplicateFiling(filingDataToCheck, previousFilings);
+      
+      if (duplicate && !showDuplicateWarning) {
+        setDuplicateFiling(duplicate);
+        // Show warning after a small delay to avoid flashing
+        setTimeout(() => setShowDuplicateWarning(true), 500);
+      } else if (!duplicate) {
+        setDuplicateFiling(null);
+        setShowDuplicateWarning(false);
+      }
+    };
+
+    checkForDuplicate();
+  }, [step, filingType, filingData.taxYear, selectedBusinessId, selectedVehicleIds, amendmentType, vinCorrectionData.originalVIN, weightIncreaseData.vehicleId, mileageExceededData.vehicleId, previousFilings, showDuplicateWarning, user]);
+
+  // Auto-save draft as user progresses
+  useEffect(() => {
+    const saveDraft = async () => {
+      if (!user || draftSavingRef.current) return; // Don't save if already saving
+      
+      // Save from step 2 onwards (when filing type is selected)
+      if (step < 2) return;
+      
+      // Always save if we're past step 1 (user has made some progress)
+      // This ensures we capture the filing type selection
+      const hasData = filingType || selectedBusinessId || selectedVehicleIds.length > 0 || step > 2;
+      if (!hasData) {
+        console.log('Skipping draft save - no meaningful data yet');
+        return;
+      }
+
+      draftSavingRef.current = true;
+      try {
+        const draftData = {
+          draftId,
+          workflowType: 'manual',
+          step,
+          filingType,
+          selectedBusinessId,
+          selectedVehicleIds,
+          filingData,
+          amendmentType: filingType === 'amendment' ? amendmentType : null,
+          vinCorrectionData: filingType === 'amendment' && amendmentType === 'vin_correction' ? vinCorrectionData : null,
+          weightIncreaseData: filingType === 'amendment' && amendmentType === 'weight_increase' ? weightIncreaseData : null,
+          mileageExceededData: filingType === 'amendment' && amendmentType === 'mileage_exceeded' ? mileageExceededData : null,
+          refundDetails: filingType === 'refund' ? refundDetails : null,
+          pricing: pricing.grandTotal > 0 ? pricing : null
+        };
+
+        console.log('Saving draft filing for manual workflow, step:', step, 'filingType:', filingType);
+        const savedDraftId = await saveDraftFiling(user.uid, draftData);
+        console.log('Draft saved with ID:', savedDraftId);
+        if (!draftId) {
+          setDraftId(savedDraftId);
+        }
+      } catch (error) {
+        console.error('Error saving draft:', error);
+      } finally {
+        draftSavingRef.current = false;
+      }
+    };
+
+    // Debounce draft saving - save after 500ms of inactivity
+    const timeoutId = setTimeout(saveDraft, 500);
+    return () => clearTimeout(timeoutId);
+  }, [user, step, filingType, selectedBusinessId, selectedVehicleIds, filingData, amendmentType, vinCorrectionData, weightIncreaseData, mileageExceededData, refundDetails, pricing, draftId]);
+
   const loadData = async () => {
     try {
       const userBusinesses = await getBusinessesByUser(user.uid);
@@ -191,6 +340,9 @@ export default function NewFilingPage() {
 
       // Load previous filings for VIN correction dropdown
       const filings = await getFilingsByUser(user.uid);
+      setPreviousFilings(filings);
+
+      // Store all filings for duplicate detection
       setPreviousFilings(filings);
 
       // Extract unique VINs from previous filings (completed filings only)
@@ -511,6 +663,19 @@ export default function NewFilingPage() {
         await updateFiling(filingId, { inputDocuments: documentUrls });
       }
 
+      // Delete draft immediately after successful submission
+      if (draftId) {
+        try {
+          console.log('Deleting draft filing after successful submission:', draftId);
+          await deleteDraftFiling(draftId);
+          console.log('Draft filing deleted successfully');
+          setDraftId(null); // Clear draft ID from state
+        } catch (error) {
+          console.error('Error deleting draft:', error);
+          // Don't fail the whole submission if draft deletion fails
+        }
+      }
+
       router.push(`/dashboard/filings/${filingId}`);
     } catch (error) {
       console.error('Error creating filing:', error);
@@ -578,6 +743,69 @@ export default function NewFilingPage() {
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5" />
             {error}
+          </div>
+        )}
+
+        {/* Duplicate Filing Warning */}
+        {showDuplicateWarning && duplicateFiling && (
+          <div className="mb-6 bg-amber-50 border-2 border-amber-300 rounded-xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <AlertCircle className="w-6 h-6 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-amber-900 mb-2">Similar Filing Found</h3>
+                <p className="text-sm text-amber-800 mb-4">
+                  You already have an incomplete filing with similar details. Would you like to resume that filing or continue with a new one?
+                </p>
+                <div className="bg-white rounded-lg border border-amber-200 p-4 mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-amber-900">
+                      {formatIncompleteFiling(duplicateFiling)?.description || 'Existing Filing'}
+                    </span>
+                    <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full">
+                      {duplicateFiling.status === 'submitted' ? 'In Progress' : 
+                       duplicateFiling.status === 'processing' ? 'Processing' : 
+                       'Action Required'}
+                    </span>
+                  </div>
+                  <div className="text-xs text-amber-700 space-y-1">
+                    <p>Tax Year: {duplicateFiling.taxYear}</p>
+                    {duplicateFiling.vehicleIds && duplicateFiling.vehicleIds.length > 0 && (
+                      <p>{duplicateFiling.vehicleIds.length} vehicle{duplicateFiling.vehicleIds.length !== 1 ? 's' : ''}</p>
+                    )}
+                    {formatIncompleteFiling(duplicateFiling)?.lastUpdated && (
+                      <p>
+                        Last updated: {(() => {
+                          const date = formatIncompleteFiling(duplicateFiling).lastUpdated;
+                          return date instanceof Date
+                            ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                            : new Date(date.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        })()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Link
+                    href={`/dashboard/filings/${duplicateFiling.id}`}
+                    className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition text-sm flex items-center gap-2"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Resume Existing Filing
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setShowDuplicateWarning(false);
+                      setDuplicateFiling(null);
+                    }}
+                    className="px-4 py-2 bg-white border border-amber-300 text-amber-700 rounded-lg font-semibold hover:bg-amber-50 transition text-sm"
+                  >
+                    Continue New Filing
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1708,7 +1936,35 @@ export default function NewFilingPage() {
                 Back
               </button>
               <button
-                onClick={() => setStep(5)}
+                onClick={async () => {
+                  // Save draft before moving to payment step
+                  if (user) {
+                    try {
+                      const draftData = {
+                        draftId,
+                        workflowType: 'manual',
+                        step: 5,
+                        filingType,
+                        selectedBusinessId,
+                        selectedVehicleIds,
+                        filingData,
+                        amendmentType: filingType === 'amendment' ? amendmentType : null,
+                        vinCorrectionData: filingType === 'amendment' && amendmentType === 'vin_correction' ? vinCorrectionData : null,
+                        weightIncreaseData: filingType === 'amendment' && amendmentType === 'weight_increase' ? weightIncreaseData : null,
+                        mileageExceededData: filingType === 'amendment' && amendmentType === 'mileage_exceeded' ? mileageExceededData : null,
+                        refundDetails: filingType === 'refund' ? refundDetails : null,
+                        pricing: null // Will be calculated on step 5
+                      };
+                      const savedDraftId = await saveDraftFiling(user.uid, draftData);
+                      if (!draftId) {
+                        setDraftId(savedDraftId);
+                      }
+                    } catch (error) {
+                      console.error('Error saving draft:', error);
+                    }
+                  }
+                  setStep(5);
+                }}
                 className="px-6 py-2 bg-[var(--color-navy)] text-white rounded-lg font-semibold hover:bg-[var(--color-navy-soft)] transition"
               >
                 Review & Pay
