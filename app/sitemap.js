@@ -1,7 +1,7 @@
 import { complianceGuides } from "@/lib/guides";
 import { blogPosts } from "./blog/blogData";
 
-const baseUrl = "https://quicktrucktax.com";
+const baseUrl = "https://www.quicktrucktax.com";
 
 /**
  * Sitemap configuration for QuickTruckTax

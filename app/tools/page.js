@@ -102,7 +102,7 @@ export default function ToolsIndex() {
                 </div>
                 <Link
                   href={tool.href}
-                  className="mt-6 inline-flex w-fit items-center rounded-full bg-[var(--color-navy-soft)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--color-orange)]"
+                  className="mt-6 inline-flex w-fit items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-[var(--color-navy)] shadow-sm transition hover:bg-[var(--color-orange)] hover:text-white"
                 >
                   Open tool →
                 </Link>

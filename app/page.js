@@ -64,9 +64,9 @@ export default function Home() {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'QuickTruckTax',
-    url: 'https://quicktrucktax.com',
-    logo: 'https://quicktrucktax.com/quicktrucktax-logo-new.png',
-    image: 'https://quicktrucktax.com/quicktrucktax-logo-new.png',
+    url: 'https://www.quicktrucktax.com',
+    logo: 'https://www.quicktrucktax.com/quicktrucktax-logo-new.png',
+    image: 'https://www.quicktrucktax.com/quicktrucktax-logo-new.png',
     description: 'QuickTruckTax helps carriers, owner-operators, and brokers stay compliant with HVUT, UCR, MCS-150, and fuel tax filings.',
     sameAs: [
       'https://twitter.com/quicktrucktax',
