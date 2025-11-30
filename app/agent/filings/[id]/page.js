@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { getFiling, updateFiling, getBusiness, getVehicle } from '@/lib/db';
+import { getFiling, updateFiling, getBusiness, getVehicle, subscribeToFiling } from '@/lib/db';
+import { getAmendmentTypeConfig, formatAmendmentSummary, getAgentAmendmentInstructions } from '@/lib/amendmentHelpers';
 
 export default function AgentWorkStationPage() {
   const params = useParams();
@@ -22,14 +23,12 @@ export default function AgentWorkStationPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (params.id) {
-      loadFiling();
-    }
-  }, [params.id]);
+    if (!params.id) return;
 
-  const loadFiling = async () => {
-    try {
-      const filingData = await getFiling(params.id);
+    setLoading(true);
+
+    // Subscribe to real-time filing updates
+    const unsubscribe = subscribeToFiling(params.id, async (filingData) => {
       if (!filingData) {
         router.push('/agent');
         return;
@@ -44,38 +43,49 @@ export default function AgentWorkStationPage() {
         try {
           const businessData = await getBusiness(filingData.businessId);
           setBusiness(businessData);
-          console.log('Business loaded:', businessData);
         } catch (err) {
           console.error('Error loading business:', err);
           setError('Failed to load business information');
         }
-      } else {
-        console.log('Filing has no businessId (likely from Schedule 1 upload)');
       }
 
-      // Load vehicles
+      // Load vehicles - check both vehicleIds and amendment vehicle references
+      const vehicleIdsToLoad = [];
       if (filingData.vehicleIds && filingData.vehicleIds.length > 0) {
+        vehicleIdsToLoad.push(...filingData.vehicleIds);
+      }
+      // For amendments, also load the vehicle from amendment details
+      if (filingData.filingType === 'amendment' && filingData.amendmentType) {
+        if (filingData.amendmentType === 'weight_increase' && filingData.amendmentDetails?.weightIncrease?.vehicleId) {
+          vehicleIdsToLoad.push(filingData.amendmentDetails.weightIncrease.vehicleId);
+        } else if (filingData.amendmentType === 'mileage_exceeded' && filingData.amendmentDetails?.mileageExceeded?.vehicleId) {
+          vehicleIdsToLoad.push(filingData.amendmentDetails.mileageExceeded.vehicleId);
+        }
+      }
+
+      if (vehicleIdsToLoad.length > 0) {
         try {
+          // Remove duplicates
+          const uniqueVehicleIds = [...new Set(vehicleIdsToLoad)];
           const vehicleData = await Promise.all(
-            filingData.vehicleIds.map(id => getVehicle(id))
+            uniqueVehicleIds.map(id => getVehicle(id))
           );
           const validVehicles = vehicleData.filter(v => v !== null);
           setVehicles(validVehicles);
-          console.log('Vehicles loaded:', validVehicles.length);
         } catch (err) {
           console.error('Error loading vehicles:', err);
           setError('Failed to load vehicle information');
         }
-      } else {
-        console.log('Filing has no vehicles');
       }
-    } catch (error) {
-      console.error('Error loading filing:', error);
-      setError('Failed to load filing details');
-    } finally {
+
       setLoading(false);
-    }
-  };
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+      unsubscribe();
+    };
+  }, [params.id, router]);
 
   const handleCopyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -126,7 +136,7 @@ export default function AgentWorkStationPage() {
 
     setSaving(true);
     setError('');
-    
+
     try {
       // Get auth token
       const idToken = await user.getIdToken(true);
@@ -169,10 +179,10 @@ export default function AgentWorkStationPage() {
       setStatus('completed');
       setFiling({ ...filing, finalSchedule1Url: url, status: 'completed' });
       setSchedule1File(null);
-      
+
       // Show success message
       alert('Schedule 1 uploaded successfully! The filing has been marked as completed.');
-      
+
       // Optionally reload the filing to get fresh data
       await loadFiling();
     } catch (error) {
@@ -226,6 +236,218 @@ export default function AgentWorkStationPage() {
             {error}
           </div>
         )}
+
+        {/* Amendment Details Banner (if amendment filing) */}
+        {filing.filingType === 'amendment' && filing.amendmentType && (
+          <div className="mb-6">
+            {filing.amendmentType === 'vin_correction' && (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-4xl">📝</span>
+                  <div>
+                    <h2 className="text-xl font-bold text-blue-900">VIN Correction Amendment</h2>
+                    <p className="text-sm text-blue-700">Customer is correcting an incorrect Vehicle Identification Number</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-6 bg-white rounded-lg p-4">
+                  <div>
+                    <div className="text-xs text-gray-600 mb-1">Original VIN (Incorrect)</div>
+                    <div className="text-lg font-mono font-bold text-red-600 line-through">
+                      {filing.amendmentDetails?.vinCorrection?.originalVIN || 'N/A'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-600 mb-1">Corrected VIN</div>
+                    <div className="text-lg font-mono font-bold text-green-600">
+                      {filing.amendmentDetails?.vinCorrection?.correctedVIN || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-green-50 rounded border border-green-200">
+                  <p className="text-sm text-green-700">
+                    <strong>✓ No Additional Tax Due:</strong> VIN corrections are FREE
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {filing.amendmentType === 'weight_increase' && (
+              <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-4xl">⚖️</span>
+                  <div>
+                    <h2 className="text-xl font-bold text-orange-900">Taxable Gross Weight Increase Amendment</h2>
+                    <p className="text-sm text-orange-700">Vehicle moved to a higher weight category</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="bg-white rounded-lg p-4">
+                    <div className="text-xs text-gray-600 mb-1">Original Category</div>
+                    <div className="text-2xl font-bold text-gray-700">
+                      {filing.amendmentDetails?.weightIncrease?.originalWeightCategory || 'N/A'}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <span className="text-3xl text-orange-600">→</span>
+                  </div>
+                  <div className="bg-white rounded-lg p-4">
+                    <div className="text-xs text-gray-600 mb-1">New Category</div>
+                    <div className="text-2xl font-bold text-orange-600">
+                      {filing.amendmentDetails?.weightIncrease?.newWeightCategory || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white rounded-lg p-3">
+                    <div className="text-xs text-gray-600">Month of Increase</div>
+                    <div className="font-bold text-gray-700">
+                      {filing.amendmentDetails?.weightIncrease?.increaseMonth || 'N/A'}
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg p-3">
+                    <div className="text-xs text-gray-600">Additional Tax Due</div>
+                    <div className="text-xl font-bold text-orange-600">
+                      ${filing.amendmentDetails?.weightIncrease?.additionalTaxDue?.toFixed(2) || '0.00'}
+                    </div>
+                  </div>
+                </div>
+                {filing.amendmentDueDate && (() => {
+                  // Handle both Firestore Timestamp and Date objects
+                  let dueDate;
+                  if (filing.amendmentDueDate.seconds) {
+                    dueDate = new Date(filing.amendmentDueDate.seconds * 1000);
+                  } else if (filing.amendmentDueDate.toDate) {
+                    dueDate = filing.amendmentDueDate.toDate();
+                  } else if (filing.amendmentDueDate instanceof Date) {
+                    dueDate = filing.amendmentDueDate;
+                  } else {
+                    dueDate = new Date(filing.amendmentDueDate);
+                  }
+                  
+                  return (
+                    <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded">
+                      <p className="text-sm font-bold text-red-700">
+                        ⏰ Amendment Due By: {dueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      </p>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {filing.amendmentType === 'mileage_exceeded' && (
+              <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-4xl">🛣️</span>
+                  <div>
+                    <h2 className="text-xl font-bold text-purple-900">Mileage Use Limit Exceeded Amendment</h2>
+                    <p className="text-sm text-purple-700">Suspended vehicle exceeded mileage limit</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 bg-white rounded-lg p-4">
+                  <div>
+                    <div className="text-xs text-gray-600 mb-1">Vehicle Type</div>
+                    <div className="font-bold text-gray-700">
+                      {filing.amendmentDetails?.mileageExceeded?.isAgriculturalVehicle ? 'Agricultural' : 'Standard'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-600 mb-1">Mileage Limit</div>
+                    <div className="font-bold text-gray-700">
+                      {filing.amendmentDetails?.mileageExceeded?.originalMileageLimit?.toLocaleString() || 'N/A'} miles
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-600 mb-1">Actual Mileage Used</div>
+                    <div className="text-xl font-bold text-purple-600">
+                      {filing.amendmentDetails?.mileageExceeded?.actualMileageUsed?.toLocaleString() || 'N/A'} miles
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-600 mb-1">Month Exceeded</div>
+                    <div className="font-bold text-gray-700">
+                      {filing.amendmentDetails?.mileageExceeded?.exceededMonth || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-purple-100 border border-purple-200 rounded">
+                  <p className="text-sm text-purple-800">
+                    <strong>ℹ️ Full HVUT Tax Now Due:</strong> Vehicle was previously suspended but now requires full tax payment
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Agent Instructions for Amendments */}
+        {filing.filingType === 'amendment' && filing.amendmentType && (() => {
+          const instructions = getAgentAmendmentInstructions(filing);
+          if (!instructions) return null;
+
+          return (
+            <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <span className="text-2xl">📋</span>
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-blue-900 mb-2">{instructions.title}</h2>
+                  <p className="text-sm text-blue-800 mb-4">{instructions.description}</p>
+                  
+                  <div className="bg-white rounded-lg p-4 mb-4">
+                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <span>✓</span> Processing Steps
+                    </h3>
+                    <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                      {instructions.steps.map((step, index) => (
+                        <li key={index} className="pl-2">{step}</li>
+                      ))}
+                    </ol>
+                  </div>
+
+                  {instructions.importantNotes && instructions.importantNotes.length > 0 && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                      <h3 className="font-semibold text-yellow-900 mb-2 flex items-center gap-2">
+                        <span>⚠️</span> Important Notes
+                      </h3>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-yellow-800">
+                        {instructions.importantNotes.map((note, index) => (
+                          <li key={index} className="pl-2">{note}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {instructions.taxInfo && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <h3 className="font-semibold text-green-900 mb-2">💰 Tax Information</h3>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="text-green-700">Additional Tax Due:</span>
+                          <span className="font-bold text-green-900 ml-2">
+                            ${instructions.taxInfo.additionalTaxDue?.toFixed(2) || '0.00'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-green-700">Service Fee:</span>
+                          <span className="font-bold text-green-900 ml-2">
+                            ${instructions.taxInfo.serviceFee?.toFixed(2) || '0.00'}
+                          </span>
+                        </div>
+                        {instructions.taxInfo.isFree && (
+                          <div className="col-span-2">
+                            <span className="text-green-700 font-semibold">✓ This amendment is FREE - No payment required</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Side: Customer Data */}

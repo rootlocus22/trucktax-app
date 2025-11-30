@@ -300,7 +300,7 @@ export default function DashboardPage() {
                   href="/dashboard/filings"
                   className="text-sm text-[var(--color-navy)] hover:underline font-medium"
                 >
-                  View All Filings
+                  View All →
                 </Link>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

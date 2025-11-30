@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { getAgentQueue } from '@/lib/db';
-import { 
-  CheckCircle, 
-  Clock, 
-  AlertCircle, 
-  FileText, 
-  User, 
+import { subscribeToAgentQueue } from '@/lib/db';
+import { getAmendmentTypeConfig } from '@/lib/amendmentHelpers';
+import {
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  FileText,
+  User,
   Building2,
   Truck,
   ArrowRight
@@ -24,30 +25,27 @@ export default function AgentQueuePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadQueue();
-  }, []);
-
-  const loadQueue = async () => {
-    try {
-      console.log('Loading agent queue...');
-      console.log('User role:', userData?.role);
-      const queue = await getAgentQueue();
-      console.log('Agent queue loaded:', queue.length, 'filings');
-      console.log('Queue data:', queue);
-      setFilings(queue);
-    } catch (error) {
-      console.error('Error loading queue:', error);
-      console.error('Error details:', {
-        message: error.message,
-        code: error.code,
-        stack: error.stack
-      });
-      // Show error to user
-      alert(`Failed to load agent queue: ${error.message}. Check console for details.`);
-    } finally {
+    if (!userData || userData.role !== 'agent') {
       setLoading(false);
+      return;
     }
-  };
+
+    setLoading(true);
+    console.log('Setting up real-time agent queue subscription...');
+
+    // Subscribe to real-time queue updates
+    const unsubscribe = subscribeToAgentQueue((queueFilings) => {
+      console.log('Agent queue updated:', queueFilings.length, 'filings');
+      setFilings(queueFilings);
+      setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+      console.log('Cleaning up agent queue subscription');
+      unsubscribe();
+    };
+  }, [userData]);
 
   const getStatusConfig = (status) => {
     switch (status) {
@@ -144,6 +142,9 @@ export default function AgentQueuePage() {
                       Business
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-[var(--color-text)] uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-[var(--color-text)] uppercase tracking-wider">
                       Vehicles
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-[var(--color-text)] uppercase tracking-wider">
@@ -161,7 +162,14 @@ export default function AgentQueuePage() {
                   {filings.map((filing) => {
                     const statusConfig = getStatusConfig(filing.status);
                     const StatusIcon = statusConfig.icon;
-                    
+
+                    // Get filing type config
+                    const filingTypeConfig = filing.filingType === 'amendment' && filing.amendmentType
+                      ? getAmendmentTypeConfig(filing.amendmentType)
+                      : filing.filingType === 'refund'
+                        ? { label: 'Refund', shortLabel: 'Refund', icon: '💰', color: 'green' }
+                        : { label: 'Standard', shortLabel: 'Standard', icon: '✓', color: 'blue' };
+
                     return (
                       <tr key={filing.id} className="hover:bg-[var(--color-page-alt)] transition">
                         <td className="px-4 py-3">
@@ -224,6 +232,18 @@ export default function AgentQueuePage() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${filingTypeConfig.color === 'blue' ? 'bg-blue-100 text-blue-700' :
+                                filingTypeConfig.color === 'orange' ? 'bg-orange-100 text-orange-700' :
+                                  filingTypeConfig.color === 'purple' ? 'bg-purple-100 text-purple-700' :
+                                    filingTypeConfig.color === 'green' ? 'bg-green-100 text-green-700' :
+                                      'bg-gray-100 text-gray-700'
+                              }`}>
+                              {filingTypeConfig.icon} {filingTypeConfig.shortLabel}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center">
                           <div className="flex items-center justify-center gap-1.5">
                             <Truck className="w-4 h-4 text-[var(--color-muted)]" />
                             <span className="text-sm font-medium text-[var(--color-text)]">
@@ -239,12 +259,12 @@ export default function AgentQueuePage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="text-sm text-[var(--color-text)]">
-                            {filing.createdAt 
-                              ? filing.createdAt.toLocaleDateString('en-US', { 
-                                  month: 'short', 
-                                  day: 'numeric', 
-                                  year: 'numeric' 
-                                })
+                            {filing.createdAt
+                              ? filing.createdAt.toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })
                               : 'N/A'}
                           </div>
                         </td>

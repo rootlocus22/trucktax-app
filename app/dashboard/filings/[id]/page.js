@@ -66,11 +66,27 @@ export default function FilingDetailPage() {
         }
       }
 
-      // Load vehicles
+      // Load vehicles - check both vehicleIds and amendment vehicle references
+      const vehicleIdsToLoad = [];
       if (filingData.vehicleIds && filingData.vehicleIds.length > 0) {
+        vehicleIdsToLoad.push(...filingData.vehicleIds);
+      }
+      // For amendments, also load the vehicle from amendment details
+      if (filingData.filingType === 'amendment' && filingData.amendmentType) {
+        if (filingData.amendmentType === 'weight_increase' && filingData.amendmentDetails?.weightIncrease?.vehicleId) {
+          vehicleIdsToLoad.push(filingData.amendmentDetails.weightIncrease.vehicleId);
+        } else if (filingData.amendmentType === 'mileage_exceeded' && filingData.amendmentDetails?.mileageExceeded?.vehicleId) {
+          vehicleIdsToLoad.push(filingData.amendmentDetails.mileageExceeded.vehicleId);
+        }
+        // For VIN corrections, we don't have a vehicleId in amendment details, but we can show the VINs
+      }
+
+      if (vehicleIdsToLoad.length > 0) {
         try {
+          // Remove duplicates
+          const uniqueVehicleIds = [...new Set(vehicleIdsToLoad)];
           const vehicleData = await Promise.all(
-            filingData.vehicleIds.map(id => getVehicle(id))
+            uniqueVehicleIds.map(id => getVehicle(id))
           );
           setVehicles(vehicleData.filter(v => v !== null));
         } catch (error) {
@@ -254,8 +270,26 @@ export default function FilingDetailPage() {
                 {filing.status === 'action_required'
                   ? 'Action Required'
                   : filing.status === 'completed'
-                    ? 'Filing Accepted!'
-                    : 'Processing Your Filing'}
+                    ? (() => {
+                        if (filing.filingType === 'amendment') {
+                          if (filing.amendmentType === 'vin_correction') return 'VIN Correction Accepted!';
+                          if (filing.amendmentType === 'weight_increase') return 'Weight Increase Amendment Accepted!';
+                          if (filing.amendmentType === 'mileage_exceeded') return 'Mileage Amendment Accepted!';
+                          return 'Amendment Accepted!';
+                        }
+                        if (filing.filingType === 'refund') return 'Refund Claim Submitted!';
+                        return 'Filing Accepted!';
+                      })()
+                    : (() => {
+                        if (filing.filingType === 'amendment') {
+                          if (filing.amendmentType === 'vin_correction') return 'Processing Your VIN Correction';
+                          if (filing.amendmentType === 'weight_increase') return 'Processing Your Weight Increase Amendment';
+                          if (filing.amendmentType === 'mileage_exceeded') return 'Processing Your Mileage Exceeded Amendment';
+                          return 'Processing Your Amendment';
+                        }
+                        if (filing.filingType === 'refund') return 'Processing Your Refund Claim';
+                        return 'Processing Your Filing';
+                      })()}
               </h2>
 
               <p className={`max-w-lg mx-auto text-base sm:text-lg mb-6 transition-colors duration-300 ${filing.status === 'action_required' ? 'text-orange-800' : filing.status === 'completed' ? 'text-green-800' : 'text-blue-800'
@@ -263,8 +297,42 @@ export default function FilingDetailPage() {
                 {filing.status === 'action_required'
                   ? 'We need some additional information to proceed. Please check the notes below.'
                   : filing.status === 'completed'
-                    ? 'Great news! Your Form 2290 has been accepted by the IRS. Your Schedule 1 is ready.'
-                    : 'Sit back and relax. We are preparing your return for IRS submission.'}
+                    ? (() => {
+                        if (filing.filingType === 'amendment') {
+                          if (filing.amendmentType === 'vin_correction') {
+                            return 'Great news! Your VIN correction amendment has been accepted by the IRS. Your corrected Schedule 1 is ready.';
+                          }
+                          if (filing.amendmentType === 'weight_increase') {
+                            return 'Great news! Your weight increase amendment has been accepted by the IRS. Your amended Schedule 1 is ready.';
+                          }
+                          if (filing.amendmentType === 'mileage_exceeded') {
+                            return 'Great news! Your mileage exceeded amendment has been accepted by the IRS. Your amended Schedule 1 is ready.';
+                          }
+                          return 'Great news! Your amendment has been accepted by the IRS. Your amended Schedule 1 is ready.';
+                        }
+                        if (filing.filingType === 'refund') {
+                          return 'Your refund claim (Form 8849) has been submitted to the IRS. You will receive updates on the status of your refund.';
+                        }
+                        return 'Great news! Your Form 2290 has been accepted by the IRS. Your Schedule 1 is ready.';
+                      })()
+                    : (() => {
+                        if (filing.filingType === 'amendment') {
+                          if (filing.amendmentType === 'vin_correction') {
+                            return 'We are processing your VIN correction amendment. No additional tax is due for this correction.';
+                          }
+                          if (filing.amendmentType === 'weight_increase') {
+                            return 'We are processing your weight increase amendment. Additional tax will be calculated and submitted to the IRS.';
+                          }
+                          if (filing.amendmentType === 'mileage_exceeded') {
+                            return 'We are processing your mileage exceeded amendment. Full HVUT tax will be calculated and submitted to the IRS.';
+                          }
+                          return 'We are processing your amendment filing with the IRS.';
+                        }
+                        if (filing.filingType === 'refund') {
+                          return 'We are processing your refund claim (Form 8849). We will submit it to the IRS for review.';
+                        }
+                        return 'Sit back and relax. We are preparing your return for IRS submission.';
+                      })()}
               </p>
 
               {/* Dynamic Action Area */}
@@ -277,7 +345,13 @@ export default function FilingDetailPage() {
                     className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-green-700 hover:shadow-xl transition transform hover:-translate-y-0.5 w-full sm:w-auto justify-center"
                   >
                     <Download className="w-5 h-5" />
-                    Download Schedule 1
+                    {filing.filingType === 'amendment' 
+                      ? (filing.amendmentType === 'vin_correction' 
+                          ? 'Download Corrected Schedule 1'
+                          : 'Download Amended Schedule 1')
+                      : filing.filingType === 'refund'
+                        ? 'Download Schedule 1'
+                        : 'Download Schedule 1'}
                   </a>
                 ) : filing.status === 'action_required' ? (
                   <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-orange-200 text-orange-800 text-sm font-medium">
@@ -296,7 +370,20 @@ export default function FilingDetailPage() {
                     </div>
                     <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full border border-blue-200/50 shadow-sm">
                       <Clock className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-800">Est. ~15 mins</span>
+                      <span className="text-sm font-medium text-blue-800">
+                        Est. {(() => {
+                          if (filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction') {
+                            return '~5 mins'; // VIN corrections are faster
+                          }
+                          if (filing.filingType === 'amendment') {
+                            return '~10 mins'; // Other amendments
+                          }
+                          if (filing.filingType === 'refund') {
+                            return '~15 mins'; // Refunds may take longer
+                          }
+                          return '~15 mins'; // Standard filings
+                        })()}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -477,13 +564,27 @@ export default function FilingDetailPage() {
             </div>
             <div className="space-y-2.5 text-xs">
               <div className="flex items-start justify-between gap-2">
+                <span className="text-[var(--color-muted)] min-w-[120px]">Filing Type:</span>
+                <span className="text-[var(--color-text)] font-medium capitalize">
+                  {filing.filingType === 'amendment' && filing.amendmentType
+                    ? (filing.amendmentType === 'vin_correction' ? 'VIN Correction Amendment'
+                        : filing.amendmentType === 'weight_increase' ? 'Weight Increase Amendment'
+                        : filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded Amendment'
+                        : 'Amendment')
+                    : filing.filingType === 'refund' ? 'Refund (Form 8849)'
+                    : 'Standard Filing'}
+                </span>
+              </div>
+              <div className="flex items-start justify-between gap-2">
                 <span className="text-[var(--color-muted)] min-w-[120px]">Tax Year:</span>
                 <span className="text-[var(--color-text)] font-medium">{filing.taxYear}</span>
               </div>
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-[var(--color-muted)] min-w-[120px]">First Used:</span>
-                <span className="text-[var(--color-text)] font-medium">{filing.firstUsedMonth}</span>
-              </div>
+              {filing.filingType !== 'amendment' && (
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[var(--color-muted)] min-w-[120px]">First Used:</span>
+                  <span className="text-[var(--color-text)] font-medium">{filing.firstUsedMonth}</span>
+                </div>
+              )}
               {filing.createdAt && (
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-[var(--color-muted)] min-w-[120px]">Submitted:</span>
@@ -504,52 +605,197 @@ export default function FilingDetailPage() {
           </div>
         </div>
 
+        {/* Amendment Details Section (if amendment) */}
+        {filing.filingType === 'amendment' && filing.amendmentType && (
+          <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
+            <div className="flex items-center gap-2 mb-3">
+              {filing.amendmentType === 'vin_correction' && '📝'}
+              {filing.amendmentType === 'weight_increase' && '⚖️'}
+              {filing.amendmentType === 'mileage_exceeded' && '🛣️'}
+              <h2 className="text-sm font-semibold text-[var(--color-text)]">
+                Amendment Details
+              </h2>
+            </div>
+
+            {filing.amendmentType === 'vin_correction' && (
+              <div className="space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="bg-red-50 border border-red-200 rounded p-3">
+                    <div className="text-xs text-red-600 mb-1">Original VIN (Incorrect)</div>
+                    <div className="font-mono font-bold text-red-700 line-through">
+                      {filing.amendmentDetails?.vinCorrection?.originalVIN || 'N/A'}
+                    </div>
+                  </div>
+                  <div className="bg-green-50 border border-green-200 rounded p-3">
+                    <div className="text-xs text-green-600 mb-1">Corrected VIN</div>
+                    <div className="font-mono font-bold text-green-700">
+                      {filing.amendmentDetails?.vinCorrection?.correctedVIN || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-blue-700">
+                  ✓ VIN correction completed - No additional tax was due
+                </div>
+              </div>
+            )}
+
+            {filing.amendmentType === 'weight_increase' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-3 items-center">
+                  <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
+                    <div className="text-xs text-gray-600 mb-1">Original Category</div>
+                    <div className="text-xl font-bold text-gray-700">
+                      {filing.amendmentDetails?.weightIncrease?.originalWeightCategory || 'N/A'}
+                    </div>
+                  </div>
+                  <div className="text-center text-2xl text-orange-600">→</div>
+                  <div className="bg-orange-50 border border-orange-200 rounded p-3 text-center">
+                    <div className="text-xs text-orange-600 mb-1">New Category</div>
+                    <div className="text-xl font-bold text-orange-700">
+                      {filing.amendmentDetails?.weightIncrease?.newWeightCategory || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-[var(--color-muted)]">Month of Increase:</span>
+                    <span className="font-medium ml-2">{filing.amendmentDetails?.weightIncrease?.increaseMonth || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[var(--color-muted)]">Additional Tax Paid:</span>
+                    <span className="font-bold text-orange-600 ml-2">
+                      ${filing.amendmentDetails?.weightIncrease?.additionalTaxDue?.toFixed(2) || '0.00'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {filing.amendmentType === 'mileage_exceeded' && (
+              <div className="space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-[var(--color-muted)]">Vehicle Type:</span>
+                    <span className="font-medium ml-2">
+                      {filing.amendmentDetails?.mileageExceeded?.isAgriculturalVehicle ? 'Agricultural' : 'Standard'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[var(--color-muted)]">Mileage Limit:</span>
+                    <span className="font-medium ml-2">
+                      {filing.amendmentDetails?.mileageExceeded?.originalMileageLimit?.toLocaleString() || 'N/A'} miles
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[var(--color-muted)]">Actual Mileage:</span>
+                    <span className="font-bold text-purple-600 ml-2">
+                      {filing.amendmentDetails?.mileageExceeded?.actualMileageUsed?.toLocaleString() || 'N/A'} miles
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[var(--color-muted)]">Month Exceeded:</span>
+                    <span className="font-medium ml-2">{filing.amendmentDetails?.mileageExceeded?.exceededMonth || 'N/A'}</span>
+                  </div>
+                </div>
+                <div className="bg-purple-50 border border-purple-200 rounded p-2 text-xs text-purple-700">
+                  ℹ️ Full HVUT tax was calculated and paid for this vehicle
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Vehicles */}
         <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
           <div className="flex items-center gap-2 mb-3">
             <Truck className="w-4 h-4 text-[var(--color-navy)]" />
             <h2 className="text-sm font-semibold text-[var(--color-text)]">
-              Vehicles ({vehicles.length})
+              {filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction'
+                ? 'VIN Information'
+                : `Vehicles (${vehicles.length})`}
             </h2>
           </div>
-          <div className="grid sm:grid-cols-2 gap-2.5">
-            {vehicles.map((vehicle) => (
-              <div
-                key={vehicle.id}
-                className="bg-[var(--color-page-alt)] rounded border border-[var(--color-border)] p-3"
-              >
-                <div className="space-y-1.5 text-xs">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-[var(--color-muted)] min-w-[80px]">VIN:</span>
-                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                      <span className="text-[var(--color-text)] font-medium font-mono truncate">{vehicle.vin}</span>
-                      <button
-                        onClick={() => handleCopy(vehicle.vin, `vin-${vehicle.id}`)}
-                        className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-navy)] transition"
-                        title="Copy VIN"
-                      >
-                        {copied === `vin-${vehicle.id}` ? (
-                          <Check className="w-3 h-3" />
-                        ) : (
-                          <Copy className="w-3 h-3" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-[var(--color-muted)] min-w-[80px]">Weight:</span>
-                    <span className="text-[var(--color-text)] font-medium">{vehicle.grossWeightCategory}</span>
-                  </div>
-                  {vehicle.isSuspended && (
-                    <div className="flex items-center gap-1.5 pt-1">
-                      <AlertCircle className="w-3 h-3 text-orange-600" />
-                      <span className="text-xs font-medium text-orange-600">Suspended Vehicle</span>
-                    </div>
-                  )}
+          
+          {filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction' ? (
+            // For VIN corrections, show VINs from amendment details
+            <div className="grid sm:grid-cols-2 gap-2.5">
+              <div className="bg-red-50 border border-red-200 rounded p-3">
+                <div className="text-xs text-red-600 mb-1">Original VIN (Incorrect)</div>
+                <div className="font-mono font-bold text-red-700 line-through">
+                  {filing.amendmentDetails?.vinCorrection?.originalVIN || 'N/A'}
                 </div>
               </div>
-            ))}
-          </div>
+              <div className="bg-green-50 border border-green-200 rounded p-3">
+                <div className="text-xs text-green-600 mb-1">Corrected VIN</div>
+                <div className="font-mono font-bold text-green-700">
+                  {filing.amendmentDetails?.vinCorrection?.correctedVIN || 'N/A'}
+                </div>
+              </div>
+            </div>
+          ) : vehicles.length > 0 ? (
+            <div className="grid sm:grid-cols-2 gap-2.5">
+              {vehicles.map((vehicle) => (
+                <div
+                  key={vehicle.id}
+                  className="bg-[var(--color-page-alt)] rounded border border-[var(--color-border)] p-3"
+                >
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[var(--color-muted)] min-w-[80px]">VIN:</span>
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        <span className="text-[var(--color-text)] font-medium font-mono truncate">{vehicle.vin}</span>
+                        <button
+                          onClick={() => handleCopy(vehicle.vin, `vin-${vehicle.id}`)}
+                          className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-navy)] transition"
+                          title="Copy VIN"
+                        >
+                          {copied === `vin-${vehicle.id}` ? (
+                            <Check className="w-3 h-3" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[var(--color-muted)] min-w-[80px]">Weight:</span>
+                      <span className="text-[var(--color-text)] font-medium">{vehicle.grossWeightCategory}</span>
+                    </div>
+                    {vehicle.isSuspended && (
+                      <div className="flex items-center gap-1.5 pt-1">
+                        <AlertCircle className="w-3 h-3 text-orange-600" />
+                        <span className="text-xs font-medium text-orange-600">Suspended Vehicle</span>
+                      </div>
+                    )}
+                    {/* Show amendment-specific info for weight increase */}
+                    {filing.filingType === 'amendment' && filing.amendmentType === 'weight_increase' && 
+                     filing.amendmentDetails?.weightIncrease?.vehicleId === vehicle.id && (
+                      <div className="pt-2 mt-2 border-t border-orange-200">
+                        <div className="text-xs text-orange-600 font-medium">
+                          ⚖️ Weight: {filing.amendmentDetails.weightIncrease.originalWeightCategory} → {filing.amendmentDetails.weightIncrease.newWeightCategory}
+                        </div>
+                      </div>
+                    )}
+                    {/* Show amendment-specific info for mileage exceeded */}
+                    {filing.filingType === 'amendment' && filing.amendmentType === 'mileage_exceeded' && 
+                     filing.amendmentDetails?.mileageExceeded?.vehicleId === vehicle.id && (
+                      <div className="pt-2 mt-2 border-t border-purple-200">
+                        <div className="text-xs text-purple-600 font-medium">
+                          🛣️ Mileage: {filing.amendmentDetails.mileageExceeded.actualMileageUsed?.toLocaleString()} miles (Exceeded limit)
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-sm text-[var(--color-muted)] italic">
+              {filing.filingType === 'amendment' 
+                ? 'Vehicle information is shown in Amendment Details above'
+                : 'No vehicles found for this filing'}
+            </div>
+          )}
         </div>
 
         {/* Input Documents */}

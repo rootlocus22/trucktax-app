@@ -1,6 +1,7 @@
 'use server';
 
 import { calculateSalesTax } from '@/lib/tax-service';
+import { calculateAmendmentPricing, calculateWeightIncreaseAdditionalTax, calculateMileageExceededTax, getAnnualTax } from '@/lib/pricing';
 
 // HVUT Tax Rates (Annual)
 const TAX_RATES = {
@@ -37,7 +38,7 @@ function calculateVehicleTax(category, isSuspended, firstUsedMonth) {
  * Calculate Service Fee based on filing type and volume
  */
 function calculateServiceFee(filingType, vehicleCount) {
-    if (filingType === 'amendment') return 0.00; // Amendments are often free or different pricing
+    if (filingType === 'amendment') return 0.00; // Amendments are free per IRS guidelines
     if (filingType === 'refund') return 34.99;
 
     // Standard Filing
@@ -50,36 +51,47 @@ function calculateServiceFee(filingType, vehicleCount) {
 
 /**
  * Server Action: Calculate Total Filing Cost
- * @param {object} filingData - { filingType, firstUsedMonth }
+ * @param {object} filingData - { filingType, firstUsedMonth, amendmentType?, amendmentData? }
  * @param {array} vehicles - Array of vehicle objects
  * @param {object} businessAddress - { state, ... } for sales tax
  */
 export async function calculateFilingCost(filingData, vehicles, businessAddress) {
     try {
-        // 1. Calculate IRS Tax (HVUT)
-        // 1. Calculate IRS Tax (HVUT) or Refund Amount
         let totalTax = 0;
         let totalRefund = 0;
+        let vehicleBreakdown = [];
 
-        const vehicleBreakdown = vehicles.map(v => {
-            if (filingData.filingType === 'refund') {
+        // Handle Amendment filings separately
+        if (filingData.filingType === 'amendment' && filingData.amendmentType && filingData.amendmentData) {
+            // Use the amendment-specific pricing calculation
+            const amendmentPricing = calculateAmendmentPricing({
+                amendmentType: filingData.amendmentType,
+                details: filingData.amendmentData
+            });
+
+            totalTax = amendmentPricing.totalTax;
+
+            // Create a minimal vehicle breakdown for amendments
+            vehicleBreakdown = [];
+        }
+        // Handle Refund filings
+        else if (filingData.filingType === 'refund') {
+            vehicleBreakdown = vehicles.map(v => {
                 // For refunds, Tax Due is $0. We calculate the *Refund Amount* the user gets back.
-                // Refund is prorated based on remaining months.
-                // Example: Paid full year ($550), sold in October (used July-Sept = 3 months).
-                // Refund = 9/12 of tax paid.
-
-                // For this MVP, we'll estimate refund based on "First Used Month" being the month of sale/destruction
-                // effectively treating "months remaining" as the refund period.
                 const tax = calculateVehicleTax(v.grossWeightCategory, v.isSuspended, filingData.firstUsedMonth);
                 totalRefund += tax;
 
                 return { ...v, taxAmount: 0, refundAmount: tax };
-            } else {
+            });
+        }
+        // Handle Standard filings
+        else {
+            vehicleBreakdown = vehicles.map(v => {
                 const tax = calculateVehicleTax(v.grossWeightCategory, v.isSuspended, filingData.firstUsedMonth);
                 totalTax += tax;
                 return { ...v, taxAmount: tax };
-            }
-        });
+            });
+        }
 
         // 2. Calculate Service Fee
         const serviceFee = calculateServiceFee(filingData.filingType, vehicles.length);
@@ -98,7 +110,6 @@ export async function calculateFilingCost(filingData, vehicles, businessAddress)
                 serviceFee: parseFloat(serviceFee.toFixed(2)),
                 salesTax: salesTaxResult.amount,
                 salesTaxRate: salesTaxResult.rate,
-                grandTotal: parseFloat(grandTotal.toFixed(2)),
                 grandTotal: parseFloat(grandTotal.toFixed(2)),
                 totalRefund: parseFloat(totalRefund.toFixed(2)),
                 vehicleBreakdown

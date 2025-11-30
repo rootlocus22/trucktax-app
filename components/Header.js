@@ -101,7 +101,16 @@ export function Header() {
                 {/* Transactional Links */}
                 <Link
                   href="/dashboard"
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap ${isActive('/dashboard') && !isActive('/dashboard/schedule1') && !isActive('/dashboard/businesses') && !isActive('/dashboard/vehicles')
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap ${isActive('/dashboard') && !isActive('/dashboard/schedule1') && !isActive('/dashboard/businesses') && !isActive('/dashboard/vehicles') && !isActive('/dashboard/filings')
+                    ? 'bg-white/20 text-white'
+                    : 'text-white/90 hover:text-white hover:bg-white/10'
+                    }`}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/dashboard/filings"
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap ${isActive('/dashboard/filings')
                     ? 'bg-white/20 text-white'
                     : 'text-white/90 hover:text-white hover:bg-white/10'
                     }`}
@@ -473,7 +482,19 @@ export function Header() {
                         <Link
                           href="/dashboard"
                           onClick={() => setMobileMenuOpen(false)}
-                          className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition ${isActive('/dashboard') && !isActive('/dashboard/schedule1') && !isActive('/dashboard/businesses') && !isActive('/dashboard/vehicles') ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
+                          className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition ${isActive('/dashboard') && !isActive('/dashboard/schedule1') && !isActive('/dashboard/businesses') && !isActive('/dashboard/vehicles') && !isActive('/dashboard/filings') ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
+                            }`}
+                          style={{ color: '#1b2838', textDecoration: 'none' }}
+                        >
+                          <svg className="w-6 h-6" style={{ color: '#6b7280' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                          </svg>
+                          <span style={{ color: '#1b2838' }}>Dashboard</span>
+                        </Link>
+                        <Link
+                          href="/dashboard/filings"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition ${isActive('/dashboard/filings') ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
                             }`}
                           style={{ color: '#1b2838', textDecoration: 'none' }}
                         >
