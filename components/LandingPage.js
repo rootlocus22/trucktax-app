@@ -20,7 +20,10 @@ import {
   ChevronUp,
   ArrowRight,
   Truck,
-  LayoutDashboard
+  LayoutDashboard,
+  Phone,
+  Lock,
+  XCircle
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -147,22 +150,22 @@ export function LandingPage() {
 
       <div className="flex flex-col gap-8 sm:gap-12">
         {/* HERO SECTION */}
-        <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-[var(--color-midnight)] text-white">
+        <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-[var(--color-midnight)] text-white">
           {/* Background Image */}
           <div className="absolute inset-0 z-0">
             <Image
-              src="/hero-truck-premium.png"
+              src="/hero-truck-premium-v2.png"
               alt="Cinematic semi-truck on highway"
               fill
               priority
-              className="object-cover opacity-60"
+              className="object-cover opacity-50"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-midnight)] via-transparent to-[var(--color-midnight)]/50" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-midnight)]/80 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-midnight)] via-transparent to-[var(--color-midnight)]/60" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-midnight)]/90 to-transparent" />
           </div>
 
-          <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-8 items-center pt-8 pb-8">
-            <div className="space-y-6 animate-fade-in-up">
+          <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center pt-8 pb-8">
+            <div className="space-y-8 animate-fade-in-up">
               <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-orange)] border border-white/10 shadow-lg">
                 <ShieldCheck className="w-4 h-4" />
                 IRS Authorized E-file Provider
@@ -174,7 +177,7 @@ export function LandingPage() {
                 </span>
               </h1>
               <p className="text-xl leading-8 text-white/80 max-w-xl drop-shadow-md font-light">
-                The fastest, most secure way to get your Schedule 1. Built for modern owner-operators and fleets who value their time.
+                The fastest, most secure way to get your Schedule 1. No hidden fees, just simple filing for modern owner-operators.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -193,15 +196,15 @@ export function LandingPage() {
                 </Link>
               </div>
 
-              <div className="flex items-center gap-4 text-sm text-white/60 pt-2">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="w-8 h-8 rounded-full bg-gray-600 border-2 border-[var(--color-midnight)] flex items-center justify-center text-xs font-bold text-white">
-                      {String.fromCharCode(64 + i)}
-                    </div>
-                  ))}
+              <div className="flex items-center gap-6 text-sm text-white/60 pt-4 border-t border-white/10">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                  <span>Instant Schedule 1</span>
                 </div>
-                <p>Trusted by 10,000+ Truckers</p>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                  <span>US-Based Support</span>
+                </div>
               </div>
             </div>
 
@@ -211,7 +214,7 @@ export function LandingPage() {
                 <div className="absolute -inset-1 bg-gradient-to-r from-[var(--color-orange)] to-purple-600 rounded-2xl blur opacity-30 animate-pulse"></div>
                 <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-[var(--color-midnight)]/80 backdrop-blur-xl">
                   <Image
-                    src="/dashboard-mockup-premium.png"
+                    src="/dashboard-mockup-v2.png"
                     alt="QuickTruckTax Dashboard"
                     width={800}
                     height={600}
@@ -228,6 +231,205 @@ export function LandingPage() {
                     <p className="text-white font-bold">Schedule 1 Accepted</p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* TRUST BAR */}
+        <section className="bg-[var(--color-card)] border-y border-[var(--color-border)] py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
+              {/* Replace with actual logos if available, using text/icons for now */}
+              <div className="flex items-center gap-2 font-bold text-xl text-[var(--color-text)]"><ShieldCheck className="w-8 h-8 text-[var(--color-navy)]" /> IRS Authorized</div>
+              <div className="flex items-center gap-2 font-bold text-xl text-[var(--color-text)]"><Lock className="w-8 h-8 text-[var(--color-navy)]" /> 256-bit SSL</div>
+              <div className="flex items-center gap-2 font-bold text-xl text-[var(--color-text)]"><Star className="w-8 h-8 text-[var(--color-navy)]" /> 5-Star Rated</div>
+              <div className="flex items-center gap-2 font-bold text-xl text-[var(--color-text)]"><Phone className="w-8 h-8 text-[var(--color-navy)]" /> US Support</div>
+            </div>
+          </div>
+        </section>
+
+        {/* COMPARISON SECTION - "Why Us" */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-[var(--color-text)] mb-4">Why Drivers Switch to Us</h2>
+            <p className="text-lg text-[var(--color-muted)] max-w-2xl mx-auto">
+              Don't get stuck with hidden fees or slow support. See the difference.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* The Other Guys */}
+            <div className="bg-red-50 rounded-3xl p-8 border border-red-100 opacity-80">
+              <h3 className="text-xl font-bold text-red-800 mb-6 flex items-center gap-2">
+                <XCircle className="w-6 h-6" /> The Other Guys
+              </h3>
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3 text-red-700">
+                  <XCircle className="w-5 h-5 shrink-0 mt-0.5 opacity-60" />
+                  <span>Hidden fees for "processing" or "transmission"</span>
+                </li>
+                <li className="flex items-start gap-3 text-red-700">
+                  <XCircle className="w-5 h-5 shrink-0 mt-0.5 opacity-60" />
+                  <span>Outsourced support that doesn't know trucking</span>
+                </li>
+                <li className="flex items-start gap-3 text-red-700">
+                  <XCircle className="w-5 h-5 shrink-0 mt-0.5 opacity-60" />
+                  <span>Clunky, outdated interfaces</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Us */}
+            <div className="bg-[var(--color-navy)] text-white rounded-3xl p-8 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-orange)] rounded-full blur-[80px] opacity-20 -mr-16 -mt-16"></div>
+              <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2 relative z-10">
+                <CheckCircle className="w-6 h-6 text-[var(--color-orange)]" /> QuickTruckTax
+              </h3>
+              <ul className="space-y-4 relative z-10">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-[var(--color-orange)] shrink-0 mt-0.5" />
+                  <span>Transparent pricing. No hidden fees. Ever.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-[var(--color-orange)] shrink-0 mt-0.5" />
+                  <span>100% US-Based Support Team</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-[var(--color-orange)] shrink-0 mt-0.5" />
+                  <span>Modern, mobile-first design</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* SERVICES SPOTLIGHT SECTION */}
+        <section className="bg-[var(--color-page-alt)] py-20 clip-path-slant">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-[var(--color-text)] mb-4">Complete Compliance Solutions</h2>
+              <p className="text-xl text-[var(--color-muted)] max-w-2xl mx-auto">
+                We've reimagined the filing experience to be faster, smarter, and more secure.
+              </p>
+            </div>
+
+            {/* Feature 1: 2290 Filing */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="order-2 lg:order-1 relative h-[400px] rounded-3xl overflow-hidden shadow-2xl border border-white/20 group">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20 mix-blend-overlay z-10"></div>
+                <Image
+                  src="/schedule1-mockup.png"
+                  alt="Official IRS Schedule 1"
+                  fill
+                  className="object-cover group-hover:scale-105 transition duration-700"
+                />
+                {/* Floating Badge */}
+                <div className="absolute bottom-8 right-8 bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-lg z-20 flex items-center gap-3 animate-bounce-slow">
+                  <div className="bg-green-100 p-2 rounded-full">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-bold uppercase">IRS Status</p>
+                    <p className="text-gray-900 font-bold">Accepted Instantly</p>
+                  </div>
+                </div>
+              </div>
+              <div className="order-1 lg:order-2 space-y-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+                  <Zap className="w-8 h-8" />
+                </div>
+                <h3 className="text-3xl font-bold text-[var(--color-text)]">Instant Schedule 1</h3>
+                <p className="text-lg text-[var(--color-muted)] leading-relaxed">
+                  Stop waiting for the mail. E-file your Form 2290 and get your official IRS-stamped Schedule 1 in minutes. We send it directly to your email, ready to download and print.
+                </p>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-3 text-[var(--color-text)]">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>IRS-Authorized E-file Provider</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-[var(--color-text)]">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>Valid for Tags & Registration</span>
+                  </li>
+                </ul>
+                <Link href="/signup" className="inline-flex items-center text-blue-600 font-bold hover:text-blue-700 text-lg group">
+                  Start Filing <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Feature 2: Bulk Upload */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
+                <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600">
+                  <Upload className="w-8 h-8" />
+                </div>
+                <h3 className="text-3xl font-bold text-[var(--color-text)]">Bulk Fleet Management</h3>
+                <p className="text-lg text-[var(--color-muted)] leading-relaxed">
+                  Managing 25+ trucks? Don't waste hours entering data manually. Upload your entire fleet via CSV and let our system handle the rest. We validate every VIN automatically.
+                </p>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-3 text-[var(--color-text)]">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>One-Click CSV Import</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-[var(--color-text)]">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>Automatic VIN Validation</span>
+                  </li>
+                </ul>
+                <Link href="/signup" className="inline-flex items-center text-purple-600 font-bold hover:text-purple-700 text-lg group">
+                  Upload Your Fleet <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
+                </Link>
+              </div>
+              <div className="relative h-[400px] rounded-3xl overflow-hidden shadow-2xl border border-white/20 group">
+                <div className="absolute inset-0 bg-gradient-to-bl from-purple-600/20 to-orange-600/20 mix-blend-overlay z-10"></div>
+                <Image
+                  src="/bulk-upload-visual.png"
+                  alt="Bulk Fleet Upload Visualization"
+                  fill
+                  className="object-cover group-hover:scale-105 transition duration-700"
+                />
+              </div>
+            </div>
+
+            {/* Feature 3: Support & Amendments */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="order-2 lg:order-1 relative h-[400px] rounded-3xl overflow-hidden shadow-2xl border border-white/20 group">
+                <Image
+                  src="/support-team-visual.png"
+                  alt="US Based Support Team"
+                  fill
+                  className="object-cover group-hover:scale-105 transition duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-midnight)]/80 to-transparent"></div>
+                <div className="absolute bottom-8 left-8 text-white z-20">
+                  <p className="font-bold text-lg">Here to Help</p>
+                  <p className="text-white/80">Real people, real answers.</p>
+                </div>
+              </div>
+              <div className="order-1 lg:order-2 space-y-6">
+                <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600">
+                  <Phone className="w-8 h-8" />
+                </div>
+                <h3 className="text-3xl font-bold text-[var(--color-text)]">US-Based Support & Corrections</h3>
+                <p className="text-lg text-[var(--color-muted)] leading-relaxed">
+                  Made a mistake? Need help with a rejection? Our 100% US-based support team is here to guide you. Plus, file VIN corrections (Amendments) and 8849 Refund claims directly from your dashboard.
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded-xl border border-[var(--color-border)] shadow-sm">
+                    <AlertTriangle className="w-6 h-6 text-amber-600 mb-2" />
+                    <p className="font-bold text-sm">Free VIN Corrections</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-xl border border-[var(--color-border)] shadow-sm">
+                    <RefreshCw className="w-6 h-6 text-green-600 mb-2" />
+                    <p className="font-bold text-sm">8849 Refund Claims</p>
+                  </div>
+                </div>
+                <Link href="/signup" className="inline-flex items-center text-amber-600 font-bold hover:text-amber-700 text-lg group">
+                  Contact Support <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
+                </Link>
               </div>
             </div>
           </div>

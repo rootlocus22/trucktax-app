@@ -69,3 +69,7 @@ textarea {
 .truck-svg {
   filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
 }
+
+.clip-path-slant {
+  clip-path: polygon(0 0, 100% 0, 100% 95%, 0 100%);
+}
