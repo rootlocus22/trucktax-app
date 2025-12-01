@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Header } from '@/components/Header';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,7 +10,11 @@ import { Schedule1Listener } from '@/components/Schedule1Listener';
 
 export function ConsumerLayout({ children }) {
   const { user } = useAuth();
+  const pathname = usePathname();
   const [isExpanded, setIsExpanded] = useState(false); // Start collapsed by default
+
+  // Check if we're on the landing page
+  const isLandingPage = pathname === '/';
 
   // Update state when user changes - collapsed if logged in, expanded if not
   useEffect(() => {
@@ -24,7 +29,7 @@ export function ConsumerLayout({ children }) {
     <div className="flex min-h-screen flex-col overflow-visible">
       <Schedule1Listener />
       <Header />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 overflow-visible">
+      <main className={isLandingPage ? "flex-1 overflow-visible" : "mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 overflow-visible"}>
         {children}
       </main>
       <footer className="border-t border-[var(--color-border)] bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white">

@@ -54,9 +54,11 @@ textarea {
   0% {
     transform: translateX(-50%) translateX(-100px);
   }
+
   50% {
     transform: translateX(-50%) translateX(0px);
   }
+
   100% {
     transform: translateX(-50%) translateX(100px);
   }
@@ -67,9 +69,13 @@ textarea {
 }
 
 .truck-svg {
-  filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .clip-path-slant {
   clip-path: polygon(0 0, 100% 0, 100% 95%, 0 100%);
+}
+
+.clip-path-slant-reverse {
+  clip-path: polygon(0 5%, 100% 0, 100% 100%, 0 100%);
 }
