@@ -24,18 +24,21 @@ const featureHighlights = [
     description:
       "Model Form 2290 HVUT taxes, prorations, and filing deadlines in seconds with IRS-backed datasets. No more guessing.",
     icon: "/window.svg",
+    alt: "Calculator icon",
   },
   {
     title: "Step-by-Step Guidance",
     description:
       "Follow proven playbooks for IRS and FMCSA filings, written specifically for owner-operators and fleet managers.",
     icon: "/file.svg",
+    alt: "Document icon",
   },
   {
     title: "Actionable Reminders",
     description:
       "Use calendars, checklists, and timelines to stay ahead of every Form 2290, UCR, and IFTA deadline.",
     icon: "/globe.svg",
+    alt: "Globe icon",
   },
 ];
 
@@ -138,7 +141,7 @@ export default function Home() {
           {featureHighlights.map((feature) => (
             <article key={feature.title} className="group flex flex-col gap-6 p-4 rounded-2xl transition hover:bg-white/50">
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--color-sand)]/20 group-hover:bg-[var(--color-orange)]/20 transition-colors">
-                <Image src={feature.icon} alt="" width={32} height={32} className="h-8 w-8 text-[var(--color-orange)]" />
+                <Image src={feature.icon} alt={feature.alt} width={32} height={32} className="h-8 w-8 text-[var(--color-orange)]" />
               </div>
               <h2 className="text-xl font-bold text-[var(--color-text)]">{feature.title}</h2>
               <p className="text-base leading-7 text-[var(--color-muted)]">{feature.description}</p>
