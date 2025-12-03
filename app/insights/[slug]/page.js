@@ -23,13 +23,13 @@ export async function generateMetadata({ params }) {
     description: guide.description,
     keywords: guide.keywords,
     alternates: {
-      canonical: `https://quicktrucktax.com/insights/${guide.slug}`,
+      canonical: `https://www.quicktrucktax.com/insights/${guide.slug}`,
     },
     openGraph: {
       title: guide.title,
       description: guide.description,
       type: "article",
-      url: `https://quicktrucktax.com/insights/${guide.slug}`,
+      url: `https://www.quicktrucktax.com/insights/${guide.slug}`,
       section: guide.category,
       tags: guide.keywords,
     },
@@ -60,10 +60,10 @@ export default async function GuidePage({ params }) {
       name: "QuickTruckTax",
       logo: {
         "@type": "ImageObject",
-        url: "https://quicktrucktax.com/favicon.ico",
+        url: "https://www.quicktrucktax.com/favicon.ico",
       },
     },
-    mainEntityOfPage: `https://quicktrucktax.com/insights/${guide.slug}`,
+    mainEntityOfPage: `https://www.quicktrucktax.com/insights/${guide.slug}`,
     about: guide.keywords,
   };
 

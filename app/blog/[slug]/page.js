@@ -19,7 +19,7 @@ export async function generateMetadata({ params }) {
     };
   }
 
-  const baseUrl = 'https://quicktrucktax.com';
+  const baseUrl = 'https://www.quicktrucktax.com';
   const blogUrl = `${baseUrl}/blog/${post.id}`;
 
   return {
@@ -85,7 +85,7 @@ export default async function BlogPost({ params }) {
     notFound();
   }
 
-  const baseUrl = 'https://quicktrucktax.com';
+  const baseUrl = 'https://www.quicktrucktax.com';
   const blogUrl = `${baseUrl}/blog/${post.id}`;
 
   // JSON-LD structured data for SEO

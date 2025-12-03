@@ -6,7 +6,7 @@ export const metadata = {
   description: 'Comprehensive guides on IRS Form 2290 filing, HVUT deadlines, common mistakes, e-filing tips, and trucking tax compliance. Stay updated with the latest 2026 regulations.',
   keywords: 'Form 2290 blog, HVUT guides, IRS Form 2290 tips, heavy vehicle use tax, trucking tax blog, Form 2290 deadline, e-file HVUT',
   alternates: {
-    canonical: 'https://quicktrucktax.com/blog',
+    canonical: 'https://www.quicktrucktax.com/blog',
   },
   robots: {
     index: true,
@@ -23,13 +23,13 @@ export const metadata = {
   openGraph: {
     title: 'Form 2290 Blog - Expert HVUT Filing Guides & Tips',
     description: 'Comprehensive guides on IRS Form 2290 filing, HVUT deadlines, and trucking tax compliance.',
-    url: 'https://quicktrucktax.com/blog',
+    url: 'https://www.quicktrucktax.com/blog',
     siteName: 'QuickTruckTax',
     type: 'website',
     locale: 'en_US',
     images: [
       {
-        url: 'https://quicktrucktax.com/quicktrucktax-logo.png',
+        url: 'https://www.quicktrucktax.com/quicktrucktax-logo.png',
         width: 1280,
         height: 720,
         alt: 'QuickTruckTax Blog - Form 2290 & HVUT Guides',
@@ -43,7 +43,7 @@ export const metadata = {
     creator: '@quicktrucktax',
     title: 'Form 2290 Blog - Expert HVUT Filing Guides',
     description: 'Comprehensive guides on IRS Form 2290 filing and trucking tax compliance.',
-    images: ['https://quicktrucktax.com/quicktrucktax-logo.png'],
+    images: ['https://www.quicktrucktax.com/quicktrucktax-logo.png'],
   },
 };
 
@@ -57,7 +57,7 @@ export default function BlogPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h1 className="text-5xl font-bold mb-4">Form 2290 Expert Blog</h1>
           <p className="text-xl mb-6 max-w-3xl">
-            Your comprehensive resource for IRS Form 2290 filing, HVUT compliance, and trucking tax strategies. 
+            Your comprehensive resource for IRS Form 2290 filing, HVUT compliance, and trucking tax strategies.
             Stay informed with expert guides, tips, and 2026 updates.
           </p>
           <div className="flex flex-wrap gap-4">

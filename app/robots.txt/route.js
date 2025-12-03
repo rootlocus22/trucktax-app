@@ -1,4 +1,4 @@
-const host = "https://quicktrucktax.com";
+const host = "https://www.quicktrucktax.com";
 
 export function GET() {
   const body = [

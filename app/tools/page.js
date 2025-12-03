@@ -1,9 +1,52 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Compliance Tools",
+  title: "Compliance Tools | QuickTruckTax",
+  description:
+    "Interactive HVUT calculators and deadline helpers for Form 2290 and trucking compliance tasks. Free tools for owner-operators.",
+  alternates: {
+    canonical: "https://www.quicktrucktax.com/tools",
+  },
+  openGraph: {
+    title: "Compliance Tools | QuickTruckTax",
+    description:
+      "Interactive HVUT calculators and deadline helpers for Form 2290 and trucking compliance tasks.",
+    url: "https://www.quicktrucktax.com/tools",
+    siteName: "QuickTruckTax",
+    type: "website",
+    images: [
+      {
+        url: "https://www.quicktrucktax.com/quicktrucktax-logo-new.png",
+        width: 1280,
+        height: 720,
+        alt: "QuickTruckTax Compliance Tools",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Compliance Tools | QuickTruckTax",
+    description:
+      "Interactive HVUT calculators and deadline helpers for Form 2290 and trucking compliance tasks.",
+    images: ["https://www.quicktrucktax.com/quicktrucktax-logo-new.png"],
+  },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: "Compliance Tools",
   description:
     "Interactive HVUT calculators and deadline helpers for Form 2290 and trucking compliance tasks.",
+  url: "https://www.quicktrucktax.com/tools",
+  publisher: {
+    "@type": "Organization",
+    name: "QuickTruckTax",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://www.quicktrucktax.com/quicktrucktax-logo-new.png",
+    },
+  },
 };
 
 const tools = [
@@ -31,6 +74,10 @@ const tools = [
 export default function ToolsIndex() {
   return (
     <div className="flex flex-col gap-12 sm:gap-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] px-4 py-14 text-white shadow-xl shadow-[rgba(10,23,43,0.2)] sm:px-6 lg:px-8">
         <div className="absolute right-0 top-0 h-56 w-56 translate-x-1/3 -translate-y-1/3 rounded-full bg-[var(--color-orange)]/30 blur-3xl" />
         <div className="relative z-10 space-y-5">
@@ -102,8 +149,7 @@ export default function ToolsIndex() {
                 </div>
                 <Link
                   href={tool.href}
-                  className="mt-6 inline-flex w-fit items-center rounded-full bg-[var(--color-navy-soft)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--color-orange)]"
-                  style={{ color: '#ffffff' }}
+                  className="mt-6 inline-flex w-fit items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-[var(--color-navy)] shadow-sm transition hover:bg-[var(--color-orange)] hover:text-white"
                 >
                   Open tool →
                 </Link>
