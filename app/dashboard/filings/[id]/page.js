@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { subscribeToFiling, getBusiness, getVehicle } from '@/lib/db';
+import { updateFiling, subscribeToFiling, getBusiness, getVehicle } from '@/lib/db';
 import {
   ArrowLeft,
   CheckCircle,
@@ -18,8 +18,11 @@ import {
   Download,
   FileCheck,
   Copy,
-  Check
+  Check,
+  Send,
+  UploadCloud
 } from 'lucide-react';
+import { REQUIRED_ACTIONS } from '@/lib/rejectionConfig';
 
 export default function FilingDetailPage() {
   const params = useParams();
@@ -30,6 +33,11 @@ export default function FilingDetailPage() {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState('');
+
+  // Response State
+  const [responseText, setResponseText] = useState('');
+  const [responseFile, setResponseFile] = useState(null);
+  const [submittingResponse, setSubmittingResponse] = useState(false);
 
   useEffect(() => {
     if (params.id && user) {
@@ -173,6 +181,60 @@ export default function FilingDetailPage() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleResponseSubmit = async () => {
+    if (!responseText && !responseFile) {
+      alert('Please provide a response or upload a file.');
+      return;
+    }
+
+    setSubmittingResponse(true);
+    try {
+      let fileUrl = null;
+
+      // Upload file if selected
+      if (responseFile) {
+        const idToken = await user.getIdToken(true);
+        const formData = new FormData();
+        formData.append('file', responseFile);
+        formData.append('filingId', params.id);
+        formData.append('type', 'rejection_response');
+
+        const uploadResponse = await fetch('/api/upload-document', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+          },
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) throw new Error('File upload failed');
+        const result = await uploadResponse.json();
+        fileUrl = result.url;
+      }
+
+      // Update filing
+      await updateFiling(params.id, {
+        status: 'processing', // Push back to processing
+        customerResponse: {
+          text: responseText,
+          fileUrl: fileUrl,
+          submittedAt: new Date().toISOString()
+        },
+        // Clear rejection flags so it doesn't stay in action_required
+        // We keep the history in customerResponse
+      });
+
+      setResponseText('');
+      setResponseFile(null);
+      alert('Response submitted successfully! We will review your update.');
+    } catch (error) {
+      console.error('Error submitting response:', error);
+      alert('Failed to submit response. Please try again.');
+    } finally {
+      setSubmittingResponse(false);
+    }
+  };
+
   const handleCopy = async (text, field) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -271,25 +333,25 @@ export default function FilingDetailPage() {
                   ? 'Action Required'
                   : filing.status === 'completed'
                     ? (() => {
-                        if (filing.filingType === 'amendment') {
-                          if (filing.amendmentType === 'vin_correction') return 'VIN Correction Accepted!';
-                          if (filing.amendmentType === 'weight_increase') return 'Weight Increase Amendment Accepted!';
-                          if (filing.amendmentType === 'mileage_exceeded') return 'Mileage Amendment Accepted!';
-                          return 'Amendment Accepted!';
-                        }
-                        if (filing.filingType === 'refund') return 'Refund Claim Submitted!';
-                        return 'Filing Accepted!';
-                      })()
+                      if (filing.filingType === 'amendment') {
+                        if (filing.amendmentType === 'vin_correction') return 'VIN Correction Accepted!';
+                        if (filing.amendmentType === 'weight_increase') return 'Weight Increase Amendment Accepted!';
+                        if (filing.amendmentType === 'mileage_exceeded') return 'Mileage Amendment Accepted!';
+                        return 'Amendment Accepted!';
+                      }
+                      if (filing.filingType === 'refund') return 'Refund Claim Submitted!';
+                      return 'Filing Accepted!';
+                    })()
                     : (() => {
-                        if (filing.filingType === 'amendment') {
-                          if (filing.amendmentType === 'vin_correction') return 'Processing Your VIN Correction';
-                          if (filing.amendmentType === 'weight_increase') return 'Processing Your Weight Increase Amendment';
-                          if (filing.amendmentType === 'mileage_exceeded') return 'Processing Your Mileage Exceeded Amendment';
-                          return 'Processing Your Amendment';
-                        }
-                        if (filing.filingType === 'refund') return 'Processing Your Refund Claim';
-                        return 'Processing Your Filing';
-                      })()}
+                      if (filing.filingType === 'amendment') {
+                        if (filing.amendmentType === 'vin_correction') return 'Processing Your VIN Correction';
+                        if (filing.amendmentType === 'weight_increase') return 'Processing Your Weight Increase Amendment';
+                        if (filing.amendmentType === 'mileage_exceeded') return 'Processing Your Mileage Exceeded Amendment';
+                        return 'Processing Your Amendment';
+                      }
+                      if (filing.filingType === 'refund') return 'Processing Your Refund Claim';
+                      return 'Processing Your Filing';
+                    })()}
               </h2>
 
               <p className={`max-w-lg mx-auto text-base sm:text-lg mb-6 transition-colors duration-300 ${filing.status === 'action_required' ? 'text-orange-800' : filing.status === 'completed' ? 'text-green-800' : 'text-blue-800'
@@ -298,41 +360,41 @@ export default function FilingDetailPage() {
                   ? 'We need some additional information to proceed. Please check the notes below.'
                   : filing.status === 'completed'
                     ? (() => {
-                        if (filing.filingType === 'amendment') {
-                          if (filing.amendmentType === 'vin_correction') {
-                            return 'Great news! Your VIN correction amendment has been accepted by the IRS. Your corrected Schedule 1 is ready.';
-                          }
-                          if (filing.amendmentType === 'weight_increase') {
-                            return 'Great news! Your weight increase amendment has been accepted by the IRS. Your amended Schedule 1 is ready.';
-                          }
-                          if (filing.amendmentType === 'mileage_exceeded') {
-                            return 'Great news! Your mileage exceeded amendment has been accepted by the IRS. Your amended Schedule 1 is ready.';
-                          }
-                          return 'Great news! Your amendment has been accepted by the IRS. Your amended Schedule 1 is ready.';
+                      if (filing.filingType === 'amendment') {
+                        if (filing.amendmentType === 'vin_correction') {
+                          return 'Great news! Your VIN correction amendment has been accepted by the IRS. Your corrected Schedule 1 is ready.';
                         }
-                        if (filing.filingType === 'refund') {
-                          return 'Your refund claim (Form 8849) has been submitted to the IRS. You will receive updates on the status of your refund.';
+                        if (filing.amendmentType === 'weight_increase') {
+                          return 'Great news! Your weight increase amendment has been accepted by the IRS. Your amended Schedule 1 is ready.';
                         }
-                        return 'Great news! Your Form 2290 has been accepted by the IRS. Your Schedule 1 is ready.';
-                      })()
+                        if (filing.amendmentType === 'mileage_exceeded') {
+                          return 'Great news! Your mileage exceeded amendment has been accepted by the IRS. Your amended Schedule 1 is ready.';
+                        }
+                        return 'Great news! Your amendment has been accepted by the IRS. Your amended Schedule 1 is ready.';
+                      }
+                      if (filing.filingType === 'refund') {
+                        return 'Your refund claim (Form 8849) has been submitted to the IRS. You will receive updates on the status of your refund.';
+                      }
+                      return 'Great news! Your Form 2290 has been accepted by the IRS. Your Schedule 1 is ready.';
+                    })()
                     : (() => {
-                        if (filing.filingType === 'amendment') {
-                          if (filing.amendmentType === 'vin_correction') {
-                            return 'We are processing your VIN correction amendment. No additional tax is due for this correction.';
-                          }
-                          if (filing.amendmentType === 'weight_increase') {
-                            return 'We are processing your weight increase amendment. Additional tax will be calculated and submitted to the IRS.';
-                          }
-                          if (filing.amendmentType === 'mileage_exceeded') {
-                            return 'We are processing your mileage exceeded amendment. Full HVUT tax will be calculated and submitted to the IRS.';
-                          }
-                          return 'We are processing your amendment filing with the IRS.';
+                      if (filing.filingType === 'amendment') {
+                        if (filing.amendmentType === 'vin_correction') {
+                          return 'We are processing your VIN correction amendment. No additional tax is due for this correction.';
                         }
-                        if (filing.filingType === 'refund') {
-                          return 'We are processing your refund claim (Form 8849). We will submit it to the IRS for review.';
+                        if (filing.amendmentType === 'weight_increase') {
+                          return 'We are processing your weight increase amendment. Additional tax will be calculated and submitted to the IRS.';
                         }
-                        return 'Sit back and relax. We are preparing your return for IRS submission.';
-                      })()}
+                        if (filing.amendmentType === 'mileage_exceeded') {
+                          return 'We are processing your mileage exceeded amendment. Full HVUT tax will be calculated and submitted to the IRS.';
+                        }
+                        return 'We are processing your amendment filing with the IRS.';
+                      }
+                      if (filing.filingType === 'refund') {
+                        return 'We are processing your refund claim (Form 8849). We will submit it to the IRS for review.';
+                      }
+                      return 'Sit back and relax. We are preparing your return for IRS submission.';
+                    })()}
               </p>
 
               {/* Dynamic Action Area */}
@@ -345,10 +407,10 @@ export default function FilingDetailPage() {
                     className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-green-700 hover:shadow-xl transition transform hover:-translate-y-0.5 w-full sm:w-auto justify-center"
                   >
                     <Download className="w-5 h-5" />
-                    {filing.filingType === 'amendment' 
-                      ? (filing.amendmentType === 'vin_correction' 
-                          ? 'Download Corrected Schedule 1'
-                          : 'Download Amended Schedule 1')
+                    {filing.filingType === 'amendment'
+                      ? (filing.amendmentType === 'vin_correction'
+                        ? 'Download Corrected Schedule 1'
+                        : 'Download Amended Schedule 1')
                       : filing.filingType === 'refund'
                         ? 'Download Schedule 1'
                         : 'Download Schedule 1'}
@@ -393,14 +455,70 @@ export default function FilingDetailPage() {
 
           {/* Right Column: Timeline & Notes */}
           <div className="space-y-4 lg:col-span-1 h-full flex flex-col">
-            {/* Agent Notes for Action Required */}
-            {filing.status === 'action_required' && filing.agentNotes && (
-              <div className="bg-orange-50 border border-orange-200 rounded-xl p-5 animate-in fade-in slide-in-from-top-2 shadow-sm">
-                <h3 className="text-sm font-bold text-orange-900 mb-2 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4" />
-                  Agent Notes
-                </h3>
-                <p className="text-sm text-orange-800 whitespace-pre-wrap leading-relaxed">{filing.agentNotes}</p>
+            {/* Action Required Panel */}
+            {filing.status === 'action_required' && (
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-5 animate-in fade-in slide-in-from-top-2 shadow-sm space-y-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-sm font-bold text-orange-900 mb-1">Action Required</h3>
+                    {filing.rejectionReasonLabel && (
+                      <p className="text-sm font-semibold text-orange-800 mb-1">
+                        Reason: {filing.rejectionReasonLabel}
+                        {filing.rejectionCode && <span className="font-mono text-xs ml-2 opacity-75">({filing.rejectionCode})</span>}
+                      </p>
+                    )}
+                    <p className="text-sm text-orange-800 whitespace-pre-wrap leading-relaxed">
+                      {filing.agentNotes || 'Please review the issues with your filing and provide the requested information below.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Response Form */}
+                <div className="bg-white rounded-lg border border-orange-100 p-4 space-y-3">
+                  <h4 className="text-sm font-semibold text-gray-900">Provide Response</h4>
+
+                  {filing.requiredAction === 'upload_document' && (
+                    <div className="space-y-2">
+                      <label className="block text-xs font-medium text-gray-700">Upload Document</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="file"
+                          onChange={(e) => setResponseFile(e.target.files[0])}
+                          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <label className="block text-xs font-medium text-gray-700">
+                      {filing.requiredAction === 'upload_document' ? 'Additional Comments (Optional)' : 'Your Response / Correction'}
+                    </label>
+                    <textarea
+                      value={responseText}
+                      onChange={(e) => setResponseText(e.target.value)}
+                      placeholder={filing.requiredAction === 'correct_info' ? 'Enter the correct information here...' : 'Type your message...'}
+                      rows={3}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <button
+                    onClick={handleResponseSubmit}
+                    disabled={submittingResponse}
+                    className="w-full flex items-center justify-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-700 transition disabled:opacity-50"
+                  >
+                    {submittingResponse ? (
+                      'Sending...'
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        Submit Response
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -568,11 +686,11 @@ export default function FilingDetailPage() {
                 <span className="text-[var(--color-text)] font-medium capitalize">
                   {filing.filingType === 'amendment' && filing.amendmentType
                     ? (filing.amendmentType === 'vin_correction' ? 'VIN Correction Amendment'
-                        : filing.amendmentType === 'weight_increase' ? 'Weight Increase Amendment'
+                      : filing.amendmentType === 'weight_increase' ? 'Weight Increase Amendment'
                         : filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded Amendment'
-                        : 'Amendment')
+                          : 'Amendment')
                     : filing.filingType === 'refund' ? 'Refund (Form 8849)'
-                    : 'Standard Filing'}
+                      : 'Standard Filing'}
                 </span>
               </div>
               <div className="flex items-start justify-between gap-2">
@@ -715,7 +833,7 @@ export default function FilingDetailPage() {
                 : `Vehicles (${vehicles.length})`}
             </h2>
           </div>
-          
+
           {filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction' ? (
             // For VIN corrections, show VINs from amendment details
             <div className="grid sm:grid-cols-2 gap-2.5">
@@ -768,30 +886,30 @@ export default function FilingDetailPage() {
                       </div>
                     )}
                     {/* Show amendment-specific info for weight increase */}
-                    {filing.filingType === 'amendment' && filing.amendmentType === 'weight_increase' && 
-                     filing.amendmentDetails?.weightIncrease?.vehicleId === vehicle.id && (
-                      <div className="pt-2 mt-2 border-t border-orange-200">
-                        <div className="text-xs text-orange-600 font-medium">
-                          ⚖️ Weight: {filing.amendmentDetails.weightIncrease.originalWeightCategory} → {filing.amendmentDetails.weightIncrease.newWeightCategory}
+                    {filing.filingType === 'amendment' && filing.amendmentType === 'weight_increase' &&
+                      filing.amendmentDetails?.weightIncrease?.vehicleId === vehicle.id && (
+                        <div className="pt-2 mt-2 border-t border-orange-200">
+                          <div className="text-xs text-orange-600 font-medium">
+                            ⚖️ Weight: {filing.amendmentDetails.weightIncrease.originalWeightCategory} → {filing.amendmentDetails.weightIncrease.newWeightCategory}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                     {/* Show amendment-specific info for mileage exceeded */}
-                    {filing.filingType === 'amendment' && filing.amendmentType === 'mileage_exceeded' && 
-                     filing.amendmentDetails?.mileageExceeded?.vehicleId === vehicle.id && (
-                      <div className="pt-2 mt-2 border-t border-purple-200">
-                        <div className="text-xs text-purple-600 font-medium">
-                          🛣️ Mileage: {filing.amendmentDetails.mileageExceeded.actualMileageUsed?.toLocaleString()} miles (Exceeded limit)
+                    {filing.filingType === 'amendment' && filing.amendmentType === 'mileage_exceeded' &&
+                      filing.amendmentDetails?.mileageExceeded?.vehicleId === vehicle.id && (
+                        <div className="pt-2 mt-2 border-t border-purple-200">
+                          <div className="text-xs text-purple-600 font-medium">
+                            🛣️ Mileage: {filing.amendmentDetails.mileageExceeded.actualMileageUsed?.toLocaleString()} miles (Exceeded limit)
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className="text-sm text-[var(--color-muted)] italic">
-              {filing.filingType === 'amendment' 
+              {filing.filingType === 'amendment'
                 ? 'Vehicle information is shown in Amendment Details above'
                 : 'No vehicles found for this filing'}
             </div>

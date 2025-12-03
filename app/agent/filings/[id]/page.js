@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { getFiling, updateFiling, getBusiness, getVehicle, subscribeToFiling } from '@/lib/db';
 import { getAmendmentTypeConfig, formatAmendmentSummary, getAgentAmendmentInstructions } from '@/lib/amendmentHelpers';
+import { REJECTION_REASONS, REQUIRED_ACTIONS, getRejectionConfig } from '@/lib/rejectionConfig';
 
 export default function AgentWorkStationPage() {
   const params = useParams();
@@ -21,6 +22,11 @@ export default function AgentWorkStationPage() {
   const [agentNotes, setAgentNotes] = useState('');
   const [schedule1File, setSchedule1File] = useState(null);
   const [error, setError] = useState('');
+
+  // Rejection State
+  const [rejectionReasonId, setRejectionReasonId] = useState('');
+  const [rejectionCode, setRejectionCode] = useState('');
+  const [requiredAction, setRequiredAction] = useState('');
 
   useEffect(() => {
     if (!params.id) return;
@@ -37,6 +43,11 @@ export default function AgentWorkStationPage() {
       setFiling(filingData);
       setStatus(filingData.status);
       setAgentNotes(filingData.agentNotes || '');
+
+      // Load rejection state if exists
+      if (filingData.rejectionReasonId) setRejectionReasonId(filingData.rejectionReasonId);
+      if (filingData.rejectionCode) setRejectionCode(filingData.rejectionCode);
+      if (filingData.requiredAction) setRequiredAction(filingData.requiredAction);
 
       // Load business (may be null for Schedule 1 uploads)
       if (filingData.businessId) {
@@ -96,7 +107,14 @@ export default function AgentWorkStationPage() {
     setSaving(true);
     setError('');
     try {
-      await updateFiling(params.id, { status: newStatus });
+      const updateData = { status: newStatus };
+
+      // If moving away from action_required, clear rejection fields (optional logic, keeping for now)
+      if (status === 'action_required' && newStatus !== 'action_required') {
+        // We might want to keep history, but for now let's just update status
+      }
+
+      await updateFiling(params.id, updateData);
       setStatus(newStatus);
       setFiling({ ...filing, status: newStatus });
     } catch (error) {
@@ -106,11 +124,38 @@ export default function AgentWorkStationPage() {
     }
   };
 
+  const handleRejectionReasonChange = (e) => {
+    const reasonId = e.target.value;
+    setRejectionReasonId(reasonId);
+
+    const config = getRejectionConfig(reasonId);
+    if (config) {
+      setRejectionCode(config.code);
+      setRequiredAction(config.defaultAction);
+      setAgentNotes(config.template);
+    }
+  };
+
   const handleSaveNotes = async () => {
     setSaving(true);
     setError('');
     try {
-      await updateFiling(params.id, { agentNotes });
+      const updateData = { agentNotes };
+
+      // If status is action_required, save rejection details too
+      if (status === 'action_required') {
+        updateData.rejectionReasonId = rejectionReasonId;
+        updateData.rejectionCode = rejectionCode;
+        updateData.requiredAction = requiredAction;
+
+        // Add rejection label for display
+        const config = getRejectionConfig(rejectionReasonId);
+        if (config) {
+          updateData.rejectionReasonLabel = config.label;
+        }
+      }
+
+      await updateFiling(params.id, updateData);
     } catch (error) {
       setError('Failed to save notes');
     } finally {
@@ -238,6 +283,52 @@ export default function AgentWorkStationPage() {
           </div>
         )}
 
+        {/* Customer Response Alert */}
+        {filing.customerResponse && (
+          <div className="mb-6 bg-purple-50 border-2 border-purple-200 rounded-xl p-6 animate-in fade-in slide-in-from-top-2 shadow-md">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <span className="text-2xl">💬</span>
+              </div>
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-purple-900 mb-1">New Customer Response</h2>
+                <p className="text-sm text-purple-700 mb-4">
+                  The customer has responded to your request.
+                  {filing.customerResponse.submittedAt && (
+                    <span className="ml-2 opacity-75">
+                      (Received: {new Date(filing.customerResponse.submittedAt).toLocaleString()})
+                    </span>
+                  )}
+                </p>
+
+                <div className="bg-white rounded-lg border border-purple-100 p-4 space-y-3">
+                  {filing.customerResponse.text && (
+                    <div>
+                      <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Message</h3>
+                      <p className="text-gray-900 whitespace-pre-wrap">{filing.customerResponse.text}</p>
+                    </div>
+                  )}
+
+                  {filing.customerResponse.fileUrl && (
+                    <div>
+                      <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Uploaded Document</h3>
+                      <a
+                        href={filing.customerResponse.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-purple-700 hover:text-purple-900 font-medium hover:underline"
+                      >
+                        <span className="text-xl">📎</span>
+                        View Uploaded File
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Amendment Details Banner (if amendment filing) */}
         {filing.filingType === 'amendment' && filing.amendmentType && (
           <div className="mb-6">
@@ -324,7 +415,7 @@ export default function AgentWorkStationPage() {
                   } else {
                     dueDate = new Date(filing.amendmentDueDate);
                   }
-                  
+
                   return (
                     <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded">
                       <p className="text-sm font-bold text-red-700">
@@ -395,7 +486,7 @@ export default function AgentWorkStationPage() {
                 <div className="flex-1">
                   <h2 className="text-xl font-bold text-blue-900 mb-2">{instructions.title}</h2>
                   <p className="text-sm text-blue-800 mb-4">{instructions.description}</p>
-                  
+
                   <div className="bg-white rounded-lg p-4 mb-4">
                     <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                       <span>✓</span> Processing Steps
@@ -628,6 +719,58 @@ export default function AgentWorkStationPage() {
                     <option value="completed">Completed</option>
                   </select>
                 </div>
+
+                {status === 'action_required' && (
+                  <div className="space-y-4 p-4 bg-orange-50 border border-orange-200 rounded-lg animate-in fade-in slide-in-from-top-2">
+                    <h3 className="font-semibold text-orange-900 text-sm">Rejection Details</h3>
+
+                    <div>
+                      <label className="block text-xs font-medium text-orange-800 mb-1">
+                        Reason
+                      </label>
+                      <select
+                        value={rejectionReasonId}
+                        onChange={handleRejectionReasonChange}
+                        className="w-full px-3 py-2 text-sm border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-500 bg-white"
+                      >
+                        <option value="">Select Reason...</option>
+                        {REJECTION_REASONS.map(reason => (
+                          <option key={reason.id} value={reason.id}>{reason.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-orange-800 mb-1">
+                          IRS Code
+                        </label>
+                        <input
+                          type="text"
+                          value={rejectionCode}
+                          onChange={(e) => setRejectionCode(e.target.value)}
+                          placeholder="e.g. R0000-900-01"
+                          className="w-full px-3 py-2 text-sm border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-orange-800 mb-1">
+                          Required Action
+                        </label>
+                        <select
+                          value={requiredAction}
+                          onChange={(e) => setRequiredAction(e.target.value)}
+                          className="w-full px-3 py-2 text-sm border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-500 bg-white"
+                        >
+                          <option value="">Select Action...</option>
+                          {REQUIRED_ACTIONS.map(action => (
+                            <option key={action.id} value={action.id}>{action.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
