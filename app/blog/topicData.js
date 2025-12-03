@@ -82,7 +82,7 @@ const faqs = [
 
 const generateBrandPosts = () => {
     return truckBrands.map(brand => ({
-        id: `form-2290-filing-guide-${brand.name.toLowerCase()}-trucks`,
+        id: `form-2290-filing-guide-${brand.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-trucks`,
         title: `Form 2290 Filing Guide for ${brand.name} Truck Owners`,
         excerpt: `Own a ${brand.name} ${brand.models.split(',')[0]}? Here is everything you need to know about filing HVUT for your ${brand.name} fleet.`,
         category: 'Brand Guides',
@@ -125,7 +125,7 @@ const generateBrandPosts = () => {
 
 const generateIndustryPosts = () => {
     return industries.map(ind => ({
-        id: `form-2290-guide-for-${ind.name.toLowerCase().replace(/\s+/g, '-')}-industry`,
+        id: `form-2290-guide-for-${ind.name.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-')}-industry`,
         title: `Form 2290 Guide for the ${ind.name} Industry`,
         excerpt: `Specialized guide for ${ind.name} professionals using ${ind.focus}. Learn about exemptions and filing tips.`,
         category: 'Industry Guides',
