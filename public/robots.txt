@@ -1,5 +1,5 @@
 # robots.txt for QuickTruckTax
-# https://quicktrucktax.com
+# https://www.quicktrucktax.com
 
 User-agent: *
 Allow: /
@@ -30,7 +30,7 @@ Allow: /*.jpeg$
 Allow: /*.webp$
 
 # Sitemap location
-Sitemap: https://quicktrucktax.com/sitemap.xml
+Sitemap: https://www.quicktrucktax.com/sitemap.xml
 
 # Crawl delay (optional, adjust as needed)
 Crawl-delay: 1

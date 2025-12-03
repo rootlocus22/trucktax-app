@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import "./error-handler";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -17,13 +18,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  metadataBase: new URL("https://quicktrucktax.com"),
+  metadataBase: new URL("https://www.quicktrucktax.com"),
   title: {
     default: "QuickTruckTax | Trucking Compliance Guides & Form 2290 Filing",
     template: "%s | QuickTruckTax",
   },
   description:
-    "QuickTruckTax helps carriers, owner-operators, and brokers stay compliant with HVUT, UCR, MCS-150, and fuel tax filings. Expert Form 2290 guides, IFTA resources, and trucking compliance tools.",
+    "QuickTruckTax helps carriers stay compliant with HVUT, UCR, MCS-150, and IFTA. Expert Form 2290, 8849 guides and trucking compliance tools.",
   keywords: [
     "form 2290", "HVUT", "UCR", "MCS-150", "IFTA",
     "trucking compliance", "heavy vehicle use tax",
@@ -38,7 +39,7 @@ export const metadata = {
     telephone: false,
   },
   alternates: {
-    canonical: "https://quicktrucktax.com",
+    canonical: "https://www.quicktrucktax.com",
   },
   robots: {
     index: true,
@@ -64,13 +65,13 @@ export const metadata = {
     title: "QuickTruckTax | Trucking Compliance Guides & Form 2290 Filing",
     description:
       "Actionable guides and checklists for Form 2290, UCR, MCS-150, IFTA, and trucking authority filings. Stay compliant and avoid penalties.",
-    url: "https://quicktrucktax.com",
+    url: "https://www.quicktrucktax.com",
     siteName: "QuickTruckTax",
     type: "website",
     locale: "en_US",
     images: [
       {
-        url: "https://quicktrucktax.com/quicktrucktax-logo-new.png",
+        url: "https://www.quicktrucktax.com/quicktrucktax-logo-new.png",
         width: 1280,
         height: 720,
         alt: "QuickTruckTax - Trucking Tax Compliance Guide",
@@ -85,7 +86,7 @@ export const metadata = {
     title: "QuickTruckTax | Trucking Compliance Guides",
     description:
       "Stay ahead of trucking compliance deadlines with detailed Form 2290 and HVUT guides.",
-    images: ["https://quicktrucktax.com/quicktrucktax-logo-new.png"],
+    images: ["https://www.quicktrucktax.com/quicktrucktax-logo-new.png"],
   },
 };
 
@@ -99,6 +100,7 @@ export default function RootLayout({ children }) {
           <NotificationProvider>
             <LayoutRouter>{children}</LayoutRouter>
             <NotificationToast />
+            <Analytics />
           </NotificationProvider>
         </AuthProvider>
       </body>

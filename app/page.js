@@ -20,17 +20,7 @@ export default function Home() {
     }
   }, [user, userData, loading, router]);
 
-  // Show loading state while checking auth
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-navy)] mx-auto"></div>
-          <p className="mt-2 text-sm text-[var(--color-muted)]">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+
 
   // If user is logged in, don't show landing page (will redirect)
   if (user) {
