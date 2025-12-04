@@ -265,7 +265,7 @@ function NewFilingContent() {
 
       // Check for duplicates
       const duplicate = detectDuplicateFiling(filingDataToCheck, previousFilings);
-      
+
       if (duplicate && !showDuplicateWarning) {
         setDuplicateFiling(duplicate);
         // Show warning after a small delay to avoid flashing
@@ -283,10 +283,10 @@ function NewFilingContent() {
   useEffect(() => {
     const saveDraft = async () => {
       if (!user || draftSavingRef.current) return; // Don't save if already saving
-      
+
       // Save from step 2 onwards (when filing type is selected)
       if (step < 2) return;
-      
+
       // Always save if we're past step 1 (user has made some progress)
       // This ensures we capture the filing type selection
       const hasData = filingType || selectedBusinessId || selectedVehicleIds.length > 0 || step > 2;
@@ -539,10 +539,10 @@ function NewFilingContent() {
         if (!businessIdToUse && vehicleIdForAmendment) {
           // Find business from previous filings for this vehicle
           const previousFilings = await getFilingsByUser(user.uid);
-          const filingWithVehicle = previousFilings.find(filing => 
+          const filingWithVehicle = previousFilings.find(filing =>
             filing.vehicleIds && filing.vehicleIds.includes(vehicleIdForAmendment) && filing.businessId
           );
-          
+
           if (filingWithVehicle && filingWithVehicle.businessId) {
             businessIdToUse = filingWithVehicle.businessId;
           } else if (businesses.length > 0) {
@@ -642,6 +642,15 @@ function NewFilingContent() {
         taxYear: filingData.taxYear,
         firstUsedMonth: filingData.firstUsedMonth,
         filingType: filingType, // Add filing type
+        status: 'submitted', // Or 'pending_payment' if we had real payments
+        // Add compliance data
+        compliance: {
+          signature: signature,
+          signedAt: new Date().toISOString(),
+          agreedToPerjury: true,
+          agreedToConsent: true,
+          ipAddress: 'captured_on_server' // Ideally captured server-side
+        },
         amendmentType: filingType === 'amendment' ? amendmentType : null, // Add amendment type
         amendmentDetails: filingType === 'amendment' ? amendmentDetails : {}, // Add amendment details
         amendmentDueDate: amendmentDueDate, // Add due date for weight increases
@@ -687,7 +696,7 @@ function NewFilingContent() {
 
   const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
   const selectedVehicles = vehicles.filter(v => selectedVehicleIds.includes(v.id));
-  
+
   // Get vehicle references for amendments
   const weightIncreaseVehicle = filingType === 'amendment' && amendmentType === 'weight_increase' && weightIncreaseData.vehicleId
     ? vehicles.find(v => v.id === weightIncreaseData.vehicleId)
@@ -764,9 +773,9 @@ function NewFilingContent() {
                       {formatIncompleteFiling(duplicateFiling)?.description || 'Existing Filing'}
                     </span>
                     <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full">
-                      {duplicateFiling.status === 'submitted' ? 'In Progress' : 
-                       duplicateFiling.status === 'processing' ? 'Processing' : 
-                       'Action Required'}
+                      {duplicateFiling.status === 'submitted' ? 'In Progress' :
+                        duplicateFiling.status === 'processing' ? 'Processing' :
+                          'Action Required'}
                     </span>
                   </div>
                   <div className="text-xs text-amber-700 space-y-1">
@@ -1007,28 +1016,93 @@ function NewFilingContent() {
                   <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
                     Original VIN (Incorrect) *
                   </label>
-                  
+
                   {/* Input Mode Toggle */}
+                  {/* Compliance & Signature Section */}
+                  <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 space-y-6">
+                    <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                      <ShieldCheck className="w-5 h-5 text-green-600" />
+                      Sign & Submit
+                    </h3>
+
+                    {/* Perjury Statement */}
+                    <div className="space-y-3">
+                      <label className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:border-gray-300 transition">
+                        <input
+                          type="checkbox"
+                          checked={agreedToPerjury}
+                          onChange={(e) => setAgreedToPerjury(e.target.checked)}
+                          className="mt-1 w-4 h-4 text-[var(--color-navy)] border-gray-300 rounded focus:ring-[var(--color-navy)]"
+                        />
+                        <span className="text-sm text-gray-700 leading-relaxed">
+                          <strong>Perjury Statement:</strong> Under penalties of perjury, I declare that I have examined this return, including accompanying schedules and statements, and to the best of my knowledge and belief, it is true, correct, and complete.
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* Section 7216 Consent */}
+                    <div className="space-y-3">
+                      <label className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:border-gray-300 transition">
+                        <input
+                          type="checkbox"
+                          checked={agreedToConsent}
+                          onChange={(e) => setAgreedToConsent(e.target.checked)}
+                          className="mt-1 w-4 h-4 text-[var(--color-navy)] border-gray-300 rounded focus:ring-[var(--color-navy)]"
+                        />
+                        <span className="text-sm text-gray-700 leading-relaxed">
+                          <strong>Consent to Disclosure:</strong> I consent to the disclosure of my tax return information to TruckTax for the purpose of electronically filing my return and for providing me with updates regarding my filing status. I understand that I am not required to consent to this disclosure.
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* Signature */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Digital Signature
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={signature}
+                          onChange={(e) => setSignature(e.target.value)}
+                          placeholder="Type your full legal name"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] focus:border-transparent font-serif italic text-lg"
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
+                          Digitally Signed
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        By typing your name above, you are electronically signing this return.
+                      </p>
+                    </div>
+
+                    {complianceError && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-sm text-red-700 animate-in fade-in">
+                        <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                        {complianceError}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex gap-2 mb-2">
                     <button
                       type="button"
                       onClick={() => setVinInputMode('select')}
-                      className={`px-3 py-1.5 text-xs rounded-lg transition ${
-                        vinInputMode === 'select'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      className={`px-3 py-1.5 text-xs rounded-lg transition ${vinInputMode === 'select'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
                     >
                       Select from Previous Filings
                     </button>
                     <button
                       type="button"
                       onClick={() => setVinInputMode('manual')}
-                      className={`px-3 py-1.5 text-xs rounded-lg transition ${
-                        vinInputMode === 'manual'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      className={`px-3 py-1.5 text-xs rounded-lg transition ${vinInputMode === 'manual'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
                     >
                       Enter Manually
                     </button>
@@ -2002,7 +2076,7 @@ function NewFilingContent() {
                     <div>
                       <p className="text-[var(--color-muted)]">Vehicles</p>
                       <p className="font-semibold">
-                        {filingType === 'amendment' 
+                        {filingType === 'amendment'
                           ? (amendmentType === 'vin_correction' ? 'N/A' : '1')
                           : selectedVehicles.length
                         }

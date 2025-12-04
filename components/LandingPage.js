@@ -73,7 +73,7 @@ const faqs = [
   },
   {
     question: "Is QuickTruckTax IRS authorized?",
-    answer: "Yes, we are an IRS-authorized e-file provider. Your data is transmitted directly to the IRS using secure, encrypted channels."
+    answer: "Yes, your return is filed electronically with the IRS. We work with authorized transmitters to ensure your data is sent securely and accepted instantly."
   },
   {
     question: "Can I file for multiple vehicles?",
@@ -163,9 +163,9 @@ export function LandingPage() {
 
           <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-8 items-center pt-8 pb-8">
             <div className="space-y-6 animate-fade-in-up">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-orange)] border border-white/10 shadow-lg">
-                <ShieldCheck className="w-4 h-4" />
-                IRS Authorized E-file Provider
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                <ShieldCheck className="w-4 h-4 text-green-600" />
+                IRS Compliant Filing
               </div>
               <h1 className="text-5xl font-bold leading-tight sm:text-6xl lg:text-7xl drop-shadow-2xl tracking-tight">
                 File Form 2290 <br />

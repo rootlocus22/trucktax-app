@@ -235,6 +235,24 @@ export default function FilingDetailPage() {
     }
   };
 
+  const handleRequestRefund = async () => {
+    if (!confirm('Are you sure you want to request a refund for this filing? This will notify our support team.')) return;
+
+    try {
+      await updateFiling(params.id, {
+        refundRequested: true,
+        refundRequestedAt: new Date().toISOString(),
+        status: 'refund_requested' // Optional: change status or just flag it
+      });
+      alert('Refund request submitted. Our support team will review your case and contact you shortly.');
+      // Refresh local state
+      setFiling(prev => ({ ...prev, refundRequested: true, status: 'refund_requested' }));
+    } catch (error) {
+      console.error('Error requesting refund:', error);
+      alert('Failed to submit refund request.');
+    }
+  };
+
   const handleCopy = async (text, field) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -518,6 +536,15 @@ export default function FilingDetailPage() {
                       </>
                     )}
                   </button>
+
+                  <div className="pt-2 border-t border-orange-100 mt-2">
+                    <button
+                      onClick={handleRequestRefund}
+                      className="w-full text-xs text-orange-700 hover:text-orange-900 underline"
+                    >
+                      I cannot fix this, I want to request a refund
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
