@@ -66,10 +66,10 @@ export default function FeaturesPage() {
                     />
                 </div>
                 <div className="relative z-10 max-w-7xl mx-auto text-center">
-                    <h1 className="text-4xl font-bold sm:text-5xl lg:text-6xl mb-6 drop-shadow-lg">
+                    <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-[4.25rem] font-bold mb-6 drop-shadow-lg tracking-tight leading-[1.1]">
                         Everything You Need to Manage Fleet Taxes
                     </h1>
-                    <p className="text-xl text-white/90 max-w-3xl mx-auto mb-10">
+                    <p className="text-lg sm:text-xl lg:text-[1.375rem] text-white/90 max-w-3xl mx-auto mb-10 leading-relaxed">
                         From single owner-operators to large fleets, QuickTruckTax provides all the tools to stay compliant with the IRS and FMCSA.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">

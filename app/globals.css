@@ -21,14 +21,17 @@
 @theme inline {
   --color-background: var(--color-page);
   --color-foreground: var(--color-text);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-golos-text);
 }
 
 body {
   background: linear-gradient(180deg, var(--color-page) 0%, var(--color-page-alt) 45%, #ffffff 100%);
   color: var(--color-text);
-  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-sans), "Golos Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -47,7 +50,91 @@ strong {
 input,
 select,
 textarea {
-  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-sans), "Golos Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+}
+
+/* Typography Scale - Inspired by ExpressTruckTax */
+/* Base typography improvements for better readability */
+h1 {
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+h4 {
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+h5 {
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+h6 {
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+p {
+  line-height: 1.6;
+}
+
+/* Improve readability for body text */
+article p,
+section p {
+  line-height: 1.7;
+}
+
+/* Premium Dashboard Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+/* Smooth transitions for interactive elements */
+* {
+  transition-property: color, background-color, border-color, transform, opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Enhanced focus states */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-navy);
+  outline-offset: 2px;
 }
 
 @keyframes truck-drive {

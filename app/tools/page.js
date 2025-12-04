@@ -84,10 +84,10 @@ export default function ToolsIndex() {
           <span className="inline-flex rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-[var(--color-sand)]">
             QuickTruckTax tools
           </span>
-          <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight text-white tracking-tight">
             Calculate, plan, and stay compliant year-round.
           </h1>
-          <p className="text-base leading-7 text-white/80 sm:text-lg">
+          <p className="text-base sm:text-lg lg:text-xl leading-relaxed text-white/80">
             Use our interactive calculators and downloadable resources to prepare Form 2290 filings, monitor HVUT payments, and organize your compliance workflow.
           </p>
         </div>

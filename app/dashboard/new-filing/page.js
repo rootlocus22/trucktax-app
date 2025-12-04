@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { getBusinessesByUser, createBusiness, getVehiclesByUser, createVehicle, createFiling, getFilingsByUser, getVehicle } from '@/lib/db';
@@ -13,6 +14,7 @@ import { calculateTax, calculateRefundAmount, calculateWeightIncreaseAdditionalT
 import { validateBusinessName, validateEIN, formatEIN, validateVIN, validateAddress, validatePhone } from '@/lib/validation';
 import { validateVINCorrection, validateWeightIncrease, validateMileageExceeded, calculateWeightIncreaseDueDate, getAmendmentTypeConfig } from '@/lib/amendmentHelpers';
 import { FileText, AlertTriangle, RefreshCw, Truck, Info, CreditCard, CheckCircle, ShieldCheck, AlertCircle, RotateCcw } from 'lucide-react';
+import { PricingSidebar } from '@/components/PricingSidebar';
 
 function NewFilingContent() {
   const { user } = useAuth();
@@ -138,10 +140,20 @@ function NewFilingContent() {
     }
   }, [user]);
 
-  // Fetch Pricing from Server when Review Step is active or data changes
+  // Fetch Pricing from Server - Now runs on all steps for real-time pricing
   useEffect(() => {
     const fetchPricing = async () => {
-      if (step !== 5) return; // Only calculate on Review step to save server calls
+      // Calculate pricing when we have minimum data (filing type and at least one vehicle selected)
+      if (!filingType || selectedVehicleIds.length === 0) {
+        setPricing({
+          totalTax: 0,
+          serviceFee: 0,
+          salesTax: 0,
+          grandTotal: 0,
+          totalRefund: 0
+        });
+        return;
+      }
 
       const selectedVehiclesList = vehicles.filter(v => selectedVehicleIds.includes(v.id));
       const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
@@ -707,110 +719,132 @@ function NewFilingContent() {
     }
   };
 
+  const handleContinue = () => {
+    if (step === 1 && filingType) {
+      setStep(2);
+    } else if (step === 2 && selectedBusinessId) {
+      setStep(3);
+    } else if (step === 3 && selectedVehicleIds.length > 0) {
+      setStep(4);
+    } else if (step === 4) {
+      setStep(5);
+    }
+  };
+
   return (
     <ProtectedRoute>
-      <div className="max-w-4xl mx-auto pb-20">
-        <div className="mb-6">
+      <div className="max-w-[1600px] mx-auto">
+        {/* Header */}
+        <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-[var(--color-text)]">New Filing Request</h1>
-              <p className="text-sm text-[var(--color-muted)]">
-                Step {step} of 5: <span className="font-medium text-[var(--color-navy)]">{getStepTitle(step)}</span>
+              <h1 className="text-3xl font-bold text-[var(--color-text)] tracking-tight mb-1">New Filing Request</h1>
+              <p className="text-sm text-[var(--color-muted)] font-medium">
+                Step {step} of 5: <span className="text-[var(--color-navy)] font-semibold">{getStepTitle(step)}</span>
               </p>
             </div>
-            <div className="hidden md:flex gap-1">
+            <div className="hidden md:flex items-center gap-2">
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
                   key={s}
-                  className={`w-8 h-1.5 rounded-full transition-colors ${s <= step ? 'bg-[var(--color-navy)]' : 'bg-[var(--color-border)]'}`}
+                  className={`w-10 h-1.5 rounded-full transition-all ${
+                    s < step ? 'bg-[var(--color-navy)]' : 
+                    s === step ? 'bg-[var(--color-navy)] w-16' : 
+                    'bg-slate-200'
+                  }`}
                 />
               ))}
             </div>
           </div>
-
           {/* Mobile Progress Bar */}
           <div className="md:hidden flex gap-1 h-1 mb-4">
             {[1, 2, 3, 4, 5].map((s) => (
               <div
                 key={s}
-                className={`flex-1 rounded-full transition-colors ${s <= step ? 'bg-[var(--color-navy)]' : 'bg-[var(--color-border)]'}`}
+                className={`flex-1 rounded-full transition-colors ${s <= step ? 'bg-[var(--color-navy)]' : 'bg-slate-200'}`}
               />
             ))}
           </div>
         </div>
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5" />
-            {error}
-          </div>
-        )}
+        {/* Error and Warnings */}
+        <div className="mb-6 space-y-4">
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+              <span className="text-sm font-medium">{error}</span>
+            </div>
+          )}
 
-        {/* Duplicate Filing Warning */}
-        {showDuplicateWarning && duplicateFiling && (
-          <div className="mb-6 bg-amber-50 border-2 border-amber-300 rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                <AlertCircle className="w-6 h-6 text-amber-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-amber-900 mb-2">Similar Filing Found</h3>
-                <p className="text-sm text-amber-800 mb-4">
-                  You already have an incomplete filing with similar details. Would you like to resume that filing or continue with a new one?
-                </p>
-                <div className="bg-white rounded-lg border border-amber-200 p-4 mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-amber-900">
-                      {formatIncompleteFiling(duplicateFiling)?.description || 'Existing Filing'}
-                    </span>
-                    <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full">
-                      {duplicateFiling.status === 'submitted' ? 'In Progress' : 
-                       duplicateFiling.status === 'processing' ? 'Processing' : 
-                       'Action Required'}
-                    </span>
-                  </div>
-                  <div className="text-xs text-amber-700 space-y-1">
-                    <p>Tax Year: {duplicateFiling.taxYear}</p>
-                    {duplicateFiling.vehicleIds && duplicateFiling.vehicleIds.length > 0 && (
-                      <p>{duplicateFiling.vehicleIds.length} vehicle{duplicateFiling.vehicleIds.length !== 1 ? 's' : ''}</p>
-                    )}
-                    {formatIncompleteFiling(duplicateFiling)?.lastUpdated && (
-                      <p>
-                        Last updated: {(() => {
-                          const date = formatIncompleteFiling(duplicateFiling).lastUpdated;
-                          return date instanceof Date
-                            ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                            : new Date(date.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                        })()}
-                      </p>
-                    )}
-                  </div>
+          {showDuplicateWarning && duplicateFiling && (
+            <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="w-6 h-6 text-amber-600" />
                 </div>
-                <div className="flex gap-3">
-                  <Link
-                    href={`/dashboard/filings/${duplicateFiling.id}`}
-                    className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition text-sm flex items-center gap-2"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    Resume Existing Filing
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setShowDuplicateWarning(false);
-                      setDuplicateFiling(null);
-                    }}
-                    className="px-4 py-2 bg-white border border-amber-300 text-amber-700 rounded-lg font-semibold hover:bg-amber-50 transition text-sm"
-                  >
-                    Continue New Filing
-                  </button>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-amber-900 mb-2">Similar Filing Found</h3>
+                  <p className="text-sm text-amber-800 mb-4">
+                    You already have an incomplete filing with similar details. Would you like to resume that filing or continue with a new one?
+                  </p>
+                  <div className="bg-white rounded-lg border border-amber-200 p-4 mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-amber-900">
+                        {formatIncompleteFiling(duplicateFiling)?.description || 'Existing Filing'}
+                      </span>
+                      <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full">
+                        {duplicateFiling.status === 'submitted' ? 'In Progress' : 
+                         duplicateFiling.status === 'processing' ? 'Processing' : 
+                         'Action Required'}
+                      </span>
+                    </div>
+                    <div className="text-xs text-amber-700 space-y-1">
+                      <p>Tax Year: {duplicateFiling.taxYear}</p>
+                      {duplicateFiling.vehicleIds && duplicateFiling.vehicleIds.length > 0 && (
+                        <p>{duplicateFiling.vehicleIds.length} vehicle{duplicateFiling.vehicleIds.length !== 1 ? 's' : ''}</p>
+                      )}
+                      {formatIncompleteFiling(duplicateFiling)?.lastUpdated && (
+                        <p>
+                          Last updated: {(() => {
+                            const date = formatIncompleteFiling(duplicateFiling).lastUpdated;
+                            return date instanceof Date
+                              ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                              : new Date(date.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                          })()}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <Link
+                      href={`/dashboard/filings/${duplicateFiling.id}`}
+                      className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition text-sm flex items-center gap-2"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Resume Existing Filing
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setShowDuplicateWarning(false);
+                        setDuplicateFiling(null);
+                      }}
+                      className="px-4 py-2 bg-white border border-amber-300 text-amber-700 rounded-lg font-semibold hover:bg-amber-50 transition text-sm"
+                    >
+                      Continue New Filing
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Step 1: Filing Type */}
-        {step === 1 && (
+        {/* Main Content Grid - Form Left, Pricing Right */}
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-8">
+          {/* Form Content */}
+          <div className="space-y-6">
+            {/* Step 1: Filing Type */}
+            {step === 1 && (
           <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-8 shadow-sm">
             <h2 className="text-2xl font-semibold text-[var(--color-text)] mb-6">Select Filing Type</h2>
 
@@ -1975,12 +2009,10 @@ function NewFilingContent() {
 
         {/* Step 5: Review & Pay */}
         {step === 5 && (
-          <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-8 shadow-sm">
-            <h2 className="text-2xl font-semibold text-[var(--color-text)] mb-6">Review & Pay</h2>
+          <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+            <h2 className="text-2xl font-bold text-[var(--color-text)] mb-8">Review Your Filing</h2>
 
-            <div className="grid md:grid-cols-3 gap-8 mb-8">
-              {/* Summary Column */}
-              <div className="md:col-span-2 space-y-6">
+            <div className="space-y-6">
                 <div className="bg-[var(--color-page-alt)] p-6 rounded-xl border border-[var(--color-border)]">
                   <h3 className="font-bold text-[var(--color-text)] mb-4 flex items-center gap-2">
                     <Truck className="w-5 h-5 text-[var(--color-navy)]" />
@@ -2186,83 +2218,72 @@ function NewFilingContent() {
                 )}
               </div>
 
-              {/* Payment Column */}
-              <div>
-                <div className="bg-[var(--color-navy)] text-white p-6 rounded-2xl shadow-lg sticky top-6">
-                  <h3 className="text-xl font-bold mb-6">Order Summary</h3>
-
-                  {pricingLoading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-                    </div>
+              {/* Action Buttons */}
+              <div className="flex items-center justify-between pt-6 border-t border-slate-200">
+                <button
+                  onClick={() => setStep(4)}
+                  className="px-6 py-2.5 border border-slate-300 rounded-xl text-[var(--color-text)] hover:bg-slate-50 transition font-medium"
+                >
+                  Back to Documents
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading || pricingLoading}
+                  className="px-8 py-3 bg-[var(--color-orange)] text-white rounded-xl font-bold text-lg hover:bg-[#ff7a20] transition shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Processing...
+                    </>
                   ) : (
                     <>
-                      <div className="space-y-3 mb-6 pb-6 border-b border-white/20">
-                        {filingType === 'refund' ? (
-                          <>
-                            <div className="flex justify-between text-green-200">
-                              <span className="text-white/80">Est. Refund Amount</span>
-                              <span className="font-bold">${(pricing.totalRefund || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-white/80">Tax Due</span>
-                              <span className="font-bold">$0.00</span>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="flex justify-between">
-                            <span className="text-white/80">IRS Tax Amount</span>
-                            <span className="font-bold">${pricing.totalTax.toFixed(2)}</span>
-                          </div>
-                        )}
-
-                        <div className="flex justify-between">
-                          <span className="text-white/80">Service Fee</span>
-                          <span className="font-bold">${pricing.serviceFee.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-white/80">Sales Tax (Est.)</span>
-                          <span className="font-bold">${pricing.salesTax.toFixed(2)}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-end mb-8">
-                        <span className="text-lg font-bold">Total</span>
-                        <span className="text-3xl font-bold">${pricing.grandTotal.toFixed(2)}</span>
-                      </div>
+                      Pay & Submit <CreditCard className="w-5 h-5" />
                     </>
                   )}
-
-                  <button
-                    onClick={handleSubmit}
-                    disabled={loading || pricingLoading}
-                    className="w-full bg-[var(--color-orange)] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#ff7a20] transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {loading ? 'Processing...' : (
-                      <>
-                        Pay & Submit <CreditCard className="w-5 h-5" />
-                      </>
-                    )}
-                  </button>
-
-                  <div className="mt-4 flex items-center justify-center gap-2 text-xs text-white/60">
-                    <ShieldCheck className="w-4 h-4" />
-                    Secure 256-bit SSL Encrypted
-                  </div>
-                </div>
+                </button>
               </div>
             </div>
-
-            <div className="flex justify-start pt-4">
-              <button
-                onClick={() => setStep(4)}
-                className="px-6 py-2 border border-[var(--color-border)] rounded-lg text-[var(--color-text)] hover:bg-[var(--color-page-alt)] transition"
-              >
-                Back to Documents
-              </button>
-            </div>
+          )}
           </div>
-        )}
+
+          {/* Pricing Sidebar - Right Side */}
+          <div className="hidden xl:block">
+            <PricingSidebar
+              filingType={filingType}
+              filingData={filingData}
+              selectedVehicleIds={selectedVehicleIds}
+              vehicles={vehicles}
+              selectedBusinessId={selectedBusinessId}
+              businesses={businesses}
+              amendmentType={amendmentType}
+              weightIncreaseData={weightIncreaseData}
+              mileageExceededData={mileageExceededData}
+              step={step}
+              onSubmit={handleSubmit}
+              loading={loading}
+            />
+          </div>
+        </div>
+
+        {/* Mobile Pricing Summary */}
+        <div className="xl:hidden mt-8">
+          <PricingSidebar
+            filingType={filingType}
+            filingData={filingData}
+            selectedVehicleIds={selectedVehicleIds}
+            vehicles={vehicles}
+            selectedBusinessId={selectedBusinessId}
+            businesses={businesses}
+            amendmentType={amendmentType}
+            weightIncreaseData={weightIncreaseData}
+            mileageExceededData={mileageExceededData}
+            step={step}
+            onContinue={handleContinue}
+            onSubmit={handleSubmit}
+            loading={loading}
+          />
+        </div>
       </div>
     </ProtectedRoute>
   );

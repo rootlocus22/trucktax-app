@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Header } from '@/components/Header';
+import { Sidebar } from '@/components/Sidebar';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChevronUp, ChevronDown } from 'lucide-react';
@@ -15,6 +16,10 @@ export function ConsumerLayout({ children }) {
 
   // Check if we're on the landing page
   const isLandingPage = pathname === '/';
+  
+  // Check if user is authenticated and on dashboard routes
+  const isDashboardRoute = pathname?.startsWith('/dashboard') || pathname?.startsWith('/tools') || pathname?.startsWith('/blog') || pathname?.startsWith('/insights');
+  const showSidebar = user && isDashboardRoute;
 
   // Update state when user changes - collapsed if logged in, expanded if not
   useEffect(() => {
@@ -28,10 +33,20 @@ export function ConsumerLayout({ children }) {
   return (
     <div className="flex min-h-screen flex-col overflow-visible">
       <Schedule1Listener />
+      {/* Always show header - it contains profile/signout dropdown */}
       <Header />
-      <main className={isLandingPage ? "flex-1 overflow-visible" : "mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 overflow-visible"}>
-        {children}
-      </main>
+      {/* Show sidebar for authenticated users on dashboard routes */}
+      {showSidebar ? (
+        <Sidebar>
+          <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+            {children}
+          </div>
+        </Sidebar>
+      ) : (
+        <MainContent isLandingPage={isLandingPage}>
+          {children}
+        </MainContent>
+      )}
       <footer className="border-t border-[var(--color-border)] bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white">
         {/* Collapsed Footer (when logged in) */}
         {user && !isExpanded && (
@@ -104,6 +119,19 @@ export function ConsumerLayout({ children }) {
         )}
       </footer>
     </div>
+  );
+}
+
+// MainContent component for pages without sidebar
+function MainContent({ isLandingPage, children }) {
+  return (
+    <main className={`flex-1 overflow-visible ${
+      isLandingPage 
+        ? '' 
+        : 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6'
+    }`}>
+      {children}
+    </main>
   );
 }
 

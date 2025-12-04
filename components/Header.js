@@ -96,126 +96,13 @@ export function Header() {
                 </Link>
               </>
             ) : (
-              // Logged in navigation
-              <>
-                {/* Transactional Links */}
-                <Link
-                  href="/dashboard"
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap ${isActive('/dashboard') && !isActive('/dashboard/schedule1') && !isActive('/dashboard/businesses') && !isActive('/dashboard/vehicles') && !isActive('/dashboard/filings')
-                    ? 'bg-white/20 text-white'
-                    : 'text-white/90 hover:text-white hover:bg-white/10'
-                    }`}
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/dashboard/filings"
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap ${isActive('/dashboard/filings')
-                    ? 'bg-white/20 text-white'
-                    : 'text-white/90 hover:text-white hover:bg-white/10'
-                    }`}
-                >
-                  Filing List
-                </Link>
-                <Link
-                  href="/dashboard/schedule1"
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap ${isActive('/dashboard/schedule1')
-                    ? 'bg-white/20 text-white'
-                    : 'text-white/90 hover:text-white hover:bg-white/10'
-                    }`}
-                >
-                  Schedule 1
-                </Link>
-                <Link
-                  href="/dashboard/businesses"
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap ${isActive('/dashboard/businesses')
-                    ? 'bg-white/20 text-white'
-                    : 'text-white/90 hover:text-white hover:bg-white/10'
-                    }`}
-                >
-                  Businesses
-                </Link>
-                <Link
-                  href="/dashboard/vehicles"
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap ${isActive('/dashboard/vehicles')
-                    ? 'bg-white/20 text-white'
-                    : 'text-white/90 hover:text-white hover:bg-white/10'
-                    }`}
-                >
-                  Vehicles
-                </Link>
-
-                {/* Divider */}
-                <div className="h-6 w-px bg-white/20 mx-2"></div>
-
-                {/* Resources */}
-                <div className="relative group">
-                  <button className="px-3 py-2 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition flex items-center gap-1 whitespace-nowrap">
-                    Resources
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  <div className="absolute top-full left-0 pt-2 w-48 z-[9999] pointer-events-none group-hover:pointer-events-auto">
-                    <div className="bg-white rounded-lg shadow-2xl border-2 border-gray-300 transform opacity-0 scale-95 invisible group-hover:opacity-100 group-hover:scale-100 group-hover:visible transition-all duration-200 origin-top" style={{ backgroundColor: '#ffffff' }}>
-                      <div className="py-2">
-                        {navigation.resources.map((item) => (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            className="block px-4 py-2.5 text-sm hover:bg-gray-100 transition whitespace-nowrap font-semibold no-underline"
-                            style={{ color: '#1b2838', textDecoration: 'none' }}
-                          >
-                            <span style={{ color: '#1b2838' }}>{item.label}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Compliance */}
-                <div className="relative group">
-                  <button className="px-3 py-2 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition flex items-center gap-1 whitespace-nowrap">
-                    Compliance
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  <div className="absolute top-full left-0 pt-2 w-48 z-[9999] pointer-events-none group-hover:pointer-events-auto">
-                    <div className="bg-white rounded-lg shadow-2xl border-2 border-gray-300 transform opacity-0 scale-95 invisible group-hover:opacity-100 group-hover:scale-100 group-hover:visible transition-all duration-200 origin-top" style={{ backgroundColor: '#ffffff' }}>
-                      <div className="py-2">
-                        {navigation.compliance.map((item) => (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            className="block px-4 py-2.5 text-sm hover:bg-gray-100 transition whitespace-nowrap font-semibold no-underline"
-                            style={{ color: '#1b2838', textDecoration: 'none' }}
-                          >
-                            <span style={{ color: '#1b2838' }}>{item.label}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tools */}
-                <Link
-                  href="/tools"
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap ${isActive('/tools')
-                    ? 'bg-white/20 text-white'
-                    : 'text-white/90 hover:text-white hover:bg-white/10'
-                    }`}
-                >
-                  Tools
-                </Link>
-              </>
+              // Logged in - navigation links are in sidebar, so header is empty here
+              null
             )}
 
             {/* Auth Navigation */}
             {!loading && (
-              <div className="ml-2 pl-4 border-l border-white/20 flex-shrink-0">
+              <div className={`${user ? 'ml-auto' : 'ml-2 pl-4 border-l border-white/20'} flex-shrink-0`}>
                 {user ? (
                   <div className="relative">
                     <button

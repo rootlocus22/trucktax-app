@@ -88,15 +88,15 @@ export default function LoginPage() {
         
         <div className="relative z-10">
           <div className="mb-12">
-            <h1 className="text-4xl font-bold mb-2">QuickTruckTax</h1>
-            <p className="text-white/80 text-lg">Form 2290 Filing Made Simple</p>
+            <h1 className="text-4xl font-bold mb-2 tracking-tight">QuickTruckTax</h1>
+            <p className="text-white/80 text-lg sm:text-xl">Form 2290 Filing Made Simple</p>
           </div>
 
           <div className="mb-12">
-            <h2 className="text-5xl font-bold mb-4 leading-tight">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl xl:text-[4.25rem] font-bold mb-4 leading-[1.1] tracking-tight">
               Welcome Back to <span className="text-[var(--color-amber)]">Compliant</span> Operations
             </h2>
-            <p className="text-xl text-white/90 leading-relaxed">
+            <p className="text-lg sm:text-xl lg:text-[1.375rem] text-white/90 leading-relaxed">
               Continue managing your trucking compliance with expert Form 2290 filing, HVUT calculations, and deadline tracking.
             </p>
           </div>
@@ -106,8 +106,8 @@ export default function LoginPage() {
               <div key={index} className="flex items-start gap-4">
                 <div className="text-4xl">{feature.icon}</div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-1">{feature.title}</h3>
-                  <p className="text-white/80">{feature.description}</p>
+                  <h3 className="text-xl font-semibold mb-1 tracking-tight">{feature.title}</h3>
+                  <p className="text-white/80 text-base leading-relaxed">{feature.description}</p>
                 </div>
               </div>
             ))}

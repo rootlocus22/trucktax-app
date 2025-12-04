@@ -174,13 +174,13 @@ export function LandingPage() {
                 <ShieldCheck className="w-4 h-4" />
                 IRS Authorized E-file Provider
               </div>
-              <h1 className="text-5xl font-bold leading-tight sm:text-6xl lg:text-7xl drop-shadow-2xl tracking-tight">
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-[4.25rem] font-bold leading-[1.1] drop-shadow-2xl tracking-tight">
                 File Form 2290 <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20]">
                   In Minutes.
                 </span>
               </h1>
-              <p className="text-xl leading-8 text-white/80 max-w-xl drop-shadow-md font-light">
+              <p className="text-lg sm:text-xl lg:text-[1.375rem] leading-relaxed text-white/80 max-w-xl drop-shadow-md font-normal">
                 The fastest, most secure way to get your Schedule 1. No hidden fees, just simple filing for modern owner-operators.
               </p>
 
@@ -317,7 +317,7 @@ export function LandingPage() {
               <div className="text-center mb-16">
                 <h2 className="text-4xl font-bold text-[var(--color-text)] mb-4">Complete Compliance Solutions</h2>
                 <p className="text-xl text-[var(--color-muted)] max-w-2xl mx-auto">
-                  We've reimagined the filing experience to be faster, smarter, and more secure.
+                  From standard filings to complex amendments, we've got every scenario covered with intelligent features that save you time and money.
                 </p>
               </div>
 
@@ -359,6 +359,10 @@ export function LandingPage() {
                       <CheckCircle className="w-5 h-5 text-green-500" />
                       <span>Valid for Tags & Registration</span>
                     </li>
+                    <li className="flex items-center gap-3 text-[var(--color-text)]">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span>Support for All Weight Categories (A-W)</span>
+                    </li>
                   </ul>
                   <Link href="/signup" className="inline-flex items-center text-blue-600 font-bold hover:text-blue-700 text-lg group">
                     Start Filing <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
@@ -366,42 +370,167 @@ export function LandingPage() {
                 </div>
               </div>
 
-              {/* Feature 2: Bulk Upload */}
+              {/* Feature 2: Amendment Types - NEW ENHANCED SECTION */}
               <div className="grid lg:grid-cols-2 gap-12 items-center">
                 <div className="space-y-6">
-                  <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600">
-                    <Upload className="w-8 h-8" />
+                  <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600">
+                    <AlertTriangle className="w-8 h-8" />
                   </div>
-                  <h3 className="text-3xl font-bold text-[var(--color-text)]">Bulk Fleet Management</h3>
+                  <h3 className="text-3xl font-bold text-[var(--color-text)]">Complete Amendment Support</h3>
                   <p className="text-lg text-[var(--color-muted)] leading-relaxed">
-                    Managing 25+ trucks? Don't waste hours entering data manually. Upload your entire fleet via CSV and let our system handle the rest. We validate every VIN automatically.
+                    Life happens. Vehicles change. We handle every type of Form 2290 amendment with precision and clarity, so you stay compliant no matter what.
                   </p>
-                  <ul className="space-y-3">
-                    <li className="flex items-center gap-3 text-[var(--color-text)]">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span>One-Click CSV Import</span>
-                    </li>
-                    <li className="flex items-center gap-3 text-[var(--color-text)]">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span>Automatic VIN Validation</span>
-                    </li>
-                  </ul>
-                  <Link href="/signup" className="inline-flex items-center text-purple-600 font-bold hover:text-purple-700 text-lg group">
-                    Upload Your Fleet <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
+                  <div className="space-y-4">
+                    <div className="bg-white p-5 rounded-xl border-2 border-blue-200 shadow-sm hover:shadow-md transition">
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
+                          <span className="text-2xl">📝</span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-[var(--color-text)] mb-1">VIN Correction</h4>
+                          <p className="text-sm text-[var(--color-muted)] mb-2">Fix incorrect VINs on filed returns</p>
+                          <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">FREE - No Tax Due</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-white p-5 rounded-xl border-2 border-orange-200 shadow-sm hover:shadow-md transition">
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center shrink-0">
+                          <span className="text-2xl">⚖️</span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-[var(--color-text)] mb-1">Weight Increase</h4>
+                          <p className="text-sm text-[var(--color-muted)] mb-2">Report when vehicle moves to higher weight category</p>
+                          <span className="inline-block px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full">Additional Tax Calculated</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-white p-5 rounded-xl border-2 border-purple-200 shadow-sm hover:shadow-md transition">
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center shrink-0">
+                          <span className="text-2xl">🛣️</span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-[var(--color-text)] mb-1">Mileage Exceeded</h4>
+                          <p className="text-sm text-[var(--color-muted)] mb-2">Report suspended vehicles exceeding mileage limits</p>
+                          <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">Full Tax Applied</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <Link href="/signup" className="inline-flex items-center text-amber-600 font-bold hover:text-amber-700 text-lg group">
+                    File Amendment <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
                   </Link>
                 </div>
-                <div className="relative h-[400px] rounded-3xl overflow-hidden shadow-2xl border border-white/20 group">
-                  <div className="absolute inset-0 bg-gradient-to-bl from-purple-600/20 to-orange-600/20 mix-blend-overlay z-10"></div>
+                <div className="relative h-[500px] rounded-3xl overflow-hidden shadow-2xl border border-white/20 group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-600/10 to-purple-600/10 mix-blend-overlay z-10"></div>
                   <Image
-                    src="/bulk-upload-visual.png"
-                    alt="Bulk Fleet Upload Visualization"
+                    src="/amendment_types_feature_1764806411271.png"
+                    alt="Amendment Types Dashboard"
                     fill
                     className="object-cover group-hover:scale-105 transition duration-700"
                   />
                 </div>
               </div>
 
-              {/* Feature 3: Support & Amendments */}
+              {/* Feature 3: Fleet & Business Management - NEW SECTION */}
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div className="order-2 lg:order-1 relative h-[450px] rounded-3xl overflow-hidden shadow-2xl border border-white/20 group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-green-600/10 mix-blend-overlay z-10"></div>
+                  <Image
+                    src="/fleet_management_dashboard_1764806426862.png"
+                    alt="Fleet Management Dashboard"
+                    fill
+                    className="object-cover group-hover:scale-105 transition duration-700"
+                  />
+                </div>
+                <div className="order-1 lg:order-2 space-y-6">
+                  <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center text-green-600">
+                    <Truck className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-3xl font-bold text-[var(--color-text)]">Business & Fleet Management</h3>
+                  <p className="text-lg text-[var(--color-muted)] leading-relaxed">
+                    Manage multiple businesses and unlimited vehicles from one dashboard. Add EINs, track weight categories, monitor suspended vehicles, and keep all your compliance data organized.
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-center gap-3 text-[var(--color-text)]">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span>Unlimited Business Profiles with EIN Management</span>
+                    </li>
+                    <li className="flex items-center gap-3 text-[var(--color-text)]">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span>Vehicle Database with VIN Validation</span>
+                    </li>
+                    <li className="flex items-center gap-3 text-[var(--color-text)]">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span>Track Suspended Vehicle Status & Mileage</span>
+                    </li>
+                    <li className="flex items-center gap-3 text-[var(--color-text)]">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span>Bulk CSV Upload for Large Fleets</span>
+                    </li>
+                  </ul>
+                  <Link href="/signup" className="inline-flex items-center text-green-600 font-bold hover:text-green-700 text-lg group">
+                    Manage Your Fleet <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Feature 4: Smart Filing Features - NEW SECTION */}
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div className="space-y-6">
+                  <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600">
+                    <ShieldCheck className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-3xl font-bold text-[var(--color-text)]">Smart Filing Intelligence</h3>
+                  <p className="text-lg text-[var(--color-muted)] leading-relaxed">
+                    Our platform works behind the scenes to protect you from errors, save your progress automatically, and give you real-time pricing transparency.
+                  </p>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="bg-white p-5 rounded-xl border border-[var(--color-border)] shadow-sm hover:shadow-md transition">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <Clock className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <h4 className="font-bold text-[var(--color-text)]">Auto-Save Drafts</h4>
+                      </div>
+                      <p className="text-sm text-[var(--color-muted)]">Never lose your work. We save your progress every 500ms automatically.</p>
+                    </div>
+                    <div className="bg-white p-5 rounded-xl border border-[var(--color-border)] shadow-sm hover:shadow-md transition">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                          <AlertTriangle className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <h4 className="font-bold text-[var(--color-text)]">Duplicate Detection</h4>
+                      </div>
+                      <p className="text-sm text-[var(--color-muted)]">Smart alerts prevent you from filing the same return twice.</p>
+                    </div>
+                    <div className="bg-white p-5 rounded-xl border border-[var(--color-border)] shadow-sm hover:shadow-md transition">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                          <CreditCard className="w-5 h-5 text-green-600" />
+                        </div>
+                        <h4 className="font-bold text-[var(--color-text)]">Real-Time Pricing</h4>
+                      </div>
+                      <p className="text-sm text-[var(--color-muted)]">See exact costs calculated live as you fill out your filing.</p>
+                    </div>
+                  </div>
+                  <Link href="/signup" className="inline-flex items-center text-indigo-600 font-bold hover:text-indigo-700 text-lg group">
+                    Experience Smart Filing <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
+                  </Link>
+                </div>
+                <div className="relative h-[450px] rounded-3xl overflow-hidden shadow-2xl border border-white/20 group">
+                  <div className="absolute inset-0 bg-gradient-to-bl from-indigo-600/10 to-blue-600/10 mix-blend-overlay z-10"></div>
+                  <Image
+                    src="/smart_filing_features_1764806445772.png"
+                    alt="Smart Filing Features"
+                    fill
+                    className="object-cover group-hover:scale-105 transition duration-700"
+                  />
+                </div>
+              </div>
+
+              {/* Feature 5: Refund Claims & Support */}
               <div className="grid lg:grid-cols-2 gap-12 items-center">
                 <div className="order-2 lg:order-1 relative h-[400px] rounded-3xl overflow-hidden shadow-2xl border border-white/20 group">
                   <Image
@@ -417,25 +546,37 @@ export function LandingPage() {
                   </div>
                 </div>
                 <div className="order-1 lg:order-2 space-y-6">
-                  <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600">
-                    <Phone className="w-8 h-8" />
+                  <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center text-green-600">
+                    <RefreshCw className="w-8 h-8" />
                   </div>
-                  <h3 className="text-3xl font-bold text-[var(--color-text)]">US-Based Support & Corrections</h3>
+                  <h3 className="text-3xl font-bold text-[var(--color-text)]">Refunds & Expert Support</h3>
                   <p className="text-lg text-[var(--color-muted)] leading-relaxed">
-                    Made a mistake? Need help with a rejection? Our 100% US-based support team is here to guide you. Plus, file VIN corrections (Amendments) and 8849 Refund claims directly from your dashboard.
+                    Sold a vehicle? Destroyed in an accident? Low mileage use? File Form 8849 to claim your HVUT refund. Plus, get help from our 100% US-based support team whenever you need it.
                   </p>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white p-4 rounded-xl border border-[var(--color-border)] shadow-sm">
-                      <AlertTriangle className="w-6 h-6 text-amber-600 mb-2" />
-                      <p className="font-bold text-sm">Free VIN Corrections</p>
+                      <RefreshCw className="w-6 h-6 text-green-600 mb-2" />
+                      <p className="font-bold text-sm">Form 8849 Refund Claims</p>
+                      <p className="text-xs text-[var(--color-muted)] mt-1">Get money back for eligible vehicles</p>
                     </div>
                     <div className="bg-white p-4 rounded-xl border border-[var(--color-border)] shadow-sm">
-                      <RefreshCw className="w-6 h-6 text-green-600 mb-2" />
-                      <p className="font-bold text-sm">8849 Refund Claims</p>
+                      <Phone className="w-6 h-6 text-blue-600 mb-2" />
+                      <p className="font-bold text-sm">US-Based Support</p>
+                      <p className="text-xs text-[var(--color-muted)] mt-1">Real experts who know trucking</p>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl border border-[var(--color-border)] shadow-sm">
+                      <Upload className="w-6 h-6 text-purple-600 mb-2" />
+                      <p className="font-bold text-sm">Document Upload</p>
+                      <p className="text-xs text-[var(--color-muted)] mt-1">Attach supporting PDFs easily</p>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl border border-[var(--color-border)] shadow-sm">
+                      <Lock className="w-6 h-6 text-indigo-600 mb-2" />
+                      <p className="font-bold text-sm">Secure Storage</p>
+                      <p className="text-xs text-[var(--color-muted)] mt-1">5-year record retention</p>
                     </div>
                   </div>
-                  <Link href="/signup" className="inline-flex items-center text-amber-600 font-bold hover:text-amber-700 text-lg group">
-                    Contact Support <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
+                  <Link href="/signup" className="inline-flex items-center text-green-600 font-bold hover:text-green-700 text-lg group">
+                    File for Refund <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
                   </Link>
                 </div>
               </div>
@@ -507,6 +648,28 @@ export function LandingPage() {
                   </div>
                 </div>
 
+                {/* Feature - Business Management */}
+                <div className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl hover:bg-white/10 transition duration-300 group">
+                  <div className="w-14 h-14 bg-green-500/20 rounded-2xl flex items-center justify-center mb-6 text-green-400 border border-green-500/30 group-hover:scale-110 transition-transform">
+                    <Truck className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Business Management</h3>
+                  <p className="text-white/60">
+                    Manage multiple businesses with EIN tracking and unlimited vehicle profiles.
+                  </p>
+                </div>
+
+                {/* Feature - Amendment Types */}
+                <div className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl hover:bg-white/10 transition duration-300 group">
+                  <div className="w-14 h-14 bg-amber-500/20 rounded-2xl flex items-center justify-center mb-6 text-amber-400 border border-amber-500/30 group-hover:scale-110 transition-transform">
+                    <AlertTriangle className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">All Amendment Types</h3>
+                  <p className="text-white/60">
+                    VIN corrections, weight increases, and mileage exceeded - all supported.
+                  </p>
+                </div>
+
                 {/* Feature - Bulk Upload */}
                 <div className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl hover:bg-white/10 transition duration-300 group">
                   <div className="w-14 h-14 bg-purple-500/20 rounded-2xl flex items-center justify-center mb-6 text-purple-400 border border-purple-500/30 group-hover:scale-110 transition-transform">
@@ -518,14 +681,25 @@ export function LandingPage() {
                   </p>
                 </div>
 
-                {/* Feature - Amendments */}
+                {/* Feature - Smart Features */}
                 <div className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl hover:bg-white/10 transition duration-300 group">
-                  <div className="w-14 h-14 bg-green-500/20 rounded-2xl flex items-center justify-center mb-6 text-green-400 border border-green-500/30 group-hover:scale-110 transition-transform">
+                  <div className="w-14 h-14 bg-indigo-500/20 rounded-2xl flex items-center justify-center mb-6 text-indigo-400 border border-indigo-500/30 group-hover:scale-110 transition-transform">
+                    <ShieldCheck className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Smart Intelligence</h3>
+                  <p className="text-white/60">
+                    Auto-save drafts, duplicate detection, and real-time pricing calculations.
+                  </p>
+                </div>
+
+                {/* Feature - Document Upload */}
+                <div className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 shadow-xl hover:bg-white/10 transition duration-300 group">
+                  <div className="w-14 h-14 bg-blue-500/20 rounded-2xl flex items-center justify-center mb-6 text-blue-400 border border-blue-500/30 group-hover:scale-110 transition-transform">
                     <FileText className="w-7 h-7" />
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">Free Amendments</h3>
+                  <h3 className="text-xl font-bold text-white mb-2">Document Upload</h3>
                   <p className="text-white/60">
-                    Made a mistake? Fix VINs or increase weights for free. No hidden correction fees.
+                    Attach supporting PDFs and keep all your records organized in one place.
                   </p>
                 </div>
               </div>

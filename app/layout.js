@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Golos_Text } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import "./error-handler";
@@ -7,14 +7,11 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { LayoutRouter } from "@/components/LayoutRouter";
 import { NotificationToast } from "@/components/NotificationToast";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const golosText = Golos_Text({
+  variable: "--font-golos-text",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata = {
@@ -94,7 +91,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-[var(--color-page)] text-[var(--color-text)] antialiased`}
+        className={`${golosText.variable} min-h-screen bg-[var(--color-page)] text-[var(--color-text)] antialiased`}
       >
         <AuthProvider>
           <NotificationProvider>
