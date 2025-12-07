@@ -16,7 +16,7 @@ export function ConsumerLayout({ children }) {
 
   // Check if we're on the landing page
   const isLandingPage = pathname === '/';
-  
+
   // Check if user is authenticated and on dashboard routes
   const isDashboardRoute = pathname?.startsWith('/dashboard') || pathname?.startsWith('/tools') || pathname?.startsWith('/blog') || pathname?.startsWith('/insights');
   const showSidebar = user && isDashboardRoute;
@@ -31,23 +31,27 @@ export function ConsumerLayout({ children }) {
   };
 
   return (
-    <div className="flex min-h-screen flex-col overflow-visible">
+    <div className="flex h-screen flex-col overflow-hidden bg-[var(--color-page)] w-full">
       <Schedule1Listener />
-      {/* Always show header - it contains profile/signout dropdown */}
+      {/* Always show header - fixed height */}
       <Header />
-      {/* Show sidebar for authenticated users on dashboard routes */}
-      {showSidebar ? (
-        <Sidebar>
-          <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+
+      {/* Main Layout Area - fills remaining height */}
+      <div className="flex-1 flex overflow-hidden w-full relative">
+        {/* Show sidebar for authenticated users on dashboard routes */}
+        {showSidebar ? (
+          <Sidebar>
             {children}
-          </div>
-        </Sidebar>
-      ) : (
-        <MainContent isLandingPage={isLandingPage}>
-          {children}
-        </MainContent>
-      )}
-      <footer className="border-t border-[var(--color-border)] bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white">
+          </Sidebar>
+        ) : (
+          <MainContent isLandingPage={isLandingPage}>
+            {children}
+          </MainContent>
+        )}
+      </div>
+
+      {/* Footer - Fixed height at bottom */}
+      <footer className="border-t border-[var(--color-border)] bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white flex-shrink-0 z-40 w-full">
         {/* Collapsed Footer (when logged in) */}
         {user && !isExpanded && (
           <div className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
@@ -125,11 +129,10 @@ export function ConsumerLayout({ children }) {
 // MainContent component for pages without sidebar
 function MainContent({ isLandingPage, children }) {
   return (
-    <main className={`flex-1 overflow-visible ${
-      isLandingPage 
-        ? '' 
-        : 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6'
-    }`}>
+    <main className={`flex-1 overflow-visible ${isLandingPage
+      ? ''
+      : 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6'
+      }`}>
       {children}
     </main>
   );

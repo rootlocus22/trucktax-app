@@ -8,7 +8,7 @@ import { useRouter, usePathname } from 'next/navigation';
 // Create context for sidebar state
 const SidebarContext = createContext({
   isCollapsed: false,
-  setIsCollapsed: () => {},
+  setIsCollapsed: () => { },
 });
 
 export const useSidebar = () => useContext(SidebarContext);
@@ -119,11 +119,10 @@ export function Sidebar({ children }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition group ${
-                    active
-                      ? 'bg-[var(--color-orange)]/10 text-[var(--color-orange)] border-l-4 border-[var(--color-orange)]'
-                      : 'text-[var(--color-muted)] hover:bg-[var(--color-page-alt)] hover:text-[var(--color-text)]'
-                  } ${isCollapsed && !mobile ? 'justify-center px-2' : ''}`}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition group ${active
+                    ? 'bg-[var(--color-orange)]/10 text-[var(--color-orange)] border-l-4 border-[var(--color-orange)]'
+                    : 'text-[var(--color-muted)] hover:bg-[var(--color-page-alt)] hover:text-[var(--color-text)]'
+                    } ${isCollapsed && !mobile ? 'justify-center px-2' : ''}`}
                   title={isCollapsed && !mobile ? item.label : ''}
                 >
                   <Icon className={`w-5 h-5 flex-shrink-0 ${isCollapsed && !mobile ? '' : ''}`} />
@@ -151,11 +150,10 @@ export function Sidebar({ children }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition group ${
-                    active
-                      ? 'bg-[var(--color-sky)]/10 text-[var(--color-sky)] border-l-4 border-[var(--color-sky)]'
-                      : 'text-[var(--color-muted)] hover:bg-[var(--color-page-alt)] hover:text-[var(--color-text)]'
-                  } ${isCollapsed && !mobile ? 'justify-center px-2' : ''}`}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition group ${active
+                    ? 'bg-[var(--color-sky)]/10 text-[var(--color-sky)] border-l-4 border-[var(--color-sky)]'
+                    : 'text-[var(--color-muted)] hover:bg-[var(--color-page-alt)] hover:text-[var(--color-text)]'
+                    } ${isCollapsed && !mobile ? 'justify-center px-2' : ''}`}
                   title={isCollapsed && !mobile ? item.label : ''}
                 >
                   <Icon className="w-5 h-5 flex-shrink-0" />
@@ -174,17 +172,18 @@ export function Sidebar({ children }) {
 
   return (
     <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
-      <div className="flex min-h-screen">
-        {/* Desktop Sidebar */}
+      <div className="flex h-full w-full overflow-hidden">
+        {/* Desktop Sidebar - In Flow */}
         <aside
-          className={`hidden lg:flex flex-col fixed left-0 top-16 bottom-0 bg-[var(--color-card)] border-r border-[var(--color-border)] shadow-lg z-30 transition-all duration-300 ${
-            isCollapsed ? 'w-20' : 'w-64'
-          }`}
+          className={`hidden lg:flex flex-col bg-[var(--color-card)] border-r border-[var(--color-border)] shadow-lg z-30 transition-all duration-300 h-full flex-shrink-0 relative ${isCollapsed ? 'w-20' : 'w-64'
+            }`}
         >
-          <SidebarContent />
+          <div className="w-full h-full overflow-y-auto no-scrollbar">
+            <SidebarContent />
+          </div>
         </aside>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Button - Absolute */}
         <div className="lg:hidden fixed top-20 left-4 z-50">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -195,25 +194,26 @@ export function Sidebar({ children }) {
           </button>
         </div>
 
-        {/* Mobile Sidebar */}
+        {/* Mobile Sidebar - Overlay */}
         {mobileMenuOpen && (
           <>
             <div
               className="lg:hidden fixed inset-0 bg-black/50 z-40"
               onClick={() => setMobileMenuOpen(false)}
             />
-            <aside className="lg:hidden fixed left-0 top-16 bottom-0 w-64 bg-[var(--color-card)] border-r border-[var(--color-border)] shadow-2xl z-50 overflow-y-auto">
+            <aside
+              className="lg:hidden fixed left-0 top-16 bottom-12 w-64 bg-[var(--color-card)] border-r border-[var(--color-border)] shadow-2xl z-50 overflow-y-auto"
+            >
               <SidebarContent mobile />
             </aside>
           </>
         )}
-        
-        {/* Content wrapper */}
-        <div className={`flex-1 transition-all duration-300 pt-16 ${isCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+
+        {/* Content wrapper - Flex Child */}
+        <div className="flex-1 h-full min-w-0 overflow-hidden flex flex-col relative w-full">
           {children}
         </div>
       </div>
     </SidebarContext.Provider>
   );
 }
-
