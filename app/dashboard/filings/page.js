@@ -13,8 +13,14 @@ import {
   AlertCircle,
   ArrowRight,
   Search,
-  Filter
+  Filter,
+  Plus,
+  Calendar,
+  Truck,
+  FileCheck,
+  ChevronDown
 } from 'lucide-react';
+import Image from 'next/image';
 
 export default function FilingsListPage() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -25,98 +31,64 @@ export default function FilingsListPage() {
   const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
-    // Redirect agents to agent dashboard
     if (!authLoading && userData?.role === 'agent') {
       router.push('/agent/dashboard');
       return;
     }
 
-    // Only subscribe to filings when auth is done loading and user exists
     if (!authLoading && user) {
       setLoading(true);
-
-      // Subscribe to real-time updates
       const unsubscribe = subscribeToUserFilings(user.uid, (userFilings) => {
         setFilings(userFilings);
         setLoading(false);
       });
-
-      // Cleanup subscription on unmount
-      return () => {
-        unsubscribe();
-      };
+      return () => unsubscribe();
     } else if (!authLoading && !user) {
-      // Auth is done but no user - stop loading
       setLoading(false);
     }
   }, [user, userData, authLoading, router]);
 
-  const getStatusColor = (status) => {
+  const getStatusConfig = (status) => {
     switch (status) {
       case 'submitted':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return { color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', icon: Clock, label: 'Submitted' };
       case 'processing':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+        return { color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', icon: Clock, label: 'Processing' };
       case 'action_required':
-        return 'bg-orange-50 text-orange-700 border-orange-200';
+        return { color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200', icon: AlertCircle, label: 'Action Required' };
       case 'completed':
-        return 'bg-green-50 text-green-700 border-green-200';
+        return { color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', icon: CheckCircle, label: 'Completed' };
       default:
-        return 'bg-gray-50 text-gray-700 border-gray-200';
+        return { color: 'text-slate-700', bg: 'bg-slate-50', border: 'border-slate-200', icon: FileText, label: status };
     }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="w-3.5 h-3.5" />;
-      case 'processing':
-      case 'submitted':
-        return <Clock className="w-3.5 h-3.5" />;
-      case 'action_required':
-        return <AlertCircle className="w-3.5 h-3.5" />;
-      default:
-        return <FileText className="w-3.5 h-3.5" />;
+  const getFilingTypeInfo = (filing) => {
+    if (filing.filingType === 'amendment') {
+      const type = filing.amendmentType === 'vin_correction' ? 'VIN Correction' :
+        filing.amendmentType === 'weight_increase' ? 'Weight Increase' :
+          filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded' : 'Amendment';
+      return { label: type, image: '/assets/icons/amendment.png', color: 'text-purple-600', bg: 'bg-purple-50' };
     }
+    if (filing.filingType === 'refund') {
+      return { label: 'Refund (8849)', image: '/assets/icons/refund.png', color: 'text-green-600', bg: 'bg-green-50' };
+    }
+    return { label: 'Form 2290', image: '/assets/icons/form2290.png', color: 'text-blue-600', bg: 'bg-blue-50' };
   };
 
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'submitted':
-        return 'Submitted';
-      case 'processing':
-        return 'Processing';
-      case 'action_required':
-        return 'Action Required';
-      case 'completed':
-        return 'Completed';
-      default:
-        return status;
-    }
-  };
-
-  // Filter filings
   const filteredFilings = filings.filter((filing) => {
-    // Status filter
-    if (statusFilter !== 'all' && filing.status !== statusFilter) {
-      return false;
-    }
-
-    // Search filter (by tax year, status, or filing type)
+    if (statusFilter !== 'all' && filing.status !== statusFilter) return false;
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       const matchesTaxYear = filing.taxYear?.toLowerCase().includes(searchLower);
-      const matchesStatus = getStatusLabel(filing.status).toLowerCase().includes(searchLower);
-      const matchesFilingType = filing.filingType?.toLowerCase().includes(searchLower);
-      const matchesAmendmentType = filing.amendmentType?.toLowerCase().includes(searchLower);
-      
-      return matchesTaxYear || matchesStatus || matchesFilingType || matchesAmendmentType;
+      const matchesStatus = filing.status?.toLowerCase().includes(searchLower);
+      const matchesBusiness = filing.business?.businessName?.toLowerCase().includes(searchLower);
+      const matchesId = filing.id?.toLowerCase().includes(searchLower);
+      return matchesTaxYear || matchesStatus || matchesBusiness || matchesId;
     }
-
     return true;
   });
 
-  // Calculate statistics
   const stats = {
     total: filings.length,
     completed: filings.filter(f => f.status === 'completed').length,
@@ -124,179 +96,273 @@ export default function FilingsListPage() {
     actionRequired: filings.filter(f => f.status === 'action_required').length,
   };
 
+  /* Grouping Logic */
+  const groupedFilings = filteredFilings.reduce((acc, filing) => {
+    const { label } = getFilingTypeInfo(filing);
+    if (!acc[label]) {
+      acc[label] = [];
+    }
+    acc[label].push(filing);
+    return acc;
+  }, {});
+
+  // Define preferred order
+  const categoryOrder = [
+    'Form 2290',
+    'VIN Correction',
+    'Weight Increase',
+    'Mileage Exceeded',
+    'Amendment',
+    'Refund (8849)'
+  ];
+
+  const sortedCategories = Object.keys(groupedFilings).sort((a, b) => {
+    const indexA = categoryOrder.indexOf(a);
+    const indexB = categoryOrder.indexOf(b);
+    return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+  });
+
+  const [expandedCategories, setExpandedCategories] = useState({});
+
+  // Initialize all categories as expanded when data loads or filtered
+  useEffect(() => {
+    const initialExpanded = {};
+    sortedCategories.forEach(cat => {
+      initialExpanded[cat] = true;
+    });
+    setExpandedCategories(prev => ({ ...initialExpanded, ...prev }));
+  }, [filteredFilings.length]); // Re-expand when list changes significantly, mostly just keep state
+
+  const toggleCategory = (category) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  };
+
   return (
     <ProtectedRoute>
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] mb-2">
-            All Filings
-          </h1>
-          <p className="text-sm sm:text-base text-[var(--color-muted)]">
-            View and manage all your Form 2290 filings
-          </p>
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">Your Filings</h1>
+            <p className="text-slate-500">Track and manage all your Form 2290 submissions</p>
+          </div>
+          <Link
+            href="/dashboard/new-filing"
+            className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 shadow-md"
+          >
+            <Plus className="w-5 h-5" />
+            New Filing
+          </Link>
         </div>
 
         {loading ? (
-          <div className="text-center py-16">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--color-navy)] mx-auto"></div>
-            <p className="mt-4 text-sm text-[var(--color-muted)]">Loading your filings...</p>
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="w-12 h-12 border-4 border-[var(--color-orange)]/30 border-t-[var(--color-orange)] rounded-full animate-spin mb-4"></div>
+            <p className="text-slate-500 font-medium">Loading your filings...</p>
           </div>
         ) : filings.length === 0 ? (
-          <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-8 sm:p-12 text-center">
-            <div className="w-16 h-16 bg-[var(--color-page-alt)] rounded-full flex items-center justify-center mx-auto mb-4">
-              <FileText className="w-8 h-8 text-[var(--color-muted)]" />
+          /* Empty State */
+          <div className="flex flex-col items-center justify-center py-20 px-4 bg-white border border-dashed border-slate-200 rounded-3xl">
+            <div className="relative mb-8 group">
+              <div className="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative bg-gradient-to-br from-white to-blue-50 p-8 rounded-[2rem] border border-blue-100 shadow-xl transform group-hover:scale-105 transition-transform duration-300">
+                <FileText className="w-20 h-20 text-blue-600" strokeWidth={1.5} />
+              </div>
             </div>
-            <h2 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)] mb-2">
-              No filings yet
-            </h2>
-            <p className="text-sm text-[var(--color-muted)] mb-8 max-w-md mx-auto">
-              Get started by creating your first Form 2290 filing request.
+            <h2 className="text-2xl font-bold text-slate-900 mb-3">No Filings Yet</h2>
+            <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">
+              Start your first Form 2290 filing today. It only takes a few minutes and we'll guide you through every step.
             </p>
             <Link
               href="/dashboard/new-filing"
-              className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-navy-soft)] text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:shadow-lg transition shadow-md"
+              className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
             >
-              <FileText className="w-4 h-4" />
-              Create New Filing
+              Start Your First Filing <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Statistics Summary */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-              <div className="bg-blue-50 rounded-lg border border-blue-200 p-4 sm:p-5">
-                <div className="text-xl sm:text-2xl font-semibold text-blue-700 mb-1">
-                  {stats.total}
-                </div>
-                <div className="text-xs sm:text-sm text-blue-700 opacity-80">
-                  Total Filings
-                </div>
-              </div>
-              <div className="bg-green-50 rounded-lg border border-green-200 p-4 sm:p-5">
-                <div className="text-xl sm:text-2xl font-semibold text-green-700 mb-1">
-                  {stats.completed}
-                </div>
-                <div className="text-xs sm:text-sm text-green-700 opacity-80">
-                  Completed
-                </div>
-              </div>
-              <div className="bg-amber-50 rounded-lg border border-amber-200 p-4 sm:p-5">
-                <div className="text-xl sm:text-2xl font-semibold text-amber-700 mb-1">
-                  {stats.processing}
-                </div>
-                <div className="text-xs sm:text-sm text-amber-700 opacity-80">
-                  In Progress
-                </div>
-              </div>
-              <div className="bg-orange-50 rounded-lg border border-orange-200 p-4 sm:p-5">
-                <div className="text-xl sm:text-2xl font-semibold text-orange-700 mb-1">
-                  {stats.actionRequired}
-                </div>
-                <div className="text-xs sm:text-sm text-orange-700 opacity-80">
-                  Action Required
-                </div>
-              </div>
-            </div>
-
-            {/* Search and Filter */}
-            <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                {/* Search */}
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-muted)]" />
-                  <input
-                    type="text"
-                    placeholder="Search by tax year, status, or filing type..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)]"
-                  />
-                </div>
-                {/* Status Filter */}
-                <div className="relative">
-                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-muted)]" />
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)] bg-white appearance-none"
-                  >
-                    <option value="all">All Status</option>
-                    <option value="submitted">Submitted</option>
-                    <option value="processing">Processing</option>
-                    <option value="action_required">Action Required</option>
-                    <option value="completed">Completed</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Filings List */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-[var(--color-text)]">
-                  {filteredFilings.length} Filing{filteredFilings.length !== 1 ? 's' : ''}
-                </h2>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {filteredFilings.map((filing) => (
-                  <Link
-                    key={filing.id}
-                    href={`/dashboard/filings/${filing.id}`}
-                    className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4 sm:p-5 hover:border-[var(--color-navy)] hover:shadow-md transition group"
-                  >
-                    <div className="flex justify-between items-start gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 sm:gap-3 mb-2.5 flex-wrap">
-                          <h3 className="text-base sm:text-lg font-semibold text-[var(--color-text)]">
-                            Tax Year: {filing.taxYear}
-                          </h3>
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(filing.status)}`}>
-                            {getStatusIcon(filing.status)}
-                            {getStatusLabel(filing.status)}
-                          </span>
-                          {filing.filingType === 'amendment' && filing.amendmentType && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
-                              {filing.amendmentType === 'vin_correction' ? '📝 VIN Correction' :
-                               filing.amendmentType === 'weight_increase' ? '⚖️ Weight Increase' :
-                               filing.amendmentType === 'mileage_exceeded' ? '🛣️ Mileage Exceeded' :
-                               'Amendment'}
-                            </span>
-                          )}
-                          {filing.filingType === 'refund' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                              Refund (8849)
-                            </span>
-                          )}
-                        </div>
-                        <div className="space-y-1 text-xs sm:text-sm text-[var(--color-muted)]">
-                          <p>
-                            <strong className="text-[var(--color-text)]">{filing.vehicleIds?.length || 0}</strong> vehicle{filing.vehicleIds?.length !== 1 ? 's' : ''}
-                            {filing.filingType !== 'amendment' && (
-                              <> • First used: <strong className="text-[var(--color-text)]">{filing.firstUsedMonth}</strong></>
-                            )}
-                          </p>
-                          {filing.createdAt && (
-                            <p>
-                              Submitted: <strong className="text-[var(--color-text)]">{filing.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-[var(--color-muted)] flex-shrink-0 group-hover:text-[var(--color-navy)] transition">
-                        <ArrowRight className="w-5 h-5" />
-                      </div>
+          <div className="space-y-8">
+            {/* Statistics Row */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: 'Total Filings', value: stats.total, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
+                { label: 'Completed', value: stats.completed, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
+                { label: 'In Progress', value: stats.processing, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' },
+                { label: 'Action Required', value: stats.actionRequired, icon: AlertCircle, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100' },
+              ].map((stat, idx) => {
+                const Icon = stat.icon;
+                return (
+                  <div key={idx} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+                    <div className={`w-12 h-12 rounded-lg ${stat.bg} ${stat.border} border flex items-center justify-center flex-shrink-0`}>
+                      <Icon className={`w-6 h-6 ${stat.color}`} strokeWidth={2} />
                     </div>
-                  </Link>
-                ))}
-                {filteredFilings.length === 0 && (
-                  <div className="col-span-2 text-center py-12 text-[var(--color-muted)] bg-[var(--color-page-alt)] rounded-lg border border-dashed border-[var(--color-border)]">
-                    <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p className="font-medium">No filings found</p>
-                    <p className="text-sm mt-1">Try adjusting your search or filter criteria</p>
+                    <div>
+                      <div className="text-2xl font-bold text-slate-900">{stat.value}</div>
+                      <div className="text-xs font-medium text-slate-500 uppercase tracking-wide">{stat.label}</div>
+                    </div>
                   </div>
-                )}
+                );
+              })}
+            </div>
+
+            {/* Filters Row */}
+            <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-2 sticky top-0 z-30">
+              <div className="flex-1 relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search by business, tax year, or status..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 bg-transparent border-none focus:ring-0 text-slate-900 placeholder-slate-400 font-medium"
+                />
               </div>
+              <div className="h-px md:h-auto md:w-px bg-slate-200 mx-2 my-2 md:my-0"></div>
+              <div className="relative md:w-64">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full pl-4 pr-10 py-3 bg-transparent border-none focus:ring-0 font-medium text-slate-700 cursor-pointer hover:bg-slate-50 rounded-lg transition-colors appearance-none"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="submitted">Submitted</option>
+                  <option value="processing">Processing</option>
+                  <option value="action_required">Action Required</option>
+                  <option value="completed">Completed</option>
+                </select>
+                <Filter className="absolute right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Grouped Filings Accordion */}
+            <div className="space-y-6">
+              {filteredFilings.length === 0 ? (
+                <div className="text-center py-16 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  <Search className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <h3 className="text-lg font-semibold text-slate-900 mb-1">No matching filings</h3>
+                  <p className="text-slate-500">Try adjusting your search or filters.</p>
+                  <button
+                    onClick={() => { setSearchTerm(''); setStatusFilter('all'); }}
+                    className="mt-4 text-[var(--color-orange)] font-semibold hover:underline"
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              ) : (
+                sortedCategories.map(category => {
+                  const categoryFilings = groupedFilings[category];
+                  const isExpanded = expandedCategories[category] !== false; // Default to true if undefined
+
+                  return (
+                    <div key={category} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                      {/* Accordion Header */}
+                      <button
+                        onClick={() => toggleCategory(category)}
+                        className="w-full flex items-center justify-between p-6 bg-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer text-left border-b border-slate-100"
+                      >
+                        <div className="flex items-center gap-4">
+                          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-3">
+                            {category}
+                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-orange)] text-white shadow-sm">
+                              {categoryFilings.length}
+                            </span>
+                          </h2>
+                        </div>
+                        <div className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                          <ChevronDown className="w-5 h-5" />
+                        </div>
+                      </button>
+
+                      {/* Accordion Body */}
+                      {isExpanded && (
+                        <div className="p-6 space-y-4">
+                          {categoryFilings.map((filing) => {
+                            const status = getStatusConfig(filing.status);
+                            const typeInfo = getFilingTypeInfo(filing);
+                            const StatusIcon = status.icon;
+                            const date = filing.createdAt ? new Date(filing.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+
+                            return (
+                              <Link
+                                key={filing.id}
+                                href={`/dashboard/filings/${filing.id}`}
+                                className="group block bg-white rounded-xl border border-slate-200 p-5 hover:border-[var(--color-orange)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden"
+                              >
+                                {/* Status Stripe */}
+                                <div className={`absolute left-0 top-0 bottom-0 w-1 ${status.bg.replace('bg-', 'bg-').replace('50', '500')}`}></div>
+
+                                <div className="flex flex-col md:flex-row md:items-center gap-6 pl-2">
+                                  {/* Icon Section */}
+                                  <div className="hidden md:flex flex-col items-center gap-2 min-w-[80px]">
+                                    <div className="relative w-16 h-16 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
+                                      <Image
+                                        src={typeInfo.image}
+                                        alt={typeInfo.label}
+                                        fill
+                                        className="object-contain"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {/* Main Info */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-3 mb-1">
+                                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide border ${status.bg} ${status.color} ${status.border}`}>
+                                        <StatusIcon className="w-3 h-3" />
+                                        {status.label}
+                                      </span>
+                                      <span className="text-xs text-slate-400 font-medium">#{filing.id.slice(0, 8)}</span>
+                                    </div>
+
+                                    <div className="flex items-baseline gap-2 mb-1">
+                                      <h3 className="text-lg font-bold text-slate-900 group-hover:text-[var(--color-orange)] transition-colors truncate">
+                                        {filing.business?.businessName || 'Unnamed Business'}
+                                      </h3>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
+                                      <div className="flex items-center gap-2">
+                                        <Calendar className="w-4 h-4 text-slate-400" />
+                                        <span className="font-medium">Tax Year {filing.taxYear}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <FileText className="w-4 h-4 text-slate-400" />
+                                        <span>{typeInfo.label}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Truck className="w-4 h-4 text-slate-400" />
+                                        <span>{filing.vehicleIds?.length || 0} Vehicle{filing.vehicleIds?.length !== 1 ? 's' : ''}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2 text-slate-500 text-xs">
+                                        <span>Filed {date}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Action Area */}
+                                  <div className="flex items-center gap-4 border-t md:border-t-0 border-slate-100 pt-4 md:pt-0 mt-4 md:mt-0 justify-between md:justify-end">
+                                    <div className="md:hidden flex items-center gap-2 text-slate-500 text-xs">
+                                      <Clock className="w-3 h-3" />
+                                      <span>Filed {date}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-[var(--color-orange)] font-semibold text-sm group-hover:underline decoration-2 underline-offset-4">
+                                      View Details
+                                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    </div>
+                                  </div>
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         )}
@@ -304,4 +370,3 @@ export default function FilingsListPage() {
     </ProtectedRoute>
   );
 }
-

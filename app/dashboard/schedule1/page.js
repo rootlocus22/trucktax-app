@@ -120,115 +120,122 @@ export default function Schedule1ListPage() {
 
   return (
     <ProtectedRoute>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-6">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-[var(--color-muted)] hover:text-[var(--color-text)] mb-4 transition"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm">Back to Dashboard</span>
-          </Link>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] mb-2">
-            Schedule 1 Documents
-          </h1>
-          <p className="text-sm text-[var(--color-muted)]">
-            Download your completed Schedule 1 forms organized by tax year
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 text-slate-500 hover:text-[var(--color-orange)] mb-4 transition-colors group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              <span className="text-sm font-medium">Back to Dashboard</span>
+            </Link>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">
+              Schedule 1 Documents
+            </h1>
+            <p className="text-slate-500">
+              Access and download your stamped Schedule 1 forms
+            </p>
+          </div>
         </div>
 
         {loading ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-[var(--color-page-alt)] rounded-full flex items-center justify-center mx-auto mb-4">
-              <FileText className="w-8 h-8 text-[var(--color-muted)] animate-pulse" />
-            </div>
-            <p className="text-[var(--color-muted)]">Loading Schedule 1 documents...</p>
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="w-12 h-12 border-4 border-[var(--color-orange)]/30 border-t-[var(--color-orange)] rounded-full animate-spin mb-4"></div>
+            <p className="text-slate-500 font-medium">Loading documents...</p>
           </div>
         ) : sortedYears.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-[var(--color-page-alt)] rounded-full flex items-center justify-center mx-auto mb-4">
-              <FileText className="w-8 h-8 text-[var(--color-muted)]" />
+          /* Premium Empty State */
+          <div className="flex flex-col items-center justify-center py-20 px-4 bg-white border border-dashed border-slate-200 rounded-3xl">
+            <div className="relative mb-8 group">
+              <div className="absolute inset-0 bg-emerald-500/10 blur-3xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative bg-gradient-to-br from-white to-emerald-50 p-8 rounded-[2rem] border border-emerald-100 shadow-xl transform group-hover:scale-105 transition-transform duration-300">
+                <FileText className="w-20 h-20 text-emerald-600" strokeWidth={1.5} />
+                <div className="absolute -bottom-3 -right-3 bg-white p-3 rounded-2xl shadow-lg border border-emerald-50">
+                  <CheckCircle className="w-6 h-6 text-emerald-600" strokeWidth={3} />
+                </div>
+              </div>
             </div>
-            <h3 className="text-lg font-semibold text-[var(--color-text)] mb-2">
-              No Schedule 1 Documents Yet
-            </h3>
-            <p className="text-sm text-[var(--color-muted)] mb-4">
-              Your completed Schedule 1 forms will appear here once they're ready.
+            <h2 className="text-2xl font-bold text-slate-900 mb-3">No Documents Yet</h2>
+            <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">
+              Your stamped Schedule 1 forms will appear here automatically once your filings are approved by the IRS.
             </p>
             <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:shadow-lg transition shadow-md"
-              style={{ color: '#ffffff' }}
+              href="/dashboard/new-filing"
+              className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
             >
-              Go to Dashboard
+              Start New Filing
             </Link>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-12">
             {sortedYears.map((year) => {
               const yearFilings = filingsByYear[year];
 
               return (
-                <div key={year} className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Calendar className="w-5 h-5 text-[var(--color-navy)]" />
-                    <h2 className="text-xl font-semibold text-[var(--color-text)]">
+                <div key={year} className="relative">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 text-slate-600 font-bold text-lg">
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-900">
                       Tax Year {year}
                     </h2>
-                    <span className="text-sm text-[var(--color-muted)]">
-                      ({yearFilings.length} {yearFilings.length === 1 ? 'document' : 'documents'})
+                    <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold">
+                      {yearFilings.length}
                     </span>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {yearFilings.map((filing) => {
                       const statusConfig = getStatusConfig(filing.status);
-                      const StatusIcon = statusConfig.icon;
 
                       return (
                         <div
                           key={filing.id}
-                          className="bg-white rounded-lg border border-[var(--color-border)] p-4 hover:border-[var(--color-navy)] hover:shadow-md transition"
+                          className="group bg-white rounded-2xl border border-slate-200 p-6 hover:border-[var(--color-orange)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col h-full"
                         >
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2 flex-wrap">
-                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
-                                  <StatusIcon className="w-3.5 h-3.5" />
-                                  {statusConfig.label}
-                                </span>
-                                {filing.vehicleIds && filing.vehicleIds.length > 0 && (
-                                  <div className="flex items-center gap-1.5 text-sm text-[var(--color-muted)]">
-                                    <Truck className="w-4 h-4" />
-                                    <span>{filing.vehicleIds.length} {filing.vehicleIds.length === 1 ? 'vehicle' : 'vehicles'}</span>
-                                  </div>
-                                )}
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="p-3 bg-red-50 text-red-600 rounded-xl">
+                                <FileText className="w-8 h-8" />
                               </div>
-                              <div className="text-sm text-[var(--color-muted)]">
-                                <p>Completed: {formatDate(filing.updatedAt)}</p>
-                                {filing.firstUsedMonth && (
-                                  <p>First used: {filing.firstUsedMonth}</p>
-                                )}
-                              </div>
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusConfig.bg} ${statusConfig.text} border ${statusConfig.border}`}>
+                                {statusConfig.label}
+                              </span>
                             </div>
 
-                            <div className="flex items-center gap-3">
-                              <button
-                                onClick={() => handleDownload(filing.finalSchedule1Url, filing.taxYear)}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-navy)] text-white rounded-lg font-medium text-sm hover:bg-[var(--color-navy-soft)] transition"
-                                style={{ color: '#ffffff' }}
-                              >
-                                <Download className="w-4 h-4" />
-                                Download PDF
-                              </button>
-                              <Link
-                                href={`/dashboard/filings/${filing.id}`}
-                                className="text-sm text-[var(--color-muted)] hover:text-[var(--color-text)] transition"
-                              >
-                                View Details
-                              </Link>
+                            <h3 className="font-bold text-slate-900 mb-2 group-hover:text-[var(--color-orange)] transition-colors">
+                              Schedule 1 Form
+                            </h3>
+
+                            <div className="space-y-2 mb-6">
+                              <div className="flex items-center gap-2 text-sm text-slate-500">
+                                <Truck className="w-4 h-4" />
+                                <span>{filing.vehicleIds?.length || 0} Vehicles</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-slate-500">
+                                <Clock className="w-4 h-4" />
+                                <span>{formatDate(filing.updatedAt)}</span>
+                              </div>
                             </div>
+                          </div>
+
+                          <div className="flex items-center gap-3 pt-4 border-t border-slate-100 mt-auto">
+                            <button
+                              onClick={() => handleDownload(filing.finalSchedule1Url, filing.taxYear)}
+                              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-orange)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-soft)] transition-colors shadow-sm"
+                            >
+                              <Download className="w-4 h-4" />
+                              Download
+                            </button>
+                            <Link
+                              href={`/dashboard/filings/${filing.id}`}
+                              className="px-4 py-2.5 bg-slate-50 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-100 transition-colors"
+                            >
+                              Details
+                            </Link>
                           </div>
                         </div>
                       );

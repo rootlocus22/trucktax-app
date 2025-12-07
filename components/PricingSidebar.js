@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react';
 import { calculateFilingCost } from '@/app/actions/pricing';
 import { CreditCard, ShieldCheck, Loader2, Info, CheckCircle } from 'lucide-react';
 
-export function PricingSidebar({ 
-  filingType, 
-  filingData, 
-  selectedVehicleIds, 
-  vehicles, 
-  selectedBusinessId, 
+export function PricingSidebar({
+  filingType,
+  filingData,
+  selectedVehicleIds,
+  vehicles,
+  selectedBusinessId,
   businesses,
   amendmentType,
   weightIncreaseData,
@@ -103,10 +103,10 @@ export function PricingSidebar({
 
         if (result.success) {
           setPricing(result.breakdown);
-          
+
           // Build breakdown for display
           const breakdownItems = [];
-          
+
           if (filingType === 'refund') {
             breakdownItems.push({
               label: 'Estimated Refund',
@@ -120,18 +120,18 @@ export function PricingSidebar({
               type: 'tax'
             });
           }
-          
+
           breakdownItems.push({
             label: 'Service Fee',
             value: result.breakdown.serviceFee || 0,
             type: 'fee',
-            description: selectedVehiclesList.length >= 2 
+            description: selectedVehiclesList.length >= 2
               ? `Fleet pricing: $29.99 × ${selectedVehiclesList.length}`
               : selectedVehiclesList.every(v => v.isSuspended)
-              ? 'Suspended vehicle pricing'
-              : 'Single vehicle pricing'
+                ? 'Suspended vehicle pricing'
+                : 'Single vehicle pricing'
           });
-          
+
           if (result.breakdown.salesTax > 0) {
             breakdownItems.push({
               label: 'Sales Tax',
@@ -140,7 +140,7 @@ export function PricingSidebar({
               description: 'Estimated based on location'
             });
           }
-          
+
           setBreakdown(breakdownItems);
         }
       } catch (err) {
@@ -158,8 +158,8 @@ export function PricingSidebar({
   const hasData = filingType && selectedVehicleIds.length > 0;
 
   return (
-    <div className="sticky top-24 h-[calc(100vh-8rem)] flex flex-col">
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-lg flex flex-col h-full overflow-hidden">
+    <div className="sticky top-24 h-fit max-h-[calc(100vh-8rem)] flex flex-col">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-lg flex flex-col max-h-full overflow-hidden">
         {/* Header */}
         <div className="p-6 border-b border-slate-100">
           <h3 className="text-lg font-bold text-[var(--color-text)] mb-1">Order Summary</h3>

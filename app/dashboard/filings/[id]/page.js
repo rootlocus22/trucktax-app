@@ -250,7 +250,7 @@ export default function FilingDetailPage() {
       <ProtectedRoute>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--color-navy)] mx-auto"></div>
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--color-orange)] mx-auto"></div>
             <p className="mt-4 text-sm text-[var(--color-muted)]">Loading filing details...</p>
           </div>
         </div>
@@ -264,7 +264,7 @@ export default function FilingDetailPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="text-center py-12">
             <p className="text-[var(--color-muted)] mb-4">Filing not found</p>
-            <Link href="/dashboard" className="text-[var(--color-navy)] hover:underline text-sm">
+            <Link href="/dashboard" className="text-[var(--color-orange)] hover:underline text-sm">
               ← Back to Dashboard
             </Link>
           </div>
@@ -278,10 +278,10 @@ export default function FilingDetailPage() {
 
   return (
     <ProtectedRoute>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Header - Optimized for space */}
-        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h1 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)]">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-text)] tracking-tight">
             Filing Details
           </h1>
           <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border} w-fit`}>
@@ -610,7 +610,7 @@ export default function FilingDetailPage() {
           {/* Business Information */}
           <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Building2 className="w-4 h-4 text-[var(--color-navy)]" />
+              <Building2 className="w-4 h-4 text-[var(--color-orange)]" />
               <h2 className="text-sm font-semibold text-[var(--color-text)]">Business Information</h2>
             </div>
             {business && (
@@ -621,7 +621,7 @@ export default function FilingDetailPage() {
                     <span className="text-[var(--color-text)] font-medium truncate">{business.businessName}</span>
                     <button
                       onClick={() => handleCopy(business.businessName, 'businessName')}
-                      className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-navy)] transition"
+                      className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)] transition"
                       title="Copy"
                     >
                       {copied === 'businessName' ? (
@@ -638,7 +638,7 @@ export default function FilingDetailPage() {
                     <span className="text-[var(--color-text)] font-medium font-mono">{business.ein}</span>
                     <button
                       onClick={() => handleCopy(business.ein, 'ein')}
-                      className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-navy)] transition"
+                      className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)] transition"
                       title="Copy"
                     >
                       {copied === 'ein' ? (
@@ -677,7 +677,7 @@ export default function FilingDetailPage() {
           {/* Filing Details */}
           <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Calendar className="w-4 h-4 text-[var(--color-navy)]" />
+              <Calendar className="w-4 h-4 text-[var(--color-orange)]" />
               <h2 className="text-sm font-semibold text-[var(--color-text)]">Filing Details</h2>
             </div>
             <div className="space-y-2.5 text-xs">
@@ -826,7 +826,7 @@ export default function FilingDetailPage() {
         {/* Vehicles */}
         <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Truck className="w-4 h-4 text-[var(--color-navy)]" />
+            <Truck className="w-4 h-4 text-[var(--color-orange)]" />
             <h2 className="text-sm font-semibold text-[var(--color-text)]">
               {filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction'
                 ? 'VIN Information'
@@ -864,7 +864,7 @@ export default function FilingDetailPage() {
                         <span className="text-[var(--color-text)] font-medium font-mono truncate">{vehicle.vin}</span>
                         <button
                           onClick={() => handleCopy(vehicle.vin, `vin-${vehicle.id}`)}
-                          className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-navy)] transition"
+                          className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)] transition"
                           title="Copy VIN"
                         >
                           {copied === `vin-${vehicle.id}` ? (
@@ -920,7 +920,7 @@ export default function FilingDetailPage() {
         {filing.inputDocuments && filing.inputDocuments.length > 0 && (
           <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
             <div className="flex items-center gap-2 mb-3">
-              <FileText className="w-4 h-4 text-[var(--color-navy)]" />
+              <FileText className="w-4 h-4 text-[var(--color-orange)]" />
               <h2 className="text-sm font-semibold text-[var(--color-text)]">
                 Uploaded Documents ({filing.inputDocuments.length})
               </h2>
@@ -932,7 +932,7 @@ export default function FilingDetailPage() {
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 p-2.5 bg-[var(--color-page-alt)] rounded border border-[var(--color-border)] hover:border-[var(--color-navy)] hover:bg-[var(--color-page-alt)] transition text-xs"
+                  className="flex items-center gap-2 p-2.5 bg-[var(--color-page-alt)] rounded border border-[var(--color-border)] hover:border-[var(--color-orange)] hover:bg-[var(--color-page-alt)] transition text-xs"
                 >
                   <FileText className="w-3.5 h-3.5 text-[var(--color-muted)] flex-shrink-0" />
                   <span className="text-[var(--color-text)] font-medium truncate">Document {index + 1}</span>

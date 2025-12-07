@@ -119,7 +119,7 @@ export default function DashboardPage() {
                 </button>
                 <Link
                   href="/dashboard/new-filing"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-navy)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   New Filing
@@ -132,7 +132,7 @@ export default function DashboardPage() {
         {loading ? (
           <div className="flex items-center justify-center flex-1">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-8 h-8 border-2 border-[var(--color-navy)]/10 border-t-[var(--color-navy)] rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-2 border-[var(--color-orangeß)]/10 border-t-[var(--color-orangeß)] rounded-full animate-spin"></div>
               <p className="text-sm text-[var(--color-muted)]">Loading...</p>
             </div>
           </div>
@@ -235,7 +235,7 @@ export default function DashboardPage() {
 
                       {/* Welcome Message - More Compact */}
                       <div className="mb-6">
-                        <h2 className="text-3xl font-bold text-[var(--color-text)] mb-3 bg-gradient-to-r from-[var(--color-navy)] via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        <h2 className="text-3xl font-bold text-[var(--color-text)] mb-3 bg-gradient-to-r from-[var(--color-orangeß)] via-blue-600 to-indigo-600 bg-clip-text text-transparent">
                           Welcome to Your Dashboard
                         </h2>
                         <p className="text-base text-[var(--color-muted)] max-w-2xl mx-auto leading-relaxed">
@@ -294,14 +294,14 @@ export default function DashboardPage() {
 
                         <Link
                           href="/dashboard/new-filing"
-                          className="group relative bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-[var(--color-navy)] hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                          className="group relative bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-[var(--color-orangeß)] hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
                         >
                           {/* Gradient Background on Hover */}
                           <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
                           <div className="relative z-10">
                             {/* Icon */}
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--color-navy)] to-slate-700 flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--color-orangeß)] to-slate-700 flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
                               <Edit className="w-8 h-8 text-white" />
                             </div>
 
@@ -314,21 +314,21 @@ export default function DashboardPage() {
                             {/* Features */}
                             <div className="space-y-1.5 mb-4">
                               <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-[var(--color-navy)] flex-shrink-0" />
+                                <CheckCircle className="w-3.5 h-3.5 text-[var(--color-orange)] flex-shrink-0" />
                                 <span>Step-by-step guidance</span>
                               </div>
                               <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-[var(--color-navy)] flex-shrink-0" />
+                                <CheckCircle className="w-3.5 h-3.5 text-[var(--color-orange)] flex-shrink-0" />
                                 <span>Real-time validation</span>
                               </div>
                               <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-[var(--color-navy)] flex-shrink-0" />
+                                <CheckCircle className="w-3.5 h-3.5 text-[var(--color-orange)] flex-shrink-0" />
                                 <span>Save progress anytime</span>
                               </div>
                             </div>
 
                             {/* CTA */}
-                            <div className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-navy)] group-hover:gap-3 transition-all">
+                            <div className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-orange)] group-hover:gap-3 transition-all">
                               <span>Get Started</span>
                               <ArrowRight className="w-4 h-4" />
                             </div>
@@ -500,7 +500,7 @@ export default function DashboardPage() {
                     </Link>
                     <Link
                       href="/how-it-works"
-                      className="flex items-center justify-between px-3 py-2 bg-[var(--color-navy)] text-white rounded-lg text-xs font-semibold hover:bg-[var(--color-navy-soft)] transition-all"
+                      className="flex items-center justify-between px-3 py-2 bg-[var(--color-orange)] text-white rounded-lg text-xs font-semibold hover:bg-[var(--color-navy-soft)] transition-all"
                     >
                       <span>How It Works</span>
                       <ArrowRight className="w-3 h-3" />

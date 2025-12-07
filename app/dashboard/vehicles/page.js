@@ -146,165 +146,176 @@ export default function VehiclesPage() {
 
   return (
     <ProtectedRoute>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-6">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-[var(--color-muted)] hover:text-[var(--color-text)] mb-4 transition"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm">Back to Dashboard</span>
-          </Link>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] mb-2">
-                Vehicles
-              </h1>
-              <p className="text-sm text-[var(--color-muted)]">
-                Manage your vehicle fleet for filings
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                accept=".csv"
-                className="hidden"
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="inline-flex items-center gap-2 bg-white border border-[var(--color-border)] text-[var(--color-text)] px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-gray-50 transition shadow-sm disabled:opacity-50"
-              >
-                {uploading ? (
-                  <span className="animate-pulse">Importing...</span>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4" />
-                    Import CSV
-                  </>
-                )}
-              </button>
-              <Link
-                href="/dashboard/new-filing"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:shadow-lg transition shadow-md"
-                style={{ color: '#ffffff' }}
-              >
-                <Plus className="w-4 h-4" />
-                Add Vehicle
-              </Link>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 text-slate-500 hover:text-[var(--color-orange)] mb-4 transition-colors group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              <span className="text-sm font-medium">Back to Dashboard</span>
+            </Link>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">
+              Vehicles
+            </h1>
+            <p className="text-slate-500">
+              Manage your vehicle fleet details and weight categories
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept=".csv"
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm disabled:opacity-50"
+            >
+              {uploading ? (
+                <span className="animate-pulse">Importing...</span>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  Import CSV
+                </>
+              )}
+            </button>
+            <Link
+              href="/dashboard/new-filing"
+              className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 shadow-md"
+            >
+              <Plus className="w-5 h-5" />
+              Add Vehicle
+            </Link>
           </div>
         </div>
 
         {/* Alerts */}
         {uploadError && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between text-red-700">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between text-red-700 animate-in fade-in slide-in-from-top-2">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5" />
-              <span>{uploadError}</span>
+              <span className="font-medium">{uploadError}</span>
             </div>
-            <button onClick={() => setUploadError('')} className="text-red-500 hover:text-red-700">
+            <button onClick={() => setUploadError('')} className="p-1 hover:bg-red-100 rounded-lg transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
         )}
 
         {uploadSuccess && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between text-green-700">
+          <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-emerald-700 animate-in fade-in slide-in-from-top-2">
             <div className="flex items-center gap-2">
               <CheckCircle className="w-5 h-5" />
-              <span>{uploadSuccess}</span>
+              <span className="font-medium">{uploadSuccess}</span>
             </div>
-            <button onClick={() => setUploadSuccess('')} className="text-green-500 hover:text-green-700">
+            <button onClick={() => setUploadSuccess('')} className="p-1 hover:bg-emerald-100 rounded-lg transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
         )}
 
         {loading ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-[var(--color-page-alt)] rounded-full flex items-center justify-center mx-auto mb-4">
-              <Truck className="w-8 h-8 text-[var(--color-muted)] animate-pulse" />
-            </div>
-            <p className="text-[var(--color-muted)]">Loading vehicles...</p>
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="w-12 h-12 border-4 border-[var(--color-orange)]/30 border-t-[var(--color-orange)] rounded-full animate-spin mb-4"></div>
+            <p className="text-slate-500 font-medium">Loading vehicles...</p>
           </div>
         ) : vehicles.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-[var(--color-page-alt)] rounded-full flex items-center justify-center mx-auto mb-4">
-              <Truck className="w-8 h-8 text-[var(--color-muted)]" />
+          /* Premium Empty State */
+          <div className="flex flex-col items-center justify-center py-20 px-4 bg-white border border-dashed border-slate-200 rounded-3xl">
+            <div className="relative mb-8 group">
+              <div className="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative bg-gradient-to-br from-white to-blue-50 p-8 rounded-[2rem] border border-blue-100 shadow-xl transform group-hover:scale-105 transition-transform duration-300">
+                <Truck className="w-20 h-20 text-blue-600" strokeWidth={1.5} />
+                <div className="absolute -bottom-3 -right-3 bg-white p-3 rounded-2xl shadow-lg border border-blue-50">
+                  <Plus className="w-6 h-6 text-blue-600" strokeWidth={3} />
+                </div>
+              </div>
             </div>
-            <h3 className="text-lg font-semibold text-[var(--color-text)] mb-2">
-              No Vehicles Yet
-            </h3>
-            <p className="text-sm text-[var(--color-muted)] mb-4">
-              Add your first vehicle to get started with filings.
+            <h2 className="text-2xl font-bold text-slate-900 mb-3">No Vehicles Yet</h2>
+            <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">
+              Add your vehicle information to streamline your future filings. You can also import multiple vehicles via CSV.
             </p>
-            <div className="flex justify-center gap-3">
+            <div className="flex flex-col sm:flex-row gap-4 mt-6">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-2 bg-white border border-[var(--color-border)] text-[var(--color-text)] px-6 py-2.5 rounded-lg font-semibold text-sm hover:bg-gray-50 transition shadow-sm"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-700 font-bold text-sm border-2 border-slate-200 rounded-xl hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] transition-colors"
               >
                 <Upload className="w-4 h-4" />
                 Import CSV
               </button>
               <Link
                 href="/dashboard/new-filing"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:shadow-lg transition shadow-md"
-                style={{ color: '#ffffff' }}
+                className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
               >
-                <Plus className="w-4 h-4" />
                 Add Your First Vehicle
+                <ArrowLeft className="w-4 h-4 rotate-180" />
               </Link>
             </div>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-3">
             {vehicles.map((vehicle) => (
               <div
                 key={vehicle.id}
-                className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-5 hover:border-[var(--color-navy)] hover:shadow-md transition"
+                className="group bg-white rounded-2xl border border-slate-200 p-6 hover:border-[var(--color-orange)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-[var(--color-orange)] to-[#ff7a20] rounded-lg flex items-center justify-center">
-                      <Truck className="w-6 h-6 text-white" />
+                <div className="flex items-start justify-between mb-6">
+                  <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center border border-blue-100 group-hover:bg-[var(--color-orange)] group-hover:border-[var(--color-orange)] transition-colors duration-300">
+                    <Truck className="w-7 h-7 text-blue-600 group-hover:text-white transition-colors duration-300" />
+                  </div>
+                  <div className="flex gap-2">
+                    {vehicle.isSuspended ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-xs font-semibold">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        Suspended
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        Active
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <h3 className="text-xl font-bold text-slate-900 mb-1 group-hover:text-[var(--color-orange)] transition-colors font-mono">
+                    {vehicle.vin || 'No VIN'}
+                  </h3>
+                  <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
+                    <Weight className="w-4 h-4" />
+                    {getWeightCategoryLabel(vehicle.grossWeightCategory)}
+                  </div>
+                </div>
+
+                <div className="space-y-3 mb-6 pt-4 border-t border-slate-100">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-50 p-3 rounded-lg">
+                      <span className="block text-xs font-medium text-slate-500 uppercase">Gross Weight</span>
+                      <span className="block font-bold text-slate-900">{vehicle.grossWeightCategory || 'N/A'}</span>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-[var(--color-text)] mb-1">
-                        {vehicle.vin || 'No VIN'}
-                      </h3>
-                      {vehicle.isSuspended && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-50 text-orange-700 border border-orange-200 rounded-full text-xs font-medium">
-                          <AlertCircle className="w-3 h-3" />
-                          Suspended
-                        </span>
-                      )}
-                      {!vehicle.isSuspended && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-full text-xs font-medium">
-                          <CheckCircle className="w-3 h-3" />
-                          Active
-                        </span>
-                      )}
+                    <div className="bg-slate-50 p-3 rounded-lg">
+                      <span className="block text-xs font-medium text-slate-500 uppercase">Added</span>
+                      <span className="block font-bold text-slate-900">{vehicle.createdAt ? new Date(vehicle.createdAt).toLocaleDateString() : 'N/A'}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2 text-sm">
-                  {vehicle.grossWeightCategory && (
-                    <div className="flex items-center gap-2 text-[var(--color-muted)]">
-                      <Weight className="w-4 h-4 flex-shrink-0" />
-                      <span>{getWeightCategoryLabel(vehicle.grossWeightCategory)}</span>
-                    </div>
-                  )}
-                  {vehicle.createdAt && (
-                    <div className="flex items-center gap-2 text-[var(--color-muted)] text-xs pt-2 border-t border-[var(--color-border)]">
-                      <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span>Added: {formatDate(vehicle.createdAt)}</span>
-                    </div>
-                  )}
+                <div className="mt-auto">
+                  <Link
+                    href={`/dashboard/new-filing?vehicleId=${vehicle.id}`}
+                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-slate-50 text-slate-700 font-semibold text-sm hover:bg-[var(--color-orange)] hover:text-white transition-all duration-200"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Use for Filing
+                  </Link>
                 </div>
               </div>
             ))}
