@@ -1,175 +1,197 @@
+'use client';
+
 import Link from 'next/link';
 import { blogPosts } from './blogData';
-
-export const metadata = {
-  title: 'Form 2290 Blog - Expert HVUT Filing Guides & Tips',
-  description: 'Comprehensive guides on IRS Form 2290 filing, HVUT deadlines, common mistakes, e-filing tips, and trucking tax compliance. Stay updated with the latest 2026 regulations.',
-  keywords: 'Form 2290 blog, HVUT guides, IRS Form 2290 tips, heavy vehicle use tax, trucking tax blog, Form 2290 deadline, e-file HVUT',
-  alternates: {
-    canonical: 'https://www.quicktrucktax.com/blog',
-  },
-  robots: {
-    index: true,
-    follow: true,
-    nocache: false,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-  openGraph: {
-    title: 'Form 2290 Blog - Expert HVUT Filing Guides & Tips',
-    description: 'Comprehensive guides on IRS Form 2290 filing, HVUT deadlines, and trucking tax compliance.',
-    url: 'https://www.quicktrucktax.com/blog',
-    siteName: 'QuickTruckTax',
-    type: 'website',
-    locale: 'en_US',
-    images: [
-      {
-        url: 'https://www.quicktrucktax.com/quicktrucktax-logo.png',
-        width: 1280,
-        height: 720,
-        alt: 'QuickTruckTax Blog - Form 2290 & HVUT Guides',
-        type: 'image/png',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    site: '@quicktrucktax',
-    creator: '@quicktrucktax',
-    title: 'Form 2290 Blog - Expert HVUT Filing Guides',
-    description: 'Comprehensive guides on IRS Form 2290 filing and trucking tax compliance.',
-    images: ['https://www.quicktrucktax.com/quicktrucktax-logo.png'],
-  },
-};
-
-const categories = ['All', 'Getting Started', 'Tips & Tricks', 'Deadlines', 'Owner-Operators', 'Tax Savings', 'Fleet Management', 'Basics', 'Refunds & Credits', 'Compliance', 'Technology', 'Industry Specific', 'Troubleshooting', 'Tax Rates', 'E-Filing', 'Penalties', 'Vehicle Acquisition', 'Tax Planning'];
+import { useState, useMemo } from 'react';
 
 export default function BlogPage() {
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Extract unique categories from all blog posts
+  const categories = useMemo(() => {
+    const uniqueCategories = new Set(blogPosts.map(post => post.category));
+    return ['All', ...Array.from(uniqueCategories).sort()];
+  }, []);
+
+  // Filter posts based on category and search query
+  const filteredPosts = useMemo(() => {
+    return blogPosts.filter(post => {
+      // If there's a search query, search globally (ignore category filter)
+      if (searchQuery) {
+        return post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          post.keywords?.some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()));
+      }
+
+      // If no search query, apply category filter
+      return selectedCategory === 'All' || post.category === selectedCategory;
+    });
+  }, [selectedCategory, searchQuery]);
+
   return (
     <div className="min-h-screen bg-[var(--color-page)]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy-soft)] text-white py-16">
+      <section className="bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy-soft)] text-white py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 className="text-5xl font-bold mb-4">Form 2290 Expert Blog</h1>
-          <p className="text-xl mb-6 max-w-3xl">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3">Form 2290 Expert Blog</h1>
+          <p className="text-lg md:text-xl mb-4 max-w-3xl">
             Your comprehensive resource for IRS Form 2290 filing, HVUT compliance, and trucking tax strategies.
-            Stay informed with expert guides, tips, and 2026 updates.
           </p>
-          <div className="flex flex-wrap gap-4">
-            <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
-              <div className="text-2xl font-bold">20+</div>
-              <div className="text-sm">Expert Guides</div>
+          <div className="flex flex-wrap gap-3">
+            <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
+              <div className="text-xl font-bold">{blogPosts.length}</div>
+              <div className="text-xs">Articles</div>
             </div>
-            <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
-              <div className="text-2xl font-bold">50K+</div>
-              <div className="text-sm">Monthly Readers</div>
-            </div>
-            <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
-              <div className="text-2xl font-bold">2026</div>
-              <div className="text-sm">Updated Content</div>
+            <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
+              <div className="text-xl font-bold">{categories.length - 1}</div>
+              <div className="text-xs">Categories</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Search and Filter Section */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-4">Find What You Need</h2>
-          <p className="text-base text-[var(--color-muted)] mb-6">
-            Browse our comprehensive collection of Form 2290 and trucking compliance articles. Use the categories below to filter by topic, or scroll through all articles to discover new insights.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <button
-                key={category}
-                className="px-4 py-2 rounded-full bg-[var(--color-navy)]/10 text-[var(--color-navy)] hover:bg-[var(--color-navy)]/20 transition-colors font-medium"
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="bg-[var(--color-card)] rounded-lg shadow-md p-6 mb-8 border border-[var(--color-border)]">
-          <h2 className="text-2xl font-bold mb-4 text-[var(--color-text)]">Expert Insights for Trucking Professionals</h2>
-          <div className="space-y-4 text-base leading-7 text-[var(--color-muted)]">
-            <p>
-              Our blog covers everything from Form 2290 filing basics to advanced compliance strategies. Whether you're an owner-operator managing your own HVUT filings or a fleet manager coordinating compliance across hundreds of vehicles, you'll find actionable advice, deadline reminders, and expert tips.
-            </p>
-            <p>
-              Articles are written by compliance experts and updated regularly to reflect the latest IRS regulations, FMCSA requirements, and industry best practices. Each post includes practical examples, common pitfalls to avoid, and links to official resources and tools.
-            </p>
-            <div className="grid gap-4 sm:grid-cols-3 pt-4 border-t border-[var(--color-border)]">
-              <div>
-                <h3 className="font-semibold text-[var(--color-text)] mb-2">Filing Guides</h3>
-                <p className="text-sm">
-                  Step-by-step instructions for Form 2290, UCR, MCS-150, and IFTA filings with screenshots and examples.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-[var(--color-text)] mb-2">Deadline Reminders</h3>
-                <p className="text-sm">
-                  Stay ahead of critical compliance deadlines with our calendar guides and reminder strategies.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-[var(--color-text)] mb-2">Tax Strategies</h3>
-                <p className="text-sm">
-                  Learn how to minimize tax liability, claim credits, and optimize your compliance workflow.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Blog Grid */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {blogPosts.map((post) => (
-            <Link
-              key={post.id}
-              href={`/blog/${post.id}`}
-              className="bg-[var(--color-card)] rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden group border border-[var(--color-border)]"
+      {/* Search Section */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+        <div className="bg-white rounded-lg shadow-md p-4">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search by title, topic, or keyword..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] focus:border-transparent outline-none transition-all"
+            />
+            <svg
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <div className="bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy)] p-6 text-white">
-                <div className="text-sm font-semibold mb-2 text-[var(--color-sky)]">{post.category}</div>
-                <h3 className="text-xl font-bold mb-2 group-hover:underline">{post.title}</h3>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      {/* Mobile Category Dropdown - Shows below search on mobile */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 lg:hidden mb-6">
+        <div className="bg-white rounded-lg shadow-md p-4">
+          <label htmlFor="mobile-category" className="block text-sm font-semibold text-gray-700 mb-2">
+            Filter by Category
+          </label>
+          <select
+            id="mobile-category"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] focus:border-transparent outline-none transition-all bg-white text-[var(--color-navy)] font-medium"
+          >
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category} {category === 'All' ? `(${blogPosts.length})` : `(${blogPosts.filter(p => p.category === category).length})`}
+              </option>
+            ))}
+          </select>
+          <div className="text-sm text-[var(--color-muted)] mt-3">
+            <span className="font-bold text-[var(--color-navy)]">{filteredPosts.length}</span> of {blogPosts.length} articles
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content with Sidebar */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left Sidebar - Filters */}
+          <aside className="hidden lg:block lg:w-64 flex-shrink-0">
+            <div className="bg-white rounded-lg shadow-md p-5 lg:sticky lg:top-4">
+              <h3 className="text-lg font-bold mb-3">Categories</h3>
+
+              {/* Results Counter */}
+              <div className="text-sm text-[var(--color-muted)] mb-4 pb-3 border-b border-gray-200">
+                <span className="font-bold text-[var(--color-navy)]">{filteredPosts.length}</span> of {blogPosts.length} articles
               </div>
-              <div className="p-6">
-                <p className="text-[var(--color-muted)] mb-4">{post.excerpt}</p>
-                <div className="flex justify-between items-center text-sm text-gray-500">
-                  <span>{post.readTime} read</span>
-                  <span>{post.date}</span>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {post.keywords.slice(0, 3).map((keyword, idx) => (
-                    <span key={idx} className="text-xs bg-[var(--color-page-alt)] text-[var(--color-navy)] px-2 py-1 rounded font-medium">
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
+
+              {/* Category List */}
+              <div className="space-y-1.5 max-h-[500px] overflow-y-auto pr-1">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all ${selectedCategory === category
+                      ? 'bg-[var(--color-navy)] text-white shadow-md'
+                      : 'bg-gray-50 text-[var(--color-navy)] hover:bg-gray-100'
+                      }`}
+                  >
+                    {category}
+                  </button>
+                ))}
               </div>
-            </Link>
-          ))}
+            </div>
+          </aside>
+
+          {/* Right Content - Blog Grid */}
+          <div className="flex-1 min-w-0">
+            {filteredPosts.length > 0 ? (
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {filteredPosts.map((post) => (
+                  <Link
+                    key={post.id}
+                    href={`/blog/${post.id}`}
+                    className="bg-[var(--color-card)] rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden group border border-[var(--color-border)] flex flex-col"
+                  >
+                    <div className="bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy)] p-4 text-white">
+                      <div className="text-xs font-semibold mb-1.5 text-[var(--color-sky)]">{post.category}</div>
+                      <h3 className="text-base font-bold group-hover:underline line-clamp-2">{post.title}</h3>
+                    </div>
+                    <div className="p-4 flex-1 flex flex-col">
+                      <p className="text-[var(--color-muted)] mb-3 text-sm line-clamp-3 flex-1">{post.excerpt}</p>
+                      <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
+                        <span>{post.readTime}</span>
+                        <span>{post.date}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {post.keywords?.slice(0, 2).map((keyword, idx) => (
+                          <span key={idx} className="text-xs bg-[var(--color-page-alt)] text-[var(--color-navy)] px-2 py-0.5 rounded font-medium truncate">
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-white rounded-lg shadow-md">
+                <div className="text-6xl mb-4">🔍</div>
+                <h3 className="text-2xl font-bold mb-2 text-[var(--color-text)]">No Articles Found</h3>
+                <p className="text-[var(--color-muted)] mb-6">
+                  No articles match your current filters. Try adjusting your search or category selection.
+                </p>
+                <button
+                  onClick={() => {
+                    setSelectedCategory('All');
+                    setSearchQuery('');
+                  }}
+                  className="bg-[var(--color-navy)] text-white px-6 py-3 rounded-lg font-bold hover:bg-[var(--color-navy)]/90 transition-colors"
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy-soft)] text-white py-16">
+      <section className="bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy-soft)] text-white py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold mb-4">Ready to File Your Form 2290?</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
+          <h2 className="text-3xl font-bold mb-3">Ready to File Your Form 2290?</h2>
+          <p className="text-lg mb-6 max-w-2xl mx-auto opacity-90">
             Stop reading, start filing! E-file your Form 2290 in minutes and get your Schedule 1 instantly.
           </p>
           <Link
             href="/tools/hvut-calculator"
-            className="inline-block bg-[var(--color-orange)] text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-[var(--color-orange)]/90 transition-colors shadow-lg"
+            className="inline-block bg-[var(--color-orange)] text-white px-8 py-3 rounded-lg font-bold hover:bg-[var(--color-orange)]/90 transition-colors shadow-lg"
           >
             Calculate Your HVUT Tax Now →
           </Link>
@@ -178,4 +200,3 @@ export default function BlogPage() {
     </div>
   );
 }
-
