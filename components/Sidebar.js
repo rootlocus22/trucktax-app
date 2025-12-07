@@ -209,8 +209,8 @@ export function Sidebar({ children }) {
           </>
         )}
 
-        {/* Content wrapper - Flex Child */}
-        <div className="flex-1 h-full min-w-0 overflow-hidden flex flex-col relative w-full">
+        {/* Content wrapper - Flex Child - Scrollable by default */}
+        <div className="flex-1 h-full min-w-0 overflow-y-auto overflow-x-hidden flex flex-col relative w-full">
           {children}
         </div>
       </div>

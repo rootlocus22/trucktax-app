@@ -139,11 +139,11 @@ export default function DashboardPage() {
         ) : (
           <div className="flex-1 flex overflow-hidden">
             {/* Main Content Area - Scrollable if needed */}
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 no-scrollbar">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="max-w-6xl mx-auto">
                 {/* Stats Row - Compact */}
-                {hasFilings && (
-                  <div className="grid grid-cols-4 gap-3 flex-shrink-0">
+                {(hasFilings || hasIncomplete) && (
+                  <div className="grid grid-cols-4 gap-3 mb-4 flex-shrink-0">
                     {[
                       { label: 'Total', value: stats.total, color: 'slate', icon: FileText },
                       { label: 'Completed', value: stats.completed, color: 'emerald', icon: CheckCircle },
@@ -220,7 +220,7 @@ export default function DashboardPage() {
 
                 {/* Empty State - Beautiful & Engaging */}
                 {!hasFilings && !hasIncomplete && (
-                  <div className="flex-1 flex items-start justify-center overflow-y-auto py-4">
+                  <div className="flex items-start justify-center py-4">
                     <div className="text-center max-w-4xl px-6 w-full">
                       {/* Hero Illustration - Smaller */}
                       <div className="relative mb-6">
@@ -425,7 +425,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Right Sidebar - Fixed, Scrollable */}
-            <div className="hidden xl:block w-80 border-l border-[var(--color-border)] bg-white overflow-y-auto flex-shrink-0 no-scrollbar">
+            <div className="hidden xl:block w-80 border-l border-[var(--color-border)] bg-white overflow-y-auto flex-shrink-0">
               <div className="p-4 space-y-4">
                 {/* Action Required - Compact */}
                 {stats.actionRequired > 0 && (
