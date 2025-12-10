@@ -69,6 +69,13 @@ const tools = [
       "Track HVUT, UCR, IFTA, and estimated tax deadlines with a ready-to-import calendar for your safety team.",
     href: "/insights/trucking-compliance-calendar",
   },
+  {
+    name: "IFTA Fuel Tax Calculator",
+    description:
+      "Calculate your quarterly IFTA fuel tax liability automatically. Supports mixed-state mileage and AI receipt scanning.",
+    href: "/tools/ifta-calculator",
+    badge: "AI Powered",
+  },
 ];
 
 export default function ToolsIndex() {

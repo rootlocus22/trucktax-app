@@ -3,6 +3,7 @@ import { generateStatePosts } from './stateData';
 import { generateVehiclePosts } from './vehicleData';
 import { generateCityPosts } from './cityData';
 import { generateTopicPosts } from './topicData';
+import { iftaPosts } from './iftaData';
 
 const statePosts = generateStatePosts();
 const vehiclePosts = generateVehiclePosts();
@@ -14,6 +15,7 @@ export const blogPosts = [
   ...vehiclePosts,
   ...cityPosts,
   ...topicPosts,
+  ...iftaPosts,
   {
     id: 'truckers-guide-dot-audits-record-keeping',
     title: 'The Trucker\'s Guide to DOT Audits and Record Keeping',
