@@ -103,10 +103,10 @@ export default function Home() {
                 The #1 Compliance Resource
               </div>
               <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl drop-shadow-lg">
-                Master Your Trucking Taxes & Compliance.
+                Master Form 2290 Filing & Trucking Compliance.
               </h1>
               <p className="text-lg leading-8 text-white/90 sm:text-xl max-w-2xl drop-shadow-md">
-                Don't let the IRS or FMCSA slow you down. Get expert guides for Form 2290, IFTA, and UCR filings—all in one place.
+                Don't let the IRS or FMCSA slow you down. E-file Form 2290 online and get expert guides for IFTA and UCR filings—all in one place.
               </p>
 
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -171,7 +171,7 @@ export default function Home() {
                 <div className="flex-shrink-0 h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold">✓</div>
                 <div>
                   <h3 className="font-bold text-lg text-[var(--color-text)]">Mobile Optimized</h3>
-                  <p className="text-[var(--color-muted)]">File your taxes and check compliance from your phone, tablet, or laptop.</p>
+                  <p className="text-[var(--color-muted)]">E-file Form 2290 and check compliance from your phone, tablet, or laptop.</p>
                 </div>
               </li>
               <li className="flex gap-4">

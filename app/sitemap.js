@@ -18,6 +18,7 @@ export default function sitemap() {
     { path: "/insights", priority: 0.9, changeFrequency: "weekly" },
     { path: "/tools", priority: 0.8, changeFrequency: "weekly" },
     { path: "/tools/hvut-calculator", priority: 0.8, changeFrequency: "monthly" },
+    { path: "/tools/ifta-calculator", priority: 0.8, changeFrequency: "monthly" },
   ].map(({ path, priority, changeFrequency }) => ({
     url: `${baseUrl}${path || "/"}`,
     lastModified: now,
