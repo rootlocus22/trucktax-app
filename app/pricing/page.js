@@ -121,8 +121,8 @@ export default function PricingPage() {
             <div
               key={index}
               className={`bg-[var(--color-card)] rounded-2xl border transition-all duration-300 hover:-translate-y-1 ${tier.popular
-                  ? 'border-[var(--color-orange)] shadow-xl ring-1 ring-[var(--color-orange)]/20 relative z-10'
-                  : 'border-[var(--color-border)] shadow-sm hover:shadow-md'
+                ? 'border-[var(--color-orange)] shadow-xl ring-1 ring-[var(--color-orange)]/20 relative z-10'
+                : 'border-[var(--color-border)] shadow-sm hover:shadow-md'
                 } p-6 flex flex-col`}
             >
               {tier.popular && (
@@ -168,8 +168,8 @@ export default function PricingPage() {
               <Link
                 href={tier.buttonHref}
                 className={`block w-full text-center py-3.5 rounded-xl font-bold text-sm transition-all duration-200 ${tier.popular
-                    ? 'bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white shadow-lg hover:shadow-orange-500/25 hover:scale-[1.02]'
-                    : 'bg-[var(--color-page-alt)] text-[var(--color-text)] hover:bg-[var(--color-border)] hover:text-black border border-transparent'
+                  ? 'bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white shadow-lg hover:shadow-orange-500/25 hover:scale-[1.02]'
+                  : 'bg-[var(--color-page-alt)] text-[var(--color-text)] hover:bg-[var(--color-border)] hover:text-black border border-transparent'
                   }`}
               >
                 {tier.buttonText}
@@ -225,6 +225,45 @@ export default function PricingPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Optional Add-Ons Section */}
+      <div className="mb-20">
+        <h2 className="text-2xl font-bold text-center text-[var(--color-text)] mb-8">
+          Optional Add-Ons
+        </h2>
+        <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-8 shadow-sm flex flex-col md:flex-row items-center gap-8">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <ShieldCheck className="w-8 h-8 text-blue-600" />
+          </div>
+          <div className="flex-1 text-center md:text-left">
+            <h3 className="text-xl font-bold text-[var(--color-text)] mb-2">
+              DOT Compliance Update (MCS-150)
+            </h3>
+            <p className="text-[var(--color-muted)] mb-2">
+              Mandatory biennial update for all USDOT numbers. Avoid deactivation and keep your trucks on the road.
+              We handle the complex FMCSA portal coordination for you.
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center md:justify-start mt-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                <CheckCircle className="w-3 h-3" />
+                Prevents Deactivation
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                <CheckCircle className="w-3 h-3" />
+                Concierge Filing
+              </span>
+            </div>
+          </div>
+          <div className="text-center flex-shrink-0">
+            <span className="text-3xl font-bold text-[var(--color-text)] block">
+              $49.00
+            </span>
+            <span className="text-sm text-[var(--color-muted)]">
+              / update
+            </span>
           </div>
         </div>
       </div>

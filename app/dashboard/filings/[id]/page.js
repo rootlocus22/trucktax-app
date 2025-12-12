@@ -293,6 +293,7 @@ export default function FilingDetailPage() {
 
   const statusConfig = getStatusConfig(filing.status);
   const StatusIcon = statusConfig.icon;
+  const isMcs150 = filing.filingType === 'mcs150';
 
   return (
     <ProtectedRoute>
@@ -378,6 +379,9 @@ export default function FilingDetailPage() {
                   ? 'We need some additional information to proceed. Please check the notes below.'
                   : filing.status === 'completed'
                     ? (() => {
+                      if (isMcs150) {
+                        return 'Success! Your MCS-150 Biennial Update has been processed by the FMCSA. Your USDOT registration is active.';
+                      }
                       if (filing.filingType === 'amendment') {
                         if (filing.amendmentType === 'vin_correction') {
                           return 'Great news! Your VIN correction amendment has been accepted by the IRS. Your corrected Schedule 1 is ready.';
@@ -396,6 +400,9 @@ export default function FilingDetailPage() {
                       return 'Great news! Your Form 2290 has been accepted by the IRS. Your Schedule 1 is ready.';
                     })()
                     : (() => {
+                      if (isMcs150) {
+                        return 'We are submitting your MCS-150 update to the FMCSA. This usually takes less than 24 hours.';
+                      }
                       if (filing.filingType === 'amendment') {
                         if (filing.amendmentType === 'vin_correction') {
                           return 'We are processing your VIN correction amendment. No additional tax is due for this correction.';
@@ -431,7 +438,9 @@ export default function FilingDetailPage() {
                         : 'Download Amended Schedule 1')
                       : filing.filingType === 'refund'
                         ? 'Download Schedule 1'
-                        : 'Download Schedule 1'}
+                        : isMcs150
+                          ? 'Download Confirmation'
+                          : 'Download Schedule 1'}
                   </a>
                 ) : filing.status === 'action_required' ? (
                   <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-orange-200 text-orange-800 text-sm font-medium">
@@ -703,9 +712,9 @@ export default function FilingDetailPage() {
 
           {/* Filing Details */}
           <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar className="w-4 h-4 text-[var(--color-navy)]" />
-              <h2 className="text-sm font-semibold text-[var(--color-text)]">Filing Details</h2>
+            <div className={`flex items-center gap-2 mb-3`}>
+              {isMcs150 ? <Truck className="w-4 h-4 text-teal-600" /> : <Calendar className="w-4 h-4 text-[var(--color-navy)]" />}
+              <h2 className="text-sm font-semibold text-[var(--color-text)]">{isMcs150 ? 'Operations Data' : 'Filing Details'}</h2>
             </div>
             <div className="space-y-2.5 text-xs">
               <div className="flex items-start justify-between gap-2">
@@ -717,32 +726,53 @@ export default function FilingDetailPage() {
                         : filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded Amendment'
                           : 'Amendment')
                     : filing.filingType === 'refund' ? 'Refund (Form 8849)'
-                      : 'Standard Filing'}
+                      : isMcs150 ? 'MCS-150 Update'
+                        : 'Standard Filing'}
                 </span>
               </div>
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-[var(--color-muted)] min-w-[120px]">Tax Year:</span>
-                <span className="text-[var(--color-text)] font-medium">{filing.taxYear}</span>
-              </div>
-              {filing.filingType !== 'amendment' && (
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-[var(--color-muted)] min-w-[120px]">First Used:</span>
-                  <span className="text-[var(--color-text)] font-medium">{filing.firstUsedMonth}</span>
-                </div>
+
+              {isMcs150 ? (
+                <>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[120px]">USDOT Number:</span>
+                    <span className="text-[var(--color-text)] font-medium">{filing.mcs150UsdotNumber || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[120px]">Update Reason:</span>
+                    <span className="text-[var(--color-text)] font-medium capitalize">{filing.mcs150Reason?.replace(/_/g, ' ') || 'Biennial Update'}</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[120px]">Power Units:</span>
+                    <span className="text-[var(--color-text)] font-medium">{filing.mcs150Data?.powerUnits || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[120px]">Total Drivers:</span>
+                    <span className="text-[var(--color-text)] font-medium">{filing.mcs150Data?.drivers?.total || 'N/A'}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[120px]">Tax Year:</span>
+                    <span className="text-[var(--color-text)] font-medium">{filing.taxYear}</span>
+                  </div>
+                  {filing.filingType !== 'amendment' && (
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[var(--color-muted)] min-w-[120px]">First Used:</span>
+                      <span className="text-[var(--color-text)] font-medium">{filing.firstUsedMonth}</span>
+                    </div>
+                  )}
+                </>
               )}
+
               {filing.createdAt && (
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-[var(--color-muted)] min-w-[120px]">Submitted:</span>
                   <span className="text-[var(--color-text)]">
-                    {filing.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </span>
-                </div>
-              )}
-              {filing.updatedAt && (
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-[var(--color-muted)] min-w-[120px]">Last Updated:</span>
-                  <span className="text-[var(--color-text)]">
-                    {filing.updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {filing.createdAt && typeof filing.createdAt.toLocaleDateString === 'function'
+                      ? filing.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : new Date(filing.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                    }
                   </span>
                 </div>
               )}

@@ -82,6 +82,13 @@ function NewFilingContent() {
     isAgriculturalVehicle: false
   });
 
+  // MCS-150 Upsell State
+  const [mcs150Upgrade, setMcs150Upgrade] = useState(false);
+  const [dotPin, setDotPin] = useState('');
+  const [usdotNumber, setUsdotNumber] = useState('');
+  const [mileageStats, setMileageStats] = useState('');
+  const [needPinService, setNeedPinService] = useState(false);
+
 
   // Step 4: Documents
   const [documents, setDocuments] = useState([]);
@@ -634,6 +641,9 @@ function NewFilingContent() {
         return;
       }
 
+      // Calculate MCS Price
+      const mcs150Price = mcs150Upgrade ? (needPinService ? 69 : 49) : 0;
+
       // Create filing
       const filingId = await createFiling({
         userId: user.uid,
@@ -643,6 +653,12 @@ function NewFilingContent() {
         firstUsedMonth: filingData.firstUsedMonth,
         filingType: filingType, // Add filing type
         status: 'submitted', // Or 'pending_payment' if we had real payments
+        mcs150Status: mcs150Upgrade ? 'submitted' : null,
+        mcs150Pin: mcs150Upgrade && !needPinService ? dotPin : null,
+        mcs150Price: mcs150Price,
+        needPinService: mcs150Upgrade ? needPinService : false,
+        mcs150UsdotNumber: mcs150Upgrade ? usdotNumber : null,
+        mcs150MileageStats: mcs150Upgrade ? mileageStats : null,
         // Add compliance data
         compliance: {
           signature: signature,
@@ -2258,6 +2274,8 @@ function NewFilingContent() {
                     </div>
                   </>
                 )}
+
+                {/* MCS-150 Upsell Removed - Moved to dedicated workflow */}
               </div>
 
               {/* Payment Column */}
@@ -2298,11 +2316,27 @@ function NewFilingContent() {
                           <span className="text-white/80">Sales Tax (Est.)</span>
                           <span className="font-bold">${pricing.salesTax.toFixed(2)}</span>
                         </div>
+
+                        {/* MCS-150 Add-ons */}
+                        {mcs150Upgrade && (
+                          <div className="flex justify-between text-blue-200 pt-2 border-t border-white/10 mt-2">
+                            <span className="text-white/80">DOT Compliance</span>
+                            <span className="font-bold">$49.00</span>
+                          </div>
+                        )}
+                        {mcs150Upgrade && needPinService && (
+                          <div className="flex justify-between text-orange-200">
+                            <span className="text-white/80">PIN Retrieval</span>
+                            <span className="font-bold">$20.00</span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex justify-between items-end mb-8">
                         <span className="text-lg font-bold">Total</span>
-                        <span className="text-3xl font-bold">${pricing.grandTotal.toFixed(2)}</span>
+                        <span className="text-3xl font-bold">
+                          ${(pricing.grandTotal + (mcs150Upgrade ? (needPinService ? 69 : 49) : 0)).toFixed(2)}
+                        </span>
                       </div>
                     </>
                   )}
