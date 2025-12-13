@@ -733,7 +733,7 @@ function NewFilingContent() {
 
   return (
     <ProtectedRoute>
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Header */}
         <div className="mb-10 w-full">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
@@ -765,12 +765,18 @@ function NewFilingContent() {
               ))}
             </div>
           </div>
-          {/* Mobile Progress Bar */}
-          <div className="md:hidden h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[var(--color-orange)] transition-all duration-500 ease-out"
-              style={{ width: `${(step / 5) * 100}%` }}
-            />
+          {/* Mobile Progress Bar with Label */}
+          <div className="md:hidden mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-bold text-slate-900">Step {step} of 5</span>
+              <span className="text-sm font-medium text-[var(--color-orange)]">{getStepTitle(step)}</span>
+            </div>
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[var(--color-orange)] transition-all duration-500 ease-out"
+                style={{ width: `${(step / 5) * 100}%` }}
+              />
+            </div>
           </div>
         </div>
 
@@ -852,13 +858,13 @@ function NewFilingContent() {
           <div className="space-y-6">
             {/* Step 1: Filing Type */}
             {step === 1 && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-                <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+              <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-8 shadow-sm">
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
                   <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 text-sm font-bold">1</span>
                   Select Filing Type
                 </h2>
 
-                <div className="grid gap-6 md:grid-cols-3">
+                <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-3">
                   <button
                     onClick={() => {
                       setFilingType('standard');
@@ -1466,8 +1472,8 @@ function NewFilingContent() {
 
             {/* Step 2: Business (skip for amendments, renumber for non-amendments) */}
             {step === 2 && filingType !== 'amendment' && (
-              <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-8 shadow-sm">
-                <h2 className="text-2xl font-semibold text-[var(--color-text)] mb-6">Business Information</h2>
+              <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-5 sm:p-8 shadow-sm">
+                <h2 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)] mb-6">Business Information</h2>
 
                 {/* Existing Businesses List */}
                 {!showBusinessForm && businesses.length > 0 && (
@@ -1475,7 +1481,7 @@ function NewFilingContent() {
                     <label className="block text-sm font-bold text-[var(--color-text)] mb-3">
                       Select Business
                     </label>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                       {businesses.map((business) => (
                         <button
                           key={business.id}
@@ -1551,7 +1557,7 @@ function NewFilingContent() {
                           type="text"
                           value={newBusiness.businessName}
                           onChange={(e) => handleBusinessChange('businessName', e.target.value)}
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.businessName ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.businessName ? 'border-red-500' : 'border-[var(--color-border)]'}`}
                           placeholder="ABC Trucking LLC"
                         />
                         {businessErrors.businessName && (
@@ -1568,7 +1574,7 @@ function NewFilingContent() {
                           type="text"
                           value={newBusiness.ein}
                           onChange={(e) => handleBusinessChange('ein', e.target.value)}
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.ein ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.ein ? 'border-red-500' : 'border-[var(--color-border)]'}`}
                           placeholder="12-3456789"
                           maxLength="10"
                         />
@@ -1586,7 +1592,7 @@ function NewFilingContent() {
                           type="text"
                           value={newBusiness.address}
                           onChange={(e) => handleBusinessChange('address', e.target.value)}
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.address ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.address ? 'border-red-500' : 'border-[var(--color-border)]'}`}
                           placeholder="123 Main St, City, State ZIP"
                         />
                         {businessErrors.address && (
@@ -1603,7 +1609,7 @@ function NewFilingContent() {
                           type="tel"
                           value={newBusiness.phone}
                           onChange={(e) => handleBusinessChange('phone', e.target.value)}
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.phone ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.phone ? 'border-red-500' : 'border-[var(--color-border)]'}`}
                           placeholder="(555) 123-4567"
                         />
                         {businessErrors.phone && (
@@ -1612,7 +1618,7 @@ function NewFilingContent() {
                           </p>
                         )}
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
                           <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
                             Signing Authority Name
@@ -1621,7 +1627,7 @@ function NewFilingContent() {
                             type="text"
                             value={newBusiness.signingAuthorityName}
                             onChange={(e) => setNewBusiness({ ...newBusiness, signingAuthorityName: e.target.value })}
-                            className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)]"
+                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)]"
                             placeholder="John Doe"
                           />
                         </div>
@@ -1633,7 +1639,7 @@ function NewFilingContent() {
                             type="text"
                             value={newBusiness.signingAuthorityTitle}
                             onChange={(e) => setNewBusiness({ ...newBusiness, signingAuthorityTitle: e.target.value })}
-                            className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)]"
+                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)]"
                             placeholder="Owner, President, etc."
                           />
                         </div>
@@ -1678,11 +1684,11 @@ function NewFilingContent() {
 
             {/* Step 3: Vehicles */}
             {step === 3 && (
-              <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-8 shadow-sm">
-                <h2 className="text-2xl font-semibold text-[var(--color-text)] mb-6">Vehicle Information</h2>
+              <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-5 sm:p-8 shadow-sm">
+                <h2 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)] mb-6">Vehicle Information</h2>
 
                 {/* Tax Year & Month Selection - Moved here for better context */}
-                <div className="grid grid-cols-2 gap-6 mb-8 p-4 bg-[var(--color-page-alt)] rounded-xl border border-[var(--color-border)]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 p-4 sm:p-6 bg-[var(--color-page-alt)] rounded-xl border border-[var(--color-border)]">
                   <div>
                     <label className="block text-sm font-bold text-[var(--color-text)] mb-2">
                       Tax Year
@@ -1690,7 +1696,7 @@ function NewFilingContent() {
                     <select
                       value={filingData.taxYear}
                       onChange={(e) => setFilingData({ ...filingData, taxYear: e.target.value })}
-                      className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] bg-white"
+                      className="w-full px-4 py-2 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] bg-white"
                     >
                       <option value="2025-2026">2025-2026 (Current)</option>
                       <option value="2024-2025">2024-2025</option>
@@ -1703,7 +1709,7 @@ function NewFilingContent() {
                     <select
                       value={filingData.firstUsedMonth}
                       onChange={(e) => setFilingData({ ...filingData, firstUsedMonth: e.target.value })}
-                      className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] bg-white"
+                      className="w-full px-4 py-2 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] bg-white"
                     >
                       {['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June'].map(m => (
                         <option key={m} value={m}>{m}</option>
@@ -1839,7 +1845,7 @@ function NewFilingContent() {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-[var(--color-page-alt)] rounded-xl border border-[var(--color-border)]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 p-4 sm:p-6 bg-[var(--color-page-alt)] rounded-xl border border-[var(--color-border)]">
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <label className="block text-sm font-medium text-[var(--color-text)]">
@@ -1856,7 +1862,7 @@ function NewFilingContent() {
                           type="text"
                           value={newVehicle.vin}
                           onChange={(e) => handleVehicleChange('vin', e.target.value)}
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono uppercase ${vehicleErrors.vin ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono uppercase ${vehicleErrors.vin ? 'border-red-500' : 'border-[var(--color-border)]'}`}
                           placeholder="1HGBH41JXMN109186"
                           maxLength="17"
                         />
@@ -1887,7 +1893,7 @@ function NewFilingContent() {
                         <select
                           value={newVehicle.grossWeightCategory}
                           onChange={(e) => setNewVehicle({ ...newVehicle, grossWeightCategory: e.target.value })}
-                          className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] bg-white appearance-none"
+                          className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] bg-white appearance-none"
                         >
                           <option value="">Select weight category...</option>
                           <option value="A">A: 55,000 - 55,999 lbs ($100)</option>
