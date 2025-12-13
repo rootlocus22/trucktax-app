@@ -13,8 +13,233 @@ import { calculateFilingCost } from '@/app/actions/pricing'; // Server Action
 import { calculateTax, calculateRefundAmount, calculateWeightIncreaseAdditionalTax, calculateMileageExceededTax } from '@/lib/pricing'; // Keep for client-side estimation only
 import { validateBusinessName, validateEIN, formatEIN, validateVIN, validateAddress, validatePhone } from '@/lib/validation';
 import { validateVINCorrection, validateWeightIncrease, validateMileageExceeded, calculateWeightIncreaseDueDate, getAmendmentTypeConfig } from '@/lib/amendmentHelpers';
-import { FileText, AlertTriangle, RefreshCw, Truck, Info, CreditCard, CheckCircle, ShieldCheck, AlertCircle, RotateCcw, Clock, Building2 } from 'lucide-react';
+import { FileText, AlertTriangle, RefreshCw, Truck, Info, CreditCard, CheckCircle, ShieldCheck, AlertCircle, RotateCcw, Clock, Building2, ChevronUp, Loader2 } from 'lucide-react';
 import { PricingSidebar } from '@/components/PricingSidebar';
+
+// Mobile Pricing Summary Component - Sticky Bottom
+function MobilePricingSummary({
+  filingType,
+  filingData,
+  selectedVehicleIds,
+  vehicles,
+  selectedBusinessId,
+  businesses,
+  amendmentType,
+  weightIncreaseData,
+  mileageExceededData,
+  step,
+  onContinue,
+  onSubmit,
+  loading = false,
+  hideSubmitButton = false
+}) {
+  const [pricing, setPricing] = useState({
+    totalTax: 0,
+    serviceFee: 0,
+    salesTax: 0,
+    grandTotal: 0,
+    totalRefund: 0
+  });
+  const [pricingLoading, setPricingLoading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    const fetchPricing = async () => {
+      if (!filingType || selectedVehicleIds.length === 0) {
+        setPricing({
+          totalTax: 0,
+          serviceFee: 0,
+          salesTax: 0,
+          grandTotal: 0,
+          totalRefund: 0
+        });
+        return;
+      }
+
+      const selectedVehiclesList = vehicles.filter(v => selectedVehicleIds.includes(v.id));
+      const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
+
+      let state = 'CA';
+      if (selectedBusiness?.address) {
+        const parts = selectedBusiness.address.split(',');
+        if (parts.length >= 2) {
+          const stateZip = parts[parts.length - 1].trim();
+          state = stateZip.split(' ')[0];
+        }
+      }
+
+      setPricingLoading(true);
+      try {
+        const filingDataForPricing = {
+          filingType,
+          firstUsedMonth: filingData?.firstUsedMonth || 'July'
+        };
+
+        let amendmentDataForPricing = null;
+        if (filingType === 'amendment' && amendmentType) {
+          filingDataForPricing.amendmentType = amendmentType;
+
+          if (amendmentType === 'weight_increase') {
+            amendmentDataForPricing = {
+              originalWeightCategory: weightIncreaseData?.originalWeightCategory,
+              newWeightCategory: weightIncreaseData?.newWeightCategory,
+              increaseMonth: weightIncreaseData?.increaseMonth
+            };
+          } else if (amendmentType === 'mileage_exceeded') {
+            const vehicle = vehicles.find(v => v.id === mileageExceededData?.vehicleId);
+            amendmentDataForPricing = {
+              vehicleCategory: vehicle?.grossWeightCategory || '',
+              firstUsedMonth: filingData?.firstUsedMonth || 'July'
+            };
+          } else if (amendmentType === 'vin_correction') {
+            amendmentDataForPricing = {};
+          }
+        }
+
+        if (amendmentDataForPricing !== null) {
+          filingDataForPricing.amendmentData = amendmentDataForPricing;
+        }
+
+        const sanitizedVehicles = selectedVehiclesList.map(v => ({
+          id: v.id,
+          vin: v.vin,
+          grossWeightCategory: v.grossWeightCategory,
+          isSuspended: v.isSuspended
+        }));
+
+        const { calculateFilingCost } = await import('@/app/actions/pricing');
+        const result = await calculateFilingCost(
+          filingDataForPricing,
+          sanitizedVehicles,
+          { state }
+        );
+
+        if (result.success) {
+          setPricing(result.breakdown);
+        }
+      } catch (err) {
+        console.error('Pricing fetch error:', err);
+      } finally {
+        setPricingLoading(false);
+      }
+    };
+
+    const timeoutId = setTimeout(fetchPricing, 300);
+    return () => clearTimeout(timeoutId);
+  }, [filingType, filingData, selectedVehicleIds, vehicles, selectedBusinessId, businesses, amendmentType, weightIncreaseData, mileageExceededData]);
+
+  const hasData = filingType && selectedVehicleIds.length > 0;
+  const vehicleCount = selectedVehicleIds.length;
+  const totalAmount = filingType === 'refund' ? pricing.totalRefund : pricing.grandTotal;
+
+  return (
+    <div className="w-full">
+      {/* Collapsed View - Always Visible */}
+      <div className="px-2 sm:px-3 md:px-4 py-2.5 sm:py-3">
+        <div className="flex items-center justify-between gap-2 sm:gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+              <span className="text-xs font-medium text-slate-500">Order Summary</span>
+              {vehicleCount > 0 && (
+                <span className="text-xs px-1.5 sm:px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-medium">
+                  {vehicleCount} {vehicleCount === 1 ? 'vehicle' : 'vehicles'}
+                </span>
+              )}
+            </div>
+            {pricingLoading ? (
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Loader2 className="w-3 h-3 animate-spin text-slate-400" />
+                <span className="text-xs text-slate-400">Calculating...</span>
+              </div>
+            ) : (
+              <div className="flex items-baseline gap-1.5 sm:gap-2">
+                <span className={`text-base sm:text-lg md:text-xl font-bold ${hasData && filingType === 'refund' ? 'text-emerald-600' : hasData ? 'text-slate-900' : 'text-slate-400'}`}>
+                  {hasData && filingType === 'refund' ? '+' : ''}${hasData ? totalAmount.toFixed(2) : '0.00'}
+                </span>
+                {hasData && filingType === 'amendment' && amendmentType === 'vin_correction' && (
+                  <span className="text-xs text-emerald-600 font-medium">FREE</span>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            {step === 5 && onSubmit && !hideSubmitButton && (
+              <button
+                onClick={onSubmit}
+                disabled={loading || !hasData}
+                className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-[var(--color-orange)] text-white rounded-lg text-xs sm:text-sm font-bold hover:bg-[#ff7a20] active:scale-95 transition touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-1.5 sm:gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                    <span className="hidden sm:inline">Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">Pay & Submit</span>
+                    <span className="sm:hidden">Pay</span>
+                    <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </>
+                )}
+              </button>
+            )}
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="p-1.5 sm:p-2 text-slate-600 hover:bg-slate-100 active:bg-slate-200 rounded-lg transition touch-manipulation"
+              aria-label={expanded ? 'Collapse details' : 'Expand details'}
+            >
+              <ChevronUp className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform ${expanded ? '' : 'rotate-180'}`} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Expanded View - Details */}
+      {expanded && (
+        <div className="border-t border-slate-200 bg-slate-50 px-2 sm:px-3 md:px-4 py-2.5 sm:py-3 max-h-[60vh] overflow-y-auto">
+          <div className="space-y-2 text-xs">
+            {hasData ? (
+              <>
+                {filingType === 'refund' ? (
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Estimated Refund</span>
+                    <span className="font-semibold text-emerald-600">+${pricing.totalRefund?.toFixed(2) || '0.00'}</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">IRS Tax</span>
+                      <span className="font-semibold">${pricing.totalTax?.toFixed(2) || '0.00'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Service Fee</span>
+                      <span className="font-semibold">${pricing.serviceFee?.toFixed(2) || '0.00'}</span>
+                    </div>
+                    {pricing.salesTax > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Sales Tax</span>
+                        <span className="font-semibold">${pricing.salesTax?.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+                {filingType === 'amendment' && amendmentType === 'vin_correction' && (
+                  <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded text-emerald-700">
+                    <span className="font-medium">VIN corrections are FREE</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-slate-500 text-center py-2">
+                Select filing type and vehicles to see pricing
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function NewFilingContent() {
   const { user } = useAuth();
@@ -728,18 +953,25 @@ function NewFilingContent() {
       setStep(4);
     } else if (step === 4) {
       setStep(5);
+    } else {
+      // Show error if can't continue
+      if (step === 2 && !selectedBusinessId) {
+        setError('Please select or create a business');
+      } else if (step === 3 && selectedVehicleIds.length === 0) {
+        setError('Please select or add at least one vehicle');
+      }
     }
   };
 
   return (
     <ProtectedRoute>
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        {/* Header */}
-        <div className="mb-10 w-full">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">New Filing Request</h1>
-              <p className="text-slate-500 font-medium">
+      <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 md:py-6 lg:py-8 pb-24 xl:pb-8 max-w-[1600px] xl:mx-auto">
+        {/* Header - Mobile Optimized */}
+        <div className="mb-3 sm:mb-4 md:mb-6 lg:mb-10 w-full">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 sm:gap-3 md:gap-4 lg:gap-6 mb-3 sm:mb-4 md:mb-6 lg:mb-8">
+            <div className="w-full md:w-auto">
+              <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight mb-1 sm:mb-2">New Filing Request</h1>
+              <p className="text-xs sm:text-sm md:text-base text-slate-500 font-medium">
                 Step {step} of 5: <span className="text-[var(--color-orange)] font-bold">{getStepTitle(step)}</span>
               </p>
             </div>
@@ -766,12 +998,12 @@ function NewFilingContent() {
             </div>
           </div>
           {/* Mobile Progress Bar with Label */}
-          <div className="md:hidden mb-6">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-bold text-slate-900">Step {step} of 5</span>
-              <span className="text-sm font-medium text-[var(--color-orange)]">{getStepTitle(step)}</span>
+          <div className="md:hidden mb-3 sm:mb-4 md:mb-6">
+            <div className="flex justify-between items-center mb-1.5 sm:mb-2">
+              <span className="text-xs sm:text-sm font-bold text-slate-900">Step {step} of 5</span>
+              <span className="text-xs sm:text-sm font-medium text-[var(--color-orange)]">{getStepTitle(step)}</span>
             </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className="h-full bg-[var(--color-orange)] transition-all duration-500 ease-out"
                 style={{ width: `${(step / 5) * 100}%` }}
@@ -781,31 +1013,31 @@ function NewFilingContent() {
         </div>
 
         {/* Error and Warnings */}
-        <div className="mb-6 space-y-4 w-full">
+        <div className="mb-3 sm:mb-4 md:mb-6 space-y-2 sm:space-y-3 md:space-y-4 w-full">
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-              <span className="text-sm font-medium">{error}</span>
+            <div className="p-2.5 sm:p-3 md:p-4 bg-red-50 border border-red-200 rounded-lg sm:rounded-xl text-red-700 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              <span className="text-xs sm:text-sm font-medium">{error}</span>
             </div>
           )}
 
           {showDuplicateWarning && duplicateFiling && (
-            <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-6">
-              <div className="flex items-start gap-4">
+            <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 sm:p-6">
+              <div className="flex items-start gap-3 sm:gap-4">
                 <div className="flex-shrink-0">
-                  <AlertCircle className="w-6 h-6 text-amber-600" />
+                  <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-amber-900 mb-2">Similar Filing Found</h3>
-                  <p className="text-sm text-amber-800 mb-4">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-sm sm:text-base text-amber-900 mb-2">Similar Filing Found</h3>
+                  <p className="text-xs sm:text-sm text-amber-800 mb-3 sm:mb-4">
                     You already have an incomplete filing with similar details. Would you like to resume that filing or continue with a new one?
                   </p>
-                  <div className="bg-white rounded-lg border border-amber-200 p-4 mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-amber-900">
+                  <div className="bg-white rounded-lg border border-amber-200 p-3 sm:p-4 mb-3 sm:mb-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
+                      <span className="font-medium text-xs sm:text-sm text-amber-900 break-words">
                         {formatIncompleteFiling(duplicateFiling)?.description || 'Existing Filing'}
                       </span>
-                      <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full">
+                      <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full whitespace-nowrap">
                         {duplicateFiling.status === 'submitted' ? 'In Progress' :
                           duplicateFiling.status === 'processing' ? 'Processing' :
                             'Action Required'}
@@ -828,12 +1060,12 @@ function NewFilingContent() {
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <Link
                       href={`/dashboard/filings/${duplicateFiling.id}`}
-                      className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition text-sm flex items-center gap-2"
+                      className="px-3 sm:px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 active:scale-95 transition text-xs sm:text-sm flex items-center justify-center gap-2 touch-manipulation"
                     >
-                      <RotateCcw className="w-4 h-4" />
+                      <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       Resume Existing Filing
                     </Link>
                     <button
@@ -841,7 +1073,7 @@ function NewFilingContent() {
                         setShowDuplicateWarning(false);
                         setDuplicateFiling(null);
                       }}
-                      className="px-4 py-2 bg-white border border-amber-300 text-amber-700 rounded-lg font-semibold hover:bg-amber-50 transition text-sm"
+                      className="px-3 sm:px-4 py-2 bg-white border border-amber-300 text-amber-700 rounded-lg font-semibold hover:bg-amber-50 active:scale-95 transition text-xs sm:text-sm touch-manipulation"
                     >
                       Continue New Filing
                     </button>
@@ -853,59 +1085,59 @@ function NewFilingContent() {
         </div>
 
         {/* Main Content Grid - Form Left, Pricing Right */}
-        <div className="w-full grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-8">
+        <div className="w-full grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-3 sm:gap-4 md:gap-6 lg:gap-8">
           {/* Form Content */}
-          <div className="space-y-6">
+          <div className="space-y-3 sm:space-y-4 md:space-y-6">
             {/* Step 1: Filing Type */}
             {step === 1 && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-8 shadow-sm">
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 text-sm font-bold">1</span>
+              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 mb-3 sm:mb-4 md:mb-6 flex items-center gap-2 sm:gap-3">
+                  <span className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-100 text-blue-600 text-xs sm:text-sm font-bold">1</span>
                   Select Filing Type
                 </h2>
 
-                <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-3">
+                <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                   <button
                     onClick={() => {
                       setFilingType('standard');
                       setAmendmentType('');
                     }}
-                    className={`group relative p-6 rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-lg ${filingType === 'standard'
+                    className={`group relative p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-lg active:scale-[0.98] touch-manipulation ${filingType === 'standard'
                       ? 'border-blue-600 bg-blue-50/50 ring-1 ring-blue-600'
-                      : 'border-slate-200 hover:border-blue-300 bg-white'
+                      : 'border-slate-200 hover:border-blue-300 bg-white active:bg-slate-50'
                       }`}
                   >
-                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-colors ${filingType === 'standard' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600'}`}>
-                      <FileText className="w-7 h-7" strokeWidth={1.5} />
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-3 md:mb-4 transition-colors ${filingType === 'standard' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600'}`}>
+                      <FileText className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" strokeWidth={1.5} />
                     </div>
                     {filingType === 'standard' && (
-                      <div className="absolute top-4 right-4 text-blue-600 bg-white rounded-full p-1 shadow-sm">
-                        <CheckCircle className="w-5 h-5 fill-blue-100" />
+                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 text-blue-600 bg-white rounded-full p-0.5 sm:p-1 shadow-sm">
+                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 fill-blue-100" />
                       </div>
                     )}
-                    <h3 className={`font-bold text-lg mb-2 ${filingType === 'standard' ? 'text-blue-900' : 'text-slate-900'}`}>Standard 2290</h3>
-                    <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                    <h3 className={`font-bold text-sm sm:text-base md:text-lg mb-1 sm:mb-2 ${filingType === 'standard' ? 'text-blue-900' : 'text-slate-900'}`}>Standard 2290</h3>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
                       File a new Form 2290 for heavy highway vehicles.
                     </p>
                   </button>
 
                   <button
                     onClick={() => setFilingType('amendment')}
-                    className={`group relative p-6 rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-lg ${filingType === 'amendment'
+                    className={`group relative p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-lg active:scale-[0.98] touch-manipulation ${filingType === 'amendment'
                       ? 'border-amber-500 bg-amber-50/50 ring-1 ring-amber-500'
-                      : 'border-slate-200 hover:border-amber-300 bg-white'
+                      : 'border-slate-200 hover:border-amber-300 bg-white active:bg-slate-50'
                       }`}
                   >
-                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-colors ${filingType === 'amendment' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500 group-hover:bg-amber-50 group-hover:text-amber-600'}`}>
-                      <AlertTriangle className="w-7 h-7" strokeWidth={1.5} />
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-3 md:mb-4 transition-colors ${filingType === 'amendment' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500 group-hover:bg-amber-50 group-hover:text-amber-600'}`}>
+                      <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" strokeWidth={1.5} />
                     </div>
                     {filingType === 'amendment' && (
-                      <div className="absolute top-4 right-4 text-amber-600 bg-white rounded-full p-1 shadow-sm">
-                        <CheckCircle className="w-5 h-5 fill-amber-100" />
+                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 text-amber-600 bg-white rounded-full p-0.5 sm:p-1 shadow-sm">
+                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 fill-amber-100" />
                       </div>
                     )}
-                    <h3 className={`font-bold text-lg mb-2 ${filingType === 'amendment' ? 'text-amber-900' : 'text-slate-900'}`}>Amendment</h3>
-                    <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                    <h3 className={`font-bold text-sm sm:text-base md:text-lg mb-1 sm:mb-2 ${filingType === 'amendment' ? 'text-amber-900' : 'text-slate-900'}`}>Amendment</h3>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
                       Correct a VIN, report weight increase, or mileage exceeded.
                     </p>
                   </button>
@@ -915,21 +1147,21 @@ function NewFilingContent() {
                       setFilingType('refund');
                       setAmendmentType('');
                     }}
-                    className={`group relative p-6 rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-lg ${filingType === 'refund'
+                    className={`group relative p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-lg active:scale-[0.98] touch-manipulation ${filingType === 'refund'
                       ? 'border-green-600 bg-green-50/50 ring-1 ring-green-600'
-                      : 'border-slate-200 hover:border-green-300 bg-white'
+                      : 'border-slate-200 hover:border-green-300 bg-white active:bg-slate-50'
                       }`}
                   >
-                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-colors ${filingType === 'refund' ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500 group-hover:bg-green-50 group-hover:text-green-600'}`}>
-                      <RefreshCw className="w-7 h-7" strokeWidth={1.5} />
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-3 md:mb-4 transition-colors ${filingType === 'refund' ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500 group-hover:bg-green-50 group-hover:text-green-600'}`}>
+                      <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" strokeWidth={1.5} />
                     </div>
                     {filingType === 'refund' && (
-                      <div className="absolute top-4 right-4 text-green-600 bg-white rounded-full p-1 shadow-sm">
-                        <CheckCircle className="w-5 h-5 fill-green-100" />
+                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 text-green-600 bg-white rounded-full p-0.5 sm:p-1 shadow-sm">
+                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 fill-green-100" />
                       </div>
                     )}
-                    <h3 className={`font-bold text-lg mb-2 ${filingType === 'refund' ? 'text-green-900' : 'text-slate-900'}`}>Refund (8849)</h3>
-                    <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                    <h3 className={`font-bold text-sm sm:text-base md:text-lg mb-1 sm:mb-2 ${filingType === 'refund' ? 'text-green-900' : 'text-slate-900'}`}>Refund (8849)</h3>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
                       Claim a credit for sold, destroyed, or low-mileage vehicles.
                     </p>
                   </button>
@@ -937,12 +1169,12 @@ function NewFilingContent() {
 
                 {/* Amendment Type Sub-Selection */}
                 {filingType === 'amendment' && (
-                  <div className="mt-8 pt-8 border-t border-slate-100 animate-in fade-in slide-in-from-top-4 duration-500">
-                    <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                      <span className="w-1.5 h-6 bg-amber-500 rounded-full"></span>
+                  <div className="mt-4 sm:mt-6 md:mt-8 pt-4 sm:pt-6 md:pt-8 border-t border-slate-100 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-slate-900 mb-3 sm:mb-4 md:mb-6 flex items-center gap-2">
+                      <span className="w-1.5 h-4 sm:h-5 md:h-6 bg-amber-500 rounded-full"></span>
                       What type of amendment do you need?
                     </h3>
-                    <div className="grid gap-4">
+                    <div className="grid gap-2.5 sm:gap-3 md:gap-4">
                       {/* VIN Correction */}
                       <button
                         onClick={() => {
@@ -1048,13 +1280,13 @@ function NewFilingContent() {
 
                 {/* VIN Correction Details */}
                 {amendmentType === 'vin_correction' && (
-                  <div className="space-y-6">
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                      <div className=" flex items-center gap-3 mb-4">
-                        <span className="text-3xl">📝</span>
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6">
+                      <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                        <span className="text-2xl sm:text-3xl">📝</span>
                         <div>
-                          <h3 className="font-bold text-[var(--color-text)]">VIN Correction</h3>
-                          <p className="text-sm text-[var(--color-muted)]">Correct an incorrect VIN from a previously filed Form 2290</p>
+                          <h3 className="font-bold text-sm sm:text-base text-[var(--color-text)]">VIN Correction</h3>
+                          <p className="text-xs sm:text-sm text-[var(--color-muted)]">Correct an incorrect VIN from a previously filed Form 2290</p>
                         </div>
                       </div>
                     </div>
@@ -1069,22 +1301,24 @@ function NewFilingContent() {
                         <button
                           type="button"
                           onClick={() => setVinInputMode('select')}
-                          className={`px-3 py-1.5 text-xs rounded-lg transition ${vinInputMode === 'select'
+                          className={`px-2 sm:px-3 py-1.5 text-xs rounded-lg transition touch-manipulation ${vinInputMode === 'select'
                             ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-200'
                             }`}
                         >
-                          Select from Previous Filings
+                          <span className="hidden sm:inline">Select from Previous Filings</span>
+                          <span className="sm:hidden">Select</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setVinInputMode('manual')}
-                          className={`px-3 py-1.5 text-xs rounded-lg transition ${vinInputMode === 'manual'
+                          className={`px-2 sm:px-3 py-1.5 text-xs rounded-lg transition touch-manipulation ${vinInputMode === 'manual'
                             ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-200'
                             }`}
                         >
-                          Enter Manually
+                          <span className="hidden sm:inline">Enter Manually</span>
+                          <span className="sm:hidden">Manual</span>
                         </button>
                       </div>
 
@@ -1106,7 +1340,7 @@ function NewFilingContent() {
                                 setVinCorrectionData({ ...vinCorrectionData, originalVIN: '', originalFilingId: '' });
                               }
                             }}
-                            className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono bg-white"
+                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono bg-white touch-manipulation"
                           >
                             <option value="">Select a VIN from previous filings...</option>
                             {previousFilingsVINs.map((vinData) => (
@@ -1117,7 +1351,7 @@ function NewFilingContent() {
                             ))}
                           </select>
                           {previousFilingsVINs.length === 0 && (
-                            <p className="mt-1 text-xs text-amber-600">No previous filings found. You can enter the VIN manually using the "Enter Manually" option above.</p>
+                            <p className="mt-1 text-xs text-amber-600">No previous filings found. You can enter the VIN manually using the "Manual" option above.</p>
                           )}
                           {vinCorrectionData.originalVIN && (
                             <p className="mt-1 text-xs text-green-600">
@@ -1131,7 +1365,7 @@ function NewFilingContent() {
                             type="text"
                             value={vinCorrectionData.originalVIN}
                             onChange={(e) => setVinCorrectionData({ ...vinCorrectionData, originalVIN: e.target.value.toUpperCase() })}
-                            className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono"
+                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono touch-manipulation"
                             placeholder="1HGBH41JXMN109186"
                             maxLength="17"
                           />
@@ -1148,15 +1382,15 @@ function NewFilingContent() {
                         type="text"
                         value={vinCorrectionData.correctedVIN}
                         onChange={(e) => setVinCorrectionData({ ...vinCorrectionData, correctedVIN: e.target.value.toUpperCase() })}
-                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono"
+                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono touch-manipulation"
                         placeholder="1HGBH41JXMN109187"
                         maxLength="17"
                       />
                       <p className="mt-1 text-xs text-[var(--color-muted)]">Enter the correct VIN (must be different from original)</p>
                     </div>
 
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <p className="text-sm text-green-700">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
+                      <p className="text-xs sm:text-sm text-green-700">
                         <strong>✓ No Additional Tax:</strong> VIN corrections are FREE with no additional HVUT tax due.
                       </p>
                     </div>
@@ -1165,13 +1399,13 @@ function NewFilingContent() {
 
                 {/* Weight Increase Details */}
                 {amendmentType === 'weight_increase' && (
-                  <div className="space-y-6">
-                    <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-3xl">⚖️</span>
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 sm:p-6">
+                      <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                        <span className="text-2xl sm:text-3xl">⚖️</span>
                         <div>
-                          <h3 className="font-bold text-[var(--color-text)]">Taxable Gross Weight Increase</h3>
-                          <p className="text-sm text-[var(--color-muted)]">Report when your vehicle moved to a higher weight category</p>
+                          <h3 className="font-bold text-sm sm:text-base text-[var(--color-text)]">Taxable Gross Weight Increase</h3>
+                          <p className="text-xs sm:text-sm text-[var(--color-muted)]">Report when your vehicle moved to a higher weight category</p>
                         </div>
                       </div>
                     </div>
@@ -1197,7 +1431,7 @@ function NewFilingContent() {
                             setWeightIncreaseData({ ...weightIncreaseData, vehicleId: selectedVehicleId });
                           }
                         }}
-                        className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white"
+                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
                       >
                         <option value="">Select a vehicle...</option>
                         {vehicles.map(v => (
@@ -1206,7 +1440,7 @@ function NewFilingContent() {
                       </select>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                       <div>
                         <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
                           Original Weight Category *
@@ -1216,7 +1450,7 @@ function NewFilingContent() {
                           onChange={(e) => {
                             setWeightIncreaseData({ ...weightIncreaseData, originalWeightCategory: e.target.value });
                           }}
-                          className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white"
+                          className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
                         >
                           <option value="">Select...</option>
                           {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V'].map(cat => (
@@ -1244,7 +1478,7 @@ function NewFilingContent() {
                               setWeightIncreaseData(prev => ({ ...prev, newWeightCategory: newCat, additionalTaxDue: additionalTax }));
                             }
                           }}
-                          className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white"
+                          className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
                         >
                           <option value="">Select...</option>
                           {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'].map(cat => (
@@ -1273,7 +1507,7 @@ function NewFilingContent() {
                             setWeightIncreaseData(prev => ({ ...prev, increaseMonth: month, additionalTaxDue: additionalTax }));
                           }
                         }}
-                        className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white"
+                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
                       >
                         <option value="">Select month...</option>
                         {['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June'].map(m => {
@@ -1285,15 +1519,15 @@ function NewFilingContent() {
                     </div>
 
                     {weightIncreaseData.additionalTaxDue > 0 && (
-                      <div className="bg-orange-50 border border-orange-200 rounded-xl p-5 shadow-sm">
-                        <div className="flex justify-between items-center">
+                      <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 sm:p-5 shadow-sm">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
                           <span className="text-sm font-bold text-slate-700">Additional Tax Due:</span>
-                          <span className="text-2xl font-extrabold text-orange-600">${weightIncreaseData.additionalTaxDue.toFixed(2)}</span>
+                          <span className="text-xl sm:text-2xl font-extrabold text-orange-600">${weightIncreaseData.additionalTaxDue.toFixed(2)}</span>
                         </div>
                         {weightIncreaseData.increaseMonth && (
                           <div className="mt-3 pt-3 border-t border-orange-100 flex items-center gap-2 text-xs text-orange-800 font-medium">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>Due Date: {calculateWeightIncreaseDueDate(weightIncreaseData.increaseMonth).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                            <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                            <span className="break-words">Due Date: {calculateWeightIncreaseDueDate(weightIncreaseData.increaseMonth).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                           </div>
                         )}
                       </div>
@@ -1303,13 +1537,13 @@ function NewFilingContent() {
 
                 {/* Mileage Exceeded Details */}
                 {amendmentType === 'mileage_exceeded' && (
-                  <div className="space-y-6">
-                    <div className="bg-purple-50 border border-purple-200 rounded-xl p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-3xl">🛣️</span>
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 sm:p-6">
+                      <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                        <span className="text-2xl sm:text-3xl">🛣️</span>
                         <div>
-                          <h3 className="font-bold text-[var(--color-text)]">Mileage Use Limit Exceeded</h3>
-                          <p className="text-sm text-[var(--color-muted)]">Report when a suspended vehicle exceeded its mileage limit</p>
+                          <h3 className="font-bold text-sm sm:text-base text-[var(--color-text)]">Mileage Use Limit Exceeded</h3>
+                          <p className="text-xs sm:text-sm text-[var(--color-muted)]">Report when a suspended vehicle exceeded its mileage limit</p>
                         </div>
                       </div>
                     </div>
@@ -1321,7 +1555,7 @@ function NewFilingContent() {
                       <select
                         value={mileageExceededData.vehicleId}
                         onChange={(e) => setMileageExceededData({ ...mileageExceededData, vehicleId: e.target.value })}
-                        className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white"
+                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
                       >
                         <option value="">Select a vehicle...</option>
                         {vehicles.filter(v => v.isSuspended).map(v => (
@@ -1335,43 +1569,43 @@ function NewFilingContent() {
                       <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
                         Vehicle Type *
                       </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <label className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all ${!mileageExceededData.isAgriculturalVehicle
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        <label className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border rounded-xl cursor-pointer transition-all touch-manipulation ${!mileageExceededData.isAgriculturalVehicle
                           ? 'border-[var(--color-orange)] bg-[var(--color-orange)]/5 ring-1 ring-[var(--color-orange)]'
-                          : 'border-[var(--color-border)] hover:bg-slate-50'
+                          : 'border-[var(--color-border)] hover:bg-slate-50 active:bg-slate-50'
                           }`}>
                           <input
                             type="radio"
                             name="vehicleType"
                             checked={!mileageExceededData.isAgriculturalVehicle}
                             onChange={() => setMileageExceededData({ ...mileageExceededData, isAgriculturalVehicle: false, originalMileageLimit: 5000 })}
-                            className="w-5 h-5 text-[var(--color-orange)]"
+                            className="w-5 h-5 text-[var(--color-orange)] flex-shrink-0 touch-manipulation"
                           />
-                          <div>
-                            <div className="font-bold text-[var(--color-text)]">Standard Vehicle</div>
-                            <div className="text-sm text-[var(--color-muted)]">5,000 mile annual limit</div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-sm sm:text-base text-[var(--color-text)]">Standard Vehicle</div>
+                            <div className="text-xs sm:text-sm text-[var(--color-muted)]">5,000 mile annual limit</div>
                           </div>
                         </label>
-                        <label className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all ${mileageExceededData.isAgriculturalVehicle
+                        <label className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border rounded-xl cursor-pointer transition-all touch-manipulation ${mileageExceededData.isAgriculturalVehicle
                           ? 'border-[var(--color-orange)] bg-[var(--color-orange)]/5 ring-1 ring-[var(--color-orange)]'
-                          : 'border-[var(--color-border)] hover:bg-slate-50'
+                          : 'border-[var(--color-border)] hover:bg-slate-50 active:bg-slate-50'
                           }`}>
                           <input
                             type="radio"
                             name="vehicleType"
                             checked={mileageExceededData.isAgriculturalVehicle}
                             onChange={() => setMileageExceededData({ ...mileageExceededData, isAgriculturalVehicle: true, originalMileageLimit: 7500 })}
-                            className="w-5 h-5 text-[var(--color-orange)]"
+                            className="w-5 h-5 text-[var(--color-orange)] flex-shrink-0 touch-manipulation"
                           />
-                          <div>
-                            <div className="font-bold text-[var(--color-text)]">Agricultural Vehicle</div>
-                            <div className="text-sm text-[var(--color-muted)]">7,500 mile annual limit</div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-sm sm:text-base text-[var(--color-text)]">Agricultural Vehicle</div>
+                            <div className="text-xs sm:text-sm text-[var(--color-muted)]">7,500 mile annual limit</div>
                           </div>
                         </label>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                       <div>
                         <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
                           Actual Mileage Used *
@@ -1381,7 +1615,7 @@ function NewFilingContent() {
                             type="number"
                             value={mileageExceededData.actualMileageUsed || ''}
                             onChange={(e) => setMileageExceededData({ ...mileageExceededData, actualMileageUsed: parseInt(e.target.value) || 0 })}
-                            className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)]"
+                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation"
                             placeholder="6500"
                             min="0"
                           />
@@ -1409,21 +1643,21 @@ function NewFilingContent() {
                       </div>
                     </div>
 
-                    <div className="bg-purple-50 border border-purple-200 rounded-xl p-5 flex gap-3">
+                    <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 sm:p-5 flex gap-2 sm:gap-3">
                       <div className="flex-shrink-0 mt-0.5">
-                        <Info className="w-5 h-5 text-purple-600" />
+                        <Info className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                       </div>
-                      <p className="text-sm text-purple-700 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-purple-700 leading-relaxed">
                         <strong>Note:</strong> Once a suspended vehicle exceeds the mileage limit, you must pay the full HVUT tax based on when the vehicle was first used in the tax period.
                       </p>
                     </div>
                   </div>
                 )}
 
-                <div className="mt-8 flex justify-between gap-4 pt-4 border-t border-[var(--color-border)]">
+                <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-between gap-3 pt-4 border-t border-[var(--color-border)]">
                   <button
                     onClick={() => setStep(1)}
-                    className="px-6 py-2 border border-[var(--color-border)] rounded-lg text-[var(--color-text)] hover:bg-[var(--color-page-alt)] transition"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-2 border border-[var(--color-border)] rounded-lg text-sm sm:text-base text-[var(--color-text)] hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation"
                   >
                     Back
                   </button>
@@ -1462,7 +1696,7 @@ function NewFilingContent() {
                       // The amendment details already captured all necessary information
                       setStep(5);
                     }}
-                    className="px-6 py-2 bg-[#ff8b3d] text-white rounded-xl font-semibold hover:bg-[#e57d36] transition shadow-sm"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-2 bg-[#ff8b3d] text-white rounded-xl text-sm sm:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition shadow-sm touch-manipulation"
                   >
                     Next Step
                   </button>
@@ -1472,35 +1706,35 @@ function NewFilingContent() {
 
             {/* Step 2: Business (skip for amendments, renumber for non-amendments) */}
             {step === 2 && filingType !== 'amendment' && (
-              <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-5 sm:p-8 shadow-sm">
-                <h2 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)] mb-6">Business Information</h2>
+              <div className="bg-[var(--color-card)] rounded-xl sm:rounded-2xl border border-[var(--color-border)] p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-[var(--color-text)] mb-3 sm:mb-4 md:mb-6">Business Information</h2>
 
                 {/* Existing Businesses List */}
                 {!showBusinessForm && businesses.length > 0 && (
-                  <div className="mb-8">
-                    <label className="block text-sm font-bold text-[var(--color-text)] mb-3">
+                  <div className="mb-4 sm:mb-6 md:mb-8">
+                    <label className="block text-sm font-bold text-[var(--color-text)] mb-2 sm:mb-3">
                       Select Business
                     </label>
-                    <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-2.5 sm:gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                       {businesses.map((business) => (
                         <button
                           key={business.id}
                           onClick={() => setSelectedBusinessId(business.id)}
-                          className={`p-6 rounded-2xl border-2 text-left transition relative group h-full flex flex-col ${selectedBusinessId === business.id
+                          className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border-2 text-left transition relative group h-full flex flex-col touch-manipulation active:scale-[0.98] ${selectedBusinessId === business.id
                             ? 'border-[var(--color-orange)] bg-[var(--color-page-alt)] ring-1 ring-[var(--color-orange)]'
-                            : 'border-[var(--color-border)] hover:border-[var(--color-orange)]/50 hover:shadow-md bg-white'
+                            : 'border-[var(--color-border)] hover:border-[var(--color-orange)]/50 hover:shadow-md bg-white active:bg-slate-50'
                             }`}
                         >
-                          <div className="flex-1">
-                            <div className="font-bold text-xl text-[var(--color-text)] mb-2 group-hover:text-[var(--color-orange)] transition-colors">{business.businessName}</div>
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-[var(--color-muted)]">EIN: <span className="font-mono text-[var(--color-text)]">{business.ein}</span></p>
-                              <p className="text-sm text-[var(--color-muted)] leading-relaxed">{business.address}</p>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-sm sm:text-base md:text-lg lg:text-xl text-[var(--color-text)] mb-1.5 sm:mb-2 group-hover:text-[var(--color-orange)] transition-colors break-words">{business.businessName}</div>
+                            <div className="space-y-0.5 sm:space-y-1">
+                              <p className="text-xs sm:text-sm font-medium text-[var(--color-muted)]">EIN: <span className="font-mono text-[var(--color-text)]">{business.ein}</span></p>
+                              <p className="text-xs sm:text-sm text-[var(--color-muted)] leading-relaxed break-words">{business.address}</p>
                             </div>
                           </div>
                           {selectedBusinessId === business.id && (
-                            <div className="absolute top-4 right-4 text-[var(--color-orange)]">
-                              <CheckCircle className="w-6 h-6 fill-[var(--color-orange)] text-white" />
+                            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 text-[var(--color-orange)]">
+                              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 fill-[var(--color-orange)] text-white" />
                             </div>
                           )}
                         </button>
@@ -1512,12 +1746,12 @@ function NewFilingContent() {
                           setShowBusinessForm(true);
                           setSelectedBusinessId(''); // Clear selection when adding new
                         }}
-                        className="p-6 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] hover:bg-[var(--color-page-alt)] transition group flex flex-col items-center justify-center gap-3 min-h-[200px]"
+                        className="p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] hover:bg-[var(--color-page-alt)] active:scale-[0.98] transition group flex flex-col items-center justify-center gap-2 sm:gap-3 min-h-[120px] sm:min-h-[150px] md:min-h-[180px] lg:min-h-[200px] touch-manipulation"
                       >
-                        <div className="w-12 h-12 rounded-full bg-slate-100 group-hover:bg-orange-100 flex items-center justify-center transition-colors">
-                          <span className="text-2xl font-bold">+</span>
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-slate-100 group-hover:bg-orange-100 flex items-center justify-center transition-colors">
+                          <span className="text-lg sm:text-xl md:text-2xl font-bold">+</span>
                         </div>
-                        <span className="font-bold text-lg">Add New Business</span>
+                        <span className="font-bold text-xs sm:text-sm md:text-base lg:text-lg">Add New Business</span>
                       </button>
                     </div>
                   </div>
@@ -1525,22 +1759,22 @@ function NewFilingContent() {
 
                 {/* Add New Business Form */}
                 {(showBusinessForm || businesses.length === 0) && (
-                  <div className="mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-[var(--color-text)]">
+                  <div className="mb-3 sm:mb-4 md:mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center justify-between mb-2 sm:mb-3 md:mb-4">
+                      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-[var(--color-text)]">
                         {businesses.length > 0 ? 'Add New Business' : 'Add Business Details'}
                       </h3>
                       {businesses.length > 0 && (
                         <button
                           onClick={() => setShowBusinessForm(false)}
-                          className="text-sm text-[var(--color-muted)] hover:text-[var(--color-text)] underline"
+                          className="text-xs sm:text-sm text-[var(--color-muted)] hover:text-[var(--color-text)] underline touch-manipulation"
                         >
-                          Cancel & Select Existing
+                          Cancel
                         </button>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-[var(--color-page-alt)] rounded-xl border border-[var(--color-border)]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3 md:gap-4 lg:gap-6 p-2.5 sm:p-3 md:p-4 lg:p-6 bg-[var(--color-page-alt)] rounded-lg sm:rounded-xl border border-[var(--color-border)]">
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <label className="block text-sm font-medium text-[var(--color-text)]">
@@ -1557,7 +1791,7 @@ function NewFilingContent() {
                           type="text"
                           value={newBusiness.businessName}
                           onChange={(e) => handleBusinessChange('businessName', e.target.value)}
-                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.businessName ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                          className={`w-full px-4 py-3 text-base sm:text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation ${businessErrors.businessName ? 'border-red-500' : 'border-[var(--color-border)]'}`}
                           placeholder="ABC Trucking LLC"
                         />
                         {businessErrors.businessName && (
@@ -1618,7 +1852,7 @@ function NewFilingContent() {
                           </p>
                         )}
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
                         <div>
                           <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
                             Signing Authority Name
@@ -1627,7 +1861,7 @@ function NewFilingContent() {
                             type="text"
                             value={newBusiness.signingAuthorityName}
                             onChange={(e) => setNewBusiness({ ...newBusiness, signingAuthorityName: e.target.value })}
-                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)]"
+                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation"
                             placeholder="John Doe"
                           />
                         </div>
@@ -1639,7 +1873,7 @@ function NewFilingContent() {
                             type="text"
                             value={newBusiness.signingAuthorityTitle}
                             onChange={(e) => setNewBusiness({ ...newBusiness, signingAuthorityTitle: e.target.value })}
-                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)]"
+                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation"
                             placeholder="Owner, President, etc."
                           />
                         </div>
@@ -1650,7 +1884,7 @@ function NewFilingContent() {
                           setShowBusinessForm(false);
                         }}
                         disabled={loading}
-                        className="w-full bg-[#ff8b3d] text-white py-3 rounded-xl font-semibold hover:bg-[#e57d36] transition disabled:opacity-50 mt-4 shadow-sm"
+                        className="w-full md:col-span-2 bg-[#ff8b3d] text-white py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition disabled:opacity-50 mt-2 sm:mt-4 shadow-sm touch-manipulation"
                       >
                         {loading ? 'Adding...' : 'Save & Add Business'}
                       </button>
@@ -1658,10 +1892,10 @@ function NewFilingContent() {
                   </div>
                 )}
 
-                <div className="flex justify-between gap-4 pt-4 border-t border-[var(--color-border)]">
+                <div className="flex flex-col sm:flex-row justify-between gap-3 pt-4 border-t border-[var(--color-border)]">
                   <button
                     onClick={() => setStep(1)}
-                    className="px-6 py-2 border border-[var(--color-border)] rounded-lg text-[var(--color-text)] hover:bg-[var(--color-page-alt)] transition"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 border border-[var(--color-border)] rounded-lg text-sm sm:text-base text-[var(--color-text)] hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation font-medium"
                   >
                     Back
                   </button>
@@ -1674,7 +1908,7 @@ function NewFilingContent() {
                       if (selectedBusinessId) setStep(3);
                       else setError('Please select or create a business');
                     }}
-                    className="px-6 py-2 bg-[#ff8b3d] text-white rounded-xl font-semibold hover:bg-[#e57d36] transition shadow-sm"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-[#ff8b3d] text-white rounded-xl text-sm sm:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition shadow-sm touch-manipulation"
                   >
                     Next Step
                   </button>
@@ -1684,11 +1918,11 @@ function NewFilingContent() {
 
             {/* Step 3: Vehicles */}
             {step === 3 && (
-              <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-5 sm:p-8 shadow-sm">
-                <h2 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)] mb-6">Vehicle Information</h2>
+              <div className="bg-[var(--color-card)] rounded-xl sm:rounded-2xl border border-[var(--color-border)] p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-[var(--color-text)] mb-3 sm:mb-4 md:mb-6">Vehicle Information</h2>
 
                 {/* Tax Year & Month Selection - Moved here for better context */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 p-4 sm:p-6 bg-[var(--color-page-alt)] rounded-xl border border-[var(--color-border)]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 md:gap-4 lg:gap-6 mb-4 sm:mb-6 md:mb-8 p-2.5 sm:p-3 md:p-4 lg:p-6 bg-[var(--color-page-alt)] rounded-lg sm:rounded-xl border border-[var(--color-border)]">
                   <div>
                     <label className="block text-sm font-bold text-[var(--color-text)] mb-2">
                       Tax Year
@@ -1696,7 +1930,7 @@ function NewFilingContent() {
                     <select
                       value={filingData.taxYear}
                       onChange={(e) => setFilingData({ ...filingData, taxYear: e.target.value })}
-                      className="w-full px-4 py-2 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] bg-white"
+                      className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] bg-white touch-manipulation"
                     >
                       <option value="2025-2026">2025-2026 (Current)</option>
                       <option value="2024-2025">2024-2025</option>
@@ -1709,7 +1943,7 @@ function NewFilingContent() {
                     <select
                       value={filingData.firstUsedMonth}
                       onChange={(e) => setFilingData({ ...filingData, firstUsedMonth: e.target.value })}
-                      className="w-full px-4 py-2 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] bg-white"
+                      className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] bg-white touch-manipulation"
                     >
                       {['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June'].map(m => (
                         <option key={m} value={m}>{m}</option>
@@ -1720,11 +1954,11 @@ function NewFilingContent() {
 
                 {/* Existing Vehicles List */}
                 {vehicles.length > 0 && !showVehicleForm && (
-                  <div className="mb-8">
-                    <label className="block text-sm font-bold text-[var(--color-text)] mb-3">
+                  <div className="mb-4 sm:mb-6 md:mb-8">
+                    <label className="block text-sm font-bold text-[var(--color-text)] mb-2 sm:mb-3">
                       Select Vehicles to File
                     </label>
-                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-h-[600px] overflow-y-auto border border-[var(--color-border)] rounded-lg p-4 bg-white mb-4">
+                    <div className="grid gap-2.5 sm:gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-h-[500px] sm:max-h-[600px] overflow-y-auto border border-[var(--color-border)] rounded-lg p-2 sm:p-3 md:p-4 bg-white mb-3 sm:mb-4">
                       {vehicles.map((vehicle) => {
                         const isRefund = filingType === 'refund';
                         const estimatedAmount = isRefund
@@ -1734,10 +1968,10 @@ function NewFilingContent() {
                         const isSelected = selectedVehicleIds.includes(vehicle.id);
 
                         return (
-                          <div key={vehicle.id} className={`p-4 rounded-xl border-2 transition h-full flex flex-col ${isSelected ? 'bg-[var(--color-page-alt)] border-[var(--color-orange)]' : 'border-transparent hover:border-[var(--color-border)] bg-[var(--color-page)]/50'}`}>
+                          <div key={vehicle.id} className={`p-3 sm:p-4 rounded-xl border-2 transition h-full flex flex-col ${isSelected ? 'bg-[var(--color-page-alt)] border-[var(--color-orange)]' : 'border-transparent hover:border-[var(--color-border)] bg-[var(--color-page)]/50'}`}>
                             <label className="flex flex-col h-full cursor-pointer relative">
-                              <div className="flex justify-between items-start mb-4">
-                                <div className="flex items-start gap-3">
+                              <div className="flex justify-between items-start mb-3 sm:mb-4">
+                                <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
                                   <input
                                     type="checkbox"
                                     checked={isSelected}
@@ -1748,18 +1982,18 @@ function NewFilingContent() {
                                         setSelectedVehicleIds(selectedVehicleIds.filter(id => id !== vehicle.id));
                                       }
                                     }}
-                                    className="w-5 h-5 mt-1 text-[var(--color-orange)] rounded focus:ring-[var(--color-orange)] flex-shrink-0"
+                                    className="w-5 h-5 mt-1 text-[var(--color-orange)] rounded focus:ring-[var(--color-orange)] flex-shrink-0 touch-manipulation"
                                   />
-                                  <div className="min-w-0">
-                                    <p className="font-bold text-[var(--color-text)] font-mono text-lg break-all leading-tight">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-bold text-[var(--color-text)] font-mono text-base sm:text-lg break-all leading-tight">
                                       {vehicle.vin}
                                     </p>
-                                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                                      <span className="text-xs font-medium px-2 py-1 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-2">
+                                      <span className="text-xs font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 rounded bg-slate-100 text-slate-600 border border-slate-200">
                                         Cat: {vehicle.grossWeightCategory}
                                       </span>
                                       {vehicle.isSuspended && (
-                                        <span className="text-amber-700 font-bold text-[10px] uppercase tracking-wider bg-amber-100 px-2 py-1 rounded border border-amber-200">
+                                        <span className="text-amber-700 font-bold text-[10px] uppercase tracking-wider bg-amber-100 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded border border-amber-200">
                                           Suspended
                                         </span>
                                       )}
@@ -1768,11 +2002,11 @@ function NewFilingContent() {
                                 </div>
                               </div>
 
-                              <div className="mt-auto pt-4 border-t border-[var(--color-border)] flex justify-between items-end">
+                              <div className="mt-auto pt-3 sm:pt-4 border-t border-[var(--color-border)] flex justify-between items-end">
                                 <span className="text-xs font-medium text-[var(--color-muted)] uppercase tracking-wide">
                                   {isRefund ? 'Est. Refund' : 'Est. Tax'}
                                 </span>
-                                <span className={`text-xl font-bold ${isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>
+                                <span className={`text-lg sm:text-xl font-bold ${isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>
                                   ${estimatedAmount.toFixed(2)}
                                 </span>
                               </div>
@@ -1818,34 +2052,34 @@ function NewFilingContent() {
 
                     <button
                       onClick={() => setShowVehicleForm(true)}
-                      className="w-full p-4 rounded-xl border-2 border-dashed border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] hover:bg-[var(--color-page-alt)] transition flex items-center justify-center gap-2"
+                      className="w-full p-3 sm:p-4 rounded-xl border-2 border-dashed border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] hover:bg-[var(--color-page-alt)] active:scale-95 transition flex items-center justify-center gap-2 touch-manipulation"
                     >
-                      <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
-                        <span className="font-bold">+</span>
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-100 flex items-center justify-center">
+                        <span className="font-bold text-sm sm:text-base">+</span>
                       </div>
-                      <span className="font-semibold">Add Another Vehicle</span>
+                      <span className="font-semibold text-sm sm:text-base">Add Another Vehicle</span>
                     </button>
                   </div>
                 )}
 
                 {/* Add New Vehicle Form */}
                 {(showVehicleForm || vehicles.length === 0) && (
-                  <div className="mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-[var(--color-text)]">
+                  <div className="mb-4 sm:mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <h3 className="text-base sm:text-lg font-semibold text-[var(--color-text)]">
                         {vehicles.length > 0 ? 'Add New Vehicle' : 'Add Vehicle'}
                       </h3>
                       {vehicles.length > 0 && (
                         <button
                           onClick={() => setShowVehicleForm(false)}
-                          className="text-sm text-[var(--color-muted)] hover:text-[var(--color-text)] underline"
+                          className="text-xs sm:text-sm text-[var(--color-muted)] hover:text-[var(--color-text)] underline touch-manipulation"
                         >
-                          Cancel & Select Existing
+                          Cancel
                         </button>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 p-4 sm:p-6 bg-[var(--color-page-alt)] rounded-xl border border-[var(--color-border)]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 p-3 sm:p-4 md:p-6 bg-[var(--color-page-alt)] rounded-xl border border-[var(--color-border)]">
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <label className="block text-sm font-medium text-[var(--color-text)]">
@@ -1910,15 +2144,15 @@ function NewFilingContent() {
                           <option value="W">W: Over 75,000 lbs ($550 - Max)</option>
                         </select>
                       </div>
-                      <div className="flex items-start gap-4 p-4 bg-amber-50 rounded-xl border border-amber-100 transition-colors hover:border-amber-200">
+                      <div className="md:col-span-2 flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-amber-50 rounded-xl border border-amber-100 transition-colors hover:border-amber-200 touch-manipulation">
                         <input
                           type="checkbox"
                           id="suspended"
                           checked={newVehicle.isSuspended}
                           onChange={(e) => setNewVehicle({ ...newVehicle, isSuspended: e.target.checked })}
-                          className="w-5 h-5 mt-0.5 text-amber-600 focus:ring-amber-500 rounded cursor-pointer"
+                          className="w-5 h-5 mt-0.5 text-amber-600 focus:ring-amber-500 rounded cursor-pointer flex-shrink-0 touch-manipulation"
                         />
-                        <div className="cursor-pointer" onClick={() => setNewVehicle({ ...newVehicle, isSuspended: !newVehicle.isSuspended })}>
+                        <div className="cursor-pointer flex-1" onClick={() => setNewVehicle({ ...newVehicle, isSuspended: !newVehicle.isSuspended })}>
                           <label htmlFor="suspended" className="text-sm font-bold text-amber-900 block cursor-pointer">
                             Suspended Vehicle (Low Mileage)
                           </label>
@@ -1933,7 +2167,7 @@ function NewFilingContent() {
                           setShowVehicleForm(false);
                         }}
                         disabled={loading}
-                        className="w-full bg-[#ff8b3d] text-white py-3 rounded-xl font-semibold hover:bg-[#e57d36] transition disabled:opacity-50 mt-4 shadow-sm"
+                        className="md:col-span-2 w-full bg-[#ff8b3d] text-white py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition disabled:opacity-50 mt-2 sm:mt-4 shadow-sm touch-manipulation"
                       >
                         {loading ? 'Adding...' : 'Add Vehicle'}
                       </button>
@@ -1941,10 +2175,10 @@ function NewFilingContent() {
                   </div>
                 )}
 
-                <div className="flex justify-between gap-4 pt-4 border-t border-[var(--color-border)]">
+                <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-[var(--color-border)]">
                   <button
                     onClick={() => setStep(2)}
-                    className="px-6 py-2 border border-[var(--color-border)] rounded-lg text-[var(--color-text)] hover:bg-[var(--color-page-alt)] transition"
+                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-2 border border-[var(--color-border)] rounded-lg text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation"
                   >
                     Back
                   </button>
@@ -1957,7 +2191,7 @@ function NewFilingContent() {
                       if (selectedVehicleIds.length > 0) setStep(4);
                       else setError('Please select or add at least one vehicle');
                     }}
-                    className="px-6 py-2 bg-[#ff8b3d] text-white rounded-xl font-semibold hover:bg-[#e57d36] transition shadow-sm"
+                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-2 bg-[#ff8b3d] text-white rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition shadow-sm touch-manipulation"
                   >
                     Next Step
                   </button>
@@ -1967,40 +2201,40 @@ function NewFilingContent() {
 
             {/* Step 4: Documents */}
             {step === 4 && (
-              <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-8 shadow-sm">
-                <h2 className="text-2xl font-semibold text-[var(--color-text)] mb-6">Documents (Optional)</h2>
-                <p className="text-[var(--color-muted)] mb-6">
+              <div className="bg-[var(--color-card)] rounded-xl sm:rounded-2xl border border-[var(--color-border)] p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-[var(--color-text)] mb-3 sm:mb-4 md:mb-6">Documents (Optional)</h2>
+                <p className="text-xs sm:text-sm md:text-base text-[var(--color-muted)] mb-3 sm:mb-4 md:mb-6">
                   Upload previous year's Schedule 1 or other supporting documents to help us process your filing faster.
                 </p>
 
-                <div className="mb-6 p-8 border-2 border-dashed border-[var(--color-border)] rounded-xl text-center hover:bg-[var(--color-page-alt)] transition cursor-pointer relative">
+                <div className="mb-3 sm:mb-4 md:mb-6 p-3 sm:p-4 md:p-6 lg:p-8 border-2 border-dashed border-[var(--color-border)] rounded-lg sm:rounded-xl text-center hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition cursor-pointer relative touch-manipulation">
                   <input
                     type="file"
                     accept=".pdf"
                     onChange={handleDocumentUpload}
-                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                     multiple
                   />
-                  <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <FileText className="w-6 h-6 text-blue-600" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                    <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                   </div>
-                  <p className="font-semibold text-[var(--color-text)]">Click to Upload PDF</p>
-                  <p className="text-sm text-[var(--color-muted)]">or drag and drop here</p>
+                  <p className="font-semibold text-sm sm:text-base text-[var(--color-text)] mb-1">Click to Upload PDF</p>
+                  <p className="text-xs sm:text-sm text-[var(--color-muted)]">or drag and drop here</p>
                 </div>
 
                 {documents.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-sm font-medium text-[var(--color-text)] mb-2">Uploaded Documents:</h3>
+                  <div className="mb-4 sm:mb-6">
+                    <h3 className="text-xs sm:text-sm font-medium text-[var(--color-text)] mb-2">Uploaded Documents:</h3>
                     <ul className="space-y-2">
                       {documents.map((doc, index) => (
-                        <li key={index} className="flex items-center justify-between p-3 bg-[var(--color-page-alt)] rounded-lg border border-[var(--color-border)]">
-                          <span className="text-sm text-[var(--color-text)] flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-[var(--color-muted)]" />
-                            {doc.name}
+                        <li key={index} className="flex items-center justify-between p-2.5 sm:p-3 bg-[var(--color-page-alt)] rounded-lg border border-[var(--color-border)]">
+                          <span className="text-xs sm:text-sm text-[var(--color-text)] flex items-center gap-2 min-w-0 flex-1">
+                            <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--color-muted)] flex-shrink-0" />
+                            <span className="truncate">{doc.name}</span>
                           </span>
                           <button
                             onClick={() => setDocuments(documents.filter((_, i) => i !== index))}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                            className="text-red-600 hover:text-red-800 active:text-red-900 text-xs sm:text-sm font-medium ml-2 flex-shrink-0 touch-manipulation"
                           >
                             Remove
                           </button>
@@ -2010,10 +2244,10 @@ function NewFilingContent() {
                   </div>
                 )}
 
-                <div className="flex justify-between gap-4 pt-4 border-t border-[var(--color-border)]">
+                <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-[var(--color-border)]">
                   <button
                     onClick={() => setStep(3)}
-                    className="px-6 py-2 border border-[var(--color-border)] rounded-lg text-[var(--color-text)] hover:bg-[var(--color-page-alt)] transition"
+                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-2 border border-[var(--color-border)] rounded-lg text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation"
                   >
                     Back
                   </button>
@@ -2047,7 +2281,7 @@ function NewFilingContent() {
                       }
                       setStep(5);
                     }}
-                    className="px-6 py-2 bg-[#ff8b3d] text-white rounded-xl font-semibold hover:bg-[#e57d36] transition shadow-sm"
+                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-2 bg-[#ff8b3d] text-white rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition shadow-sm touch-manipulation"
                   >
                     Review & Pay
                   </button>
@@ -2057,17 +2291,17 @@ function NewFilingContent() {
 
             {/* Step 5: Review & Pay */}
             {step === 5 && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-                <h2 className="text-2xl font-bold text-[var(--color-text)] mb-8">Review Your Filing</h2>
+              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--color-text)] mb-4 sm:mb-6 md:mb-8">Review Your Filing</h2>
 
-                <div className="space-y-6">
+                <div className="space-y-3 sm:space-y-4 md:space-y-6">
                   {/* Filing Summary Overview */}
-                  <div className="bg-[var(--color-page-alt)] p-6 rounded-2xl border border-[var(--color-border)]">
-                    <h3 className="font-bold text-lg text-[var(--color-text)] mb-6 flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-[var(--color-orange)]" />
+                  <div className="bg-[var(--color-page-alt)] p-3 sm:p-4 md:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border border-[var(--color-border)]">
+                    <h3 className="font-bold text-sm sm:text-base md:text-lg text-[var(--color-text)] mb-3 sm:mb-4 md:mb-6 flex items-center gap-2">
+                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-orange)]" />
                       Filing Overview
                     </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
                       <div>
                         <p className="text-sm text-[var(--color-muted)] mb-1">Filing Type</p>
                         <p className="font-bold text-lg capitalize text-[var(--color-text)]">{filingData.filingType || filingType}</p>
@@ -2094,8 +2328,8 @@ function NewFilingContent() {
 
                   {/* Amendment Details Section */}
                   {filingType === 'amendment' && amendmentType && (
-                    <div className="bg-amber-50/50 p-8 rounded-2xl border border-amber-100">
-                      <h3 className="font-bold text-lg text-[var(--color-text)] mb-6 flex items-center gap-2">
+                    <div className="bg-amber-50/50 p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl border border-amber-100">
+                      <h3 className="font-bold text-base sm:text-lg text-[var(--color-text)] mb-4 sm:mb-6 flex items-center gap-2">
                         {amendmentType === 'vin_correction' && '📝'}
                         {amendmentType === 'weight_increase' && '⚖️'}
                         {amendmentType === 'mileage_exceeded' && '🛣️'}
@@ -2103,86 +2337,86 @@ function NewFilingContent() {
                       </h3>
 
                       {amendmentType === 'vin_correction' && (
-                        <div className="grid md:grid-cols-2 gap-8">
-                          <div className="bg-white p-6 rounded-xl border border-slate-200">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
+                          <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200">
                             <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-2">Original VIN (Incorrect)</p>
-                            <p className="font-mono text-xl font-bold text-red-600 line-through">
+                            <p className="font-mono text-base sm:text-lg md:text-xl font-bold text-red-600 line-through break-all">
                               {vinCorrectionData.originalVIN}
                             </p>
                           </div>
-                          <div className="bg-white p-6 rounded-xl border border-green-200">
+                          <div className="bg-white p-4 sm:p-6 rounded-xl border border-green-200">
                             <p className="text-xs text-green-700 uppercase tracking-wider mb-2">Corrected VIN (Correct)</p>
-                            <p className="font-mono text-xl font-bold text-green-600">
+                            <p className="font-mono text-base sm:text-lg md:text-xl font-bold text-green-600 break-all">
                               {vinCorrectionData.correctedVIN}
                             </p>
                           </div>
-                          <div className="md:col-span-2 flex items-center gap-2 text-green-700 font-medium">
-                            <CheckCircle className="w-5 h-5" />
-                            No Additional Tax Due for VIN Correction
+                          <div className="sm:col-span-2 flex items-center gap-2 text-green-700 font-medium text-sm sm:text-base">
+                            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                            <span>No Additional Tax Due for VIN Correction</span>
                           </div>
                         </div>
                       )}
 
                       {amendmentType === 'weight_increase' && (
-                        <div className="space-y-6">
-                          <div className="bg-white p-6 rounded-xl border border-slate-200 flex flex-col md:flex-row gap-6 items-center">
+                        <div className="space-y-4 sm:space-y-6">
+                          <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 flex flex-col md:flex-row gap-4 sm:gap-6 items-start md:items-center">
                             {weightIncreaseVehicle && (
-                              <div className="flex-1">
+                              <div className="flex-1 w-full md:w-auto">
                                 <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Vehicle VIN</p>
-                                <p className="font-mono text-xl font-bold text-[var(--color-text)]">{weightIncreaseVehicle.vin}</p>
+                                <p className="font-mono text-base sm:text-lg md:text-xl font-bold text-[var(--color-text)] break-all">{weightIncreaseVehicle.vin}</p>
                               </div>
                             )}
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto justify-between md:justify-start">
                               <div className="text-center">
                                 <p className="text-xs text-[var(--color-muted)] mb-1">Original Weight</p>
-                                <p className="text-2xl font-bold text-slate-400">{weightIncreaseData.originalWeightCategory}</p>
+                                <p className="text-xl sm:text-2xl font-bold text-slate-400">{weightIncreaseData.originalWeightCategory}</p>
                               </div>
-                              <div className="text-2xl text-orange-500">→</div>
+                              <div className="text-xl sm:text-2xl text-orange-500">→</div>
                               <div className="text-center">
                                 <p className="text-xs text-orange-600 mb-1">New Weight</p>
-                                <p className="text-2xl font-bold text-orange-600">{weightIncreaseData.newWeightCategory}</p>
+                                <p className="text-xl sm:text-2xl font-bold text-orange-600">{weightIncreaseData.newWeightCategory}</p>
                               </div>
                             </div>
                           </div>
 
-                          <div className="grid md:grid-cols-2 gap-6">
-                            <div className="bg-white p-4 rounded-xl border border-slate-200">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                            <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200">
                               <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Month of Increase</p>
-                              <p className="text-lg font-semibold">{weightIncreaseData.increaseMonth}</p>
+                              <p className="text-base sm:text-lg font-semibold break-words">{weightIncreaseData.increaseMonth}</p>
                             </div>
-                            <div className="bg-white p-4 rounded-xl border border-orange-200">
+                            <div className="bg-white p-3 sm:p-4 rounded-xl border border-orange-200">
                               <p className="text-xs text-orange-700 uppercase tracking-wider mb-1">Additional Tax Due</p>
-                              <p className="text-2xl font-bold text-orange-600">${weightIncreaseData.additionalTaxDue?.toFixed(2) || '0.00'}</p>
+                              <p className="text-xl sm:text-2xl font-bold text-orange-600">${weightIncreaseData.additionalTaxDue?.toFixed(2) || '0.00'}</p>
                             </div>
                           </div>
                         </div>
                       )}
 
                       {amendmentType === 'mileage_exceeded' && (
-                        <div className="space-y-6">
-                          <div className="bg-white p-6 rounded-xl border border-slate-200">
+                        <div className="space-y-4 sm:space-y-6">
+                          <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200">
                             {mileageExceededVehicle && (
-                              <div className="mb-4">
+                              <div className="mb-3 sm:mb-4">
                                 <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Vehicle VIN</p>
-                                <p className="font-mono text-xl font-bold text-[var(--color-text)]">{mileageExceededVehicle.vin}</p>
+                                <p className="font-mono text-base sm:text-lg md:text-xl font-bold text-[var(--color-text)] break-all">{mileageExceededVehicle.vin}</p>
                               </div>
                             )}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                               <div>
                                 <p className="text-xs text-[var(--color-muted)] mb-1">Vehicle Type</p>
-                                <p className="font-semibold">{mileageExceededData.isAgriculturalVehicle ? 'Agricultural' : 'Standard'}</p>
+                                <p className="font-semibold text-sm sm:text-base">{mileageExceededData.isAgriculturalVehicle ? 'Agricultural' : 'Standard'}</p>
                               </div>
                               <div>
                                 <p className="text-xs text-[var(--color-muted)] mb-1">Mileage Limit</p>
-                                <p className="font-semibold">{mileageExceededData.originalMileageLimit?.toLocaleString()} miles</p>
+                                <p className="font-semibold text-sm sm:text-base">{mileageExceededData.originalMileageLimit?.toLocaleString()} miles</p>
                               </div>
                               <div>
                                 <p className="text-xs text-[var(--color-muted)] mb-1">Month Exceeded</p>
-                                <p className="font-semibold">{mileageExceededData.exceededMonth}</p>
+                                <p className="font-semibold text-sm sm:text-base break-words">{mileageExceededData.exceededMonth}</p>
                               </div>
                               <div>
                                 <p className="text-xs text-purple-700 mb-1">Actual Mileage</p>
-                                <p className="font-bold text-purple-700">{mileageExceededData.actualMileageUsed?.toLocaleString()} miles</p>
+                                <p className="font-bold text-sm sm:text-base text-purple-700">{mileageExceededData.actualMileageUsed?.toLocaleString()} miles</p>
                               </div>
                             </div>
                           </div>
@@ -2192,33 +2426,33 @@ function NewFilingContent() {
                   )}
 
                   {filingType !== 'amendment' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
                       {/* Business Section */}
                       <div>
-                        <h3 className="font-bold text-lg text-[var(--color-text)] mb-6 flex items-center gap-2">
-                          <Building2 className="w-5 h-5 text-[var(--color-orange)]" />
+                        <h3 className="font-bold text-base sm:text-lg text-[var(--color-text)] mb-4 sm:mb-6 flex items-center gap-2">
+                          <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-orange)]" />
                           Business Information
                         </h3>
                         {selectedBusiness && (
-                          <div className="bg-white p-6 rounded-2xl border border-[var(--color-border)] shadow-sm">
-                            <h4 className="font-bold text-xl text-[var(--color-text)] mb-4">{selectedBusiness.businessName}</h4>
-                            <div className="space-y-4">
+                          <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-[var(--color-border)] shadow-sm">
+                            <h4 className="font-bold text-lg sm:text-xl text-[var(--color-text)] mb-3 sm:mb-4 break-words">{selectedBusiness.businessName}</h4>
+                            <div className="space-y-3 sm:space-y-4">
                               <div>
                                 <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">EIN</p>
-                                <p className="font-mono font-medium text-[var(--color-text)]">{selectedBusiness.ein}</p>
+                                <p className="font-mono font-medium text-sm sm:text-base text-[var(--color-text)]">{selectedBusiness.ein}</p>
                               </div>
                               <div>
                                 <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Address</p>
-                                <p className="font-medium text-[var(--color-text)]">{selectedBusiness.address}</p>
+                                <p className="font-medium text-sm sm:text-base text-[var(--color-text)] break-words">{selectedBusiness.address}</p>
                               </div>
-                              <div className="grid grid-cols-2 gap-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div>
                                   <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Phone</p>
-                                  <p className="font-medium text-[var(--color-text)]">{selectedBusiness.phone || 'N/A'}</p>
+                                  <p className="font-medium text-sm sm:text-base text-[var(--color-text)]">{selectedBusiness.phone || 'N/A'}</p>
                                 </div>
                                 <div>
                                   <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Signer</p>
-                                  <p className="font-medium text-[var(--color-text)]">{selectedBusiness.signingAuthorityName || 'N/A'}</p>
+                                  <p className="font-medium text-sm sm:text-base text-[var(--color-text)] break-words">{selectedBusiness.signingAuthorityName || 'N/A'}</p>
                                 </div>
                               </div>
                             </div>
@@ -2228,11 +2462,11 @@ function NewFilingContent() {
 
                       {/* Vehicles Section */}
                       <div>
-                        <h3 className="font-bold text-lg text-[var(--color-text)] mb-6 flex items-center gap-2">
-                          <Truck className="w-5 h-5 text-[var(--color-orange)]" />
+                        <h3 className="font-bold text-base sm:text-lg text-[var(--color-text)] mb-4 sm:mb-6 flex items-center gap-2">
+                          <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-orange)]" />
                           Vehicles Included
                         </h3>
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3">
                           {selectedVehicles.map((vehicle) => {
                             const isRefund = filingType === 'refund';
                             const amount = isRefund
@@ -2240,24 +2474,24 @@ function NewFilingContent() {
                               : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
 
                             return (
-                              <div key={vehicle.id} className="bg-white p-4 rounded-xl border border-[var(--color-border)] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-3 mb-2">
-                                    <span className="font-mono font-bold text-lg text-[var(--color-text)]">{vehicle.vin}</span>
+                              <div key={vehicle.id} className="bg-white p-3 sm:p-4 rounded-xl border border-[var(--color-border)] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2 flex-wrap">
+                                    <span className="font-mono font-bold text-base sm:text-lg text-[var(--color-text)] break-all">{vehicle.vin}</span>
                                     {vehicle.isSuspended && (
-                                      <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">Suspended</span>
+                                      <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-100 px-1.5 sm:px-2 py-0.5 rounded flex-shrink-0">Suspended</span>
                                     )}
                                   </div>
-                                  <div className="flex items-center gap-4 text-sm text-[var(--color-muted)]">
+                                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-[var(--color-muted)]">
                                     <span>Category: <strong>{vehicle.grossWeightCategory}</strong></span>
                                     {isRefund && refundDetails[vehicle.id] && (
                                       <span className="text-green-600">Refund Reason: <span className="capitalize font-medium">{refundDetails[vehicle.id].reason}</span></span>
                                     )}
                                   </div>
                                 </div>
-                                <div className="text-right border-t sm:border-t-0 sm:border-l border-slate-100 pt-2 sm:pt-0 sm:pl-4 min-w-[100px]">
+                                <div className="text-left sm:text-right border-t sm:border-t-0 sm:border-l border-slate-100 pt-2 sm:pt-0 sm:pl-4 min-w-[100px]">
                                   <p className="text-xs text-[var(--color-muted)] mb-1">{isRefund ? 'Return Amount' : 'Tax Amount'}</p>
-                                  <p className={`font-bold text-xl ${isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>${amount.toFixed(2)}</p>
+                                  <p className={`font-bold text-lg sm:text-xl ${isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>${amount.toFixed(2)}</p>
                                 </div>
                               </div>
                             );
@@ -2268,27 +2502,30 @@ function NewFilingContent() {
                   )}
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex items-center justify-between pt-6 border-t border-slate-200">
+                {/* Action Buttons - Mobile Optimized */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 pt-3 sm:pt-4 md:pt-6 border-t border-slate-200">
                   <button
                     onClick={() => setStep(4)}
-                    className="px-6 py-2.5 border border-slate-300 rounded-xl text-[var(--color-text)] hover:bg-slate-50 transition font-medium"
+                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border border-slate-300 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-slate-50 active:bg-slate-100 transition font-medium touch-manipulation"
                   >
                     Back to Documents
                   </button>
                   <button
                     onClick={handleSubmit}
                     disabled={loading || pricingLoading}
-                    className="px-8 py-3 bg-[var(--color-orange)] text-white rounded-xl font-bold text-lg hover:bg-[#ff7a20] transition shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
                   >
                     {loading ? (
                       <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Processing...
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span className="hidden sm:inline">Processing...</span>
+                        <span className="sm:hidden">Processing</span>
                       </>
                     ) : (
                       <>
-                        Pay & Submit <CreditCard className="w-5 h-5" />
+                        <span className="hidden sm:inline">Pay & Submit</span>
+                        <span className="sm:hidden">Pay</span>
+                        <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
                       </>
                     )}
                   </button>
@@ -2309,17 +2546,18 @@ function NewFilingContent() {
               amendmentType={amendmentType}
               weightIncreaseData={weightIncreaseData}
               mileageExceededData={mileageExceededData}
-              step={step}
-              onSubmit={handleSubmit}
-              loading={loading}
-              hideSubmitButton={step === 5}
-            />
-          </div>
+            step={step}
+            onContinue={handleContinue}
+            onSubmit={handleSubmit}
+            loading={loading}
+            hideSubmitButton={step === 5}
+          />
+        </div>
         </div>
 
-        {/* Mobile Pricing Summary */}
-        <div className="xl:hidden mt-8">
-          <PricingSidebar
+        {/* Mobile Pricing Summary - Sticky Bottom */}
+        <div className="xl:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-slate-200 shadow-2xl safe-area-inset-bottom">
+          <MobilePricingSummary
             filingType={filingType}
             filingData={filingData}
             selectedVehicleIds={selectedVehicleIds}

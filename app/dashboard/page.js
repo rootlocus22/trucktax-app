@@ -94,35 +94,36 @@ export default function DashboardPage() {
     <ProtectedRoute>
       {/* Viewport layout - flex-1 to fill space between header and footer */}
       <div className="flex flex-col flex-1 h-full min-h-0">
-        {/* Compact Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3 bg-[var(--color-page)] border-b border-[var(--color-border)] flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-[var(--color-text)] tracking-tight">Dashboard</h1>
-            {/* Compact User Badge */}
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-full px-3 py-1.5">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-xs">
+        {/* Compact Header - Mobile Responsive */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3 bg-[var(--color-page)] border-b border-[var(--color-border)] flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <h1 className="text-xl sm:text-2xl font-bold text-[var(--color-text)] tracking-tight">Dashboard</h1>
+            {/* Compact User Badge - Hidden on very small screens */}
+            <div className="hidden xs:inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-full px-2 sm:px-3 py-1.5">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-xs">
                 {(userData?.displayName || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
               </div>
-              <span className="text-sm font-semibold text-[var(--color-navy)]">
+              <span className="text-xs sm:text-sm font-semibold text-[var(--color-navy)] hidden sm:inline">
                 {userData?.displayName || user?.email?.split('@')[0] || 'User'}
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
             {hasFilings && (
               <>
-                <button className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition-colors">
+                <button className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 active:bg-slate-100 flex items-center justify-center transition-colors touch-manipulation">
                   <Search className="w-4 h-4 text-slate-600" />
                 </button>
-                <button className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition-colors">
+                <button className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 active:bg-slate-100 flex items-center justify-center transition-colors touch-manipulation">
                   <Filter className="w-4 h-4 text-slate-600" />
                 </button>
                 <Link
                   href="/dashboard/new-filing"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] transition-colors"
+                  className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] active:scale-95 transition-all touch-manipulation whitespace-nowrap"
                 >
                   <Plus className="w-4 h-4" />
-                  New Filing
+                  <span className="hidden sm:inline">New Filing</span>
+                  <span className="sm:hidden">New</span>
                 </Link>
               </>
             )}
@@ -141,9 +142,9 @@ export default function DashboardPage() {
             {/* Main Content Area - Scrollable if needed */}
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="max-w-6xl mx-auto">
-                {/* Stats Row - Compact */}
+                {/* Stats Row - Compact - Mobile Responsive */}
                 {(hasFilings || hasIncomplete) && (
-                  <div className="grid grid-cols-4 gap-3 mb-4 flex-shrink-0">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 flex-shrink-0">
                     {[
                       { label: 'Total', value: stats.total, color: 'slate', icon: FileText },
                       { label: 'Completed', value: stats.completed, color: 'emerald', icon: CheckCircle },
@@ -158,11 +159,11 @@ export default function DashboardPage() {
                         blue: 'bg-blue-50 border-blue-200 text-blue-700',
                       };
                       return (
-                        <div key={idx} className={`bg-white border rounded-xl p-4 ${colors[stat.color]}`}>
+                        <div key={idx} className={`bg-white border rounded-xl p-3 sm:p-4 ${colors[stat.color]}`}>
                           <div className="flex items-center justify-between mb-2">
                             <Icon className="w-4 h-4 opacity-60" />
                           </div>
-                          <div className="text-2xl font-bold mb-0.5">{stat.value}</div>
+                          <div className="text-xl sm:text-2xl font-bold mb-0.5">{stat.value}</div>
                           <div className="text-xs font-medium opacity-70">{stat.label}</div>
                         </div>
                       );
@@ -243,8 +244,8 @@ export default function DashboardPage() {
                         </p>
                       </div>
 
-                      {/* Filing Method Cards - More Compact */}
-                      <div className="grid md:grid-cols-2 gap-4 mb-6 max-w-3xl mx-auto">
+                      {/* Filing Method Cards - More Compact - Mobile Optimized */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 max-w-3xl mx-auto">
                         <Link
                           href="/dashboard/upload-schedule1"
                           className="group relative bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-blue-400 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"

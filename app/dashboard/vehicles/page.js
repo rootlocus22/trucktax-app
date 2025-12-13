@@ -164,7 +164,7 @@ export default function VehiclesPage() {
               Manage your vehicle fleet details and weight categories
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <input
               type="file"
               ref={fileInputRef}
@@ -175,23 +175,25 @@ export default function VehiclesPage() {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 sm:px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all shadow-sm disabled:opacity-50 touch-manipulation"
             >
               {uploading ? (
                 <span className="animate-pulse">Importing...</span>
               ) : (
                 <>
                   <Upload className="w-4 h-4" />
-                  Import CSV
+                  <span className="hidden sm:inline">Import CSV</span>
+                  <span className="sm:hidden">Import</span>
                 </>
               )}
             </button>
             <Link
               href="/dashboard/new-filing"
-              className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 shadow-md"
+              className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-4 sm:px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-lg active:scale-95 transition-all duration-200 shadow-md touch-manipulation"
             >
-              <Plus className="w-5 h-5" />
-              Add Vehicle
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Add Vehicle</span>
+              <span className="sm:hidden">Add</span>
             </Link>
           </div>
         </div>

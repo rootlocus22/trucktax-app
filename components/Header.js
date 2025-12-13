@@ -254,14 +254,14 @@ export function Header() {
               {!loading && !user && (
                 <Link
                   href="/signup"
-                  className="px-3 py-1.5 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[#ff7a20] transition"
+                  className="px-3 py-1.5 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[#ff7a20] active:scale-95 transition touch-manipulation"
                 >
                   File Now
                 </Link>
               )}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 text-white hover:bg-white/10 rounded-lg transition"
+                className="p-2 text-white hover:bg-white/10 active:bg-white/20 rounded-lg transition touch-manipulation"
                 aria-label="Toggle menu"
               >
                 {mobileMenuOpen ? (
@@ -284,7 +284,7 @@ export function Header() {
                 className="fixed inset-0 bg-black/50 z-40 lg:hidden"
                 onClick={() => setMobileMenuOpen(false)}
               ></div>
-              <div className="fixed right-0 top-0 bottom-0 w-80 bg-white z-50 overflow-y-auto shadow-2xl lg:hidden">
+              <div className="fixed right-0 top-0 bottom-0 w-80 sm:w-96 bg-white z-50 overflow-y-auto overscroll-contain shadow-2xl lg:hidden">
                 {/* User Profile Section */}
                 {user && (
                   <div className="bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-navy-soft)] p-6">
@@ -369,7 +369,7 @@ export function Header() {
                         <Link
                           href="/dashboard"
                           onClick={() => setMobileMenuOpen(false)}
-                          className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition ${isActive('/dashboard') && !isActive('/dashboard/schedule1') && !isActive('/dashboard/businesses') && !isActive('/dashboard/vehicles') && !isActive('/dashboard/filings') ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
+                          className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation min-h-[48px] ${isActive('/dashboard') && !isActive('/dashboard/schedule1') && !isActive('/dashboard/businesses') && !isActive('/dashboard/vehicles') && !isActive('/dashboard/filings') ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
                             }`}
                           style={{ color: '#1b2838', textDecoration: 'none' }}
                         >
@@ -381,7 +381,7 @@ export function Header() {
                         <Link
                           href="/dashboard/filings"
                           onClick={() => setMobileMenuOpen(false)}
-                          className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition ${isActive('/dashboard/filings') ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
+                          className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation min-h-[48px] ${isActive('/dashboard/filings') ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
                             }`}
                           style={{ color: '#1b2838', textDecoration: 'none' }}
                         >
@@ -393,7 +393,7 @@ export function Header() {
                         <Link
                           href="/dashboard/schedule1"
                           onClick={() => setMobileMenuOpen(false)}
-                          className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition ${isActive('/dashboard/schedule1') ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
+                          className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation min-h-[48px] ${isActive('/dashboard/schedule1') ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
                             }`}
                           style={{ color: '#1b2838', textDecoration: 'none' }}
                         >
@@ -405,7 +405,7 @@ export function Header() {
                         <Link
                           href="/dashboard/businesses"
                           onClick={() => setMobileMenuOpen(false)}
-                          className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition ${isActive('/dashboard/businesses') ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
+                          className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation min-h-[48px] ${isActive('/dashboard/businesses') ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
                             }`}
                           style={{ color: '#1b2838', textDecoration: 'none' }}
                         >
@@ -417,7 +417,7 @@ export function Header() {
                         <Link
                           href="/dashboard/vehicles"
                           onClick={() => setMobileMenuOpen(false)}
-                          className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition ${isActive('/dashboard/vehicles') ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
+                          className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation min-h-[48px] ${isActive('/dashboard/vehicles') ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
                             }`}
                           style={{ color: '#1b2838', textDecoration: 'none' }}
                         >
@@ -440,7 +440,7 @@ export function Header() {
                         <Link
                           href="/dashboard/profile"
                           onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition"
+                          className="flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation min-h-[48px]"
                           style={{ color: '#1b2838', textDecoration: 'none' }}
                         >
                           <svg className="w-6 h-6" style={{ color: '#6b7280' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -451,7 +451,7 @@ export function Header() {
                         <Link
                           href="/dashboard/payment-history"
                           onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition"
+                          className="flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation min-h-[48px]"
                           style={{ color: '#1b2838', textDecoration: 'none' }}
                         >
                           <svg className="w-6 h-6" style={{ color: '#6b7280' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -462,7 +462,7 @@ export function Header() {
                         <Link
                           href="/dashboard/settings"
                           onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition"
+                          className="flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation min-h-[48px]"
                           style={{ color: '#1b2838', textDecoration: 'none' }}
                         >
                           <svg className="w-6 h-6" style={{ color: '#6b7280' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -475,7 +475,7 @@ export function Header() {
                           <Link
                             href="/agent"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition"
+                            className="flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation min-h-[48px]"
                             style={{ color: '#1b2838', textDecoration: 'none' }}
                           >
                             <svg className="w-6 h-6" style={{ color: '#6b7280' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -500,7 +500,7 @@ export function Header() {
                             key={item.href}
                             href={item.href}
                             onClick={() => setMobileMenuOpen(false)}
-                            className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition ${isActive(item.href) ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-sky)]' : ''
+                            className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation min-h-[48px] ${isActive(item.href) ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-sky)]' : ''
                               }`}
                             style={{ color: '#1b2838', textDecoration: 'none' }}
                           >
@@ -526,7 +526,7 @@ export function Header() {
                             key={item.href}
                             href={item.href}
                             onClick={() => setMobileMenuOpen(false)}
-                            className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition ${isActive(item.href) ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-cyan)]' : ''
+                            className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation min-h-[48px] ${isActive(item.href) ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-cyan)]' : ''
                               }`}
                             style={{ color: '#1b2838', textDecoration: 'none' }}
                           >
@@ -553,7 +553,7 @@ export function Header() {
                             key={item.href}
                             href={item.href}
                             onClick={() => setMobileMenuOpen(false)}
-                            className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] transition ${isActive(item.href) ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
+                            className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation min-h-[48px] ${isActive(item.href) ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
                               }`}
                             style={{ color: '#1b2838', textDecoration: 'none' }}
                           >
@@ -577,7 +577,7 @@ export function Header() {
                           setMobileMenuOpen(false);
                           router.push('/');
                         }}
-                        className="w-full flex items-center gap-4 px-6 py-3 hover:bg-red-50 transition"
+                        className="w-full flex items-center gap-4 px-6 py-3 hover:bg-red-50 active:bg-red-100 transition touch-manipulation min-h-[48px]"
                         style={{ color: '#dc2626', textDecoration: 'none' }}
                       >
                         <svg className="w-6 h-6" style={{ color: '#dc2626' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -593,14 +593,14 @@ export function Header() {
                       <Link
                         href="/login"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block w-full px-4 py-3 text-center border-2 border-[var(--color-navy)] text-[var(--color-navy)] rounded-lg font-semibold hover:bg-[var(--color-navy)] hover:text-white transition"
+                        className="block w-full px-4 py-3 text-center border-2 border-[var(--color-navy)] text-[var(--color-navy)] rounded-lg font-semibold hover:bg-[var(--color-navy)] hover:text-white active:scale-95 transition touch-manipulation min-h-[48px] flex items-center justify-center"
                       >
                         Login
                       </Link>
                       <Link
                         href="/signup"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block w-full px-4 py-3 text-center bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white rounded-lg font-semibold hover:shadow-lg transition"
+                        className="block w-full px-4 py-3 text-center bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white rounded-lg font-semibold hover:shadow-lg active:scale-95 transition touch-manipulation min-h-[48px] flex items-center justify-center"
                       >
                         Sign Up
                       </Link>

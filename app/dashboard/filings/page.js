@@ -185,8 +185,8 @@ export default function FilingsListPage() {
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Statistics Row */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Statistics Row - Mobile Responsive */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {[
                 { label: 'Total Filings', value: stats.total, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
                 { label: 'Completed', value: stats.completed, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
@@ -195,37 +195,37 @@ export default function FilingsListPage() {
               ].map((stat, idx) => {
                 const Icon = stat.icon;
                 return (
-                  <div key={idx} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
-                    <div className={`w-12 h-12 rounded-lg ${stat.bg} ${stat.border} border flex items-center justify-center flex-shrink-0`}>
-                      <Icon className={`w-6 h-6 ${stat.color}`} strokeWidth={2} />
+                  <div key={idx} className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-md transition-shadow">
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg ${stat.bg} ${stat.border} border flex items-center justify-center flex-shrink-0`}>
+                      <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${stat.color}`} strokeWidth={2} />
                     </div>
-                    <div>
-                      <div className="text-2xl font-bold text-slate-900">{stat.value}</div>
-                      <div className="text-xs font-medium text-slate-500 uppercase tracking-wide">{stat.label}</div>
+                    <div className="min-w-0">
+                      <div className="text-xl sm:text-2xl font-bold text-slate-900">{stat.value}</div>
+                      <div className="text-xs font-medium text-slate-500 uppercase tracking-wide truncate">{stat.label}</div>
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* Filters Row */}
-            <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-2 sticky top-0 z-30">
+            {/* Filters Row - Mobile Optimized */}
+            <div className="bg-white p-2 sm:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-2 sticky top-0 z-30">
               <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search by business, tax year, or status..."
+                  placeholder="Search filings..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-transparent border-none focus:ring-0 text-slate-900 placeholder-slate-400 font-medium"
+                  className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-transparent border-none focus:ring-0 text-sm sm:text-base text-slate-900 placeholder-slate-400 font-medium touch-manipulation"
                 />
               </div>
-              <div className="h-px md:h-auto md:w-px bg-slate-200 mx-2 my-2 md:my-0"></div>
+              <div className="h-px md:h-auto md:w-px bg-slate-200 mx-0 my-1 md:my-0"></div>
               <div className="relative md:w-64">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full pl-4 pr-10 py-3 bg-transparent border-none focus:ring-0 font-medium text-slate-700 cursor-pointer hover:bg-slate-50 rounded-lg transition-colors appearance-none"
+                  className="w-full pl-3 sm:pl-4 pr-8 sm:pr-10 py-2.5 sm:py-3 bg-transparent border-none focus:ring-0 text-sm sm:text-base font-medium text-slate-700 cursor-pointer hover:bg-slate-50 active:bg-slate-100 rounded-lg transition-colors appearance-none touch-manipulation"
                 >
                   <option value="all">All Statuses</option>
                   <option value="submitted">Submitted</option>
@@ -233,7 +233,7 @@ export default function FilingsListPage() {
                   <option value="action_required">Action Required</option>
                   <option value="completed">Completed</option>
                 </select>
-                <Filter className="absolute right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <Filter className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
             </div>
 
@@ -294,8 +294,18 @@ export default function FilingsListPage() {
                                 {/* Status Stripe */}
                                 <div className={`absolute left-0 top-0 bottom-0 w-1 ${status.bg.replace('bg-', 'bg-').replace('50', '500')}`}></div>
 
-                                <div className="flex flex-col md:flex-row md:items-center gap-6 pl-2">
-                                  {/* Icon Section */}
+                                <div className="flex flex-col md:flex-row md:items-center gap-4 sm:gap-6 pl-2">
+                                  {/* Icon Section - Show on mobile too but smaller */}
+                                  <div className="flex md:hidden flex-col items-center gap-2 min-w-[60px] mb-2">
+                                    <div className="relative w-12 h-12 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
+                                      <Image
+                                        src={typeInfo.image}
+                                        alt={typeInfo.label}
+                                        fill
+                                        className="object-contain"
+                                      />
+                                    </div>
+                                  </div>
                                   <div className="hidden md:flex flex-col items-center gap-2 min-w-[80px]">
                                     <div className="relative w-16 h-16 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
                                       <Image
@@ -342,15 +352,15 @@ export default function FilingsListPage() {
                                     </div>
                                   </div>
 
-                                  {/* Action Area */}
-                                  <div className="flex items-center gap-4 border-t md:border-t-0 border-slate-100 pt-4 md:pt-0 mt-4 md:mt-0 justify-between md:justify-end">
+                                  {/* Action Area - Mobile Optimized */}
+                                  <div className="flex items-center gap-3 sm:gap-4 border-t md:border-t-0 border-slate-100 pt-3 sm:pt-4 md:pt-0 mt-3 sm:mt-4 md:mt-0 justify-between md:justify-end">
                                     <div className="md:hidden flex items-center gap-2 text-slate-500 text-xs">
                                       <Clock className="w-3 h-3" />
-                                      <span>Filed {date}</span>
+                                      <span className="truncate">{date}</span>
                                     </div>
-                                    <div className="flex items-center gap-3 text-[var(--color-orange)] font-semibold text-sm group-hover:underline decoration-2 underline-offset-4">
-                                      View Details
-                                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    <div className="flex items-center gap-2 sm:gap-3 text-[var(--color-orange)] font-semibold text-xs sm:text-sm group-hover:underline decoration-2 underline-offset-4 touch-manipulation">
+                                      <span className="whitespace-nowrap">View Details</span>
+                                      <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform flex-shrink-0" />
                                     </div>
                                   </div>
                                 </div>

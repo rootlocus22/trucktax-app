@@ -21,14 +21,11 @@ import {
   BookOpen,
   Wrench,
   ChevronLeft,
-  ChevronRight,
-  Menu,
-  X
+  ChevronRight
 } from 'lucide-react';
 
 export function Sidebar({ children }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
   const isActive = (href) => {
@@ -91,15 +88,7 @@ export function Sidebar({ children }) {
             {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
           </button>
         )}
-        {mobile && (
-          <button
-            onClick={() => setMobileMenuOpen(false)}
-            className="p-2 rounded-lg hover:bg-[var(--color-page-alt)] transition text-[var(--color-muted)] hover:text-[var(--color-text)]"
-            aria-label="Close menu"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
+        {/* Mobile close button removed - Header handles mobile navigation */}
       </div>
 
       {/* Navigation Sections */}
@@ -119,10 +108,10 @@ export function Sidebar({ children }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition group ${active
+                  className={`flex items-center gap-3 px-3 py-3 rounded-lg transition group touch-manipulation ${active
                     ? 'bg-[var(--color-orange)]/10 text-[var(--color-orange)] border-l-4 border-[var(--color-orange)]'
-                    : 'text-[var(--color-muted)] hover:bg-[var(--color-page-alt)] hover:text-[var(--color-text)]'
-                    } ${isCollapsed && !mobile ? 'justify-center px-2' : ''}`}
+                    : 'text-[var(--color-muted)] hover:bg-[var(--color-page-alt)] hover:text-[var(--color-text)] active:bg-[var(--color-page-alt)]'
+                    } ${isCollapsed && !mobile ? 'justify-center px-2' : ''} ${mobile ? 'min-h-[48px]' : ''}`}
                   title={isCollapsed && !mobile ? item.label : ''}
                 >
                   <Icon className={`w-5 h-5 flex-shrink-0 ${isCollapsed && !mobile ? '' : ''}`} />
@@ -183,31 +172,7 @@ export function Sidebar({ children }) {
           </div>
         </aside>
 
-        {/* Mobile Menu Button - Absolute */}
-        <div className="lg:hidden fixed top-20 left-4 z-50">
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] shadow-lg text-[var(--color-text)] hover:bg-[var(--color-page-alt)] transition"
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-
-        {/* Mobile Sidebar - Overlay */}
-        {mobileMenuOpen && (
-          <>
-            <div
-              className="lg:hidden fixed inset-0 bg-black/50 z-40"
-              onClick={() => setMobileMenuOpen(false)}
-            />
-            <aside
-              className="lg:hidden fixed left-0 top-16 bottom-12 w-64 bg-[var(--color-card)] border-r border-[var(--color-border)] shadow-2xl z-50 overflow-y-auto"
-            >
-              <SidebarContent mobile />
-            </aside>
-          </>
-        )}
+        {/* Mobile Sidebar - Removed since Header already provides mobile navigation */}
 
         {/* Content wrapper - Flex Child - Scrollable by default */}
         <div className="flex-1 h-full min-w-0 overflow-y-auto overflow-x-hidden flex flex-col relative w-full">
