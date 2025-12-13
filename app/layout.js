@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Script from "next/script";
+import FirebaseAnalytics from "./components/FirebaseAnalytics";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
@@ -155,6 +156,8 @@ export default function RootLayout({ children }) {
           <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8 sm:py-16">
             {children}
             <Analytics />
+            <FirebaseAnalytics />
+
           </main>
           <footer className="border-t border-[var(--color-border)] bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-midnight)] text-white">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-8 sm:px-6 lg:px-8 text-sm sm:flex-row sm:items-center sm:justify-between">
@@ -173,6 +176,6 @@ export default function RootLayout({ children }) {
           </footer>
         </div>
       </body>
-    </html>
+    </html >
   );
 }
