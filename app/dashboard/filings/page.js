@@ -23,6 +23,7 @@ export default function FilingsListPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [activeTab, setActiveTab] = useState('all'); // 'all', '2290', 'mcs150'
 
   useEffect(() => {
     // Redirect agents to agent dashboard
@@ -109,8 +110,16 @@ export default function FilingsListPage() {
       const matchesStatus = getStatusLabel(filing.status).toLowerCase().includes(searchLower);
       const matchesFilingType = filing.filingType?.toLowerCase().includes(searchLower);
       const matchesAmendmentType = filing.amendmentType?.toLowerCase().includes(searchLower);
-      
+
       return matchesTaxYear || matchesStatus || matchesFilingType || matchesAmendmentType;
+    }
+
+    // Filter by Tab
+    if (activeTab === '2290' && filing.filingType === 'mcs150') {
+      return false;
+    }
+    if (activeTab === 'mcs150' && filing.filingType !== 'mcs150') {
+      return false;
     }
 
     return true;
@@ -163,6 +172,32 @@ export default function FilingsListPage() {
           </div>
         ) : (
           <div className="space-y-6">
+
+            {/* Tab Navigation */}
+            <div className="flex border-b border-[var(--color-border)] mb-6">
+              <button
+                onClick={() => setActiveTab('all')}
+                className={`px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'all' ? 'border-[var(--color-navy)] text-[var(--color-navy)]' : 'border-transparent text-[var(--color-muted)] hover:text-[var(--color-text)]'}`}
+              >
+                <span className="md:hidden">All</span>
+                <span className="hidden md:inline">All Filings</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('2290')}
+                className={`px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === '2290' ? 'border-[var(--color-navy)] text-[var(--color-navy)]' : 'border-transparent text-[var(--color-muted)] hover:text-[var(--color-text)]'}`}
+              >
+                <span className="md:hidden">2290</span>
+                <span className="hidden md:inline">Form 2290</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('mcs150')}
+                className={`px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'mcs150' ? 'border-teal-600 text-teal-700' : 'border-transparent text-[var(--color-muted)] hover:text-[var(--color-text)]'}`}
+              >
+                <span className="md:hidden">MCS</span>
+                <span className="hidden md:inline">MCS-150 Updates</span>
+              </button>
+            </div>
+
             {/* Statistics Summary */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
               <div className="bg-blue-50 rounded-lg border border-blue-200 p-4 sm:p-5">
@@ -239,56 +274,78 @@ export default function FilingsListPage() {
                 </h2>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {filteredFilings.map((filing) => (
-                  <Link
-                    key={filing.id}
-                    href={`/dashboard/filings/${filing.id}`}
-                    className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4 sm:p-5 hover:border-[var(--color-navy)] hover:shadow-md transition group"
-                  >
-                    <div className="flex justify-between items-start gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 sm:gap-3 mb-2.5 flex-wrap">
-                          <h3 className="text-base sm:text-lg font-semibold text-[var(--color-text)]">
-                            Tax Year: {filing.taxYear}
-                          </h3>
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(filing.status)}`}>
-                            {getStatusIcon(filing.status)}
-                            {getStatusLabel(filing.status)}
-                          </span>
-                          {filing.filingType === 'amendment' && filing.amendmentType && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
-                              {filing.amendmentType === 'vin_correction' ? '📝 VIN Correction' :
-                               filing.amendmentType === 'weight_increase' ? '⚖️ Weight Increase' :
-                               filing.amendmentType === 'mileage_exceeded' ? '🛣️ Mileage Exceeded' :
-                               'Amendment'}
+                {filteredFilings.map((filing) => {
+                  const isMcs150 = filing.filingType === 'mcs150';
+                  return (
+                    <Link
+                      key={filing.id}
+                      href={`/dashboard/filings/${filing.id}`}
+                      className={`rounded-lg border p-4 sm:p-5 hover:shadow-md transition group block ${isMcs150 ? 'bg-white border-[var(--color-border)] hover:border-teal-500' : 'bg-[var(--color-card)] border-[var(--color-border)] hover:border-[var(--color-navy)]'}`}
+                    >
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 sm:gap-3 mb-2.5 flex-wrap">
+                            <h3 className="text-base sm:text-lg font-semibold text-[var(--color-text)]">
+                              {isMcs150 ? (
+                                <span className='flex items-center gap-2'>
+                                  MCS-150 Update
+                                  <span className="text-[10px] bg-teal-100 text-teal-800 px-2 py-0.5 rounded uppercase font-bold tracking-wider">
+                                    {filing.mcs150Reason?.replace(/_/g, ' ') || 'Biennial'}
+                                  </span>
+                                </span>
+                              ) : (
+                                `Tax Year: ${filing.taxYear}`
+                              )}
+                            </h3>
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(filing.status)}`}>
+                              {getStatusIcon(filing.status)}
+                              {getStatusLabel(filing.status)}
                             </span>
-                          )}
-                          {filing.filingType === 'refund' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                              Refund (8849)
-                            </span>
-                          )}
-                        </div>
-                        <div className="space-y-1 text-xs sm:text-sm text-[var(--color-muted)]">
-                          <p>
-                            <strong className="text-[var(--color-text)]">{filing.vehicleIds?.length || 0}</strong> vehicle{filing.vehicleIds?.length !== 1 ? 's' : ''}
-                            {filing.filingType !== 'amendment' && (
-                              <> • First used: <strong className="text-[var(--color-text)]">{filing.firstUsedMonth}</strong></>
+                            {filing.filingType === 'amendment' && filing.amendmentType && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                                {filing.amendmentType === 'vin_correction' ? '📝 VIN Correction' :
+                                  filing.amendmentType === 'weight_increase' ? '⚖️ Weight Increase' :
+                                    filing.amendmentType === 'mileage_exceeded' ? '🛣️ Mileage Exceeded' :
+                                      'Amendment'}
+                              </span>
                             )}
-                          </p>
-                          {filing.createdAt && (
-                            <p>
-                              Submitted: <strong className="text-[var(--color-text)]">{filing.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
-                            </p>
-                          )}
+                            {filing.filingType === 'refund' && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                                Refund (8849)
+                              </span>
+                            )}
+                          </div>
+                          <div className="space-y-1 text-xs sm:text-sm text-[var(--color-muted)]">
+                            {isMcs150 ? (
+                              <p className="flex items-center gap-4">
+                                <span>USDOT: <strong className="text-[var(--color-text)]">{filing.mcs150UsdotNumber || 'N/A'}</strong></span>
+                                <span>Power Units: <strong className="text-[var(--color-text)]">{filing.mcs150Data?.powerUnits || '-'}</strong></span>
+                              </p>
+                            ) : (
+                              <p>
+                                <strong className="text-[var(--color-text)]">{filing.vehicleIds?.length || 0}</strong> vehicle{filing.vehicleIds?.length !== 1 ? 's' : ''}
+                                {filing.filingType !== 'amendment' && (
+                                  <> • First used: <strong className="text-[var(--color-text)]">{filing.firstUsedMonth}</strong></>
+                                )}
+                              </p>
+                            )}
+
+                            {filing.createdAt && (
+                              <p>
+                                Submitted: <strong className="text-[var(--color-text)]">
+                                  {filing.createdAt.toLocaleDateString ? filing.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : new Date(filing.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </strong>
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className={`text-[var(--color-muted)] flex-shrink-0 transition ${isMcs150 ? 'group-hover:text-teal-600' : 'group-hover:text-[var(--color-navy)]'}`}>
+                          <ArrowRight className="w-5 h-5" />
                         </div>
                       </div>
-                      <div className="text-[var(--color-muted)] flex-shrink-0 group-hover:text-[var(--color-navy)] transition">
-                        <ArrowRight className="w-5 h-5" />
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
                 {filteredFilings.length === 0 && (
                   <div className="col-span-2 text-center py-12 text-[var(--color-muted)] bg-[var(--color-page-alt)] rounded-lg border border-dashed border-[var(--color-border)]">
                     <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
