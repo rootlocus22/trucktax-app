@@ -16,7 +16,8 @@ export function PricingSidebar({
   mileageExceededData,
   step,
   onSubmit,
-  loading = false
+  loading = false,
+  hideSubmitButton = false
 }) {
   const [pricing, setPricing] = useState({
     totalTax: 0,
@@ -301,7 +302,7 @@ export function PricingSidebar({
         </div>
 
         {/* Footer - Only show submit button on final step */}
-        {step === 5 && onSubmit && (
+        {step === 5 && onSubmit && !hideSubmitButton && (
           <div className="p-6 border-t border-slate-100 bg-slate-50">
             <button
               onClick={onSubmit}

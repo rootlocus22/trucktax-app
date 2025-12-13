@@ -31,13 +31,13 @@ export function ConsumerLayout({ children }) {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[var(--color-page)] w-full">
+    <div className={`flex flex-col bg-[var(--color-page)] w-full ${showSidebar ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
       <Schedule1Listener />
       {/* Always show header - fixed height */}
       <Header />
 
       {/* Main Layout Area - fills remaining height */}
-      <div className="flex-1 flex overflow-hidden w-full relative">
+      <div className={`flex-1 flex w-full relative ${showSidebar ? 'overflow-hidden' : ''}`}>
         {/* Show sidebar for authenticated users on dashboard routes */}
         {showSidebar ? (
           <Sidebar>
