@@ -96,8 +96,14 @@ function NewFilingContent() {
   // Step 5: Review
   const [filingData, setFilingData] = useState({
     taxYear: '2025-2026',
+    taxYear: '2025-2026',
     firstUsedMonth: 'July'
   });
+
+  // Step 5: Compliance
+  const [signature, setSignature] = useState('');
+  const [agreedToPerjury, setAgreedToPerjury] = useState(false);
+  const [agreedToConsent, setAgreedToConsent] = useState(false);
 
   // Pricing State (Fetched from Server)
   const [pricing, setPricing] = useState({
@@ -663,8 +669,8 @@ function NewFilingContent() {
         compliance: {
           signature: signature,
           signedAt: new Date().toISOString(),
-          agreedToPerjury: true,
-          agreedToConsent: true,
+          agreedToPerjury: agreedToPerjury,
+          agreedToConsent: agreedToConsent,
           ipAddress: 'captured_on_server' // Ideally captured server-side
         },
         amendmentType: filingType === 'amendment' ? amendmentType : null, // Add amendment type
@@ -2275,6 +2281,54 @@ function NewFilingContent() {
                   </>
                 )}
 
+                {/* Compliance Section */}
+                <div className="bg-[var(--color-page-alt)] p-6 rounded-xl border border-[var(--color-border)]">
+                  <h3 className="font-bold text-[var(--color-text)] mb-4 flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-[var(--color-navy)]" />
+                    Compliance & Signature
+                  </h3>
+
+                  <div className="space-y-4">
+                    <label className="flex items-start gap-3 p-3 bg-white rounded border border-[var(--color-border)] cursor-pointer hover:border-[var(--color-navy)] transition">
+                      <input
+                        type="checkbox"
+                        className="mt-1 w-4 h-4 text-[var(--color-navy)] rounded border-gray-300 focus:ring-[var(--color-navy)]"
+                        checked={agreedToPerjury}
+                        onChange={(e) => setAgreedToPerjury(e.target.checked)}
+                      />
+                      <span className="text-sm text-[var(--color-text)]">
+                        <strong>Perjury Statement:</strong> I declare under penalty of perjury that I have examined this return, including accompanying schedules and statements, and to the best of my knowledge and belief, it is true, correct, and complete.
+                      </span>
+                    </label>
+
+                    <label className="flex items-start gap-3 p-3 bg-white rounded border border-[var(--color-border)] cursor-pointer hover:border-[var(--color-navy)] transition">
+                      <input
+                        type="checkbox"
+                        className="mt-1 w-4 h-4 text-[var(--color-navy)] rounded border-gray-300 focus:ring-[var(--color-navy)]"
+                        checked={agreedToConsent}
+                        onChange={(e) => setAgreedToConsent(e.target.checked)}
+                      />
+                      <span className="text-sm text-[var(--color-text)]">
+                        <strong>Consent to Disclosure:</strong> I consent to the IRS disclosing information about my payment of the heavy highway vehicle use tax to the Department of Transportation for proof of payment purposes.
+                      </span>
+                    </label>
+
+                    <div>
+                      <label className="block text-sm font-bold text-[var(--color-text)] mb-1">
+                        Electronic Signature <span className="text-red-500">*</span>
+                      </label>
+                      <div className="text-xs text-[var(--color-muted)] mb-2">Type your full name to sign this return</div>
+                      <input
+                        type="text"
+                        className="w-full p-3 bg-white border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-navy)] focus:border-transparent outline-none transition"
+                        placeholder="e.g. John Doe"
+                        value={signature}
+                        onChange={(e) => setSignature(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {/* MCS-150 Upsell Removed - Moved to dedicated workflow */}
               </div>
 
@@ -2343,7 +2397,7 @@ function NewFilingContent() {
 
                   <button
                     onClick={handleSubmit}
-                    disabled={loading || pricingLoading}
+                    disabled={loading || pricingLoading || !signature || !agreedToPerjury || !agreedToConsent}
                     className="w-full bg-[var(--color-orange)] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#ff7a20] transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {loading ? 'Processing...' : (
@@ -2372,7 +2426,7 @@ function NewFilingContent() {
           </div>
         )}
       </div>
-    </ProtectedRoute>
+    </ProtectedRoute >
   );
 }
 
