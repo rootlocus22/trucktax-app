@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // User data (locked to auth id)
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Filings (locked to auth id)
+    match /filings/{filingId} {
+        allow read, write: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+    }
+    
+    // FMCSA Cache (read-only for authenticated users, write for admin/system)
+    // Assuming backend handles writes, or we relax this for now if client writes it
+    match /fmcsa_cache/{dotNumber} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null; // Simplified for dev
+    }
+
+    // Early Access Leads - Public Write Access
+    match /early_access_leads/{lead} {
+      allow create: if true;
+    }
+  }
+}
