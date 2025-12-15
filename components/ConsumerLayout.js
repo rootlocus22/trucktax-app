@@ -19,7 +19,8 @@ export function ConsumerLayout({ children }) {
 
   // Check if user is authenticated and on dashboard routes
   const isDashboardRoute = pathname?.startsWith('/dashboard') || pathname?.startsWith('/tools') || pathname?.startsWith('/blog') || pathname?.startsWith('/insights');
-  const showSidebar = user && isDashboardRoute;
+  // Sidebar is disabled in favor of header navigation, so we disable the fixed-height layout
+  const showSidebar = false;
 
   // Update state when user changes - collapsed if logged in, expanded if not
   useEffect(() => {
@@ -39,15 +40,10 @@ export function ConsumerLayout({ children }) {
       {/* Main Layout Area - fills remaining height */}
       <div className={`flex-1 flex w-full relative ${showSidebar ? 'overflow-hidden' : ''}`}>
         {/* Show sidebar for authenticated users on dashboard routes */}
-        {showSidebar ? (
-          <Sidebar>
-            {children}
-          </Sidebar>
-        ) : (
-          <MainContent isLandingPage={isLandingPage}>
-            {children}
-          </MainContent>
-        )}
+        {/* Sidebar removed - using Header navigation for all users */}
+        <MainContent isLandingPage={isLandingPage}>
+          {children}
+        </MainContent>
       </div>
 
       {/* Footer - Fixed height at bottom */}

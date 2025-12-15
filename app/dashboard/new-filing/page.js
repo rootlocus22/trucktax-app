@@ -319,11 +319,30 @@ function NewFilingContent() {
     firstUsedMonth: 'July'
   });
 
+  // Step 6: IRS Payment Method Selection
+  const [irsPaymentMethod, setIrsPaymentMethod] = useState(''); // 'efw', 'eftps', 'credit_card', 'check'
+  const [bankDetails, setBankDetails] = useState({
+    routingNumber: '',
+    accountNumber: '',
+    confirmAccountNumber: '',
+    accountType: '', // 'checking' or 'savings'
+    phoneNumber: ''
+  });
+  const [bankDetailsErrors, setBankDetailsErrors] = useState({});
+
+  // Coupon State
+  const [couponCode, setCouponCode] = useState('');
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponType, setCouponType] = useState(''); // 'percentage' or 'fixed'
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [couponError, setCouponError] = useState('');
+
   // Pricing State (Fetched from Server)
   const [pricing, setPricing] = useState({
     totalTax: 0,
     serviceFee: 0,
     salesTax: 0,
+    couponDiscount: 0,
     grandTotal: 0
   });
   const [pricingLoading, setPricingLoading] = useState(false);
@@ -811,6 +830,27 @@ function NewFilingContent() {
         return;
       }
 
+      // Validate IRS payment method selection (Step 6)
+      if (!irsPaymentMethod) {
+        setError('Please select an IRS payment method');
+        setLoading(false);
+        return;
+      }
+
+      // Validate bank details if EFW is selected
+      if (irsPaymentMethod === 'efw') {
+        if (!bankDetails.routingNumber || !bankDetails.accountNumber || !bankDetails.confirmAccountNumber || !bankDetails.accountType || !bankDetails.phoneNumber) {
+          setError('Please fill in all bank account details for Direct Debit payment');
+          setLoading(false);
+          return;
+        }
+        if (bankDetails.accountNumber !== bankDetails.confirmAccountNumber) {
+          setError('Account numbers do not match');
+          setLoading(false);
+          return;
+        }
+      }
+
       // For VIN corrections without a business, try to find from original filing
       if (!businessIdToUse && filingType === 'amendment' && amendmentType === 'vin_correction') {
         if (vinCorrectionData.originalFilingId) {
@@ -871,6 +911,20 @@ function NewFilingContent() {
         return;
       }
 
+      // Prepare payment details
+      const paymentDetails = {
+        irsPaymentMethod: irsPaymentMethod,
+        bankDetails: irsPaymentMethod === 'efw' ? {
+          routingNumber: bankDetails.routingNumber,
+          accountNumber: bankDetails.accountNumber, // Note: Should be encrypted in production
+          accountType: bankDetails.accountType,
+          phoneNumber: bankDetails.phoneNumber
+        } : null,
+        couponCode: couponApplied ? couponCode : null,
+        couponDiscount: couponApplied ? pricing.couponDiscount || 0 : 0,
+        couponType: couponApplied ? couponType : null
+      };
+
       // Create filing
       const filingId = await createFiling({
         userId: user.uid,
@@ -884,7 +938,8 @@ function NewFilingContent() {
         amendmentDueDate: amendmentDueDate, // Add due date for weight increases
         refundDetails: filingType === 'refund' ? refundDetails : {}, // Add refund details
         inputDocuments: [],
-        pricing: pricing // Save pricing snapshot
+        pricing: pricing, // Save pricing snapshot
+        paymentDetails: paymentDetails // Add payment details including IRS method and coupon
       });
 
       // Upload documents if any
@@ -939,7 +994,8 @@ function NewFilingContent() {
       case 2: return 'Business Information';
       case 3: return 'Vehicles';
       case 4: return 'Documents';
-      case 5: return 'Review & Pay';
+      case 5: return 'Review';
+      case 6: return 'Select IRS Payment Method';
       default: return '';
     }
   };
@@ -953,6 +1009,8 @@ function NewFilingContent() {
       setStep(4);
     } else if (step === 4) {
       setStep(5);
+    } else if (step === 5) {
+      setStep(6);
     } else {
       // Show error if can't continue
       if (step === 2 && !selectedBusinessId) {
@@ -960,6 +1018,95 @@ function NewFilingContent() {
       } else if (step === 3 && selectedVehicleIds.length === 0) {
         setError('Please select or add at least one vehicle');
       }
+    }
+  };
+
+  // Apply Coupon Code
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Please enter a coupon code');
+      return;
+    }
+
+    setCouponError('');
+    
+    // Mock coupon validation (replace with actual API call)
+    // For testing, use dummy coupon codes
+    const validCoupons = {
+      'SAVE10': { type: 'percentage', value: 10 },
+      'SAVE20': { type: 'percentage', value: 20 },
+      'FIXED5': { type: 'fixed', value: 5 },
+      'FIXED10': { type: 'fixed', value: 10 },
+      'TEST50': { type: 'percentage', value: 50 } // For testing
+    };
+
+    const coupon = validCoupons[couponCode.toUpperCase()];
+    
+    if (coupon) {
+      setCouponType(coupon.type);
+      setCouponDiscount(coupon.value);
+      setCouponApplied(true);
+      setCouponError('');
+      
+      // Recalculate pricing with coupon
+      await recalculatePricingWithCoupon(coupon.type, coupon.value);
+    } else {
+      setCouponError('Invalid coupon code');
+      setCouponApplied(false);
+      setCouponDiscount(0);
+    }
+  };
+
+  // Recalculate pricing with coupon discount
+  const recalculatePricingWithCoupon = async (type, value) => {
+    const selectedVehiclesList = vehicles.filter(v => selectedVehicleIds.includes(v.id));
+    const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
+
+    let state = 'CA';
+    if (selectedBusiness?.address) {
+      const parts = selectedBusiness.address.split(',');
+      if (parts.length >= 2) {
+        const stateZip = parts[parts.length - 1].trim();
+        state = stateZip.split(' ')[0];
+      }
+    }
+
+    try {
+      const filingDataForPricing = {
+        filingType,
+        firstUsedMonth: filingData.firstUsedMonth
+      };
+
+      const sanitizedVehicles = selectedVehiclesList.map(v => ({
+        id: v.id,
+        vin: v.vin,
+        grossWeightCategory: v.grossWeightCategory,
+        isSuspended: v.isSuspended
+      }));
+
+      const result = await calculateFilingCost(
+        filingDataForPricing,
+        sanitizedVehicles,
+        { state }
+      );
+
+      if (result.success) {
+        let discountAmount = 0;
+        if (type === 'percentage') {
+          // Apply percentage discount to service fee only
+          discountAmount = (result.breakdown.serviceFee * value) / 100;
+        } else if (type === 'fixed') {
+          discountAmount = Math.min(value, result.breakdown.serviceFee);
+        }
+
+        setPricing({
+          ...result.breakdown,
+          couponDiscount: parseFloat(discountAmount.toFixed(2)),
+          grandTotal: parseFloat((result.breakdown.grandTotal - discountAmount).toFixed(2))
+        });
+      }
+    } catch (err) {
+      console.error('Error recalculating pricing:', err);
     }
   };
 
@@ -972,12 +1119,12 @@ function NewFilingContent() {
             <div className="w-full md:w-auto">
               <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight mb-1 sm:mb-2">New Filing Request</h1>
               <p className="text-xs sm:text-sm md:text-base text-slate-500 font-medium">
-                Step {step} of 5: <span className="text-[var(--color-orange)] font-bold">{getStepTitle(step)}</span>
+                Step {step} of 6: <span className="text-[var(--color-orange)] font-bold">{getStepTitle(step)}</span>
               </p>
             </div>
             {/* Desktop Stepper */}
             <div className="hidden md:flex items-center">
-              {[1, 2, 3, 4, 5].map((s) => (
+              {[1, 2, 3, 4, 5, 6].map((s) => (
                 <div key={s} className="flex items-center">
                   <div className={`
                     w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 border-2
@@ -990,7 +1137,7 @@ function NewFilingContent() {
                   `}>
                     {s < step ? <CheckCircle className="w-5 h-5" /> : s}
                   </div>
-                  {s < 5 && (
+                  {s < 6 && (
                     <div className={`w-12 h-1 transition-colors duration-300 ${s < step ? 'bg-[var(--color-orange)]' : 'bg-slate-200'}`} />
                   )}
                 </div>
@@ -1000,13 +1147,13 @@ function NewFilingContent() {
           {/* Mobile Progress Bar with Label */}
           <div className="md:hidden mb-3 sm:mb-4 md:mb-6">
             <div className="flex justify-between items-center mb-1.5 sm:mb-2">
-              <span className="text-xs sm:text-sm font-bold text-slate-900">Step {step} of 5</span>
+              <span className="text-xs sm:text-sm font-bold text-slate-900">Step {step} of 6</span>
               <span className="text-xs sm:text-sm font-medium text-[var(--color-orange)]">{getStepTitle(step)}</span>
             </div>
             <div className="h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className="h-full bg-[var(--color-orange)] transition-all duration-500 ease-out"
-                style={{ width: `${(step / 5) * 100}%` }}
+                style={{ width: `${(step / 6) * 100}%` }}
               />
             </div>
           </div>
@@ -2289,10 +2436,56 @@ function NewFilingContent() {
               </div>
             )}
 
-            {/* Step 5: Review & Pay */}
+            {/* Step 5: Review */}
             {step === 5 && (
               <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm">
                 <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--color-text)] mb-4 sm:mb-6 md:mb-8">Review Your Filing</h2>
+
+                {/* Coupon Section */}
+                <div className="mb-4 sm:mb-6 bg-slate-50 rounded-lg p-4 sm:p-5 border border-slate-200">
+                  <label className="block text-sm font-semibold text-[var(--color-text)] mb-2">
+                    Coupon Code (Optional)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      placeholder="Enter coupon code"
+                      className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-orange)]"
+                      disabled={couponApplied}
+                    />
+                    {!couponApplied ? (
+                      <button
+                        onClick={handleApplyCoupon}
+                        className="px-4 sm:px-6 py-2 bg-[var(--color-orange)] text-white rounded-lg font-semibold hover:bg-[#ff7a20] transition"
+                      >
+                        Apply
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setCouponCode('');
+                          setCouponApplied(false);
+                          setCouponDiscount(0);
+                          setCouponType('');
+                          recalculatePricingWithCoupon('percentage', 0);
+                        }}
+                        className="px-4 sm:px-6 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  {couponError && (
+                    <p className="mt-2 text-sm text-red-600">{couponError}</p>
+                  )}
+                  {couponApplied && (
+                    <p className="mt-2 text-sm text-green-600">
+                      ✓ Coupon applied: {couponType === 'percentage' ? `${couponDiscount}%` : `$${couponDiscount}`} discount
+                    </p>
+                  )}
+                </div>
 
                 <div className="space-y-3 sm:space-y-4 md:space-y-6">
                   {/* Filing Summary Overview */}
@@ -2500,6 +2693,63 @@ function NewFilingContent() {
                       </div>
                     </div>
                   )}
+
+                  {/* Tax Summary Section */}
+                  <div className="bg-blue-50 rounded-xl p-4 sm:p-6 border border-blue-200">
+                    <h3 className="font-bold text-base sm:text-lg text-[var(--color-text)] mb-4 flex items-center gap-2">
+                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-orange)]" />
+                      Tax Summary
+                    </h3>
+                    <div className="space-y-2 sm:space-y-3">
+                      <div className="flex justify-between text-sm sm:text-base">
+                        <span className="text-[var(--color-muted)]">Form Type:</span>
+                        <span className="font-semibold">2290</span>
+                      </div>
+                      <div className="flex justify-between text-sm sm:text-base">
+                        <span className="text-[var(--color-muted)]">Tax Period:</span>
+                        <span className="font-semibold">July 1st, 2025 - June 30th, 2026</span>
+                      </div>
+                      <div className="flex justify-between text-sm sm:text-base">
+                        <span className="text-[var(--color-muted)]">First Used Month:</span>
+                        <span className="font-semibold">{filingData.firstUsedMonth}-2025</span>
+                      </div>
+                      <div className="flex justify-between text-sm sm:text-base">
+                        <span className="text-[var(--color-muted)]">Final Return:</span>
+                        <span className="font-semibold">No</span>
+                      </div>
+                      <div className="flex justify-between text-sm sm:text-base">
+                        <span className="text-[var(--color-muted)]">Taxable Vehicles:</span>
+                        <span className="font-semibold">
+                          {filingType === 'amendment' 
+                            ? (amendmentType === 'vin_correction' ? 'N/A' : '1')
+                            : selectedVehicles.length
+                          } (View)
+                        </span>
+                      </div>
+                      <div className="border-t border-blue-200 pt-2 mt-2">
+                        <div className="flex justify-between text-base sm:text-lg mb-1">
+                          <span className="text-[var(--color-muted)]">Total Tax:</span>
+                          <span className="font-bold">${pricing.totalTax.toFixed(2)}</span>
+                        </div>
+                        {pricing.salesTax > 0 && (
+                          <div className="flex justify-between text-sm sm:text-base text-[var(--color-muted)] mb-1">
+                            <span>Sales Tax ({pricing.salesTaxRate ? (pricing.salesTaxRate * 100).toFixed(2) : '0.00'}%):</span>
+                            <span>${pricing.salesTax.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {couponApplied && couponDiscount > 0 && (
+                          <div className="flex justify-between text-sm sm:text-base text-green-600 mb-1">
+                            <span>Coupon Discount ({couponType === 'percentage' ? `${couponDiscount}%` : `$${couponDiscount}`}):</span>
+                            <span>-${pricing.couponDiscount?.toFixed(2) || '0.00'}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-base sm:text-lg font-bold mt-2 pt-2 border-t border-blue-200 bg-blue-100 -mx-2 sm:-mx-4 px-2 sm:px-4 py-2 rounded">
+                          <span>IRS Tax Amount Payable:</span>
+                          <span className="text-blue-700">${pricing.totalTax.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Action Buttons - Mobile Optimized */}
@@ -2508,27 +2758,300 @@ function NewFilingContent() {
                     onClick={() => setStep(4)}
                     className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border border-slate-300 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-slate-50 active:bg-slate-100 transition font-medium touch-manipulation"
                   >
-                    Back to Documents
+                    Previous Step
                   </button>
                   <button
-                    onClick={handleSubmit}
-                    disabled={loading || pricingLoading}
-                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                    onClick={() => setStep(6)}
+                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 touch-manipulation"
                   >
-                    {loading ? (
-                      <>
-                        <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span className="hidden sm:inline">Processing...</span>
-                        <span className="sm:hidden">Processing</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="hidden sm:inline">Pay & Submit</span>
-                        <span className="sm:hidden">Pay</span>
-                        <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </>
-                    )}
+                    Continue Filing
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 6: Select IRS Payment Method */}
+            {step === 6 && (
+              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--color-text)] mb-4 sm:mb-6 md:mb-8">Select IRS Payment Method</h2>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
+                  {/* Left: Payment Method Selection */}
+                  <div className="space-y-3 sm:space-y-4">
+                    {/* Option 1: EFW (Electronic Fund Withdrawal) */}
+                    <div className={`border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'efw' ? 'border-green-500 bg-green-50' : 'border-slate-200 hover:border-green-300'}`}>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="irsPaymentMethod"
+                          value="efw"
+                          checked={irsPaymentMethod === 'efw'}
+                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                          className="mt-1 w-5 h-5 text-green-600"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-bold text-base sm:text-lg">Option 1: EFW (Electronic Fund Withdrawal)</span>
+                            {irsPaymentMethod === 'efw' && <CheckCircle className="w-5 h-5 text-green-600" />}
+                          </div>
+                          {irsPaymentMethod === 'efw' && (
+                            <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-2">
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Routing Number <span className="text-red-500">*</span>
+                                  <Info className="w-4 h-4 inline ml-1 text-slate-400" />
+                                </label>
+                                <input
+                                  type="text"
+                                  value={bankDetails.routingNumber}
+                                  onChange={(e) => setBankDetails({ ...bankDetails, routingNumber: e.target.value.replace(/\D/g, '').slice(0, 9) })}
+                                  placeholder="Enter Routing Number*"
+                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                  maxLength="9"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Account Number <span className="text-red-500">*</span>
+                                  <Info className="w-4 h-4 inline ml-1 text-slate-400" />
+                                </label>
+                                <input
+                                  type="text"
+                                  value={bankDetails.accountNumber}
+                                  onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value.replace(/\D/g, '') })}
+                                  placeholder="Enter Account Number*"
+                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Confirm Account Number <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  value={bankDetails.confirmAccountNumber}
+                                  onChange={(e) => setBankDetails({ ...bankDetails, confirmAccountNumber: e.target.value.replace(/\D/g, '') })}
+                                  placeholder="Re-enter Account Number*"
+                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                />
+                                {bankDetails.accountNumber && bankDetails.confirmAccountNumber && bankDetails.accountNumber !== bankDetails.confirmAccountNumber && (
+                                  <p className="mt-1 text-xs text-red-600">Account numbers do not match</p>
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Account Type <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  value={bankDetails.accountType}
+                                  onChange={(e) => setBankDetails({ ...bankDetails, accountType: e.target.value })}
+                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                >
+                                  <option value="">Select the Account Type*</option>
+                                  <option value="checking">Checking</option>
+                                  <option value="savings">Savings</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Phone Number <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                  type="tel"
+                                  value={bankDetails.phoneNumber}
+                                  onChange={(e) => setBankDetails({ ...bankDetails, phoneNumber: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                                  placeholder="Enter Phone Number*"
+                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                />
+                              </div>
+                              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                                <p className="text-xs sm:text-sm text-red-700">
+                                  <strong>Notice:</strong> The IRS will automatically deduct the tax amount payable directly from your account after your filing is accepted.
+                                </p>
+                                <div className="mt-2 flex items-center gap-2">
+                                  <ShieldCheck className="w-4 h-4 text-green-600" />
+                                  <span className="text-xs text-green-700 font-semibold">Ident Trust Secured</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* Option 2: EFTPS */}
+                    <div className={`border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'eftps' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300'}`}>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="irsPaymentMethod"
+                          value="eftps"
+                          checked={irsPaymentMethod === 'eftps'}
+                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                          className="mt-1 w-5 h-5 text-blue-600"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-bold text-base sm:text-lg">Option 2: EFTPS</span>
+                            {irsPaymentMethod === 'eftps' && <CheckCircle className="w-5 h-5 text-blue-600" />}
+                          </div>
+                          {irsPaymentMethod === 'eftps' && (
+                            <p className="text-sm text-slate-600 mt-2">
+                              Once the IRS accepts your filing you will receive the payment link via email.
+                            </p>
+                          )}
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* Option 3: Credit or Debit Card */}
+                    <div className={`border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'credit_card' ? 'border-purple-500 bg-purple-50' : 'border-slate-200 hover:border-purple-300'}`}>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="irsPaymentMethod"
+                          value="credit_card"
+                          checked={irsPaymentMethod === 'credit_card'}
+                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                          className="mt-1 w-5 h-5 text-purple-600"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-bold text-base sm:text-lg">Option 3: Credit or Debit Card</span>
+                            {irsPaymentMethod === 'credit_card' && <CheckCircle className="w-5 h-5 text-purple-600" />}
+                          </div>
+                          {irsPaymentMethod === 'credit_card' && (
+                            <div className="mt-3 space-y-2">
+                              <p className="text-sm text-slate-600">
+                                Once the IRS accepts your filing, you will receive the payment link. The IRS uses service providers that may charge an additional service fee additional to the tax amount payable.
+                              </p>
+                              <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                                <strong>Note:</strong> The IRS imposes a limit on the frequency of credit card payments for Form 2290.
+                              </p>
+                              <label className="flex items-center gap-2 mt-3">
+                                <input type="checkbox" className="w-4 h-4" />
+                                <span className="text-xs text-slate-600">
+                                  I understand that if I fail to pay the tax due within 10 business days, the IRS may assess penalties.
+                                </span>
+                              </label>
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* Option 4: Check or Money Order */}
+                    <div className={`border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'check' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-300'}`}>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="irsPaymentMethod"
+                          value="check"
+                          checked={irsPaymentMethod === 'check'}
+                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                          className="mt-1 w-5 h-5 text-orange-600"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-bold text-base sm:text-lg">Option 4: Check or Money Order</span>
+                            {irsPaymentMethod === 'check' && <CheckCircle className="w-5 h-5 text-orange-600" />}
+                          </div>
+                          {irsPaymentMethod === 'check' && (
+                            <div className="mt-3 space-y-2 text-sm text-slate-600">
+                              <p>
+                                Make the tax amount payable to the 'United States Treasury'. Please mention your EIN, phone number, and 'Form 2290' on the money order/check. Print your money order voucher, enclose it, and mail it to:
+                              </p>
+                              <div className="bg-white p-3 rounded border border-slate-200 font-mono text-xs">
+                                Internal Revenue Service<br />
+                                P.O. Box 932500<br />
+                                Louisville, KY 40293-2500
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* Navigation Buttons */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 pt-4 border-t border-slate-200">
+                      <button
+                        onClick={() => setStep(5)}
+                        className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border border-slate-300 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-slate-50 active:bg-slate-100 transition font-medium touch-manipulation"
+                      >
+                        Previous Step
+                      </button>
+                      <button
+                        onClick={handleSubmit}
+                        disabled={loading || !irsPaymentMethod || (irsPaymentMethod === 'efw' && (!bankDetails.routingNumber || !bankDetails.accountNumber || !bankDetails.confirmAccountNumber || !bankDetails.accountType || !bankDetails.phoneNumber || bankDetails.accountNumber !== bankDetails.confirmAccountNumber))}
+                        className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                      >
+                        {loading ? (
+                          <>
+                            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span className="hidden sm:inline">Processing...</span>
+                            <span className="sm:hidden">Processing</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="hidden sm:inline">Continue Filing</span>
+                            <span className="sm:hidden">Continue</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Right: Review Summary */}
+                  <div className="bg-slate-50 rounded-xl p-4 sm:p-6 border border-slate-200">
+                    <h3 className="font-bold text-base sm:text-lg text-[var(--color-text)] mb-4">Review</h3>
+                    {selectedBusiness && (
+                      <div className="mb-4">
+                        <p className="text-sm font-semibold text-[var(--color-text)] mb-1">Filing for:</p>
+                        <p className="text-sm text-[var(--color-muted)]">{selectedBusiness.businessName}, EIN: {selectedBusiness.ein}</p>
+                        <p className="text-sm text-[var(--color-muted)]">Address: {selectedBusiness.address}</p>
+                      </div>
+                    )}
+                    <div className="border-t border-slate-200 pt-4">
+                      <h4 className="font-bold text-sm sm:text-base mb-3">Tax Summary</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-[var(--color-muted)]">Form Type:</span>
+                          <span className="font-semibold">2290</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[var(--color-muted)]">Tax Period:</span>
+                          <span className="font-semibold">July 1st, 2025 - June 30th, 2026</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[var(--color-muted)]">First Used Month:</span>
+                          <span className="font-semibold">{filingData.firstUsedMonth}-2025</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[var(--color-muted)]">Final Return:</span>
+                          <span className="font-semibold">No</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[var(--color-muted)]">Taxable Vehicles:</span>
+                          <span className="font-semibold">
+                            {filingType === 'amendment' 
+                              ? (amendmentType === 'vin_correction' ? 'N/A' : '1')
+                              : selectedVehicles.length
+                            } (View)
+                          </span>
+                        </div>
+                        <div className="border-t border-slate-200 pt-2 mt-2">
+                          <div className="flex justify-between mb-1">
+                            <span className="text-[var(--color-muted)]">Total Tax:</span>
+                            <span className="font-semibold">${pricing.totalTax.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between bg-blue-100 -mx-2 px-2 py-2 rounded mt-2">
+                            <span className="font-bold text-blue-700">IRS Tax Amount Payable:</span>
+                            <span className="font-bold text-blue-700">${pricing.totalTax.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -2550,7 +3073,7 @@ function NewFilingContent() {
             onContinue={handleContinue}
             onSubmit={handleSubmit}
             loading={loading}
-            hideSubmitButton={step === 5}
+            hideSubmitButton={step === 5 || step === 6}
           />
         </div>
         </div>
@@ -2571,7 +3094,7 @@ function NewFilingContent() {
             onContinue={handleContinue}
             onSubmit={handleSubmit}
             loading={loading}
-            hideSubmitButton={step === 5}
+            hideSubmitButton={step === 5 || step === 6}
           />
         </div>
       </div>
