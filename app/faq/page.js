@@ -22,7 +22,7 @@ export default function FAQPage() {
     },
     {
       question: 'Is this legitimate?',
-      answer: 'Yes. Your return is filed directly with the IRS system. You receive the official IRS-watermarked Schedule 1 PDF, which is valid for DMV registration. We are an authorized IRS E-File Provider through our partner network, and all filings are handled by PTIN-certified tax professionals.',
+      answer: 'Yes. Your return is filed directly with the IRS system. You receive the official IRS-watermarked Schedule 1 PDF, which is valid for DMV registration. All filings are handled by PTIN-certified tax professionals through authorized IRS channels.',
     },
     {
       question: 'What information do I need to file?',

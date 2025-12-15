@@ -59,9 +59,9 @@ export const metadata = {
     google: "-95Bq4XHD66PIeHdHG3cDSad9_yp6kTmOVeUtUKUIc0",
   },
   openGraph: {
-    title: "QuickTruckTax | Trucking Compliance Guides & Form 2290 Filing",
+    title: "QuickTruckTax - Fast & Easy Form 2290 Filing",
     description:
-      "Actionable guides and checklists for Form 2290, UCR, MCS-150, IFTA, and trucking authority filings. Stay compliant and avoid penalties.",
+      "File your IRS Form 2290 in minutes. QuickTruckTax is the fastest way for truckers to get their Schedule 1.",
     url: "https://www.quicktrucktax.com",
     siteName: "QuickTruckTax",
     type: "website",

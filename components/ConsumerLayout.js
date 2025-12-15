@@ -105,20 +105,18 @@ export function ConsumerLayout({ children }) {
               <div>
                 <h3 className="font-semibold mb-4">Legal</h3>
                 <ul className="space-y-2 text-sm text-white/70">
-                  <li><Link href="#" className="hover:text-white transition">Privacy Policy</Link></li>
-                  <li><Link href="#" className="hover:text-white transition">Terms of Service</Link></li>
-                  <li><Link href="#" className="hover:text-white transition">Refund Policy</Link></li>
+                  <li><Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link></li>
+                  <li><Link href="/terms" className="hover:text-white transition">Terms of Service</Link></li>
+                  <li><Link href="/terms#refunds" className="hover:text-white transition">Refund Policy</Link></li>
                 </ul>
               </div>
             </div>
-            <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-white/70">
-              <p>
-                &copy; {new Date().getFullYear()} QuickTruckTax. All rights reserved.
-              </p>
-              <p className="text-xs">
-                Delaware, USA • Authorized IRS E-File Provider
-              </p>
+            <div className="border-t border-white/10 mt-12 pt-8 text-center text-sm text-white/50">
+              &copy; {new Date().getFullYear()} QuickTruckTax. All rights reserved.
             </div>
+            <p className="text-xs text-center text-white/50 mt-2">
+              Delaware, USA • Secure & Compliant Tax Filing
+            </p>
           </div>
         )}
       </footer>

@@ -71,6 +71,11 @@ service cloud.firestore {
       allow create: if request.auth != null && 
         request.resource.data.userId == request.auth.uid;
     }
+
+    // FMCSA Cache - Allow server-side caching
+    match /fmcsa_cache/{docId} {
+      allow read, write: if request.auth != null;
+    }
   }
 }
 
