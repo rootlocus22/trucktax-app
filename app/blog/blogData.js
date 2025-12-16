@@ -1183,7 +1183,7 @@ export const blogPosts = [
             <tbody>
               <tr className="bg-white">
                 <td className="border border-gray-300 p-3">July 2025</td>
-                <td className="border border-gray-300 p-3 font-bold">August 31, 2026</td>
+                <td className="border border-gray-300 p-3 font-bold">September 2, 2025</td>
                 <td className="border border-gray-300 p-3">Full year tax</td>
               </tr>
               <tr className="bg-gray-50">
@@ -1198,7 +1198,7 @@ export const blogPosts = [
               </tr>
               <tr className="bg-gray-50">
                 <td className="border border-gray-300 p-3">October 2025</td>
-                <td className="border border-gray-300 p-3 font-bold">November 30, 2025</td>
+                <td className="border border-gray-300 p-3 font-bold">December 1, 2025</td>
                 <td className="border border-gray-300 p-3">Prorated (9 months)</td>
               </tr>
               <tr className="bg-white">

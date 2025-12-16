@@ -45,7 +45,7 @@ const featureHighlights = [
 
 const stats = [
   { label: "HVUT & compliance topics", value: "230+" },
-  { label: "2025 deadlines covered", value: "100%" },
+  { label: "2026 deadlines covered", value: "100%" },
   { label: "Actionable templates", value: "15" },
 ];
 

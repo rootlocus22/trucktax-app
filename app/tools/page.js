@@ -76,6 +76,13 @@ const tools = [
     href: "/tools/ifta-calculator",
     badge: "AI Powered",
   },
+  {
+    name: "Form 2290 Status Check",
+    description:
+      "Check the status of your Form 2290 filing instantly. Track pending, accepted, or rejected returns with your EIN.",
+    href: "/tools/check-2290-status",
+    badge: "Free",
+  },
 ];
 
 export default function ToolsIndex() {
