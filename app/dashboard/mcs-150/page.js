@@ -59,8 +59,41 @@ export default function MCS150Page() {
         companyOfficial: { name: '', title: '' },
         contact: { email: '', phone: '' },
         ein: '',
-        powerUnits: '',
-        drivers: { total: '', cdl: '' }
+        // Vehicles Breakdown
+        vehicles: {
+            // Truck & Trailers
+            straightTrucks: { owned: 0, termLeased: 0, tripLeased: 0 },
+            truckTractors: { owned: 0, termLeased: 0, tripLeased: 0 },
+            trailers: { owned: 0, termLeased: 0, tripLeased: 0 },
+            hazmatCargoTrucks: { owned: 0, termLeased: 0, tripLeased: 0 },
+            hazmatCargoTrailers: { owned: 0, termLeased: 0, tripLeased: 0 },
+
+            // Passenger Vehicles
+            motorCoach: { owned: 0, termLeased: 0, tripLeased: 0 },
+            schoolBus8: { owned: 0, termLeased: 0, tripLeased: 0 },
+            schoolBus9to15: { owned: 0, termLeased: 0, tripLeased: 0 },
+            schoolBus16: { owned: 0, termLeased: 0, tripLeased: 0 },
+            bus16: { owned: 0, termLeased: 0, tripLeased: 0 },
+            van8: { owned: 0, termLeased: 0, tripLeased: 0 },
+            van9to15: { owned: 0, termLeased: 0, tripLeased: 0 },
+            limo8: { owned: 0, termLeased: 0, tripLeased: 0 },
+            limo9to15: { owned: 0, termLeased: 0, tripLeased: 0 },
+        },
+        powerUnits: '', // Total calculated
+        // Drivers Breakdown
+        drivers: {
+            total: '',
+            cdl: '',
+            interstate: '',
+            intrastate: ''
+        },
+        // Classifications
+        classifications: {
+            operations: [],
+            cargo: [],
+            hazmat: {} // Changed to object for { type: ['Carrier', 'Shipper', 'Bulk', 'Non-Bulk'] }
+        },
+        companyOperations: [] // New field for Interstate/Intrastate selections
     });
 
     // Submission Data
@@ -190,6 +223,12 @@ export default function MCS150Page() {
                 businessId = await createBusiness(user.uid, newBiz);
             }
 
+            // Calculate total power units from granular vehicle data
+            const calculatedPowerUnits = (parseInt(formData.vehicles.straightTrucks) || 0) +
+                (parseInt(formData.vehicles.truckTractors) || 0) +
+                (parseInt(formData.vehicles.trailers) || 0) +
+                (parseInt(formData.vehicles.hazmat) || 0);
+
             await createFiling({
                 userId: user.uid,
                 businessId: businessId,
@@ -206,16 +245,18 @@ export default function MCS150Page() {
                 mcs150Data: {
                     mileage: formData.mileage,
                     mileageYear: formData.mileageYear,
-                    powerUnits: formData.powerUnits,
+                    powerUnits: calculatedPowerUnits.toString(), // Use the calculated total
+                    vehicles: formData.vehicles, // Save the detailed breakdown
                     drivers: formData.drivers,
-                    method: submissionMethod
+                    method: submissionMethod,
+                    selectedChanges: selectedChanges // Save what they changed
                 },
                 compliance: {
                     signature: formData.companyOfficial?.name,
                     date: new Date().toISOString()
                 },
                 paymentDetails: {
-                    method: paymentMethod,
+                    method: paymentMethod, // 'card' or 'google_pay'
                     amount: price,
                     date: new Date().toISOString()
                 }
@@ -431,31 +472,139 @@ export default function MCS150Page() {
         </div>
     );
 
-    // Step 3: Changes
+    const [selectedChanges, setSelectedChanges] = useState([]); // Array of strings: 'company', 'address', 'vehicles', 'drivers', 'mileage'
+
+    // Toggle a change category
+    const toggleChange = (id) => {
+        if (selectedChanges.includes(id)) {
+            setSelectedChanges(selectedChanges.filter(c => c !== id));
+        } else {
+            setSelectedChanges([...selectedChanges, id]);
+        }
+    };
+
+    // Step 3: Changes Triage - Granular Selection to make it "Not Lengthy"
     const renderStep3 = () => (
         <div className="space-y-6">
-            <h2 className="text-xl font-bold text-[var(--color-text)]">Do you need to update any information?</h2>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">What information needs updating?</h2>
+            <p className="text-[var(--color-muted)]">Select the specific items you want to change. We will only show fields for the items you select.</p>
 
             <div className="space-y-4">
-                <label className={`block p-4 rounded-lg border-2 cursor-pointer ${hasChanges === false ? 'border-[var(--color-navy)] bg-blue-50' : 'border-[var(--color-border)]'}`}>
+                <label className={`block p-4 rounded-xl border-2 cursor-pointer transition-all ${hasChanges === false ? 'border-[var(--color-navy)] bg-blue-50 ring-1 ring-[var(--color-navy)]' : 'border-[var(--color-border)] hover:border-slate-300'}`}>
                     <div className="flex items-center gap-4">
-                        <input type="radio" checked={hasChanges === false} onChange={() => setHasChanges(false)} className="w-5 h-5 text-[var(--color-navy)] accent-[var(--color-navy)]" />
-                        <span className="font-bold text-[var(--color-text)]">No, all the information is the same as before.</span>
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${hasChanges === false ? 'border-[var(--color-navy)] bg-white' : 'border-slate-300'}`}>
+                            {hasChanges === false && <div className="w-3 h-3 rounded-full bg-[var(--color-navy)]" />}
+                        </div>
+                        <span className="font-bold text-[var(--color-text)]">No updates needed (Verify & Sign)</span>
                     </div>
+                    <input type="radio" checked={hasChanges === false} onChange={() => { setHasChanges(false); setSelectedChanges([]); }} className="hidden" />
                 </label>
-                <label className={`block p-4 rounded-lg border-2 cursor-pointer ${hasChanges === true ? 'border-[var(--color-navy)] bg-blue-50' : 'border-[var(--color-border)]'}`}>
-                    <div className="flex items-center gap-4">
-                        <input type="radio" checked={hasChanges === true} onChange={() => setHasChanges(true)} className="w-5 h-5 text-[var(--color-navy)] accent-[var(--color-navy)]" />
-                        <span className="font-bold text-[var(--color-text)]">Yes, there are some changes I wish to do before submitting.</span>
+
+                <label className={`block p-4 rounded-xl border-2 cursor-pointer transition-all ${hasChanges === true ? 'border-[var(--color-navy)] bg-blue-50 ring-1 ring-[var(--color-navy)]' : 'border-[var(--color-border)] hover:border-slate-300'}`}>
+                    <div className="flex items-center gap-4 mb-2">
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${hasChanges === true ? 'border-[var(--color-navy)] bg-white' : 'border-slate-300'}`}>
+                            {hasChanges === true && <div className="w-3 h-3 rounded-full bg-[var(--color-navy)]" />}
+                        </div>
+                        <span className="font-bold text-[var(--color-text)]">Yes, I need to make changes</span>
                     </div>
+                    <input type="radio" checked={hasChanges === true} onChange={() => setHasChanges(true)} className="hidden" />
+
+                    {hasChanges === true && (
+                        <div className="mt-6 ml-4 animate-in slide-in-from-top-2 fade-in duration-300 space-y-6">
+
+                            {/* Group 1: Company Information */}
+                            <div className="space-y-3">
+                                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                    <Building2 className="w-5 h-5 text-indigo-600" />
+                                    Company Information
+                                    <span className="text-xs font-normal text-slate-500 ml-2">(Select all you wish to update)</span>
+                                </h3>
+                                <div className="grid sm:grid-cols-2 gap-2 ml-7">
+                                    {[
+                                        { id: 'owner_name', label: "Owner's Name (Officer)" },
+                                        { id: 'dba_name', label: "DBA (Doing Business As) Name" },
+                                        { id: 'phy_address', label: 'Company Physical Address' },
+                                        { id: 'mail_address', label: 'Company Mailing Address' },
+                                        { id: 'phone', label: 'Business Phone Number' },
+                                        { id: 'email', label: 'Business Email Address' },
+                                        { id: 'company_name', label: 'Company Name' },
+                                        { id: 'ein', label: 'EIN or SSN Number' }
+                                    ].map(item => (
+                                        <label key={item.id} className="flex items-center gap-3 p-2 rounded hover:bg-slate-50 cursor-pointer border border-transparent hover:border-slate-200 transition-all">
+                                            <input
+                                                type="checkbox"
+                                                className="w-5 h-5 rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]"
+                                                checked={selectedChanges.includes(item.id)}
+                                                onChange={() => toggleChange(item.id)}
+                                            />
+                                            <span className="text-sm font-medium text-slate-700">{item.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Group 2: Operating Information */}
+                            <div className="space-y-3 pt-4 border-t border-slate-100">
+                                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                    <Truck className="w-5 h-5 text-orange-600" />
+                                    Operating Information
+                                    <span className="text-xs font-normal text-slate-500 ml-2">(Select all you wish to update)</span>
+                                </h3>
+                                <div className="grid sm:grid-cols-2 gap-2 ml-7">
+                                    {[
+                                        { id: 'vehicles', label: 'Number of Vehicles' },
+                                        { id: 'drivers', label: 'Number of Drivers' },
+                                        { id: 'operations', label: 'Company Operations' },
+                                        { id: 'op_class', label: 'Operation Classifications' },
+                                        { id: 'cargo_class', label: 'Cargo Classifications' },
+                                        { id: 'hazmat', label: 'Hazardous Materials' }
+                                    ].map(item => (
+                                        <label key={item.id} className="flex items-center gap-3 p-2 rounded hover:bg-slate-50 cursor-pointer border border-transparent hover:border-slate-200 transition-all">
+                                            <input
+                                                type="checkbox"
+                                                className="w-5 h-5 rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]"
+                                                checked={selectedChanges.includes(item.id)}
+                                                onChange={() => toggleChange(item.id)}
+                                            />
+                                            <span className="text-sm font-medium text-slate-700">{item.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Group 3: Other */}
+                            <div className="space-y-3 pt-4 border-t border-slate-100">
+                                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-slate-600" />
+                                    Other
+                                </h3>
+                                <div className="grid sm:grid-cols-2 gap-2 ml-7">
+                                    {[
+                                        { id: 'mileage', label: 'Mileage Information' }
+                                    ].map(item => (
+                                        <label key={item.id} className="flex items-center gap-3 p-2 rounded hover:bg-slate-50 cursor-pointer border border-transparent hover:border-slate-200 transition-all">
+                                            <input
+                                                type="checkbox"
+                                                className="w-5 h-5 rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]"
+                                                checked={selectedChanges.includes(item.id)}
+                                                onChange={() => toggleChange(item.id)}
+                                            />
+                                            <span className="text-sm font-medium text-slate-700">{item.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                        </div>
+                    )}
                 </label>
             </div>
 
             <div className="flex gap-4 pt-4">
-                <button className="border border-[var(--color-navy)] text-[var(--color-navy)] py-2 px-6 rounded-lg font-bold" onClick={() => setCurrentStep(2)}>Go Back</button>
+                <button className="border border-[var(--color-navy)] text-[var(--color-navy)] py-2 px-6 rounded-lg font-bold hover:bg-slate-50 transition" onClick={() => setCurrentStep(2)}>Go Back</button>
                 <button
-                    disabled={hasChanges === null}
-                    className="bg-[var(--color-navy)] text-white py-2 px-8 rounded-lg font-bold hover:bg-[var(--color-navy-soft)] disabled:opacity-50"
+                    disabled={hasChanges === null || (hasChanges === true && selectedChanges.length === 0)}
+                    className="bg-[var(--color-navy)] text-white py-3 px-8 rounded-lg font-bold hover:bg-[var(--color-navy-soft)] disabled:opacity-50 disabled:cursor-not-allowed transition transform active:scale-95"
                     onClick={() => setCurrentStep(4)}
                 >
                     Continue Filing <ChevronRight className="inline w-4 h-4" />
@@ -464,105 +613,521 @@ export default function MCS150Page() {
         </div>
     );
 
-    // Step 4: Review Data
-    const renderStep4 = () => (
-        <div className="space-y-8">
-            <div>
-                <h2 className="text-xl font-bold text-slate-900 mb-2">Review & Complete Your MCS-150</h2>
-                <p className="text-red-500 text-sm font-bold text-right">* Mandatory Fields</p>
-            </div>
+    // Step 4: Review Data - Dynamic & Granular
+    const renderStep4 = () => {
+        // Calculate totals dynamically for display
+        const totalVehicles = Object.values(formData.vehicles).reduce((acc, curr) => {
+            // Sum owned+term+trip for each category, possibly excluding trailers if strict Power Unit def used, 
+            // but usually simplistic count is fine for this display unless specified.
+            // However, specifically excluding Trailers and Hazmat Trailers from "Power Units" is standard.
+            // We'll trust simple sum for now or just sum power units.
+            // Let's summing everything for "Vehicles Operated" display, but "Power Units" is technically specific.
+            // For this UI, let's just sum all inputs to show activity.
+            return acc + (parseInt(curr.owned) || 0) + (parseInt(curr.termLeased) || 0) + (parseInt(curr.tripLeased) || 0);
+        }, 0);
 
-            <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-bold mb-1">Enter total miles driven in the last 12 months <span className="text-red-500">*</span></label>
-                    <div className="text-xs text-slate-500 mb-2">Total miles driven by all vehicles</div>
-                    <input
-                        className="w-full border rounded p-3"
-                        placeholder="e.g. 25000"
-                        value={formData.mileage}
-                        onChange={e => setFormData({ ...formData, mileage: e.target.value })}
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-bold mb-1">EIN (Employer Identification Number) <span className="text-red-500">*</span></label>
-                    <div className="text-xs text-[var(--color-muted)] mb-2">Associated with USDOT filing</div>
-                    <input
-                        className="w-full border rounded p-3"
-                        placeholder="e.g. 12-3456789"
-                        value={formData.ein || ''}
-                        onChange={e => setFormData({ ...formData, ein: e.target.value })}
-                    />
-                </div>
-            </div>
+        const isMileageSelected = selectedChanges.includes('mileage') || hasChanges === false || true; // Mileage is always mandatory
+        const isCompanySelected = selectedChanges.includes('company');
+        const isAddressSelected = selectedChanges.includes('address');
+        const isVehiclesSelected = selectedChanges.includes('vehicles');
+        const isDriversSelected = selectedChanges.includes('drivers');
+        const isClassificationsSelected = selectedChanges.includes('classifications');
 
-            <div className="grid md:grid-cols-3 gap-6">
+        return (
+            <div className="space-y-8 animate-in fade-in duration-500">
                 <div>
-                    <label className="block text-sm font-bold mb-1">Total Power Units <span className="text-red-500">*</span></label>
-                    <div className="text-xs text-slate-500 mb-2">Trucks, Tractors, etc.</div>
-                    <input
-                        className="w-full border rounded p-3"
-                        placeholder="e.g. 5"
-                        value={formData.powerUnits}
-                        onChange={e => setFormData({ ...formData, powerUnits: e.target.value })}
-                    />
+                    <h2 className="text-xl font-bold text-slate-900 mb-2">Review & Complete</h2>
+                    <p className="text-slate-500">Please review the mandatory information below and update any sections you selected.</p>
                 </div>
-                <div>
-                    <label className="block text-sm font-bold mb-1">Total Drivers <span className="text-red-500">*</span></label>
-                    <div className="text-xs text-[var(--color-muted)] mb-2">Interstate & Intrastate</div>
-                    <input
-                        className="w-full border rounded p-3"
-                        placeholder="e.g. 5"
-                        value={formData.drivers?.total || ''}
-                        onChange={e => setFormData({ ...formData, drivers: { ...(formData.drivers || {}), total: e.target.value } })}
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-bold mb-1">Total CDL Drivers <span className="text-red-500">*</span></label>
-                    <div className="text-xs text-[var(--color-muted)] mb-2">With Commercial License</div>
-                    <input
-                        className="w-full border rounded p-3"
-                        placeholder="e.g. 5"
-                        value={formData.drivers?.cdl || ''}
-                        onChange={e => setFormData({ ...formData, drivers: { ...(formData.drivers || {}), cdl: e.target.value } })}
-                    />
-                </div>
-            </div>
 
-            <div className="border-t pt-6">
-                <h3 className="font-bold text-lg mb-4">Enter the Details of a Company Official</h3>
-                <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-sm font-bold mb-1">Name <span className="text-red-500">*</span></label>
-                        <input
-                            className="w-full border rounded p-3"
-                            value={formData.companyOfficial?.name || ''}
-                            onChange={e => setFormData({ ...formData, companyOfficial: { ...(formData.companyOfficial || {}), name: e.target.value } })}
-                        />
+                {/* 1. MILEAGE (Always Required) */}
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-[var(--color-navy)] transition-colors">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-[var(--color-navy)]"></div>
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-blue-50 text-[var(--color-navy)] rounded-lg"><FileText className="w-5 h-5" /></div>
+                        <h3 className="font-bold text-lg text-slate-800">Mileage Information <span className="text-red-500 text-sm">*</span></h3>
                     </div>
-                    <div>
-                        <label className="block text-sm font-bold mb-1">Title <span className="text-red-500">*</span></label>
-                        <input
-                            className="w-full border rounded p-3"
-                            placeholder="e.g. Owner, President"
-                            value={formData.companyOfficial?.title || ''}
-                            onChange={e => setFormData({ ...formData, companyOfficial: { ...(formData.companyOfficial || {}), title: e.target.value } })}
-                        />
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-xs font-bold mb-1 uppercase text-slate-500">Total Miles (Last 12 Months)</label>
+                            <input
+                                className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-[var(--color-navy)] focus:border-transparent outline-none transition-all font-mono"
+                                placeholder="e.g. 25000"
+                                type="number"
+                                value={formData.mileage}
+                                onChange={e => setFormData({ ...formData, mileage: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold mb-1 uppercase text-slate-500">Year of Mileage</label>
+                            <input
+                                className="w-full border border-slate-300 rounded-lg p-3 bg-slate-50 text-slate-500"
+                                value={formData.mileageYear}
+                                readOnly
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="flex gap-4 pt-4">
-                <button className="border border-[var(--color-navy)] text-[var(--color-navy)] py-2 px-6 rounded-lg font-bold" onClick={() => setCurrentStep(3)}>Go Back</button>
-                <button
-                    disabled={!formData.mileage || !formData.companyOfficial?.name || !formData.powerUnits || !formData.drivers?.total || !formData.ein}
-                    className="bg-[var(--color-navy)] text-white py-2 px-8 rounded-lg font-bold hover:bg-[var(--color-navy-soft)] disabled:opacity-50"
-                    onClick={() => setCurrentStep(5)}
-                >
-                    Continue Filing <ChevronRight className="inline w-4 h-4" />
-                </button>
-            </div>
-        </div>
-    );
+                {/* 2. COMPANY IDENTITY (Granular) */}
+                {(['company_name', 'dba_name', 'ein', 'phone', 'email', 'owner_name'].some(k => selectedChanges.includes(k))) && (
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-[var(--color-navy)] transition-colors animate-in slide-in-from-bottom-4">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><Building2 className="w-5 h-5" /></div>
+                            <h3 className="font-bold text-lg text-slate-800">Company Information</h3>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {selectedChanges.includes('company_name') && (
+                                <div>
+                                    <label className="block text-xs font-bold mb-1 uppercase text-slate-500">Legal Business Name</label>
+                                    <input
+                                        className="w-full border border-slate-300 rounded-lg p-3"
+                                        value={selectedBusiness?.name || ''}
+                                        readOnly
+                                    />
+                                    <div className="text-xs text-orange-600 mt-1">Proof required for name change.</div>
+                                </div>
+                            )}
+                            {selectedChanges.includes('dba_name') && (
+                                <div>
+                                    <label className="block text-xs font-bold mb-1 uppercase text-slate-500">DBA Name (Doing Business As)</label>
+                                    <input
+                                        className="w-full border border-slate-300 rounded-lg p-3"
+                                        placeholder="Doing Business As Name"
+                                    />
+                                </div>
+                            )}
+                            {selectedChanges.includes('ein') && (
+                                <div>
+                                    <label className="block text-xs font-bold mb-1 uppercase text-slate-500">EIN (Employer ID)</label>
+                                    <input
+                                        className="w-full border border-slate-300 rounded-lg p-3 font-mono"
+                                        value={formData.ein || ''}
+                                        onChange={e => setFormData({ ...formData, ein: e.target.value })}
+                                    />
+                                </div>
+                            )}
+                            {selectedChanges.includes('phone') && (
+                                <div>
+                                    <label className="block text-xs font-bold mb-1 uppercase text-slate-500">Phone Number</label>
+                                    <input
+                                        className="w-full border border-slate-300 rounded-lg p-3"
+                                        value={formData.contact.phone || ''}
+                                        onChange={e => setFormData({ ...formData, contact: { ...formData.contact, phone: e.target.value } })}
+                                    />
+                                </div>
+                            )}
+                            {selectedChanges.includes('email') && (
+                                <div>
+                                    <label className="block text-xs font-bold mb-1 uppercase text-slate-500">Email Address</label>
+                                    <input
+                                        className="w-full border border-slate-300 rounded-lg p-3"
+                                        value={formData.contact.email || ''}
+                                        onChange={e => setFormData({ ...formData, contact: { ...formData.contact, email: e.target.value } })}
+                                    />
+                                </div>
+                            )}
+                            {selectedChanges.includes('owner_name') && (
+                                <div className="md:col-span-2">
+                                    <label className="block text-xs font-bold mb-1 uppercase text-slate-500">Owner's Name</label>
+                                    <input
+                                        className="w-full border border-slate-300 rounded-lg p-3"
+                                        placeholder="Full Name"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* 3. ADDRESSES (Conditional) */}
+                {(selectedChanges.includes('phy_address') || selectedChanges.includes('mail_address')) && (
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-[var(--color-navy)] transition-colors animate-in slide-in-from-bottom-4">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><MapPin className="w-5 h-5" /></div>
+                            <h3 className="font-bold text-lg text-slate-800">Company Address</h3>
+                        </div>
+                        <div className="space-y-4">
+                            {selectedChanges.includes('phy_address') && (
+                                <div>
+                                    <label className="block text-xs font-bold mb-1 uppercase text-slate-500">Physical Address</label>
+                                    <input
+                                        className="w-full border border-slate-300 rounded-lg p-3"
+                                        placeholder="Street, City, State ZIP"
+                                        defaultValue={selectedBusiness?.address ? `${selectedBusiness.address.street}, ${selectedBusiness.address.city}, ${selectedBusiness.address.state} ${selectedBusiness.address.zip}` : ''}
+                                    />
+                                </div>
+                            )}
+                            {selectedChanges.includes('mail_address') && (
+                                <div>
+                                    <label className="block text-xs font-bold mb-1 uppercase text-slate-500">Mailing Address</label>
+                                    <input
+                                        className="w-full border border-slate-300 rounded-lg p-3"
+                                        placeholder="Mailing Street, City, State ZIP"
+                                    />
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <input type="checkbox" id="same_as_phy" className="rounded border-slate-300 text-[var(--color-navy)]" />
+                                        <label htmlFor="same_as_phy" className="text-sm text-slate-600">Same as Physical Address</label>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* 4. VEHICLES (Conditional) */}
+                {selectedChanges.includes('vehicles') && (
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-[var(--color-navy)] transition-colors animate-in slide-in-from-bottom-4">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-orange-500"></div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-orange-50 text-orange-600 rounded-lg"><Truck className="w-5 h-5" /></div>
+                            <h3 className="font-bold text-lg text-slate-800">Vehicle Information</h3>
+                        </div>
+
+                        <div className="space-y-6">
+
+                            {/* Helper Function for Rows */}
+                            {(() => {
+                                const renderVehicleRow = (key, label) => (
+                                    <div key={key} className="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                        <label className="block text-xs font-bold text-slate-700 mb-2 uppercase">{label}</label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {['owned', 'termLeased', 'tripLeased'].map(type => (
+                                                <div key={type}>
+                                                    <input
+                                                        type="number"
+                                                        className="w-full bg-white border border-slate-200 rounded p-2 text-center text-sm font-semibold focus:border-orange-400 focus:outline-none"
+                                                        placeholder="0"
+                                                        value={formData.vehicles[key]?.[type] || ''}
+                                                        onChange={e => {
+                                                            const val = parseInt(e.target.value) || 0;
+                                                            setFormData(prev => ({
+                                                                ...prev,
+                                                                vehicles: {
+                                                                    ...prev.vehicles,
+                                                                    [key]: {
+                                                                        ...prev.vehicles[key],
+                                                                        [type]: val
+                                                                    }
+                                                                }
+                                                            }));
+                                                        }}
+                                                    />
+                                                    <div className="text-[9px] text-center text-slate-400 mt-1 uppercase tracking-tighter font-semibold">
+                                                        {type.replace(/([A-Z])/g, ' $1').trim()}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+
+                                return (
+                                    <div className="grid lg:grid-cols-2 gap-8">
+                                        {/* Column 1: Trucks and Trailers */}
+                                        <div>
+                                            <h4 className="font-bold text-sm text-slate-800 border-b-2 border-orange-100 pb-2 mb-4">Truck and Trailers</h4>
+                                            {renderVehicleRow('straightTrucks', 'Straight Trucks')}
+                                            {renderVehicleRow('truckTractors', 'Truck Tractors')}
+                                            {renderVehicleRow('trailers', 'Trailers')}
+                                            {renderVehicleRow('hazmatCargoTrucks', 'Hazmat Cargo Tank Trucks')}
+                                            {renderVehicleRow('hazmatCargoTrailers', 'Hazmat Cargo Tank Trailers')}
+                                        </div>
+
+                                        {/* Column 2: Passenger Vehicles */}
+                                        <div>
+                                            <h4 className="font-bold text-sm text-slate-800 border-b-2 border-orange-100 pb-2 mb-4">Passenger Vehicles</h4>
+                                            {renderVehicleRow('motorCoach', 'Motor-Coach')}
+                                            {renderVehicleRow('schoolBus8', 'School Bus (1-8 Pass)')}
+                                            {renderVehicleRow('schoolBus9to15', 'School Bus (9-15 Pass)')}
+                                            {renderVehicleRow('schoolBus16', 'School Bus (16+ Pass)')}
+                                            {renderVehicleRow('bus16', 'Bus (16+ Pass)')}
+                                            {renderVehicleRow('van8', 'Van (1-8 Pass)')}
+                                            {renderVehicleRow('van9to15', 'Van (9-15 Pass)')}
+                                            {renderVehicleRow('limo8', 'Limousine (1-8 Pass)')}
+                                            {renderVehicleRow('limo9to15', 'Limousine (9-15 Pass)')}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+
+                            <div className="bg-orange-50 p-4 rounded-lg flex justify-between items-center text-sm font-bold text-orange-800 border border-orange-100">
+                                <span>Total Vehicles to be Operated in US:</span>
+                                <span className="text-xl">{totalVehicles}</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* 5. DRIVERS (Conditional) */}
+                {selectedChanges.includes('drivers') && (
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-[var(--color-navy)] transition-colors animate-in slide-in-from-bottom-4">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-purple-50 text-purple-600 rounded-lg"><User className="w-5 h-5" /></div>
+                            <h3 className="font-bold text-lg text-slate-800">Driver Information</h3>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold mb-1 uppercase text-slate-500">Interstate</label>
+                                <input
+                                    type="number"
+                                    className="w-full border border-slate-300 rounded-lg p-3"
+                                    value={formData.drivers.interstate}
+                                    onChange={e => setFormData({ ...formData, drivers: { ...formData.drivers, interstate: e.target.value } })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold mb-1 uppercase text-slate-500">Intrastate</label>
+                                <input
+                                    type="number"
+                                    className="w-full border border-slate-300 rounded-lg p-3"
+                                    value={formData.drivers.intrastate}
+                                    onChange={e => setFormData({ ...formData, drivers: { ...formData.drivers, intrastate: e.target.value } })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold mb-1 uppercase text-slate-500">Total CDL Holders</label>
+                                <input
+                                    type="number"
+                                    className="w-full border border-slate-300 rounded-lg p-3"
+                                    value={formData.drivers.cdl}
+                                    onChange={e => setFormData({ ...formData, drivers: { ...formData.drivers, cdl: e.target.value } })}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* 6. OPERATIONS & CLASSIFICATIONS (Conditional) */}
+                {(selectedChanges.includes('operations') || selectedChanges.includes('op_class') || selectedChanges.includes('cargo_class') || selectedChanges.includes('hazmat')) && (
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-[var(--color-navy)] transition-colors animate-in slide-in-from-bottom-4">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-rose-50 text-rose-600 rounded-lg"><ShieldCheck className="w-5 h-5" /></div>
+                            <h3 className="font-bold text-lg text-slate-800">Classifications</h3>
+                        </div>
+
+                        <div className="space-y-6">
+                            {/* Company Operations */}
+                            {selectedChanges.includes('operations') && (
+                                <div>
+                                    <h4 className="font-bold text-sm text-slate-700 mb-3 border-b pb-1">Company Operations</h4>
+                                    <div className="grid md:grid-cols-2 gap-2">
+                                        {[
+                                            'Interstate',
+                                            'Intrastate Only (HM)',
+                                            'Intrastate Only (Non-HM)',
+                                            'Interstate Hazmat Shipper',
+                                            'Intrastate Non-Hazmat Shipper'
+                                        ].map(opt => (
+                                            <label key={opt} className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer hover:text-slate-900">
+                                                <input
+                                                    type="checkbox"
+                                                    className="rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]"
+                                                    checked={formData.companyOperations?.includes(opt)}
+                                                    onChange={(e) => {
+                                                        const current = formData.companyOperations || [];
+                                                        const updated = e.target.checked
+                                                            ? [...current, opt]
+                                                            : current.filter(x => x !== opt);
+                                                        setFormData({ ...formData, companyOperations: updated });
+                                                    }}
+                                                />
+                                                {opt}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Operation Classifications */}
+                            {selectedChanges.includes('op_class') && (
+                                <div>
+                                    <h4 className="font-bold text-sm text-slate-700 mb-3 border-b pb-1">Operation Classifications</h4>
+                                    <div className="grid md:grid-cols-2 gap-2">
+                                        {[
+                                            'Authorized For Hire', 'Exempt For Hire', 'Private (Property)', 'Private (Passengers, Business)',
+                                            'Private (Passengers, Non-Business)', 'Migrant', 'U.S. Mail', 'Federal Government',
+                                            'State Government', 'Local Government', 'Indian Tribe'
+                                        ].map(opt => (
+                                            <label key={opt} className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer hover:text-slate-900">
+                                                <input
+                                                    type="checkbox"
+                                                    className="rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]"
+                                                    checked={formData.classifications?.operations?.includes(opt)}
+                                                    onChange={(e) => {
+                                                        const current = formData.classifications?.operations || [];
+                                                        const updated = e.target.checked
+                                                            ? [...current, opt]
+                                                            : current.filter(x => x !== opt);
+                                                        setFormData({ ...formData, classifications: { ...formData.classifications, operations: updated } });
+                                                    }}
+                                                />
+                                                {opt}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Cargo Classifications */}
+                            {selectedChanges.includes('cargo_class') && (
+                                <div>
+                                    <h4 className="font-bold text-sm text-slate-700 mb-3 border-b pb-1">Cargo Classifications</h4>
+                                    <div className="grid md:grid-cols-2 gap-2">
+                                        {[
+                                            'General Freight', 'Household Goods', 'Metal: sheets, coils, rolls', 'Motor Vehicles',
+                                            'Drive/Tow away', 'Logs, Poles, Beams, Lumber', 'Building Materials', 'Mobile Homes',
+                                            'Machinery, Large Objects', 'Fresh Produce', 'Liquids/Gases', 'Intermodal Cont.',
+                                            'Passengers', 'Oilfield Equipment', 'Livestock', 'Grain, Feed, Hay',
+                                            'Coal/Coke', 'Meat', 'Garbage/Refuse', 'US Mail',
+                                            'Chemicals', 'Commodities Dry Bulk', 'Refrigerated Food', 'Beverages',
+                                            'Paper Products', 'Utilities', 'Agricultural/Farm Supplies', 'Construction', 'Water Well'
+                                        ].map(opt => (
+                                            <label key={opt} className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer hover:text-slate-900">
+                                                <input
+                                                    type="checkbox"
+                                                    className="rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]"
+                                                    checked={formData.classifications?.cargo?.includes(opt)}
+                                                    onChange={(e) => {
+                                                        const current = formData.classifications?.cargo || [];
+                                                        const updated = e.target.checked
+                                                            ? [...current, opt]
+                                                            : current.filter(x => x !== opt);
+                                                        setFormData({ ...formData, classifications: { ...formData.classifications, cargo: updated } });
+                                                    }}
+                                                />
+                                                {opt}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Hazardous Materials - Detailed Matrix */}
+                            {selectedChanges.includes('hazmat') && (
+                                <div>
+                                    <h4 className="font-bold text-sm text-slate-700 mb-3 border-b pb-1">Hazardous Materials</h4>
+                                    <div className="space-y-4">
+                                        <div className="text-xs text-slate-500 mb-2">
+                                            Select Carrier/Shipper and Bulk/Non-Bulk for each material type.
+                                        </div>
+                                        {[
+                                            'Div 1.1 Explosives (Mass Explosion)',
+                                            'Div 1.2 Explosives (Projection Hazard)',
+                                            'Div 1.3 Explosives (Fire Hazard)',
+                                            'Div 1.4 Explosives (Minor Blast)',
+                                            'Div 1.5 Very Insensitive Explosives',
+                                            'Div 1.6 Extremely Insensitive',
+                                            'Div 2.1 Flammable Gas', 'Div 2.1 LPG', 'Div 2.1 Methane',
+                                            'Div 2.2 Non-Flammable Gas',
+                                            'Div 2.3 Poisonous Gas',
+                                            'Div 2.3 A (Poison Gas Zone A)', 'Div 2.3 B (Poison Gas Zone B)',
+                                            'Div 2.3 C (Poison Gas Zone C)', 'Div 2.3 D (Poison Gas Zone D)',
+                                            'Div 3 Flammable Liquid',
+                                            'Combustible Liquid',
+                                            'Div 4.1 Flammable Solid',
+                                            'Div 4.2 Spontaneously Combustible',
+                                            'Div 4.3 Dangerous When Wet',
+                                            'Div 5.1 Oxidizer', 'Div 5.2 Organic Peroxide',
+                                            'Div 6.1 Poison (Liquid/Solid)',
+                                            'Div 6.1 A (Poison Liquid Zone A)', 'Div 6.1 B (Poison Liquid Zone B)',
+                                            'Div 6.2 Infectious Substance',
+                                            'Class 7 Radioactive', 'HRCQ',
+                                            'Div 8 Corrosive', 'Class 8 A (Corrosive Liquid Zone A)', 'Class 8 B (Corrosive Liquid Zone B)',
+                                            'Div 9 Miscellaneous Hazardous Materials',
+                                            'Elevated Temperature Material', 'Infectious Waste', 'Marine Pollutants',
+                                            'Hazardous Substances (RQ)', 'Hazardous Waste', 'ORM'
+                                        ].map(material => {
+                                            const selections = formData.classifications?.hazmat?.[material] || [];
+                                            return (
+                                                <div key={material} className="p-3 bg-slate-50 rounded-lg border border-slate-100 hover:border-slate-300 transition-colors">
+                                                    <div className="font-semibold text-sm text-slate-800 mb-2">{material}</div>
+                                                    <div className="flex flex-wrap gap-4">
+                                                        {['Carrier', 'Shipper', 'Bulk', 'Non-Bulk'].map(type => (
+                                                            <label key={type} className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    className="rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]"
+                                                                    checked={selections.includes(type)}
+                                                                    onChange={(e) => {
+                                                                        const current = formData.classifications?.hazmat?.[material] || [];
+                                                                        const updated = e.target.checked
+                                                                            ? [...current, type]
+                                                                            : current.filter(t => t !== type);
+
+                                                                        setFormData({
+                                                                            ...formData,
+                                                                            classifications: {
+                                                                                ...formData.classifications,
+                                                                                hazmat: {
+                                                                                    ...formData.classifications.hazmat,
+                                                                                    [material]: updated
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                    }}
+                                                                />
+                                                                {type}
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* 6. SIGNATURE (Always Required) */}
+                <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                    <h3 className="font-bold text-lg mb-4 text-slate-900 border-b pb-2">Certification & Signature</h3>
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-xs font-bold mb-1 uppercase text-slate-500">Name of Official <span className="text-red-500">*</span></label>
+                            <input
+                                className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-[var(--color-navy)] focus:border-transparent"
+                                placeholder="Full Legal Name"
+                                value={formData.companyOfficial?.name || ''}
+                                onChange={e => setFormData({ ...formData, companyOfficial: { ...(formData.companyOfficial || {}), name: e.target.value } })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold mb-1 uppercase text-slate-500">Title <span className="text-red-500">*</span></label>
+                            <input
+                                className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-[var(--color-navy)] focus:border-transparent"
+                                placeholder="e.g. Owner, President, Partner"
+                                value={formData.companyOfficial?.title || ''}
+                                onChange={e => setFormData({ ...formData, companyOfficial: { ...(formData.companyOfficial || {}), title: e.target.value } })}
+                            />
+                        </div>
+                    </div>
+                    <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">
+                        <ShieldCheck className="w-4 h-4 text-[var(--color-navy)]" />
+                        <span>By typing your name, you certify that the information provided is true and correct to the best of your knowledge.</span>
+                    </div>
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                    <button className="border border-[var(--color-navy)] text-[var(--color-navy)] py-2 px-6 rounded-lg font-bold hover:bg-slate-50 transition" onClick={() => setCurrentStep(3)}>Go Back</button>
+                    <button
+                        disabled={!formData.mileage || !formData.companyOfficial?.name || !formData.companyOfficial?.title}
+                        className="bg-[var(--color-navy)] text-white py-3 px-8 rounded-lg font-bold hover:bg-[var(--color-navy-soft)] disabled:opacity-50 transition shadow-lg hover:shadow-xl transform active:scale-95"
+                        onClick={() => setCurrentStep(5)}
+                    >
+                        Continue to PIN <ChevronRight className="inline w-4 h-4" />
+                    </button>
+                </div>
+            </div >
+        );
+    };
 
     // Step 5: Submission Method / PIN
     const renderStep5 = () => (
