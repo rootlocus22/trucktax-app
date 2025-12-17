@@ -417,7 +417,12 @@ export default function AgentWorkStationPage() {
                     <>
                       <div className="grid sm:grid-cols-[120px_1fr] items-center gap-2">
                         <span className="text-sm text-slate-500 font-medium">Business Name:</span>
-                        <div className="flex gap-2"><span className="font-bold">{business.businessName}</span> <button onClick={() => handleCopyToClipboard(business.businessName)} className="text-blue-600 text-xs">Copy</button></div>
+                        <div className="flex gap-2">
+                          <span className="font-bold">{business.businessName || business.name || 'N/A'}</span>
+                          {(business.businessName || business.name) && (
+                            <button onClick={() => handleCopyToClipboard(business.businessName || business.name)} className="text-blue-600 text-xs">Copy</button>
+                          )}
+                        </div>
                       </div>
                       <div className="grid sm:grid-cols-[120px_1fr] items-center gap-2">
                         <span className="text-sm text-slate-500 font-medium">EIN:</span>
@@ -437,30 +442,330 @@ export default function AgentWorkStationPage() {
                       )}
                     </>
                   ) : <div className="text-slate-400 italic">Business data loading...</div>}
+                  
+                  {/* Contact Information */}
+                  {(filing.contact?.email || filing.contact?.phone) && (
+                    <div className="pt-4 border-t border-slate-200">
+                      <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Contact Information</h4>
+                      {filing.contact?.email && (
+                        <div className="grid sm:grid-cols-[120px_1fr] items-center gap-2 mb-2">
+                          <span className="text-sm text-slate-500 font-medium">Email:</span>
+                          <div className="flex gap-2"><span className="font-mono text-sm">{filing.contact.email}</span> <button onClick={() => handleCopyToClipboard(filing.contact.email)} className="text-blue-600 text-xs">Copy</button></div>
+                        </div>
+                      )}
+                      {filing.contact?.phone && (
+                        <div className="grid sm:grid-cols-[120px_1fr] items-center gap-2">
+                          <span className="text-sm text-slate-500 font-medium">Phone:</span>
+                          <div className="flex gap-2"><span className="font-mono text-sm">{filing.contact.phone}</span> <button onClick={() => handleCopyToClipboard(filing.contact.phone)} className="text-blue-600 text-xs">Copy</button></div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Company Official */}
+                  {(filing.companyOfficial?.name || filing.companyOfficial?.title) && (
+                    <div className="pt-4 border-t border-slate-200">
+                      <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Company Official</h4>
+                      {filing.companyOfficial?.name && (
+                        <div className="grid sm:grid-cols-[120px_1fr] items-center gap-2 mb-2">
+                          <span className="text-sm text-slate-500 font-medium">Name:</span>
+                          <div className="flex gap-2"><span className="font-semibold">{filing.companyOfficial.name}</span> <button onClick={() => handleCopyToClipboard(filing.companyOfficial.name)} className="text-blue-600 text-xs">Copy</button></div>
+                        </div>
+                      )}
+                      {filing.companyOfficial?.title && (
+                        <div className="grid sm:grid-cols-[120px_1fr] items-center gap-2">
+                          <span className="text-sm text-slate-500 font-medium">Title:</span>
+                          <div className="flex gap-2"><span className="font-semibold">{filing.companyOfficial.title}</span> <button onClick={() => handleCopyToClipboard(filing.companyOfficial.title)} className="text-blue-600 text-xs">Copy</button></div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* EIN from mcs150Data (if different from business) */}
+                  {filing.mcs150Data?.ein && filing.mcs150Data.ein !== business?.ein && (
+                    <div className="pt-4 border-t border-slate-200">
+                      <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">EIN (From Filing)</h4>
+                      <div className="grid sm:grid-cols-[120px_1fr] items-center gap-2">
+                        <span className="text-sm text-slate-500 font-medium">EIN:</span>
+                        <div className="flex gap-2"><span className="font-mono">{filing.mcs150Data.ein}</span> <button onClick={() => handleCopyToClipboard(filing.mcs150Data.ein)} className="text-blue-600 text-xs">Copy</button></div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Operations Data Card (New Fields for Power Units/Drivers) */}
+              {/* Operations Data Card */}
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="bg-slate-50 border-b border-slate-200 px-6 py-4">
                   <h3 className="font-bold text-slate-800">Operations Data</h3>
                 </div>
-                <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase">Power Units</label>
-                    <div className="text-2xl font-bold text-slate-900 mt-1">{filing.mcs150Data?.powerUnits || 'N/A'}</div>
+                <div className="p-6 space-y-6">
+                  {/* Summary Stats */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase">Power Units</label>
+                      <div className="text-2xl font-bold text-slate-900 mt-1">{filing.mcs150Data?.powerUnits || 'N/A'}</div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase">Drivers (Total)</label>
+                      <div className="text-2xl font-bold text-slate-900 mt-1">{filing.mcs150Data?.drivers?.total || 'N/A'}</div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase">CDL Drivers</label>
+                      <div className="text-2xl font-bold text-slate-900 mt-1">{filing.mcs150Data?.drivers?.cdl || 'N/A'}</div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase">Filing Reason</label>
+                      <div className="text-sm font-medium text-slate-900 mt-1 capitalize">{filing.mcs150Reason?.replace(/_/g, ' ') || 'N/A'}</div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase">Drivers (Total)</label>
-                    <div className="text-2xl font-bold text-slate-900 mt-1">{filing.mcs150Data?.drivers?.total || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase">CDL Drivers</label>
-                    <div className="text-2xl font-bold text-slate-900 mt-1">{filing.mcs150Data?.drivers?.cdl || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase">Filing Reason</label>
-                    <div className="text-sm font-medium text-slate-900 mt-1 capitalize">{filing.mcs150Reason?.replace(/_/g, ' ') || 'N/A'}</div>
+
+                  {/* Detailed Driver Breakdown */}
+                  {filing.mcs150Data?.drivers && (
+                    <div className="pt-4 border-t border-slate-200">
+                      <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Driver Breakdown</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {filing.mcs150Data.drivers.interstate !== undefined && (
+                          <div>
+                            <label className="text-xs text-slate-500">Interstate</label>
+                            <div className="text-lg font-semibold text-slate-900">{filing.mcs150Data.drivers.interstate || '0'}</div>
+                          </div>
+                        )}
+                        {filing.mcs150Data.drivers.intrastate !== undefined && (
+                          <div>
+                            <label className="text-xs text-slate-500">Intrastate</label>
+                            <div className="text-lg font-semibold text-slate-900">{filing.mcs150Data.drivers.intrastate || '0'}</div>
+                          </div>
+                        )}
+                        {filing.mcs150Data.drivers.cdl !== undefined && (
+                          <div>
+                            <label className="text-xs text-slate-500">CDL Holders</label>
+                            <div className="text-lg font-semibold text-slate-900">{filing.mcs150Data.drivers.cdl || '0'}</div>
+                          </div>
+                        )}
+                        {filing.mcs150Data.drivers.total !== undefined && (
+                          <div>
+                            <label className="text-xs text-slate-500">Total Drivers</label>
+                            <div className="text-lg font-semibold text-slate-900">{filing.mcs150Data.drivers.total || '0'}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Detailed Vehicle Breakdown */}
+                  {filing.mcs150Data?.vehicles && (
+                    <div className="pt-4 border-t border-slate-200">
+                      <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Vehicle Breakdown</h4>
+                      <div className="space-y-3">
+                        {/* Truck & Trailers */}
+                        <div>
+                          <h5 className="text-xs font-semibold text-slate-600 mb-2">Truck & Trailers</h5>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                            {filing.mcs150Data.vehicles.straightTrucks && (
+                              <div className="bg-slate-50 p-2 rounded">
+                                <div className="text-slate-500 mb-1">Straight Trucks</div>
+                                <div className="font-semibold">Owned: {filing.mcs150Data.vehicles.straightTrucks.owned || 0} | Term: {filing.mcs150Data.vehicles.straightTrucks.termLeased || 0} | Trip: {filing.mcs150Data.vehicles.straightTrucks.tripLeased || 0}</div>
+                              </div>
+                            )}
+                            {filing.mcs150Data.vehicles.truckTractors && (
+                              <div className="bg-slate-50 p-2 rounded">
+                                <div className="text-slate-500 mb-1">Truck Tractors</div>
+                                <div className="font-semibold">Owned: {filing.mcs150Data.vehicles.truckTractors.owned || 0} | Term: {filing.mcs150Data.vehicles.truckTractors.termLeased || 0} | Trip: {filing.mcs150Data.vehicles.truckTractors.tripLeased || 0}</div>
+                              </div>
+                            )}
+                            {filing.mcs150Data.vehicles.trailers && (
+                              <div className="bg-slate-50 p-2 rounded">
+                                <div className="text-slate-500 mb-1">Trailers</div>
+                                <div className="font-semibold">Owned: {filing.mcs150Data.vehicles.trailers.owned || 0} | Term: {filing.mcs150Data.vehicles.trailers.termLeased || 0} | Trip: {filing.mcs150Data.vehicles.trailers.tripLeased || 0}</div>
+                              </div>
+                            )}
+                            {filing.mcs150Data.vehicles.hazmatCargoTrucks && (
+                              <div className="bg-slate-50 p-2 rounded">
+                                <div className="text-slate-500 mb-1">Hazmat Cargo Trucks</div>
+                                <div className="font-semibold">Owned: {filing.mcs150Data.vehicles.hazmatCargoTrucks.owned || 0} | Term: {filing.mcs150Data.vehicles.hazmatCargoTrucks.termLeased || 0} | Trip: {filing.mcs150Data.vehicles.hazmatCargoTrucks.tripLeased || 0}</div>
+                              </div>
+                            )}
+                            {filing.mcs150Data.vehicles.hazmatCargoTrailers && (
+                              <div className="bg-slate-50 p-2 rounded">
+                                <div className="text-slate-500 mb-1">Hazmat Cargo Trailers</div>
+                                <div className="font-semibold">Owned: {filing.mcs150Data.vehicles.hazmatCargoTrailers.owned || 0} | Term: {filing.mcs150Data.vehicles.hazmatCargoTrailers.termLeased || 0} | Trip: {filing.mcs150Data.vehicles.hazmatCargoTrailers.tripLeased || 0}</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {/* Passenger Vehicles - Show all types even if 0 */}
+                        {filing.mcs150Data.vehicles && (
+                          <div>
+                            <h5 className="text-xs font-semibold text-slate-600 mb-2">Passenger Vehicles</h5>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                              {filing.mcs150Data.vehicles.motorCoach && (
+                                <div className="bg-slate-50 p-2 rounded">
+                                  <div className="text-slate-500 mb-1">Motor Coach</div>
+                                  <div className="font-semibold">Owned: {filing.mcs150Data.vehicles.motorCoach.owned || 0} | Term: {filing.mcs150Data.vehicles.motorCoach.termLeased || 0} | Trip: {filing.mcs150Data.vehicles.motorCoach.tripLeased || 0}</div>
+                                </div>
+                              )}
+                              {filing.mcs150Data.vehicles.schoolBus8 && (
+                                <div className="bg-slate-50 p-2 rounded">
+                                  <div className="text-slate-500 mb-1">School Bus (1-8 Pass)</div>
+                                  <div className="font-semibold">Owned: {filing.mcs150Data.vehicles.schoolBus8.owned || 0} | Term: {filing.mcs150Data.vehicles.schoolBus8.termLeased || 0} | Trip: {filing.mcs150Data.vehicles.schoolBus8.tripLeased || 0}</div>
+                                </div>
+                              )}
+                              {filing.mcs150Data.vehicles.schoolBus9to15 && (
+                                <div className="bg-slate-50 p-2 rounded">
+                                  <div className="text-slate-500 mb-1">School Bus (9-15 Pass)</div>
+                                  <div className="font-semibold">Owned: {filing.mcs150Data.vehicles.schoolBus9to15.owned || 0} | Term: {filing.mcs150Data.vehicles.schoolBus9to15.termLeased || 0} | Trip: {filing.mcs150Data.vehicles.schoolBus9to15.tripLeased || 0}</div>
+                                </div>
+                              )}
+                              {filing.mcs150Data.vehicles.schoolBus16 && (
+                                <div className="bg-slate-50 p-2 rounded">
+                                  <div className="text-slate-500 mb-1">School Bus (16+ Pass)</div>
+                                  <div className="font-semibold">Owned: {filing.mcs150Data.vehicles.schoolBus16.owned || 0} | Term: {filing.mcs150Data.vehicles.schoolBus16.termLeased || 0} | Trip: {filing.mcs150Data.vehicles.schoolBus16.tripLeased || 0}</div>
+                                </div>
+                              )}
+                              {filing.mcs150Data.vehicles.bus16 && (
+                                <div className="bg-slate-50 p-2 rounded">
+                                  <div className="text-slate-500 mb-1">Bus (16+ Pass)</div>
+                                  <div className="font-semibold">Owned: {filing.mcs150Data.vehicles.bus16.owned || 0} | Term: {filing.mcs150Data.vehicles.bus16.termLeased || 0} | Trip: {filing.mcs150Data.vehicles.bus16.tripLeased || 0}</div>
+                                </div>
+                              )}
+                              {filing.mcs150Data.vehicles.van8 && (
+                                <div className="bg-slate-50 p-2 rounded">
+                                  <div className="text-slate-500 mb-1">Van (1-8 Pass)</div>
+                                  <div className="font-semibold">Owned: {filing.mcs150Data.vehicles.van8.owned || 0} | Term: {filing.mcs150Data.vehicles.van8.termLeased || 0} | Trip: {filing.mcs150Data.vehicles.van8.tripLeased || 0}</div>
+                                </div>
+                              )}
+                              {filing.mcs150Data.vehicles.van9to15 && (
+                                <div className="bg-slate-50 p-2 rounded">
+                                  <div className="text-slate-500 mb-1">Van (9-15 Pass)</div>
+                                  <div className="font-semibold">Owned: {filing.mcs150Data.vehicles.van9to15.owned || 0} | Term: {filing.mcs150Data.vehicles.van9to15.termLeased || 0} | Trip: {filing.mcs150Data.vehicles.van9to15.tripLeased || 0}</div>
+                                </div>
+                              )}
+                              {filing.mcs150Data.vehicles.limo8 && (
+                                <div className="bg-slate-50 p-2 rounded">
+                                  <div className="text-slate-500 mb-1">Limousine (1-8 Pass)</div>
+                                  <div className="font-semibold">Owned: {filing.mcs150Data.vehicles.limo8.owned || 0} | Term: {filing.mcs150Data.vehicles.limo8.termLeased || 0} | Trip: {filing.mcs150Data.vehicles.limo8.tripLeased || 0}</div>
+                                </div>
+                              )}
+                              {filing.mcs150Data.vehicles.limo9to15 && (
+                                <div className="bg-slate-50 p-2 rounded">
+                                  <div className="text-slate-500 mb-1">Limousine (9-15 Pass)</div>
+                                  <div className="font-semibold">Owned: {filing.mcs150Data.vehicles.limo9to15.owned || 0} | Term: {filing.mcs150Data.vehicles.limo9to15.termLeased || 0} | Trip: {filing.mcs150Data.vehicles.limo9to15.tripLeased || 0}</div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Company Operations */}
+                  {filing.mcs150Data?.companyOperations && Array.isArray(filing.mcs150Data.companyOperations) && filing.mcs150Data.companyOperations.length > 0 && (
+                    <div className="pt-4 border-t border-slate-200">
+                      <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Company Operations</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {filing.mcs150Data.companyOperations.map((op, idx) => (
+                          <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                            {op}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {filing.mcs150Data?.companyOperations && Array.isArray(filing.mcs150Data.companyOperations) && filing.mcs150Data.companyOperations.length === 0 && (
+                    <div className="pt-4 border-t border-slate-200">
+                      <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Company Operations</h4>
+                      <div className="text-xs text-slate-500 italic">No company operations selected</div>
+                    </div>
+                  )}
+
+                  {/* Classifications */}
+                  {filing.mcs150Data?.classifications && (
+                    <div className="pt-4 border-t border-slate-200">
+                      <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Classifications</h4>
+                      <div className="space-y-4">
+                        {/* Operation Classifications */}
+                        {filing.mcs150Data.classifications.operations && filing.mcs150Data.classifications.operations.length > 0 && (
+                          <div>
+                            <h5 className="text-xs font-semibold text-slate-600 mb-2">Operation Classifications</h5>
+                            <div className="flex flex-wrap gap-2">
+                              {filing.mcs150Data.classifications.operations.map((op, idx) => (
+                                <span key={idx} className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs">
+                                  {op}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {/* Cargo Classifications */}
+                        {filing.mcs150Data.classifications.cargo && filing.mcs150Data.classifications.cargo.length > 0 && (
+                          <div>
+                            <h5 className="text-xs font-semibold text-slate-600 mb-2">Cargo Classifications</h5>
+                            <div className="flex flex-wrap gap-2">
+                              {filing.mcs150Data.classifications.cargo.map((cargo, idx) => (
+                                <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                                  {cargo}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {/* Hazmat Classifications */}
+                        {filing.mcs150Data.classifications.hazmat && Object.keys(filing.mcs150Data.classifications.hazmat).length > 0 && (
+                          <div>
+                            <h5 className="text-xs font-semibold text-slate-600 mb-2">Hazardous Materials</h5>
+                            <div className="space-y-2 max-h-64 overflow-y-auto">
+                              {Object.entries(filing.mcs150Data.classifications.hazmat)
+                                .filter(([material, types]) => types && Array.isArray(types) && types.length > 0)
+                                .map(([material, types]) => (
+                                  <div key={material} className="bg-slate-50 p-2 rounded text-xs border border-slate-200">
+                                    <div className="font-semibold text-slate-700 mb-1">{material}</div>
+                                    <div className="flex flex-wrap gap-1">
+                                      {Array.isArray(types) && types.map((type, idx) => (
+                                        <span key={idx} className="px-2 py-0.5 bg-orange-100 text-orange-800 rounded font-medium">
+                                          {type}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Filing Details */}
+                  <div className="pt-4 border-t border-slate-200">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Filing Details</h4>
+                    <div className="space-y-2 text-xs">
+                      {filing.mcs150HasChanges !== undefined && (
+                        <div className="grid sm:grid-cols-[140px_1fr] items-center gap-2">
+                          <span className="text-slate-500 font-medium">Has Changes:</span>
+                          <span className="font-semibold">{filing.mcs150HasChanges ? 'Yes' : 'No (Verify & Sign)'}</span>
+                        </div>
+                      )}
+                      {filing.mcs150Data?.method && (
+                        <div className="grid sm:grid-cols-[140px_1fr] items-center gap-2">
+                          <span className="text-slate-500 font-medium">Submission Method:</span>
+                          <span className="font-semibold capitalize">{filing.mcs150Data.method.replace(/_/g, ' ')}</span>
+                        </div>
+                      )}
+                      {filing.mcs150Data?.selectedChanges && filing.mcs150Data.selectedChanges.length > 0 && (
+                        <div className="grid sm:grid-cols-[140px_1fr] items-start gap-2">
+                          <span className="text-slate-500 font-medium">Selected Changes:</span>
+                          <div className="flex flex-wrap gap-1">
+                            {filing.mcs150Data.selectedChanges.map((change, idx) => (
+                              <span key={idx} className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs">
+                                {change.replace(/_/g, ' ')}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

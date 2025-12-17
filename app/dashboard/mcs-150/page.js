@@ -224,15 +224,28 @@ export default function MCS150Page() {
             }
 
             // Calculate total power units from granular vehicle data
-            const calculatedPowerUnits = (parseInt(formData.vehicles.straightTrucks) || 0) +
-                (parseInt(formData.vehicles.truckTractors) || 0) +
-                (parseInt(formData.vehicles.trailers) || 0) +
-                (parseInt(formData.vehicles.hazmat) || 0);
+            // Power units = trucks/tractors (not trailers). Sum owned + termLeased + tripLeased for each power unit type
+            const calculatePowerUnits = (vehicleType) => {
+                if (!vehicleType || typeof vehicleType !== 'object') return 0;
+                return (parseInt(vehicleType.owned) || 0) + 
+                       (parseInt(vehicleType.termLeased) || 0) + 
+                       (parseInt(vehicleType.tripLeased) || 0);
+            };
+
+            const calculatedPowerUnits = 
+                calculatePowerUnits(formData.vehicles.straightTrucks) +
+                calculatePowerUnits(formData.vehicles.truckTractors) +
+                calculatePowerUnits(formData.vehicles.hazmatCargoTrucks);
+            // Note: Trailers and hazmatCargoTrailers are NOT power units, they're separate
+
+            // Calculate total drivers if not provided
+            const driversTotal = formData.drivers.total || 
+                (parseInt(formData.drivers.interstate || 0) + parseInt(formData.drivers.intrastate || 0));
 
             await createFiling({
-                userId: user.uid,
+                userId: user.uid, // Customer relationship - links filing to customer
                 businessId: businessId,
-                filingType: 'mcs150',
+                filingType: 'mcs150', // Identifies this as MCS-150 filing
                 status: 'submitted',
                 mcs150Status: 'submitted',
                 mcs150Price: price,
@@ -242,14 +255,24 @@ export default function MCS150Page() {
                 mcs150Pin: submissionMethod === 'enter_pin' ? pin : null,
                 needPinService: needPin,
                 companyOfficial: formData.companyOfficial,
+                contact: {
+                    email: formData.contact?.email || '',
+                    phone: formData.contact?.phone || ''
+                },
                 mcs150Data: {
                     mileage: formData.mileage,
                     mileageYear: formData.mileageYear,
                     powerUnits: calculatedPowerUnits.toString(), // Use the calculated total
                     vehicles: formData.vehicles, // Save the detailed breakdown
-                    drivers: formData.drivers,
+                    drivers: {
+                        ...formData.drivers,
+                        total: driversTotal.toString() // Ensure total is calculated
+                    },
+                    classifications: formData.classifications,
+                    companyOperations: formData.companyOperations,
                     method: submissionMethod,
-                    selectedChanges: selectedChanges // Save what they changed
+                    selectedChanges: selectedChanges, // Save what they changed
+                    ein: formData.ein || selectedBusiness?.ein || '' // Save EIN if updated or from business
                 },
                 compliance: {
                     signature: formData.companyOfficial?.name,
