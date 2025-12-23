@@ -23,6 +23,7 @@ export default function sitemap() {
     { path: "/services/ucr-registration", priority: 0.9, changeFrequency: "weekly" },
     { path: "/services/form-8849-refund", priority: 0.8, changeFrequency: "weekly" },
     { path: "/services/ifta-irp", priority: 0.8, changeFrequency: "weekly" },
+    { path: "/pricing", priority: 0.9, changeFrequency: "weekly" },
     { path: "/blog", priority: 0.9, changeFrequency: "daily" },
     { path: "/insights", priority: 0.9, changeFrequency: "weekly" },
     { path: "/tools", priority: 0.8, changeFrequency: "weekly" },
