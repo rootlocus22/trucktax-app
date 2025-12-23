@@ -1,6 +1,6 @@
 
 import Link from 'next/link';
-import { ArrowRight, Truck, FileText, BadgeCheck, DollarSign, Map, Calculator } from 'lucide-react';
+import { ArrowRight, Truck, FileText, BadgeCheck, DollarSign, Map, Calculator, Tractor } from 'lucide-react';
 
 export const metadata = {
     title: 'Trucking Services | QuickTruckTax',
@@ -30,6 +30,14 @@ export default function ServicesPage() {
             color: "teal"
         },
         {
+            title: "Agricultural & Logging",
+            description: "Specialized rules for farmers (7,500 mile limit) and reduced tax rates for logging vehicles.",
+            status: "Live",
+            icon: <Tractor className="w-8 h-8 text-green-600" />,
+            link: "/services/agricultural-logging",
+            color: "green"
+        },
+        {
             title: "UCR Registration",
             description: "Unified Carrier Registration for interstate carriers. Instant proof of payment and compliance.",
             status: "Launching Jan 2026",
@@ -52,6 +60,22 @@ export default function ServicesPage() {
             icon: <Map className="w-8 h-8 text-purple-500" />,
             link: "/services/ifta-irp",
             color: "purple"
+        },
+        {
+            title: "Suspended Vehicle Filing",
+            description: "Low mileage exemption (Category W). Pay $0 tax if you drive under 5,000 miles/year.",
+            status: "Live",
+            icon: <Truck className="w-8 h-8 text-blue-500" />,
+            link: "/services/suspended-vehicle",
+            color: "blue"
+        },
+        {
+            title: "VIN Correction",
+            description: "Fix a typo on your Schedule 1 instantly. Free for existing customers.",
+            status: "Live",
+            icon: <FileText className="w-8 h-8 text-red-500" />,
+            link: "/services/vin-correction",
+            color: "red"
         }
     ];
 

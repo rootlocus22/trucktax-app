@@ -131,15 +131,22 @@ export default function RootLayout({ children }) {
             <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 border-b border-white/10 pb-8">
                 {/* Brand & Legal */}
-                <div className="space-y-4">
+                <div className="space-y-4 md:col-span-3 lg:col-span-1">
                   <div>
                     <span className="text-xl font-bold tracking-tight text-white">QuickTruckTax</span>
                     <p className="text-xs text-blue-200 uppercase tracking-widest mt-1">Compliance Simplified</p>
                   </div>
-                  <p className="text-sm text-slate-400 leading-relaxed">
-                    QuickTruckTax is a product of <strong className="text-white">Vendax Systems LLC</strong>.
-                    We are dedicated to simplifying trucking taxes and compliance for carriers across the USA.
-                  </p>
+                  <div className="text-xs text-slate-400 leading-relaxed space-y-2">
+                    <p>
+                      The information and images on this website are the property of QuickTruckTax and may not be reproduced, reused, or appropriated without the express written consent of the owner.
+                    </p>
+                    <p>
+                      QuickTruckTax, operated by <strong className="text-white">Vendax Systems LLC</strong>, is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement.
+                    </p>
+                    <p>
+                      We are not affiliated with any government authority such as USDOT, FMCSA, or the IRS. We use third-party tools to file Form 2290 and MCS-150.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Contact / Address */}

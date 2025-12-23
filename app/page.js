@@ -101,13 +101,13 @@ export default function Home() {
           <div className="relative z-10 px-6 py-20 sm:px-12 lg:px-16 grid gap-12 lg:grid-cols-2 items-center">
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 border border-blue-500/20 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-blue-400">
-                <ShieldCheck className="w-4 h-4" /> Premium Filing Concierge Service
+                <ShieldCheck className="w-4 h-4" /> IRS-Authorized Smart E-Filing
               </div>
               <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl text-white">
-                We File Form 2290 & Get Your <span className="text-[var(--color-orange)]">Schedule 1</span>.
+                File Form 2290 Online for Just <span className="text-[var(--color-orange)]">$34.99</span>.
               </h1>
               <p className="text-lg leading-8 text-slate-300 max-w-xl">
-                The easiest way to handle your Heavy Vehicle Use Tax. Our experts review and transmit your return for you to ensure glitch-free compliance.
+                Get your IRS-stamped Schedule 1 in minutes. Save 40% vs leading competitors. Smart, secure, and no phone calls required.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -115,7 +115,7 @@ export default function Home() {
                   href="/services/form-2290-filing"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-orange)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-orange-500/20 transition hover:bg-[#e66a15] hover:scale-105 transform duration-200"
                 >
-                  Start Concierge Filing
+                  Start Secure Filing
                   <ChevronRight className="w-5 h-5" />
                 </Link>
                 <Link
@@ -127,12 +127,15 @@ export default function Home() {
                 </Link>
               </div>
 
-              <div className="flex items-center gap-6 text-sm font-medium text-slate-400 pt-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 text-sm font-medium text-slate-400 pt-4">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" /> Expert Manual Review
+                  <CheckCircle className="w-5 h-5 text-green-400" /> Free VIN Corrections
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" /> Fast Schedule 1 Delivery
+                  <CheckCircle className="w-5 h-5 text-green-400" /> Instant SMS Alerts
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-400" /> Fast Schedule 1
                 </div>
               </div>
             </div>
@@ -142,15 +145,15 @@ export default function Home() {
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl transform rotate-2 hover:rotate-0 transition duration-500">
                 <div className="grid grid-cols-2 gap-8">
                   <div>
-                    <p className="text-4xl font-bold text-white mb-1">4.9/5</p>
-                    <p className="text-sm text-slate-400">Customer Rating</p>
+                    <p className="text-4xl font-bold text-white mb-1"><span className="text-2xl align-top">$</span>34<span className="text-2xl">.99</span></p>
+                    <p className="text-sm text-slate-400">Flat Filing Fee</p>
                   </div>
                   <div>
-                    <p className="text-4xl font-bold text-[var(--color-orange)]">24h</p>
-                    <p className="text-sm text-slate-400">Turnaround Time</p>
+                    <p className="text-4xl font-bold text-[var(--color-orange)]">2m</p>
+                    <p className="text-sm text-slate-400">Average Filing Time</p>
                   </div>
                   <div className="col-span-2 border-t border-white/10 pt-6">
-                    <p className="text-sm text-slate-300 italic">"They handled everything for me. I just sent my info and got my Schedule 1 back same day."</p>
+                    <p className="text-sm text-slate-300 italic">"Why pay $60 elsewhere? QuickTruckTax got my Schedule 1 instantly for half the price. The SMS updates were a nice touch."</p>
                     <p className="text-xs text-slate-500 mt-2 font-bold uppercase">– Mike T., Owner-Operator</p>
                   </div>
                 </div>
@@ -201,22 +204,22 @@ export default function Home() {
         {/* WHY CHOOSE US GRID */}
         <section className="bg-slate-50 rounded-3xl p-8 sm:p-16">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-[var(--color-text)] sm:text-4xl mb-4">Why Choose Our Concierge Service?</h2>
+            <h2 className="text-3xl font-bold text-[var(--color-text)] sm:text-4xl mb-4">Why Choose Our Smart E-Filing?</h2>
             <p className="text-lg text-[var(--color-muted)]">We offer more than just software. We offer a personal filing assistant.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               { title: "Fast Schedule 1", desc: "We monitor your filing status constantly and forward your Schedule 1 the moment it arrives.", icon: Clock },
-              { title: "Error-Free Guarantee", desc: "Our experts manually review your VINs and weights before filing to prevent IRS rejections.", icon: ShieldCheck },
-              { title: "US-Based Support", desc: "Talk to a real person. Our tax experts are right here in the USA ready to answer questions.", icon: Users },
+              { title: "Error-Free Guarantee", desc: "Our experts manually review your VINs. Plus, we offer FREE VIN Corrections if you make a mistake.", icon: ShieldCheck },
+              { title: "Instant SMS Alerts", desc: "Stay in the loop without checking email. We text you immediately when your Schedule 1 is ready.", icon: Users },
               { title: "Secure Transmission", desc: "We use authorized channels to transmit your data securely to government agencies.", icon: Lock },
-              { title: "Smart Tax Calculator", desc: "Don't guess your tax. We calculate the exact HVUT amount for you based on IRS rules.", icon: Calculator },
+              { title: "Smart Tax Calculator", desc: "Don't overpay. We calculate the exact HVUT amount for you based on IRS rules.", icon: Calculator },
               { title: "All-in-One Compliance", desc: "We can handle your 2290s, UCR registrations, and MCS-150 updates for you completely.", icon: LayoutGrid },
             ].map((feature, idx) => (
               <div key={idx} className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition border border-slate-100 group">
                 <feature.icon className="w-10 h-10 text-[var(--color-orange)] mb-6 group-hover:scale-110 transition-transform" />
                 <h3 className="text-xl font-bold text-[var(--color-text)] mb-3">{feature.title}</h3>
-                <p className="text-[var(--color-muted)] leading-relaxed">{feature.desc}</p>
+                <p className="text-sm leading-relaxed text-[var(--color-muted)]">{feature.desc}</p>
               </div>
             ))}
           </div>
@@ -280,7 +283,7 @@ export default function Home() {
                 <div>
                   <h4 className="text-lg font-bold text-blue-900 mb-2">Pro Tip: E-File for Speed</h4>
                   <p className="text-blue-800 leading-relaxed">
-                    The IRS strongly recommends e-filing. Paper returns can take weeks, but a concierge service like ours gets you your result instantly. Don't risk DMV delays—file online.
+                    The IRS strongly recommends e-filing. Paper returns can take weeks, but a smart service like ours gets you your result instantly. Don't risk DMV delays—file online.
                   </p>
                 </div>
               </div>
@@ -302,7 +305,7 @@ export default function Home() {
                 href="/services/form-2290-filing"
                 className="flex w-full items-center justify-center rounded-xl bg-[var(--color-orange)] py-4 font-bold text-white transition hover:bg-[#e66a15] hover:shadow-lg hover:scale-[1.02]"
               >
-                Start Concierge Filing
+                Start Smart Filing
               </Link>
               <p className="text-xs text-center mt-4 text-slate-500">
                 Terms & Conditions apply.

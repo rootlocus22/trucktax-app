@@ -64,7 +64,7 @@ export default async function StateCompliancePage({ params }) {
                     description: `Federal and State trucking compliance filing services for ${name} carriers.`,
                     catalogName: `${name} Truck Tax`,
                     offers: [
-                        { name: "Form 2290 Filing", price: "19.99" },
+                        { name: "Form 2290 Filing", price: "34.99" },
                         { name: "MCS-150 Update", price: "49.00" }
                     ]
                 }}
@@ -82,11 +82,11 @@ export default async function StateCompliancePage({ params }) {
                             Trucking Compliance in <span className="text-[var(--color-orange)]">{name}</span>
                         </h1>
                         <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                            Everything {name} owner-operators need to know about Form 2290, IFTA, and DOT updates.
+                            File Form 2290 for just $34.99. Get Instant SMS Alerts and Free VIN Corrections.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
-                                href="/dashboard/new-filing"
+                                href="/services/form-2290-filing"
                                 className="bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#ff7a20] transition shadow-lg shadow-orange-900/20 flex items-center justify-center gap-2"
                             >
                                 File 2290 for {code} <ArrowRight className="w-5 h-5" />
@@ -121,10 +121,10 @@ export default async function StateCompliancePage({ params }) {
                             </div>
                             <div className="grow text-center md:text-left">
                                 <h3 className="text-xl font-bold text-[var(--color-navy)] mb-2">IRS Form 2290 (HVUT)</h3>
-                                <p className="text-slate-600">Federal tax for vehicles 55,000 lbs+. Proof of payment (Schedule 1) is required to register your vehicle in {name}.</p>
+                                <p className="text-slate-600">Federal tax for vehicles 55,000 lbs+. Includes <strong>Free VIN Corrections</strong> and <strong>Instant SMS Alerts</strong>.</p>
                             </div>
-                            <Link href="/services/form-2290-filing" className="shrink-0 px-6 py-2 bg-slate-100 text-[var(--color-navy)] font-bold rounded-lg hover:bg-slate-200 transition">
-                                Learn More
+                            <Link href="/services/form-2290-filing" className="shrink-0 px-6 py-2 bg-slate-100 text-blue-900 font-bold rounded-lg hover:bg-slate-200 transition">
+                                File for $34.99
                             </Link>
                         </div>
 
@@ -137,7 +137,7 @@ export default async function StateCompliancePage({ params }) {
                                 <h3 className="text-xl font-bold text-[var(--color-navy)] mb-2">IFTA & IRP</h3>
                                 <p className="text-slate-600">If you leave {name} to haul goods in other states, you need IFTA decals and Apportioned Plates.</p>
                             </div>
-                            <Link href="/services/ifta-irp" className="shrink-0 px-6 py-2 bg-slate-100 text-[var(--color-navy)] font-bold rounded-lg hover:bg-slate-200 transition">
+                            <Link href="/services/ifta-irp" className="shrink-0 px-6 py-2 bg-slate-100 text-blue-900 font-bold rounded-lg hover:bg-slate-200 transition">
                                 View Guide
                             </Link>
                         </div>
@@ -151,7 +151,7 @@ export default async function StateCompliancePage({ params }) {
                                 <h3 className="text-xl font-bold text-[var(--color-navy)] mb-2">USDOT Number</h3>
                                 <p className="text-slate-600">Required if you operate commercial vehicles involved in interstate commerce, or haul hazardous materials within {name}.</p>
                             </div>
-                            <Link href="/services/mcs-150-update" className="shrink-0 px-6 py-2 bg-slate-100 text-[var(--color-navy)] font-bold rounded-lg hover:bg-slate-200 transition">
+                            <Link href="/services/mcs-150-update" className="shrink-0 px-6 py-2 bg-slate-100 text-blue-900 font-bold rounded-lg hover:bg-slate-200 transition">
                                 Update DOT
                             </Link>
                         </div>
@@ -179,7 +179,7 @@ export default async function StateCompliancePage({ params }) {
                 <h2 className="text-2xl font-bold text-[var(--color-navy)] mb-6">Stay Compliant in {name}</h2>
                 <Link
                     href="/dashboard/new-filing"
-                    className="inline-flex bg-[var(--color-navy)] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-opacity-90 transition shadow-lg items-center gap-2"
+                    className="inline-flex bg-blue-900 !text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-800 transition shadow-lg items-center gap-2"
                 >
                     Start Compliance Check <ArrowRight className="w-5 h-5" />
                 </Link>

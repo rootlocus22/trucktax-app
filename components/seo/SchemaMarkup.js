@@ -18,15 +18,26 @@ export default function SchemaMarkup({ type, data }) {
             "hasOfferCatalog": {
                 "@type": "OfferCatalog",
                 "name": data.catalogName || "Trucking Compliance Services",
-                "itemListElement": data.offers?.map(offer => ({
-                    "@type": "Offer",
-                    "itemOffered": {
-                        "@type": "Service",
-                        "name": offer.name
-                    },
-                    "price": offer.price,
-                    "priceCurrency": "USD"
-                }))
+                "itemListElement": Array.isArray(data.offers)
+                    ? data.offers.map(offer => ({
+                        "@type": "Offer",
+                        "itemOffered": {
+                            "@type": "Service",
+                            "name": offer.name
+                        },
+                        "price": offer.price,
+                        "priceCurrency": "USD"
+                    }))
+                    : data.offers ? [{
+                        "@type": "Offer",
+                        "itemOffered": {
+                            "@type": "Service",
+                            "name": data.name // Fallback to service name if single offer
+                        },
+                        "price": data.offers.price,
+                        "priceCurrency": "USD",
+                        "description": data.offers.description
+                    }] : []
             }
         };
     } else if (type === 'FAQPage') {

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { complianceGuides } from "@/lib/guides";
+import usStates from "@/data/us-states.json";
 
 export const metadata = {
   title: "Trucking Compliance Guides | QuickTruckTax",
@@ -174,6 +175,32 @@ export default function InsightsIndex() {
           </div>
         </section>
       ))}
+
+      {/* State Guides Directory */}
+      <section className="space-y-6 pt-8 border-t border-[var(--color-border)]">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-2xl font-semibold text-[var(--color-text)] sm:text-3xl">State-Specific Filing Guides</h2>
+          <p className="text-base text-[var(--color-muted)]">
+            Find specific HVUT, IFTA, and registration rules for your base jurisdiction.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {usStates.map((state) => (
+            <Link
+              key={state.code}
+              href={`/insights/state/${state.name.toLowerCase().replace(/\s+/g, '-')}`}
+              className="group flex items-center gap-3 p-3 rounded-xl border border-[var(--color-border)] bg-white hover:border-[var(--color-navy)] hover:shadow-md transition"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-[var(--color-navy)] group-hover:bg-[var(--color-navy)] group-hover:text-white transition-colors">
+                {state.code}
+              </span>
+              <span className="text-sm font-medium text-[var(--color-text)] group-hover:text-[var(--color-navy)]">
+                {state.name}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

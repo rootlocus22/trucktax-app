@@ -16,6 +16,9 @@ export default function sitemap() {
   const coreRoutes = [
     { path: "", priority: 1.0, changeFrequency: "daily" },
     { path: "/services/form-2290-filing", priority: 1.0, changeFrequency: "weekly" },
+    { path: "/services/vin-correction", priority: 1.0, changeFrequency: "weekly" },
+    { path: "/services/suspended-vehicle", priority: 0.9, changeFrequency: "weekly" },
+    { path: "/services/agricultural-logging", priority: 0.9, changeFrequency: "weekly" },
     { path: "/services/mcs-150-update", priority: 0.9, changeFrequency: "weekly" },
     { path: "/services/ucr-registration", priority: 0.9, changeFrequency: "weekly" },
     { path: "/services/form-8849-refund", priority: 0.8, changeFrequency: "weekly" },
