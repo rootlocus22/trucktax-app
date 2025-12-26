@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { calculateFilingCost } from '@/app/actions/pricing';
-import { CreditCard, ShieldCheck, Loader2, Info, CheckCircle } from 'lucide-react';
+import { CreditCard, ShieldCheck, Loader2, Info, CheckCircle, FileText, Building2, Truck } from 'lucide-react';
 
 export function PricingSidebar({
   filingType,
@@ -17,9 +17,19 @@ export function PricingSidebar({
   step,
   onSubmit,
   loading = false,
-  hideSubmitButton = false
+  hideSubmitButton = false,
+  // New props for coupon and pricing
+  couponCode = '',
+  couponApplied = false,
+  couponDiscount = 0,
+  couponType = '',
+  couponError = '',
+  pricing = {},
+  onApplyCoupon = () => {},
+  onRemoveCoupon = () => {},
+  onCouponCodeChange = () => {}
 }) {
-  const [pricing, setPricing] = useState({
+  const [internalPricing, setInternalPricing] = useState({
     totalTax: 0,
     serviceFee: 0,
     salesTax: 0,
@@ -28,12 +38,15 @@ export function PricingSidebar({
   });
   const [pricingLoading, setPricingLoading] = useState(false);
   const [breakdown, setBreakdown] = useState([]);
+  
+  // Use provided pricing prop if available, otherwise use internal state
+  const finalPricing = pricing && pricing.totalTax !== undefined ? pricing : internalPricing;
 
   useEffect(() => {
     const fetchPricing = async () => {
       // Don't calculate if we don't have minimum required data
       if (!filingType || selectedVehicleIds.length === 0) {
-        setPricing({
+        setInternalPricing({
           totalTax: 0,
           serviceFee: 0,
           salesTax: 0,
@@ -103,7 +116,7 @@ export function PricingSidebar({
         );
 
         if (result.success) {
-          setPricing(result.breakdown);
+          setInternalPricing(result.breakdown);
 
           // Build breakdown for display
           const breakdownItems = [];
@@ -163,8 +176,11 @@ export function PricingSidebar({
       <div className="bg-white border border-slate-200 rounded-2xl shadow-lg flex flex-col max-h-full overflow-hidden">
         {/* Header */}
         <div className="p-6 border-b border-slate-100">
-          <h3 className="text-lg font-bold text-[var(--color-text)] mb-1">Order Summary</h3>
-          <p className="text-xs text-[var(--color-muted)]">Pricing updates as you make selections</p>
+          <h3 className="text-lg font-bold text-[var(--color-text)] mb-1 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-[var(--color-orange)]" />
+            Order Summary
+          </h3>
+          <p className="text-xs text-[var(--color-muted)]">Complete filing details and pricing</p>
         </div>
 
         {/* Content */}
@@ -176,6 +192,96 @@ export function PricingSidebar({
             </div>
           ) : (
             <div className="space-y-4">
+              {/* Business Information */}
+              {selectedBusinessId && businesses.find(b => b.id === selectedBusinessId) && (
+                <div className="pb-4 border-b border-slate-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Building2 className="w-4 h-4 text-[var(--color-orange)]" />
+                    <h4 className="text-sm font-semibold text-[var(--color-text)]">Filing For</h4>
+                  </div>
+                  <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                    <p className="text-sm font-semibold text-[var(--color-text)] mb-1">
+                      {businesses.find(b => b.id === selectedBusinessId)?.businessName}
+                    </p>
+                    <p className="text-xs text-[var(--color-muted)] font-mono">
+                      EIN: {businesses.find(b => b.id === selectedBusinessId)?.ein}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Filing Details */}
+              {filingData && (
+                <div className="pb-4 border-b border-slate-200">
+                  <h4 className="text-sm font-semibold text-[var(--color-text)] mb-2">Filing Details</h4>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-[var(--color-muted)]">Form Type:</span>
+                      <span className="font-semibold">2290</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--color-muted)]">Tax Period:</span>
+                      <span className="font-semibold">July 1st, 2025 - June 30th, 2026</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--color-muted)]">First Used Month:</span>
+                      <span className="font-semibold">{filingData.firstUsedMonth || 'July'}-2025</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--color-muted)]">Vehicles:</span>
+                      <span className="font-semibold">
+                        {filingType === 'amendment' 
+                          ? (amendmentType === 'vin_correction' ? 'N/A' : '1')
+                          : selectedVehicleIds.length
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Coupon Section - Only show on step 6 */}
+              {step === 6 && (
+                <div className="pb-4 border-b border-slate-200">
+                  <label className="block text-sm font-semibold text-[var(--color-text)] mb-2">
+                    Coupon Code (Optional)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => onCouponCodeChange(e.target.value)}
+                      placeholder="Enter coupon code"
+                      className="flex-1 px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-orange)]"
+                      disabled={couponApplied}
+                    />
+                    {!couponApplied ? (
+                      <button
+                        onClick={onApplyCoupon}
+                        className="px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[#ff7a20] transition whitespace-nowrap"
+                      >
+                        Apply
+                      </button>
+                    ) : (
+                      <button
+                        onClick={onRemoveCoupon}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-semibold hover:bg-red-600 transition whitespace-nowrap"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  {couponError && (
+                    <p className="mt-2 text-xs text-red-600">{couponError}</p>
+                  )}
+                  {couponApplied && (
+                    <p className="mt-2 text-xs text-green-600">
+                      ✓ Coupon applied: {couponType === 'percentage' ? `${couponDiscount}%` : `$${couponDiscount}`} discount
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Breakdown - Always show fields */}
               <div className="space-y-3">
                 {!hasData ? (
@@ -228,14 +334,56 @@ export function PricingSidebar({
                 )}
               </div>
 
+              {/* Tax Summary - Enhanced */}
+              {hasData && (
+                <div className="pt-4 border-t-2 border-slate-200">
+                  <h4 className="text-sm font-semibold text-[var(--color-text)] mb-3">Tax Summary</h4>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-[var(--color-muted)]">Total Tax:</span>
+                      <span className="font-semibold">${(finalPricing.totalTax || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--color-muted)]">Service Fee:</span>
+                      <span className="font-semibold">${(finalPricing.serviceFee || 0).toFixed(2)}</span>
+                    </div>
+                    {couponApplied && couponDiscount > 0 && (
+                      <div className="flex justify-between text-green-600">
+                        <span>Coupon Discount ({couponType === 'percentage' ? `${couponDiscount}%` : `$${couponDiscount}`}):</span>
+                        <span className="font-semibold">-${(finalPricing.couponDiscount || 0).toFixed(2)}</span>
+                      </div>
+                    )}
+                    {(finalPricing.salesTax || 0) > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-muted)]">Sales Tax:</span>
+                        <span className="font-semibold">${(finalPricing.salesTax || 0).toFixed(2)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Total - Always show */}
               <div className="pt-4 border-t-2 border-slate-200">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-base font-bold text-[var(--color-text)]">Total</span>
                   <span className={`text-2xl font-bold ${hasData && filingType === 'refund' ? 'text-emerald-600' : hasData ? 'text-[var(--color-text)]' : 'text-[var(--color-muted)]'}`}>
-                    {hasData && filingType === 'refund' ? '+' : ''}${hasData ? pricing.grandTotal.toFixed(2) : '0.00'}
+                    {hasData && filingType === 'refund' ? '+' : ''}${hasData ? (finalPricing.grandTotal || 0).toFixed(2) : '0.00'}
                   </span>
                 </div>
+                {/* IRS Tax Amount Payable */}
+                {hasData && filingType !== 'refund' && (
+                  <div className="mt-3 pt-3 border-t border-slate-200">
+                    <div className="flex justify-between bg-blue-50 -mx-2 px-2 py-2 rounded mb-2">
+                      <span className="text-xs font-bold text-blue-700">IRS Tax Amount Payable:</span>
+                      <span className="text-xs font-bold text-blue-700">${(finalPricing.totalTax || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between bg-orange-50 -mx-2 px-2 py-2 rounded">
+                      <span className="text-xs font-bold text-[var(--color-orange)]">Total Due Now (Service Fee):</span>
+                      <span className="text-xs font-bold text-[var(--color-orange)]">${((finalPricing.grandTotal || finalPricing.serviceFee || 0)).toFixed(2)}</span>
+                    </div>
+                  </div>
+                )}
                 {hasData && filingType === 'refund' && (
                   <p className="text-xs text-emerald-600 font-medium">Estimated refund amount</p>
                 )}
@@ -301,8 +449,8 @@ export function PricingSidebar({
           )}
         </div>
 
-        {/* Footer - Only show submit button on final step */}
-        {step === 5 && onSubmit && !hideSubmitButton && (
+        {/* Footer - Only show submit button on step 6 */}
+        {step === 6 && onSubmit && !hideSubmitButton && (
           <div className="p-6 border-t border-slate-100 bg-slate-50">
             <button
               onClick={onSubmit}

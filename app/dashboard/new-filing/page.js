@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,7 +13,7 @@ import { calculateFilingCost } from '@/app/actions/pricing'; // Server Action
 import { calculateTax, calculateRefundAmount, calculateWeightIncreaseAdditionalTax, calculateMileageExceededTax } from '@/lib/pricing'; // Keep for client-side estimation only
 import { validateBusinessName, validateEIN, formatEIN, validateVIN, validateAddress, validatePhone } from '@/lib/validation';
 import { validateVINCorrection, validateWeightIncrease, validateMileageExceeded, calculateWeightIncreaseDueDate, getAmendmentTypeConfig } from '@/lib/amendmentHelpers';
-import { FileText, AlertTriangle, RefreshCw, Truck, Info, CreditCard, CheckCircle, ShieldCheck, AlertCircle, RotateCcw, Clock, Building2, ChevronUp, Loader2 } from 'lucide-react';
+import { FileText, AlertTriangle, RefreshCw, Truck, Info, CreditCard, CheckCircle, ShieldCheck, AlertCircle, RotateCcw, Clock, Building2, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
 import { PricingSidebar } from '@/components/PricingSidebar';
 
 // Mobile Pricing Summary Component - Sticky Bottom
@@ -272,6 +272,16 @@ function NewFilingContent() {
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicleIds, setSelectedVehicleIds] = useState([]);
   const [showVehicleForm, setShowVehicleForm] = useState(false);
+  const [taxableDropdownOpen, setTaxableDropdownOpen] = useState(false);
+  const [suspendedDropdownOpen, setSuspendedDropdownOpen] = useState(false);
+
+  // Calculate vehicle categories
+  const vehicleCategories = useMemo(() => {
+    const isRefund = filingType === 'refund';
+    const taxable = vehicles.filter(v => !v.isSuspended);
+    const suspended = vehicles.filter(v => v.isSuspended);
+    return { isRefund, taxable, suspended };
+  }, [vehicles, filingType]);
   const [newVehicle, setNewVehicle] = useState({
     vin: '',
     grossWeightCategory: '',
@@ -730,15 +740,46 @@ function NewFilingContent() {
       return;
     }
 
+    // Check for duplicate VIN in existing vehicles
+    const duplicateVehicle = vehicles.find(v => v.vin === newVehicle.vin.toUpperCase());
+    if (duplicateVehicle) {
+      setError(`Vehicle with VIN ${newVehicle.vin.toUpperCase()} already exists. Please select it from the list above.`);
+      setVehicleErrors({ vin: 'This VIN is already in your vehicle list' });
+      return;
+    }
+
     setLoading(true);
+    setError('');
+    setVehicleErrors({});
+    
     try {
+      const vinToSave = newVehicle.vin.toUpperCase().trim();
+      
+      // Create vehicle in database
       const vehicleId = await createVehicle(user.uid, {
-        vin: newVehicle.vin,
+        vin: vinToSave,
         grossWeightCategory: newVehicle.grossWeightCategory,
-        isSuspended: newVehicle.isSuspended
+        isSuspended: newVehicle.isSuspended || false
       });
+      
+      console.log('Vehicle created with ID:', vehicleId);
+      
+      // Reload vehicles from database to get the new vehicle
       await loadData();
-      setSelectedVehicleIds([...selectedVehicleIds, vehicleId]);
+      
+      // Verify the vehicle was added by checking the vehicles list
+      // Use a small delay to ensure state has updated
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Add the new vehicle to selected vehicles
+      setSelectedVehicleIds(prev => {
+        if (prev.includes(vehicleId)) {
+          return prev; // Already selected
+        }
+        return [...prev, vehicleId];
+      });
+      
+      // Reset form
       setNewVehicle({
         vin: '',
         grossWeightCategory: '',
@@ -746,8 +787,17 @@ function NewFilingContent() {
       });
       setVehicleErrors({});
       setError('');
+      
+      console.log('Vehicle successfully added and selected');
+      
+      // Return success indicator
+      return true;
     } catch (error) {
-      setError('Failed to create vehicle');
+      console.error('Error creating vehicle:', error);
+      const errorMessage = error.message || 'Unknown error';
+      setError(`Failed to create vehicle: ${errorMessage}`);
+      setVehicleErrors({ vin: errorMessage });
+      return false;
     } finally {
       setLoading(false);
     }
@@ -1231,17 +1281,20 @@ function NewFilingContent() {
           )}
         </div>
 
-        {/* Main Content Grid - Form Left, Pricing Right */}
-        <div className="w-full grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-3 sm:gap-4 md:gap-6 lg:gap-8">
+        {/* Main Content - Full width for steps 1-5, Grid for step 6 */}
+        <div className={`w-full ${step === 6 ? 'grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-3 sm:gap-4 md:gap-6 lg:gap-8' : 'max-w-4xl mx-auto'}`}>
           {/* Form Content */}
           <div className="space-y-3 sm:space-y-4 md:space-y-6">
             {/* Step 1: Filing Type */}
             {step === 1 && (
-              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 mb-3 sm:mb-4 md:mb-6 flex items-center gap-2 sm:gap-3">
-                  <span className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-100 text-blue-600 text-xs sm:text-sm font-bold">1</span>
-                  Select Filing Type
-                </h2>
+              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 lg:p-10 shadow-sm">
+                <div className="mb-6 sm:mb-8">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-bold text-lg">1</div>
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900">Select Filing Type</h2>
+                  </div>
+                  <p className="text-sm sm:text-base text-[var(--color-muted)] ml-13">Choose the type of Form 2290 filing you need</p>
+                </div>
 
                 <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                   <button
@@ -2065,8 +2118,14 @@ function NewFilingContent() {
 
             {/* Step 3: Vehicles */}
             {step === 3 && (
-              <div className="bg-[var(--color-card)] rounded-xl sm:rounded-2xl border border-[var(--color-border)] p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-[var(--color-text)] mb-3 sm:mb-4 md:mb-6">Vehicle Information</h2>
+              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 lg:p-10 shadow-sm">
+                <div className="mb-6 sm:mb-8">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-purple-100 text-purple-600 font-bold text-lg">3</div>
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--color-text)]">Vehicle Information</h2>
+                  </div>
+                  <p className="text-sm sm:text-base text-[var(--color-muted)] ml-13">Add and select vehicles for this filing</p>
+                </div>
 
                 {/* Tax Year & Month Selection - Moved here for better context */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 md:gap-4 lg:gap-6 mb-4 sm:mb-6 md:mb-8 p-2.5 sm:p-3 md:p-4 lg:p-6 bg-[var(--color-page-alt)] rounded-lg sm:rounded-xl border border-[var(--color-border)]">
@@ -2099,77 +2158,226 @@ function NewFilingContent() {
                   </div>
                 </div>
 
-                {/* Existing Vehicles List */}
+                {/* Existing Vehicles List - Categorized Dropdowns */}
                 {vehicles.length > 0 && !showVehicleForm && (
-                  <div className="mb-4 sm:mb-6 md:mb-8">
-                    <label className="block text-sm font-bold text-[var(--color-text)] mb-2 sm:mb-3">
+                  <div className="mb-4 sm:mb-6 md:mb-8 space-y-4">
+                    <label className="block text-sm font-bold text-[var(--color-text)] mb-3 sm:mb-4">
                       Select Vehicles to File
                     </label>
-                    <div className="grid gap-2.5 sm:gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-h-[500px] sm:max-h-[600px] overflow-y-auto border border-[var(--color-border)] rounded-lg p-2 sm:p-3 md:p-4 bg-white mb-3 sm:mb-4">
-                      {vehicles.map((vehicle) => {
-                        const isRefund = filingType === 'refund';
-                        const estimatedAmount = isRefund
-                          ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
-                          : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
 
-                        const isSelected = selectedVehicleIds.includes(vehicle.id);
-
-                        return (
-                          <div key={vehicle.id} className={`p-3 sm:p-4 rounded-xl border-2 transition h-full flex flex-col ${isSelected ? 'bg-[var(--color-page-alt)] border-[var(--color-orange)]' : 'border-transparent hover:border-[var(--color-border)] bg-[var(--color-page)]/50'}`}>
-                            <label className="flex flex-col h-full cursor-pointer relative">
-                              <div className="flex justify-between items-start mb-3 sm:mb-4">
-                                <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-                                  <input
-                                    type="checkbox"
-                                    checked={isSelected}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setSelectedVehicleIds([...selectedVehicleIds, vehicle.id]);
-                                      } else {
-                                        setSelectedVehicleIds(selectedVehicleIds.filter(id => id !== vehicle.id));
-                                      }
-                                    }}
-                                    className="w-5 h-5 mt-1 text-[var(--color-orange)] rounded focus:ring-[var(--color-orange)] flex-shrink-0 touch-manipulation"
-                                  />
-                                  <div className="min-w-0 flex-1">
-                                    <p className="font-bold text-[var(--color-text)] font-mono text-base sm:text-lg break-all leading-tight">
-                                      {vehicle.vin}
-                                    </p>
-                                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-2">
-                                      <span className="text-xs font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                                        Cat: {vehicle.grossWeightCategory}
-                                      </span>
-                                      {vehicle.isSuspended && (
-                                        <span className="text-amber-700 font-bold text-[10px] uppercase tracking-wider bg-amber-100 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded border border-amber-200">
-                                          Suspended
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
+                    {/* Taxable Vehicles Dropdown */}
+                    {vehicleCategories.taxable.length > 0 && (
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTaxableDropdownOpen(!taxableDropdownOpen);
+                              setSuspendedDropdownOpen(false);
+                            }}
+                            className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-green-50 border-2 border-green-200 rounded-xl hover:border-green-300 transition-all text-left"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Truck className="w-5 h-5 text-green-600" />
+                              <div>
+                                <div className="font-bold text-green-900">Taxable Vehicles</div>
+                                <div className="text-xs text-green-700">
+                                  {selectedVehicleIds.filter(id => vehicleCategories.taxable.some(v => v.id === id)).length} of {vehicleCategories.taxable.length} selected
                                 </div>
                               </div>
+                            </div>
+                            {taxableDropdownOpen ? (
+                              <ChevronUp className="w-5 h-5 text-green-600" />
+                            ) : (
+                              <ChevronDown className="w-5 h-5 text-green-600" />
+                            )}
+                          </button>
 
-                              <div className="mt-auto pt-3 sm:pt-4 border-t border-[var(--color-border)] flex justify-between items-end">
-                                <span className="text-xs font-medium text-[var(--color-muted)] uppercase tracking-wide">
-                                  {isRefund ? 'Est. Refund' : 'Est. Tax'}
-                                </span>
-                                <span className={`text-lg sm:text-xl font-bold ${isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>
-                                  ${estimatedAmount.toFixed(2)}
-                                </span>
+                          {taxableDropdownOpen && (
+                            <div className="mt-2 border-2 border-green-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
+                              <div className="p-2 space-y-1">
+                                {vehicleCategories.taxable.map((vehicle) => {
+                                  const isSelected = selectedVehicleIds.includes(vehicle.id);
+                                  const estimatedAmount = vehicleCategories.isRefund
+                                    ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
+                                    : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
+
+                                  return (
+                                    <label
+                                      key={vehicle.id}
+                                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-green-50 transition ${isSelected ? 'bg-green-100 border border-green-300' : ''}`}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={(e) => {
+                                          if (e.target.checked) {
+                                            setSelectedVehicleIds([...selectedVehicleIds, vehicle.id]);
+                                          } else {
+                                            setSelectedVehicleIds(selectedVehicleIds.filter(id => id !== vehicle.id));
+                                          }
+                                        }}
+                                        className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
+                                      />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
+                                          {vehicle.vin}
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                            Cat: {vehicle.grossWeightCategory}
+                                          </span>
+                                          <span className={`text-xs font-semibold ${vehicleCategories.isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>
+                                            {vehicleCategories.isRefund ? 'Refund' : 'Tax'}: ${estimatedAmount.toFixed(2)}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </label>
+                                  );
+                                })}
                               </div>
-                            </label>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
-                            {/* Refund Details Inputs */}
-                            {isRefund && isSelected && (
-                              <div className="mt-3 grid grid-cols-1 gap-3 p-3 bg-white rounded border border-dashed border-green-200">
+                    {/* Suspended Vehicles Dropdown */}
+                    {vehicleCategories.suspended.length > 0 && (
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSuspendedDropdownOpen(!suspendedDropdownOpen);
+                              setTaxableDropdownOpen(false);
+                            }}
+                            className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-amber-50 border-2 border-amber-200 rounded-xl hover:border-amber-300 transition-all text-left"
+                          >
+                            <div className="flex items-center gap-3">
+                              <ShieldCheck className="w-5 h-5 text-amber-600" />
+                              <div>
+                                <div className="font-bold text-amber-900">Suspended Vehicles (Low Mileage)</div>
+                                <div className="text-xs text-amber-700">
+                                  {selectedVehicleIds.filter(id => vehicleCategories.suspended.some(v => v.id === id)).length} of {vehicleCategories.suspended.length} selected • $0 Tax
+                                </div>
+                              </div>
+                            </div>
+                            {suspendedDropdownOpen ? (
+                              <ChevronUp className="w-5 h-5 text-amber-600" />
+                            ) : (
+                              <ChevronDown className="w-5 h-5 text-amber-600" />
+                            )}
+                          </button>
+
+                          {suspendedDropdownOpen && (
+                            <div className="mt-2 border-2 border-amber-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
+                              <div className="p-2 space-y-1">
+                                {vehicleCategories.suspended.map((vehicle) => {
+                                  const isSelected = selectedVehicleIds.includes(vehicle.id);
+                                  const estimatedAmount = vehicleCategories.isRefund
+                                    ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
+                                    : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
+
+                                  return (
+                                    <label
+                                      key={vehicle.id}
+                                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-amber-50 transition ${isSelected ? 'bg-amber-100 border border-amber-300' : ''}`}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={(e) => {
+                                          if (e.target.checked) {
+                                            setSelectedVehicleIds([...selectedVehicleIds, vehicle.id]);
+                                          } else {
+                                            setSelectedVehicleIds(selectedVehicleIds.filter(id => id !== vehicle.id));
+                                          }
+                                        }}
+                                        className="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
+                                      />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
+                                          {vehicle.vin}
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                            Cat: {vehicle.grossWeightCategory}
+                                          </span>
+                                          <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-semibold">
+                                            Suspended
+                                          </span>
+                                          <span className={`text-xs font-semibold ${vehicleCategories.isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>
+                                            {vehicleCategories.isRefund ? 'Refund' : 'Tax'}: ${estimatedAmount.toFixed(2)}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                    {/* Selected Vehicles Summary */}
+                    {selectedVehicleIds.length > 0 && (
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-semibold text-blue-900">
+                            Selected Vehicles ({selectedVehicleIds.length})
+                          </span>
+                          <button
+                            onClick={() => setSelectedVehicleIds([])}
+                            className="text-xs text-blue-600 hover:text-blue-800 underline"
+                          >
+                            Clear All
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {selectedVehicleIds.map((vehicleId) => {
+                            const vehicle = vehicles.find(v => v.id === vehicleId);
+                            if (!vehicle) return null;
+                            return (
+                              <div
+                                key={vehicleId}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-white border border-blue-200 rounded-lg"
+                              >
+                                <span className="text-xs font-mono font-semibold text-[var(--color-text)]">
+                                  {vehicle.vin}
+                                </span>
+                                <button
+                                  onClick={() => setSelectedVehicleIds(selectedVehicleIds.filter(id => id !== vehicleId))}
+                                  className="text-blue-600 hover:text-blue-800 text-xs font-bold"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Refund Details for Selected Vehicles */}
+                    {vehicleCategories.isRefund && selectedVehicleIds.length > 0 && (
+                      <div className="mt-4 space-y-3">
+                        <h4 className="text-sm font-semibold text-[var(--color-text)]">Refund Details</h4>
+                        {selectedVehicleIds.map((vehicleId) => {
+                          const vehicle = vehicles.find(v => v.id === vehicleId);
+                          if (!vehicle) return null;
+                          return (
+                            <div key={vehicleId} className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                              <div className="font-mono font-semibold text-sm text-[var(--color-text)] mb-3">
+                                {vehicle.vin}
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
                                   <label className="block text-xs font-medium text-[var(--color-text)] mb-1">Refund Reason</label>
                                   <select
-                                    className="w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-green-500"
-                                    value={refundDetails[vehicle.id]?.reason || ''}
+                                    className="w-full px-3 py-2 text-sm border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
+                                    value={refundDetails[vehicleId]?.reason || ''}
                                     onChange={(e) => setRefundDetails(prev => ({
                                       ...prev,
-                                      [vehicle.id]: { ...prev[vehicle.id], reason: e.target.value }
+                                      [vehicleId]: { ...prev[vehicleId], reason: e.target.value }
                                     }))}
                                   >
                                     <option value="">Select Reason...</option>
@@ -2182,24 +2390,25 @@ function NewFilingContent() {
                                   <label className="block text-xs font-medium text-[var(--color-text)] mb-1">Date of Event</label>
                                   <input
                                     type="date"
-                                    className="w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-green-500"
-                                    value={refundDetails[vehicle.id]?.date || ''}
+                                    className="w-full px-3 py-2 text-sm border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
+                                    value={refundDetails[vehicleId]?.date || ''}
                                     onChange={(e) => setRefundDetails(prev => ({
                                       ...prev,
-                                      [vehicle.id]: { ...prev[vehicle.id], date: e.target.value }
+                                      [vehicleId]: { ...prev[vehicleId], date: e.target.value }
                                     }))}
                                   />
                                 </div>
                               </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                      
+                    {/* Add Another Vehicle Button */}
                     <button
                       onClick={() => setShowVehicleForm(true)}
-                      className="w-full p-3 sm:p-4 rounded-xl border-2 border-dashed border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] hover:bg-[var(--color-page-alt)] active:scale-95 transition flex items-center justify-center gap-2 touch-manipulation"
+                      className="w-full mt-4 p-3 sm:p-4 rounded-xl border-2 border-dashed border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] hover:bg-[var(--color-page-alt)] active:scale-95 transition flex items-center justify-center gap-2 touch-manipulation"
                     >
                       <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-100 flex items-center justify-center">
                         <span className="font-bold text-sm sm:text-base">+</span>
@@ -2310,8 +2519,11 @@ function NewFilingContent() {
                       </div>
                       <button
                         onClick={async () => {
-                          await handleAddVehicle();
-                          setShowVehicleForm(false);
+                          const success = await handleAddVehicle();
+                          if (success) {
+                            setShowVehicleForm(false);
+                          }
+                          // If failed, keep form open so user can fix errors
                         }}
                         disabled={loading}
                         className="md:col-span-2 w-full bg-[#ff8b3d] text-white py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition disabled:opacity-50 mt-2 sm:mt-4 shadow-sm touch-manipulation"
@@ -2348,8 +2560,14 @@ function NewFilingContent() {
 
             {/* Step 4: Documents */}
             {step === 4 && (
-              <div className="bg-[var(--color-card)] rounded-xl sm:rounded-2xl border border-[var(--color-border)] p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-[var(--color-text)] mb-3 sm:mb-4 md:mb-6">Documents (Optional)</h2>
+              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 lg:p-10 shadow-sm">
+                <div className="mb-6 sm:mb-8">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-100 text-amber-600 font-bold text-lg">4</div>
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--color-text)]">Documents (Optional)</h2>
+                  </div>
+                  <p className="text-sm sm:text-base text-[var(--color-muted)] ml-13">Upload supporting documents to help us process your filing faster</p>
+                </div>
                 <p className="text-xs sm:text-sm md:text-base text-[var(--color-muted)] mb-3 sm:mb-4 md:mb-6">
                   Upload previous year's Schedule 1 or other supporting documents to help us process your filing faster.
                 </p>
@@ -2438,86 +2656,16 @@ function NewFilingContent() {
 
             {/* Step 5: Review */}
             {step === 5 && (
-              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--color-text)] mb-4 sm:mb-6 md:mb-8">Review Your Filing</h2>
-
-                {/* Coupon Section */}
-                <div className="mb-4 sm:mb-6 bg-slate-50 rounded-lg p-4 sm:p-5 border border-slate-200">
-                  <label className="block text-sm font-semibold text-[var(--color-text)] mb-2">
-                    Coupon Code (Optional)
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      placeholder="Enter coupon code"
-                      className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-orange)]"
-                      disabled={couponApplied}
-                    />
-                    {!couponApplied ? (
-                      <button
-                        onClick={handleApplyCoupon}
-                        className="px-4 sm:px-6 py-2 bg-[var(--color-orange)] text-white rounded-lg font-semibold hover:bg-[#ff7a20] transition"
-                      >
-                        Apply
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setCouponCode('');
-                          setCouponApplied(false);
-                          setCouponDiscount(0);
-                          setCouponType('');
-                          recalculatePricingWithCoupon('percentage', 0);
-                        }}
-                        className="px-4 sm:px-6 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition"
-                      >
-                        Remove
-                      </button>
-                    )}
+              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 lg:p-10 shadow-sm">
+                <div className="mb-6 sm:mb-8">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-orange)] text-white font-bold text-lg">5</div>
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--color-text)]">Review Your Filing</h2>
                   </div>
-                  {couponError && (
-                    <p className="mt-2 text-sm text-red-600">{couponError}</p>
-                  )}
-                  {couponApplied && (
-                    <p className="mt-2 text-sm text-green-600">
-                      ✓ Coupon applied: {couponType === 'percentage' ? `${couponDiscount}%` : `$${couponDiscount}`} discount
-                    </p>
-                  )}
+                  <p className="text-sm sm:text-base text-[var(--color-muted)] ml-13">Please review all information before proceeding to payment</p>
                 </div>
 
-                <div className="space-y-3 sm:space-y-4 md:space-y-6">
-                  {/* Filing Summary Overview */}
-                  <div className="bg-[var(--color-page-alt)] p-3 sm:p-4 md:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border border-[var(--color-border)]">
-                    <h3 className="font-bold text-sm sm:text-base md:text-lg text-[var(--color-text)] mb-3 sm:mb-4 md:mb-6 flex items-center gap-2">
-                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-orange)]" />
-                      Filing Overview
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
-                      <div>
-                        <p className="text-sm text-[var(--color-muted)] mb-1">Filing Type</p>
-                        <p className="font-bold text-lg capitalize text-[var(--color-text)]">{filingData.filingType || filingType}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-[var(--color-muted)] mb-1">Tax Year</p>
-                        <p className="font-bold text-lg text-[var(--color-text)]">{filingData.taxYear}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-[var(--color-muted)] mb-1">First Used Month</p>
-                        <p className="font-bold text-lg text-[var(--color-text)]">{filingData.firstUsedMonth}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-[var(--color-muted)] mb-1">Total Vehicles</p>
-                        <p className="font-bold text-lg text-[var(--color-text)]">
-                          {filingType === 'amendment'
-                            ? (amendmentType === 'vin_correction' ? 'N/A' : '1')
-                            : selectedVehicles.length
-                          } <span className="text-sm font-normal text-[var(--color-muted)]">vehicles</span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                <div className="space-y-4 sm:space-y-6">
 
                   {/* Amendment Details Section */}
                   {filingType === 'amendment' && amendmentType && (
@@ -2618,138 +2766,81 @@ function NewFilingContent() {
                     </div>
                   )}
 
-                  {filingType !== 'amendment' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-                      {/* Business Section */}
-                      <div>
-                        <h3 className="font-bold text-base sm:text-lg text-[var(--color-text)] mb-4 sm:mb-6 flex items-center gap-2">
-                          <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-orange)]" />
-                          Business Information
-                        </h3>
-                        {selectedBusiness && (
-                          <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-[var(--color-border)] shadow-sm">
-                            <h4 className="font-bold text-lg sm:text-xl text-[var(--color-text)] mb-3 sm:mb-4 break-words">{selectedBusiness.businessName}</h4>
-                            <div className="space-y-3 sm:space-y-4">
-                              <div>
-                                <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">EIN</p>
-                                <p className="font-mono font-medium text-sm sm:text-base text-[var(--color-text)]">{selectedBusiness.ein}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Address</p>
-                                <p className="font-medium text-sm sm:text-base text-[var(--color-text)] break-words">{selectedBusiness.address}</p>
-                              </div>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                <div>
-                                  <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Phone</p>
-                                  <p className="font-medium text-sm sm:text-base text-[var(--color-text)]">{selectedBusiness.phone || 'N/A'}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Signer</p>
-                                  <p className="font-medium text-sm sm:text-base text-[var(--color-text)] break-words">{selectedBusiness.signingAuthorityName || 'N/A'}</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
+
+                  {/* Filing Details Summary */}
+                  <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl p-5 sm:p-6 md:p-8 border border-slate-200">
+                    <h3 className="font-bold text-lg sm:text-xl text-[var(--color-text)] mb-4 sm:mb-6 flex items-center gap-2">
+                      <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-orange)]" />
+                      Filing Details
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                      <div className="bg-white rounded-lg p-4 border border-slate-200">
+                        <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-2">Filing Type</p>
+                        <p className="font-bold text-lg capitalize text-[var(--color-text)]">{filingData.filingType || filingType}</p>
                       </div>
+                      <div className="bg-white rounded-lg p-4 border border-slate-200">
+                        <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-2">Tax Year</p>
+                        <p className="font-bold text-lg text-[var(--color-text)]">{filingData.taxYear}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-slate-200">
+                        <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-2">First Used Month</p>
+                        <p className="font-bold text-lg text-[var(--color-text)]">{filingData.firstUsedMonth}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-slate-200">
+                        <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-2">Total Vehicles</p>
+                        <p className="font-bold text-lg text-[var(--color-text)]">
+                          {filingType === 'amendment'
+                            ? (amendmentType === 'vin_correction' ? 'N/A' : '1')
+                            : selectedVehicles.length
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-                      {/* Vehicles Section */}
-                      <div>
-                        <h3 className="font-bold text-base sm:text-lg text-[var(--color-text)] mb-4 sm:mb-6 flex items-center gap-2">
-                          <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-orange)]" />
-                          Vehicles Included
-                        </h3>
-                        <div className="space-y-2 sm:space-y-3">
-                          {selectedVehicles.map((vehicle) => {
-                            const isRefund = filingType === 'refund';
-                            const amount = isRefund
-                              ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
-                              : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
-
-                            return (
-                              <div key={vehicle.id} className="bg-white p-3 sm:p-4 rounded-xl border border-[var(--color-border)] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2 flex-wrap">
-                                    <span className="font-mono font-bold text-base sm:text-lg text-[var(--color-text)] break-all">{vehicle.vin}</span>
-                                    {vehicle.isSuspended && (
-                                      <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-100 px-1.5 sm:px-2 py-0.5 rounded flex-shrink-0">Suspended</span>
-                                    )}
-                                  </div>
-                                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-[var(--color-muted)]">
-                                    <span>Category: <strong>{vehicle.grossWeightCategory}</strong></span>
-                                    {isRefund && refundDetails[vehicle.id] && (
-                                      <span className="text-green-600">Refund Reason: <span className="capitalize font-medium">{refundDetails[vehicle.id].reason}</span></span>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="text-left sm:text-right border-t sm:border-t-0 sm:border-l border-slate-100 pt-2 sm:pt-0 sm:pl-4 min-w-[100px]">
-                                  <p className="text-xs text-[var(--color-muted)] mb-1">{isRefund ? 'Return Amount' : 'Tax Amount'}</p>
-                                  <p className={`font-bold text-lg sm:text-xl ${isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>${amount.toFixed(2)}</p>
-                                </div>
-                              </div>
-                            );
-                          })}
+                  {/* Business & Vehicle Summary */}
+                  {selectedBusiness && (
+                    <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200">
+                      <h3 className="font-bold text-lg sm:text-xl text-[var(--color-text)] mb-4 flex items-center gap-2">
+                        <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-orange)]" />
+                        Business Information
+                      </h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-[var(--color-muted)]">Business Name:</span>
+                          <span className="font-semibold text-sm sm:text-base">{selectedBusiness.businessName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-[var(--color-muted)]">EIN:</span>
+                          <span className="font-semibold text-sm sm:text-base font-mono">{selectedBusiness.ein}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-[var(--color-muted)]">Address:</span>
+                          <span className="font-semibold text-sm sm:text-base text-right max-w-[60%]">{selectedBusiness.address}</span>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {/* Tax Summary Section */}
-                  <div className="bg-blue-50 rounded-xl p-4 sm:p-6 border border-blue-200">
-                    <h3 className="font-bold text-base sm:text-lg text-[var(--color-text)] mb-4 flex items-center gap-2">
-                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-orange)]" />
-                      Tax Summary
-                    </h3>
-                    <div className="space-y-2 sm:space-y-3">
-                      <div className="flex justify-between text-sm sm:text-base">
-                        <span className="text-[var(--color-muted)]">Form Type:</span>
-                        <span className="font-semibold">2290</span>
-                      </div>
-                      <div className="flex justify-between text-sm sm:text-base">
-                        <span className="text-[var(--color-muted)]">Tax Period:</span>
-                        <span className="font-semibold">July 1st, 2025 - June 30th, 2026</span>
-                      </div>
-                      <div className="flex justify-between text-sm sm:text-base">
-                        <span className="text-[var(--color-muted)]">First Used Month:</span>
-                        <span className="font-semibold">{filingData.firstUsedMonth}-2025</span>
-                      </div>
-                      <div className="flex justify-between text-sm sm:text-base">
-                        <span className="text-[var(--color-muted)]">Final Return:</span>
-                        <span className="font-semibold">No</span>
-                      </div>
-                      <div className="flex justify-between text-sm sm:text-base">
-                        <span className="text-[var(--color-muted)]">Taxable Vehicles:</span>
-                        <span className="font-semibold">
-                          {filingType === 'amendment' 
-                            ? (amendmentType === 'vin_correction' ? 'N/A' : '1')
-                            : selectedVehicles.length
-                          } (View)
-                        </span>
-                      </div>
-                      <div className="border-t border-blue-200 pt-2 mt-2">
-                        <div className="flex justify-between text-base sm:text-lg mb-1">
-                          <span className="text-[var(--color-muted)]">Total Tax:</span>
-                          <span className="font-bold">${pricing.totalTax.toFixed(2)}</span>
-                        </div>
-                        {pricing.salesTax > 0 && (
-                          <div className="flex justify-between text-sm sm:text-base text-[var(--color-muted)] mb-1">
-                            <span>Sales Tax ({pricing.salesTaxRate ? (pricing.salesTaxRate * 100).toFixed(2) : '0.00'}%):</span>
-                            <span>${pricing.salesTax.toFixed(2)}</span>
+                  {/* Selected Vehicles Summary */}
+                  {selectedVehicles.length > 0 && (
+                    <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200">
+                      <h3 className="font-bold text-lg sm:text-xl text-[var(--color-text)] mb-4 flex items-center gap-2">
+                        <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-orange)]" />
+                        Selected Vehicles ({selectedVehicles.length})
+                      </h3>
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {selectedVehicles.map((vehicle) => (
+                          <div key={vehicle.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-slate-200">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-mono font-semibold text-sm break-all">{vehicle.vin}</p>
+                              <p className="text-xs text-[var(--color-muted)]">Category: {vehicle.grossWeightCategory} {vehicle.isSuspended && '(Suspended)'}</p>
+                            </div>
                           </div>
-                        )}
-                        {couponApplied && couponDiscount > 0 && (
-                          <div className="flex justify-between text-sm sm:text-base text-green-600 mb-1">
-                            <span>Coupon Discount ({couponType === 'percentage' ? `${couponDiscount}%` : `$${couponDiscount}`}):</span>
-                            <span>-${pricing.couponDiscount?.toFixed(2) || '0.00'}</span>
-                          </div>
-                        )}
-                        <div className="flex justify-between text-base sm:text-lg font-bold mt-2 pt-2 border-t border-blue-200 bg-blue-100 -mx-2 sm:-mx-4 px-2 sm:px-4 py-2 rounded">
-                          <span>IRS Tax Amount Payable:</span>
-                          <span className="text-blue-700">${pricing.totalTax.toFixed(2)}</span>
-                        </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Action Buttons - Mobile Optimized */}
@@ -2772,15 +2863,21 @@ function NewFilingContent() {
 
             {/* Step 6: Select IRS Payment Method */}
             {step === 6 && (
-              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--color-text)] mb-4 sm:mb-6 md:mb-8">Select IRS Payment Method</h2>
+              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 shadow-sm">
+                <div className="mb-6 sm:mb-8">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-orange)] text-white font-bold text-lg">6</div>
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--color-text)]">Select Payment Method</h2>
+                  </div>
+                  <p className="text-sm sm:text-base text-[var(--color-muted)] ml-13">Choose how you'd like to pay the IRS tax amount</p>
+                </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
+                <div className="grid gap-4 sm:gap-6 md:gap-8">
                   {/* Left: Payment Method Selection */}
-                  <div className="space-y-3 sm:space-y-4">
+                  <div className="space-y-3 sm:space-y-4 w-full">
                     {/* Option 1: EFW (Electronic Fund Withdrawal) */}
-                    <div className={`border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'efw' ? 'border-green-500 bg-green-50' : 'border-slate-200 hover:border-green-300'}`}>
-                      <label className="flex items-start gap-3 cursor-pointer">
+                    <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'efw' ? 'border-green-500 bg-green-50' : 'border-slate-200 hover:border-green-300'}`}>
+                      <label className="flex items-start gap-3 cursor-pointer w-full">
                         <input
                           type="radio"
                           name="irsPaymentMethod"
@@ -2792,8 +2889,9 @@ function NewFilingContent() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <span className="font-bold text-base sm:text-lg">Option 1: EFW (Electronic Fund Withdrawal)</span>
-                            {irsPaymentMethod === 'efw' && <CheckCircle className="w-5 h-5 text-green-600" />}
+                            {irsPaymentMethod === 'efw' && <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />}
                           </div>
+                          <p className="text-sm text-slate-600 mb-2">Direct bank withdrawal - Free & Fast (Recommended)</p>
                           {irsPaymentMethod === 'efw' && (
                             <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-2">
                               <div>
@@ -2880,8 +2978,8 @@ function NewFilingContent() {
                     </div>
 
                     {/* Option 2: EFTPS */}
-                    <div className={`border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'eftps' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300'}`}>
-                      <label className="flex items-start gap-3 cursor-pointer">
+                    <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'eftps' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300'}`}>
+                      <label className="flex items-start gap-3 cursor-pointer w-full">
                         <input
                           type="radio"
                           name="irsPaymentMethod"
@@ -2893,8 +2991,9 @@ function NewFilingContent() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <span className="font-bold text-base sm:text-lg">Option 2: EFTPS</span>
-                            {irsPaymentMethod === 'eftps' && <CheckCircle className="w-5 h-5 text-blue-600" />}
+                            {irsPaymentMethod === 'eftps' && <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />}
                           </div>
+                          <p className="text-sm text-slate-600 mb-2">Electronic Federal Tax Payment System</p>
                           {irsPaymentMethod === 'eftps' && (
                             <p className="text-sm text-slate-600 mt-2">
                               Once the IRS accepts your filing you will receive the payment link via email.
@@ -2905,8 +3004,8 @@ function NewFilingContent() {
                     </div>
 
                     {/* Option 3: Credit or Debit Card */}
-                    <div className={`border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'credit_card' ? 'border-purple-500 bg-purple-50' : 'border-slate-200 hover:border-purple-300'}`}>
-                      <label className="flex items-start gap-3 cursor-pointer">
+                    <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'credit_card' ? 'border-purple-500 bg-purple-50' : 'border-slate-200 hover:border-purple-300'}`}>
+                      <label className="flex items-start gap-3 cursor-pointer w-full">
                         <input
                           type="radio"
                           name="irsPaymentMethod"
@@ -2918,19 +3017,20 @@ function NewFilingContent() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <span className="font-bold text-base sm:text-lg">Option 3: Credit or Debit Card</span>
-                            {irsPaymentMethod === 'credit_card' && <CheckCircle className="w-5 h-5 text-purple-600" />}
+                            {irsPaymentMethod === 'credit_card' && <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0" />}
                           </div>
+                          <p className="text-sm text-slate-600 mb-2">Pay via credit/debit card (3rd party fee applies)</p>
                           {irsPaymentMethod === 'credit_card' && (
                             <div className="mt-3 space-y-2">
                               <p className="text-sm text-slate-600">
                                 Once the IRS accepts your filing, you will receive the payment link. The IRS uses service providers that may charge an additional service fee additional to the tax amount payable.
                               </p>
-                              <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                              <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
                                 <strong>Note:</strong> The IRS imposes a limit on the frequency of credit card payments for Form 2290.
                               </p>
                               <label className="flex items-center gap-2 mt-3">
                                 <input type="checkbox" className="w-4 h-4" />
-                                <span className="text-xs text-slate-600">
+                                <span className="text-sm text-slate-600">
                                   I understand that if I fail to pay the tax due within 10 business days, the IRS may assess penalties.
                                 </span>
                               </label>
@@ -2941,8 +3041,8 @@ function NewFilingContent() {
                     </div>
 
                     {/* Option 4: Check or Money Order */}
-                    <div className={`border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'check' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-300'}`}>
-                      <label className="flex items-start gap-3 cursor-pointer">
+                    <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'check' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-300'}`}>
+                      <label className="flex items-start gap-3 cursor-pointer w-full">
                         <input
                           type="radio"
                           name="irsPaymentMethod"
@@ -2954,14 +3054,15 @@ function NewFilingContent() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <span className="font-bold text-base sm:text-lg">Option 4: Check or Money Order</span>
-                            {irsPaymentMethod === 'check' && <CheckCircle className="w-5 h-5 text-orange-600" />}
+                            {irsPaymentMethod === 'check' && <CheckCircle className="w-5 h-5 text-orange-600 flex-shrink-0" />}
                           </div>
+                          <p className="text-sm text-slate-600 mb-2">Mail a check or money order with voucher</p>
                           {irsPaymentMethod === 'check' && (
                             <div className="mt-3 space-y-2 text-sm text-slate-600">
                               <p>
                                 Make the tax amount payable to the 'United States Treasury'. Please mention your EIN, phone number, and 'Form 2290' on the money order/check. Print your money order voucher, enclose it, and mail it to:
                               </p>
-                              <div className="bg-white p-3 rounded border border-slate-200 font-mono text-xs">
+                              <div className="bg-white p-3 rounded border border-slate-200 font-mono text-sm">
                                 Internal Revenue Service<br />
                                 P.O. Box 932500<br />
                                 Louisville, KY 40293-2500
@@ -3000,66 +3101,53 @@ function NewFilingContent() {
                       </button>
                     </div>
                   </div>
-
-                  {/* Right: Review Summary */}
-                  <div className="bg-slate-50 rounded-xl p-4 sm:p-6 border border-slate-200">
-                    <h3 className="font-bold text-base sm:text-lg text-[var(--color-text)] mb-4">Review</h3>
-                    {selectedBusiness && (
-                      <div className="mb-4">
-                        <p className="text-sm font-semibold text-[var(--color-text)] mb-1">Filing for:</p>
-                        <p className="text-sm text-[var(--color-muted)]">{selectedBusiness.businessName}, EIN: {selectedBusiness.ein}</p>
-                        <p className="text-sm text-[var(--color-muted)]">Address: {selectedBusiness.address}</p>
-                      </div>
-                    )}
-                    <div className="border-t border-slate-200 pt-4">
-                      <h4 className="font-bold text-sm sm:text-base mb-3">Tax Summary</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-[var(--color-muted)]">Form Type:</span>
-                          <span className="font-semibold">2290</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-[var(--color-muted)]">Tax Period:</span>
-                          <span className="font-semibold">July 1st, 2025 - June 30th, 2026</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-[var(--color-muted)]">First Used Month:</span>
-                          <span className="font-semibold">{filingData.firstUsedMonth}-2025</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-[var(--color-muted)]">Final Return:</span>
-                          <span className="font-semibold">No</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-[var(--color-muted)]">Taxable Vehicles:</span>
-                          <span className="font-semibold">
-                            {filingType === 'amendment' 
-                              ? (amendmentType === 'vin_correction' ? 'N/A' : '1')
-                              : selectedVehicles.length
-                            } (View)
-                          </span>
-                        </div>
-                        <div className="border-t border-slate-200 pt-2 mt-2">
-                          <div className="flex justify-between mb-1">
-                            <span className="text-[var(--color-muted)]">Total Tax:</span>
-                            <span className="font-semibold">${pricing.totalTax.toFixed(2)}</span>
-                          </div>
-                          <div className="flex justify-between bg-blue-100 -mx-2 px-2 py-2 rounded mt-2">
-                            <span className="font-bold text-blue-700">IRS Tax Amount Payable:</span>
-                            <span className="font-bold text-blue-700">${pricing.totalTax.toFixed(2)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Pricing Sidebar - Right Side */}
-          <div className="hidden xl:block sticky top-24 self-start h-fit">
-            <PricingSidebar
+          {/* Pricing Sidebar - Right Side (Only shown on Step 6 - Payment) */}
+          {step === 6 && (
+            <div className="hidden xl:block sticky top-24 self-start h-fit">
+              <PricingSidebar
+                filingType={filingType}
+                filingData={filingData}
+                selectedVehicleIds={selectedVehicleIds}
+                vehicles={vehicles}
+                selectedBusinessId={selectedBusinessId}
+                businesses={businesses}
+                amendmentType={amendmentType}
+                weightIncreaseData={weightIncreaseData}
+                mileageExceededData={mileageExceededData}
+                step={step}
+                onContinue={handleContinue}
+                onSubmit={handleSubmit}
+                loading={loading}
+                hideSubmitButton={step === 5 || step === 6}
+                couponCode={couponCode}
+                couponApplied={couponApplied}
+                couponDiscount={couponDiscount}
+                couponType={couponType}
+                couponError={couponError}
+                pricing={pricing}
+                onApplyCoupon={handleApplyCoupon}
+                onRemoveCoupon={() => {
+                  setCouponCode('');
+                  setCouponApplied(false);
+                  setCouponDiscount(0);
+                  setCouponType('');
+                  recalculatePricingWithCoupon('percentage', 0);
+                }}
+                onCouponCodeChange={(value) => setCouponCode(value.toUpperCase())}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Pricing Summary - Sticky Bottom (Only shown on Step 6 - Payment) */}
+        {step === 6 && (
+          <div className="xl:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-slate-200 shadow-2xl safe-area-inset-bottom">
+            <MobilePricingSummary
               filingType={filingType}
               filingData={filingData}
               selectedVehicleIds={selectedVehicleIds}
@@ -3069,36 +3157,16 @@ function NewFilingContent() {
               amendmentType={amendmentType}
               weightIncreaseData={weightIncreaseData}
               mileageExceededData={mileageExceededData}
-            step={step}
-            onContinue={handleContinue}
-            onSubmit={handleSubmit}
-            loading={loading}
-            hideSubmitButton={step === 5 || step === 6}
-          />
-        </div>
-        </div>
-
-        {/* Mobile Pricing Summary - Sticky Bottom */}
-        <div className="xl:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-slate-200 shadow-2xl safe-area-inset-bottom">
-          <MobilePricingSummary
-            filingType={filingType}
-            filingData={filingData}
-            selectedVehicleIds={selectedVehicleIds}
-            vehicles={vehicles}
-            selectedBusinessId={selectedBusinessId}
-            businesses={businesses}
-            amendmentType={amendmentType}
-            weightIncreaseData={weightIncreaseData}
-            mileageExceededData={mileageExceededData}
-            step={step}
-            onContinue={handleContinue}
-            onSubmit={handleSubmit}
-            loading={loading}
-            hideSubmitButton={step === 5 || step === 6}
-          />
-        </div>
+              step={step}
+              onContinue={handleContinue}
+              onSubmit={handleSubmit}
+              loading={loading}
+              hideSubmitButton={step === 5 || step === 6}
+            />
+          </div>
+        )}
       </div>
-    </ProtectedRoute >
+    </ProtectedRoute>
   );
 }
 
