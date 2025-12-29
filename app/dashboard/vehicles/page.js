@@ -287,57 +287,57 @@ export default function VehiclesPage() {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-slate-500 hover:text-[var(--color-orange)] mb-4 transition-colors group"
-          >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-medium">Back to Dashboard</span>
-          </Link>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 text-slate-500 hover:text-[var(--color-orange)] mb-4 transition-colors group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              <span className="text-sm font-medium">Back to Dashboard</span>
+            </Link>
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">
                 Vehicle Fleet Management
-              </h1>
-              <p className="text-slate-500">
+            </h1>
+            <p className="text-slate-500">
                 Manage your vehicle fleet details, weight categories, and filing information
-              </p>
-            </div>
+            </p>
+          </div>
             
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                accept=".csv"
-                className="hidden"
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept=".csv"
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
                 className="inline-flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 sm:px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all shadow-sm disabled:opacity-50"
-              >
-                {uploading ? (
+            >
+              {uploading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span className="hidden sm:inline">Importing...</span>
                   </>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4" />
-                    <span className="hidden sm:inline">Import CSV</span>
-                    <span className="sm:hidden">Import</span>
-                  </>
-                )}
-              </button>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  <span className="hidden sm:inline">Import CSV</span>
+                  <span className="sm:hidden">Import</span>
+                </>
+              )}
+            </button>
               <button
                 onClick={() => setShowAddModal(true)}
                 className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-4 sm:px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-lg active:scale-95 transition-all duration-200 shadow-md"
-              >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden sm:inline">Add Vehicle</span>
-                <span className="sm:hidden">Add</span>
+            >
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Add Vehicle</span>
+              <span className="sm:hidden">Add</span>
               </button>
             </div>
           </div>
@@ -441,142 +441,186 @@ export default function VehiclesPage() {
                 : 'Add your vehicle information to streamline your future filings. You can also import multiple vehicles via CSV.'}
             </p>
             {(!searchQuery && filterStatus === 'all') && (
-              <div className="flex flex-col sm:flex-row gap-4 mt-6">
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-700 font-bold text-sm border-2 border-slate-200 rounded-xl hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] transition-colors"
-                >
-                  <Upload className="w-4 h-4" />
-                  Import CSV
-                </button>
+            <div className="flex flex-col sm:flex-row gap-4 mt-6">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-700 font-bold text-sm border-2 border-slate-200 rounded-xl hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] transition-colors"
+              >
+                <Upload className="w-4 h-4" />
+                Import CSV
+              </button>
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
-                >
-                  Add Your First Vehicle
-                  <ArrowLeft className="w-4 h-4 rotate-180" />
+                className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
+              >
+                Add Your First Vehicle
+                <ArrowLeft className="w-4 h-4 rotate-180" />
                 </button>
-              </div>
+            </div>
             )}
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredVehicles.map((vehicle) => (
-              <div
-                key={vehicle.id}
-                className="bg-white rounded-2xl border-2 border-slate-200 p-6 hover:border-[var(--color-orange)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col relative overflow-hidden group"
-              >
-                {/* Gradient accent bar */}
-                <div className={`absolute top-0 left-0 right-0 h-1 ${
-                  vehicle.isSuspended ? 'bg-gradient-to-r from-amber-400 to-amber-600' : 'bg-gradient-to-r from-emerald-400 to-emerald-600'
-                }`}></div>
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm" style={{ overflow: 'visible' }}>
+            {/* Modern Table Header - Hidden on mobile */}
+            <div className="hidden lg:block sticky top-0 z-10 bg-white border-b border-slate-200 backdrop-blur-sm bg-white/95">
+              <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gradient-to-r from-slate-50/80 via-white to-slate-50/80">
+                <div className="col-span-4">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Vehicle</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Weight</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Added</span>
+                </div>
+                <div className="col-span-2 text-right">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</span>
+                </div>
+              </div>
+            </div>
 
-                {/* Header with actions */}
-                <div className="flex items-start justify-between mb-6 pt-2">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center border-2 transition-all duration-300 ${
+            {/* Modern Table Body */}
+            <div className="divide-y divide-slate-100 relative" style={{ overflow: 'visible' }}>
+              {filteredVehicles.map((vehicle, index) => (
+                <div
+                  key={vehicle.id}
+                  className="group grid grid-cols-1 lg:grid-cols-12 gap-4 px-4 sm:px-6 py-4 sm:py-5 hover:bg-gradient-to-r hover:from-blue-50/30 hover:via-white hover:to-white transition-all duration-300 relative cursor-pointer"
+                  style={{ 
+                    animationDelay: `${index * 30}ms`,
+                    animation: 'fadeInUp 0.4s ease-out forwards',
+                    position: 'relative',
+                    zIndex: 1
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.zIndex = '50';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.zIndex = '1';
+                  }}
+                >
+                  {/* Left accent bar on hover */}
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[var(--color-orange)] via-[var(--color-amber)] to-[var(--color-orange)] opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-r-full"></div>
+
+                  {/* Vehicle Info - Full width on mobile, spans 4 cols on desktop */}
+                  <div className="col-span-1 lg:col-span-4 flex items-center gap-3 sm:gap-4">
+                    <div className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm ${
                       vehicle.isSuspended 
-                        ? 'bg-amber-50 border-amber-200 group-hover:bg-amber-100' 
-                        : 'bg-emerald-50 border-emerald-200 group-hover:bg-emerald-100'
+                        ? 'bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-300 group-hover:from-amber-100 group-hover:to-amber-200 group-hover:scale-110 group-hover:shadow-md' 
+                        : 'bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-300 group-hover:from-emerald-100 group-hover:to-emerald-200 group-hover:scale-110 group-hover:shadow-md'
                     }`}>
-                      <Truck className={`w-7 h-7 ${
+                      <Truck className={`w-6 h-6 sm:w-7 sm:h-7 transition-transform group-hover:rotate-12 ${
                         vehicle.isSuspended ? 'text-amber-600' : 'text-emerald-600'
                       }`} />
                     </div>
-                    <div>
-                      {vehicle.isSuspended ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-xs font-semibold">
-                          <AlertCircle className="w-3.5 h-3.5" />
-                          Suspended
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold">
-                          <CheckCircle className="w-3.5 h-3.5" />
-                          Active
-                        </span>
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <h3 className="text-base sm:text-lg font-bold text-slate-900 font-mono group-hover:text-[var(--color-orange)] transition-colors truncate">
+                          {vehicle.vin || 'No VIN'}
+                        </h3>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            copyToClipboard(vehicle.vin);
+                          }}
+                          className="p-1.5 hover:bg-slate-100 rounded-lg transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
+                          title="Copy VIN"
+                        >
+                          <Copy className="w-3.5 h-3.5 text-slate-400" />
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-500">
+                        <Weight className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span className="truncate">{getWeightCategoryLabel(vehicle.grossWeightCategory)}</span>
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* Actions Menu */}
-                  <div className="relative actions-menu-group">
-                    <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                      <MoreVertical className="w-5 h-5 text-slate-400" />
-                    </button>
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl opacity-0 invisible actions-menu transition-all z-30">
-                      <button
-                        onClick={() => handleEdit(vehicle)}
-                        className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-t-xl transition-colors"
-                      >
-                        <Edit className="w-4 h-4" />
-                        Edit Vehicle
-                      </button>
-                      <button
-                        onClick={() => setDeletingVehicle(vehicle)}
-                        className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 rounded-b-xl transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Delete Vehicle
-                      </button>
-                    </div>
+
+                  {/* Status - Full width on mobile, spans 2 cols on desktop */}
+                  <div className="col-span-1 lg:col-span-2 flex items-center">
+                    {vehicle.isSuspended ? (
+                      <span className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 border border-amber-300 rounded-xl text-xs sm:text-sm font-semibold shadow-sm">
+                        <div className="w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse shadow-sm"></div>
+                        Suspended
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl text-xs sm:text-sm font-semibold shadow-sm">
+                        <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-sm"></div>
+                        Active
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Weight Category - Full width on mobile, spans 2 cols on desktop */}
+                  <div className="col-span-1 lg:col-span-2 flex items-center">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 flex items-center justify-center border-2 border-slate-400 shadow-sm group-hover:scale-110 transition-transform">
+                        <span className="text-sm font-bold text-slate-700">{vehicle.grossWeightCategory || 'N/A'}</span>
+                </div>
+                      <span className="text-sm text-slate-600 font-medium hidden lg:inline">
+                        {vehicle.grossWeightCategory ? `Category ${vehicle.grossWeightCategory}` : 'Not set'}
+                      </span>
                   </div>
                 </div>
 
-                {/* VIN Display */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-[var(--color-orange)] transition-colors font-mono">
-                      {vehicle.vin || 'No VIN'}
-                    </h3>
-                    <button
-                      onClick={() => copyToClipboard(vehicle.vin)}
-                      className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                      title="Copy VIN"
-                    >
-                      <Copy className="w-4 h-4 text-slate-400" />
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
-                    <Weight className="w-4 h-4" />
-                    {getWeightCategoryLabel(vehicle.grossWeightCategory)}
-                  </div>
-                </div>
-
-                {/* Details Grid */}
-                <div className="space-y-3 mb-6 pt-4 border-t border-slate-100">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-3 rounded-xl border border-slate-200">
-                      <span className="block text-xs font-medium text-slate-500 uppercase mb-1">Weight Category</span>
-                      <span className="block font-bold text-slate-900 text-lg">{vehicle.grossWeightCategory || 'N/A'}</span>
-                    </div>
-                    <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-3 rounded-xl border border-slate-200">
-                      <span className="block text-xs font-medium text-slate-500 uppercase mb-1">Added</span>
-                      <span className="block font-bold text-slate-900">
-                        {vehicle.createdAt ? new Date(vehicle.createdAt.seconds ? vehicle.createdAt.seconds * 1000 : vehicle.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                  {/* Added Date - Full width on mobile, spans 2 cols on desktop */}
+                  <div className="col-span-1 lg:col-span-2 flex items-center">
+                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                      <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                      <span className="font-medium">
+                        {vehicle.createdAt 
+                          ? new Date(vehicle.createdAt.seconds ? vehicle.createdAt.seconds * 1000 : vehicle.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                          : 'N/A'}
                       </span>
                     </div>
                   </div>
-                </div>
 
-                {/* Action Buttons */}
-                <div className="mt-auto flex gap-2">
-                  <button
-                    onClick={() => handleEdit(vehicle)}
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-50 text-slate-700 font-semibold text-sm hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 border border-transparent transition-all duration-200"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Edit
-                  </button>
-                  <Link
-                    href={`/dashboard/new-filing?vehicleId=${vehicle.id}`}
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[var(--color-orange)] text-white font-semibold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-lg transition-all duration-200"
-                  >
-                    <FileText className="w-4 h-4" />
-                    Use
-                  </Link>
+                  {/* Actions - Full width on mobile, spans 2 cols on desktop */}
+                  <div className="col-span-1 lg:col-span-2 flex items-center justify-start lg:justify-end gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100 lg:border-0">
+                    <Link
+                      href={`/dashboard/new-filing?vehicleId=${vehicle.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex-1 lg:flex-none px-4 py-2.5 bg-gradient-to-r from-[var(--color-orange)] to-[var(--color-amber)] text-white rounded-xl text-sm font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span>Use for Filing</span>
+                    </Link>
+                    <div className="relative actions-menu-group" style={{ zIndex: 50 }}>
+                      <button 
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-2.5 hover:bg-slate-100 rounded-xl transition-all hover:scale-110 relative"
+                      >
+                        <MoreVertical className="w-5 h-5 text-slate-400" />
+                      </button>
+                      <div className="absolute right-0 top-full mt-0.5 w-48 bg-white border border-slate-200 rounded-xl shadow-2xl opacity-0 invisible actions-menu transition-all" style={{ zIndex: 100 }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(vehicle);
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-t-xl transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit Vehicle
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeletingVehicle(vehicle);
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 rounded-b-xl transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete Vehicle
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 

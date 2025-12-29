@@ -47,10 +47,39 @@ strong {
   font-weight: 600;
 }
 
-/* Actions menu dropdown - show only on hover of the button */
-.actions-menu-group:hover .actions-menu {
+/* Actions menu dropdown - show only on hover of the button or menu */
+.actions-menu-group:hover .actions-menu,
+.actions-menu:hover {
   opacity: 1 !important;
   visibility: visible !important;
+}
+
+/* Bridge gap between button and menu to prevent hover loss */
+.actions-menu-group::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 100%;
+  width: 100%;
+  height: 8px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.actions-menu-group:hover::after {
+  pointer-events: auto;
+}
+
+/* Fade in up animation for table rows */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 input,
