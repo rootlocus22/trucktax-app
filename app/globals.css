@@ -47,6 +47,12 @@ strong {
   font-weight: 600;
 }
 
+/* Actions menu dropdown - show only on hover of the button */
+.actions-menu-group:hover .actions-menu {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
 input,
 select,
 textarea {
