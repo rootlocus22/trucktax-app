@@ -394,6 +394,15 @@ function NewFilingContent() {
     }
   }, [user]);
 
+  // Clear all errors when step changes
+  useEffect(() => {
+    setError('');
+    setBusinessErrors({});
+    setVehicleErrors({});
+    setBankDetailsErrors({});
+    setCouponError('');
+  }, [step]);
+
   // Fetch Pricing from Server - Now runs on all steps for real-time pricing
   useEffect(() => {
     const fetchPricing = async () => {
@@ -660,8 +669,8 @@ function NewFilingContent() {
     let validation;
     if (field === 'businessName') validation = validateBusinessName(formattedValue);
     if (field === 'ein') validation = validateEIN(formattedValue);
-    if (field === 'address') validation = validateAddress(formattedValue);
-    if (field === 'phone') validation = validatePhone(formattedValue);
+    if (field === 'address') validation = validateAddress(formattedValue, true); // Required
+    if (field === 'phone') validation = validatePhone(formattedValue, true); // Required
 
     if (validation) {
       setBusinessErrors(prev => ({
@@ -675,8 +684,8 @@ function NewFilingContent() {
     // Run all validations
     const nameVal = validateBusinessName(newBusiness.businessName);
     const einVal = validateEIN(newBusiness.ein);
-    const addrVal = validateAddress(newBusiness.address);
-    const phoneVal = validatePhone(newBusiness.phone);
+    const addrVal = validateAddress(newBusiness.address, true); // Required
+    const phoneVal = validatePhone(newBusiness.phone, true); // Required
 
     if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !phoneVal.isValid) {
       setBusinessErrors({
@@ -685,8 +694,15 @@ function NewFilingContent() {
         address: addrVal.error,
         phone: phoneVal.error
       });
-      setError('Please fix the errors above');
-      return;
+      // Create a detailed error message listing all issues
+      const errorFields = [];
+      if (!nameVal.isValid) errorFields.push('Business Name');
+      if (!einVal.isValid) errorFields.push('EIN');
+      if (!addrVal.isValid) errorFields.push('Business Address');
+      if (!phoneVal.isValid) errorFields.push('Phone Number');
+      
+      setError(`Please correct the following required fields: ${errorFields.join(', ')}. All fields marked with an asterisk (*) are required.`);
+      return false; // Return false to indicate failure
     }
 
     setLoading(true);
@@ -704,8 +720,10 @@ function NewFilingContent() {
       });
       setBusinessErrors({});
       setError('');
+      return true; // Return true to indicate success
     } catch (error) {
-      setError('Failed to create business');
+      setError('Unable to save business information. Please check your internet connection and try again. If the problem persists, contact support.');
+      return false; // Return false to indicate failure
     } finally {
       setLoading(false);
     }
@@ -730,21 +748,23 @@ function NewFilingContent() {
 
   const handleAddVehicle = async () => {
     if (!newVehicle.grossWeightCategory) {
-      setError('Gross weight category is required');
+      setError('Please select a gross weight category for this vehicle. The weight category determines the tax amount.');
+      setVehicleErrors({ grossWeightCategory: 'Weight category is required to calculate the correct tax amount' });
       return;
     }
 
     const vinVal = validateVIN(newVehicle.vin);
     if (!vinVal.isValid) {
       setVehicleErrors({ vin: vinVal.error });
+      setError(`Invalid VIN: ${vinVal.error}. Please enter a valid 17-character Vehicle Identification Number.`);
       return;
     }
 
     // Check for duplicate VIN in existing vehicles
     const duplicateVehicle = vehicles.find(v => v.vin === newVehicle.vin.toUpperCase());
     if (duplicateVehicle) {
-      setError(`Vehicle with VIN ${newVehicle.vin.toUpperCase()} already exists. Please select it from the list above.`);
-      setVehicleErrors({ vin: 'This VIN is already in your vehicle list' });
+      setError(`Vehicle with VIN ${newVehicle.vin.toUpperCase()} is already in your vehicle list. Please select it from the list above instead of adding a duplicate.`);
+      setVehicleErrors({ vin: `VIN ${newVehicle.vin.toUpperCase()} already exists in your vehicle list` });
       return;
     }
 
@@ -795,8 +815,8 @@ function NewFilingContent() {
     } catch (error) {
       console.error('Error creating vehicle:', error);
       const errorMessage = error.message || 'Unknown error';
-      setError(`Failed to create vehicle: ${errorMessage}`);
-      setVehicleErrors({ vin: errorMessage });
+      setError(`Unable to save vehicle information: ${errorMessage}. Please verify the VIN is correct and try again.`);
+      setVehicleErrors({ vin: `Save failed: ${errorMessage}` });
       return false;
     } finally {
       setLoading(false);
@@ -808,7 +828,7 @@ function NewFilingContent() {
     if (!file) return;
 
     if (file.type !== 'application/pdf') {
-      setError('Only PDF files are allowed');
+      setError('Invalid file type. Please upload only PDF files. Accepted formats: .pdf files only.');
       return;
     }
 
@@ -818,7 +838,7 @@ function NewFilingContent() {
       setDocuments([...documents, file]);
       setError('');
     } catch (error) {
-      setError('Failed to upload document');
+      setError('Unable to upload document. Please check your internet connection and file size (max 10MB), then try again.');
     } finally {
       setLoading(false);
     }
@@ -868,14 +888,16 @@ function NewFilingContent() {
 
       // Validate business selection (except VIN corrections which might not need it)
       if (!businessIdToUse && filingType !== 'amendment') {
-        setError('Please select or create a business');
+        const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund' : 'filing';
+        setError(`Business information is required to submit your ${filingTypeLabel}. Please go back to Step 2 and select an existing business or create a new one.`);
         setLoading(false);
         return;
       }
 
       // Validate vehicle selection for non-amendments
       if (vehicleIdsToUse.length === 0 && filingType !== 'amendment') {
-        setError('Please select or add at least one vehicle');
+        const filingTypeLabel = filingType === 'refund' ? 'refund claim' : 'filing';
+        setError(`To submit your ${filingTypeLabel}, you must select or add at least one vehicle. Please go back to Step 3 and select vehicles to include.`);
         setLoading(false);
         return;
       }
@@ -890,12 +912,27 @@ function NewFilingContent() {
       // Validate bank details if EFW is selected
       if (irsPaymentMethod === 'efw') {
         if (!bankDetails.routingNumber || !bankDetails.accountNumber || !bankDetails.confirmAccountNumber || !bankDetails.accountType || !bankDetails.phoneNumber) {
-          setError('Please fill in all bank account details for Direct Debit payment');
+          const missingFields = [];
+          if (!bankDetails.routingNumber) missingFields.push('Routing Number');
+          if (!bankDetails.accountNumber) missingFields.push('Account Number');
+          if (!bankDetails.confirmAccountNumber) missingFields.push('Confirm Account Number');
+          if (!bankDetails.accountType) missingFields.push('Account Type');
+          if (!bankDetails.phoneNumber) missingFields.push('Phone Number');
+          setError(`Please complete all required bank account fields for Electronic Funds Withdrawal: ${missingFields.join(', ')}. All fields are required for direct debit payment.`);
           setLoading(false);
           return;
         }
         if (bankDetails.accountNumber !== bankDetails.confirmAccountNumber) {
-          setError('Account numbers do not match');
+          setBankDetailsErrors({ confirmAccountNumber: 'Account numbers do not match' });
+          setError('Account number confirmation failed. The account number and confirmation account number must match exactly. Please verify and re-enter.');
+          setLoading(false);
+          return;
+        }
+        // Validate phone number with improved US phone validation
+        const phoneVal = validatePhone(bankDetails.phoneNumber, true);
+        if (!phoneVal.isValid) {
+          setBankDetailsErrors({ phoneNumber: phoneVal.error });
+          setError(phoneVal.error);
           setLoading(false);
           return;
         }
@@ -956,7 +993,7 @@ function NewFilingContent() {
 
       // Final check for business (amendments should always have a business)
       if (!businessIdToUse) {
-        setError('Please select or create a business. We could not automatically determine the business for this amendment.');
+        setError('Business information is required for this amendment filing. Please select an existing business from your account or create a new one. The IRS requires business details for all amendment filings.');
         setLoading(false);
         return;
       }
@@ -1021,7 +1058,8 @@ function NewFilingContent() {
       router.push(`/dashboard/filings/${filingId}`);
     } catch (error) {
       console.error('Error creating filing:', error);
-      setError('Failed to create filing. Please try again.');
+      const filingTypeLabel = filingType === 'amendment' ? 'amendment filing' : filingType === 'refund' ? 'refund claim' : 'filing';
+      setError(`Unable to submit your ${filingTypeLabel}. Please check your internet connection and verify all required information is complete, then try again. If the problem persists, contact support.`);
     } finally {
       setLoading(false);
     }
@@ -1064,9 +1102,12 @@ function NewFilingContent() {
     } else {
       // Show error if can't continue
       if (step === 2 && !selectedBusinessId) {
-        setError('Please select or create a business');
+        const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund' : 'filing';
+        setError(`To proceed with your ${filingTypeLabel}, please select an existing business from the list above or click "Add New Business" to create one.`);
       } else if (step === 3 && selectedVehicleIds.length === 0) {
-        setError('Please select or add at least one vehicle');
+        const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund claim' : 'filing';
+        const vehicleAction = filingType === 'refund' ? 'select vehicles for refund' : 'select vehicles to include';
+        setError(`To proceed with your ${filingTypeLabel}, please ${vehicleAction}. You can select existing vehicles or add new ones using the "Add Vehicle" button.`);
       }
     }
   };
@@ -1282,7 +1323,7 @@ function NewFilingContent() {
         </div>
 
         {/* Main Content - Full width for steps 1-5, Grid for step 6 */}
-        <div className={`w-full ${step === 6 ? 'grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-3 sm:gap-4 md:gap-6 lg:gap-8' : 'max-w-4xl mx-auto'}`}>
+        <div className={`w-full ${step === 6 ? 'grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-3 sm:gap-4 md:gap-6 lg:gap-8' :  'mx-auto'}`}>
           {/* Form Content */}
           <div className="space-y-3 sm:space-y-4 md:space-y-6">
             {/* Step 1: Filing Type */}
@@ -1457,7 +1498,7 @@ function NewFilingContent() {
                   <button
                     onClick={() => {
                       if (filingType === 'amendment' && !amendmentType) {
-                        setError('Please select an amendment type');
+                        setError('Please select the type of amendment you need: VIN Correction, Weight Increase, or Mileage Exceeded. Each amendment type has different requirements.');
                         return;
                       }
                       setError('');
@@ -1867,12 +1908,20 @@ function NewFilingContent() {
                       if (amendmentType === 'vin_correction') {
                         const validation = validateVINCorrection(vinCorrectionData.originalVIN, vinCorrectionData.correctedVIN);
                         if (!validation.isValid) {
-                          setError(validation.errors.join(', '));
+                          const errorDetails = validation.errors.length > 0 
+                            ? validation.errors.join('. ') 
+                            : 'Please check that both the original and corrected VINs are valid 17-character VINs.';
+                          setError(`VIN Correction Error: ${errorDetails}`);
                           return;
                         }
                       } else if (amendmentType === 'weight_increase') {
                         if (!weightIncreaseData.vehicleId || !weightIncreaseData.originalWeightCategory || !weightIncreaseData.newWeightCategory || !weightIncreaseData.increaseMonth) {
-                          setError('Please fill in all weight increase fields');
+                          const missingFields = [];
+                          if (!weightIncreaseData.vehicleId) missingFields.push('Vehicle');
+                          if (!weightIncreaseData.originalWeightCategory) missingFields.push('Original Weight Category');
+                          if (!weightIncreaseData.newWeightCategory) missingFields.push('New Weight Category');
+                          if (!weightIncreaseData.increaseMonth) missingFields.push('Increase Month');
+                          setError(`Please complete all required fields for weight increase amendment: ${missingFields.join(', ')}. All fields are required to calculate the additional tax.`);
                           return;
                         }
                         const validation = validateWeightIncrease(weightIncreaseData.originalWeightCategory, weightIncreaseData.newWeightCategory);
@@ -1882,7 +1931,11 @@ function NewFilingContent() {
                         }
                       } else if (amendmentType === 'mileage_exceeded') {
                         if (!mileageExceededData.vehicleId || !mileageExceededData.actualMileageUsed || !mileageExceededData.exceededMonth) {
-                          setError('Please fill in all mileage exceeded fields');
+                          const missingFields = [];
+                          if (!mileageExceededData.vehicleId) missingFields.push('Vehicle');
+                          if (!mileageExceededData.actualMileageUsed) missingFields.push('Actual Mileage Used');
+                          if (!mileageExceededData.exceededMonth) missingFields.push('Exceeded Month');
+                          setError(`Please complete all required fields for mileage exceeded amendment: ${missingFields.join(', ')}. All fields are required to calculate the full tax due.`);
                           return;
                         }
                         const validation = validateMileageExceeded(mileageExceededData.actualMileageUsed, mileageExceededData.isAgriculturalVehicle);
@@ -1978,7 +2031,7 @@ function NewFilingContent() {
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <label className="block text-sm font-medium text-[var(--color-text)]">
-                            Business Name *
+                            Business Name <span className="text-[var(--color-orange)]">*</span>
                           </label>
                           <div className="group relative">
                             <Info className="w-4 h-4 text-[var(--color-muted)] cursor-help" />
@@ -1995,14 +2048,14 @@ function NewFilingContent() {
                           placeholder="ABC Trucking LLC"
                         />
                         {businessErrors.businessName && (
-                          <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3" /> {businessErrors.businessName}
+                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.businessName}</span>
                           </p>
                         )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                          EIN (Employer Identification Number) *
+                          EIN (Employer Identification Number) <span className="text-[var(--color-orange)]">*</span>
                         </label>
                         <input
                           type="text"
@@ -2013,14 +2066,14 @@ function NewFilingContent() {
                           maxLength="10"
                         />
                         {businessErrors.ein && (
-                          <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3" /> {businessErrors.ein}
+                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.ein}</span>
                           </p>
                         )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                          Business Address
+                          Business Address <span className="text-[var(--color-orange)]">*</span>
                         </label>
                         <input
                           type="text"
@@ -2030,14 +2083,14 @@ function NewFilingContent() {
                           placeholder="123 Main St, City, State ZIP"
                         />
                         {businessErrors.address && (
-                          <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3" /> {businessErrors.address}
+                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.address}</span>
                           </p>
                         )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                          Phone
+                          Phone <span className="text-[var(--color-orange)]">*</span>
                         </label>
                         <input
                           type="tel"
@@ -2047,8 +2100,8 @@ function NewFilingContent() {
                           placeholder="(555) 123-4567"
                         />
                         {businessErrors.phone && (
-                          <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3" /> {businessErrors.phone}
+                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.phone}</span>
                           </p>
                         )}
                       </div>
@@ -2080,8 +2133,37 @@ function NewFilingContent() {
                       </div>
                       <button
                         onClick={async () => {
-                          await handleAddBusiness();
-                          setShowBusinessForm(false);
+                          // Run validations first
+                          const nameVal = validateBusinessName(newBusiness.businessName);
+                          const einVal = validateEIN(newBusiness.ein);
+                          const addrVal = validateAddress(newBusiness.address, true); // Required
+                          const phoneVal = validatePhone(newBusiness.phone, true); // Required
+
+                          if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !phoneVal.isValid) {
+                            setBusinessErrors({
+                              businessName: nameVal.error,
+                              ein: einVal.error,
+                              address: addrVal.error,
+                              phone: phoneVal.error
+                            });
+                            // Create a detailed error message listing all issues
+                            const errorFields = [];
+                            if (!nameVal.isValid) errorFields.push('Business Name');
+                            if (!einVal.isValid) errorFields.push('EIN');
+                            if (!addrVal.isValid) errorFields.push('Business Address');
+                            if (!phoneVal.isValid) errorFields.push('Phone Number');
+                            
+                            setError(`Please correct the following required fields before saving: ${errorFields.join(', ')}. All fields marked with an asterisk (*) are required.`);
+                            // Keep form visible - don't hide it
+                            return;
+                          }
+
+                          // If validation passes, proceed with adding business
+                          const success = await handleAddBusiness();
+                          // Only hide form if business was successfully created
+                          if (success) {
+                            setShowBusinessForm(false);
+                          }
                         }}
                         disabled={loading}
                         className="w-full md:col-span-2 bg-[#ff8b3d] text-white py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition disabled:opacity-50 mt-2 sm:mt-4 shadow-sm touch-manipulation"
@@ -2101,12 +2183,45 @@ function NewFilingContent() {
                   </button>
                   <button
                     onClick={() => {
-                      if (showBusinessForm && (newBusiness.businessName || newBusiness.ein)) {
-                        setError('Please save the new business details before proceeding, or click Cancel.');
+                      // If form is visible, check if there are unsaved changes
+                      if (showBusinessForm) {
+                        // Check if any required fields are filled (indicating user started filling the form)
+                        if (newBusiness.businessName || newBusiness.ein || newBusiness.address || newBusiness.phone) {
+                          // Validate the form before allowing to proceed
+                          const nameVal = validateBusinessName(newBusiness.businessName);
+                          const einVal = validateEIN(newBusiness.ein);
+                          const addrVal = validateAddress(newBusiness.address, true);
+                          const phoneVal = validatePhone(newBusiness.phone, true);
+
+                          if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !phoneVal.isValid) {
+                            // Show validation errors and keep form visible
+                            setBusinessErrors({
+                              businessName: nameVal.error,
+                              ein: einVal.error,
+                              address: addrVal.error,
+                              phone: phoneVal.error
+                            });
+                            const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund' : 'filing';
+                            setError(`Please complete all required business fields (marked with *) and click "Save & Add Business" to continue with your ${filingTypeLabel}. Alternatively, click "Cancel" to select an existing business from the list.`);
+                            return;
+                          } else {
+                            // Form is valid but not saved - prompt to save first
+                            const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund' : 'filing';
+                            setError(`Your business information looks complete. Please click "Save & Add Business" to save it before proceeding with your ${filingTypeLabel}.`);
+                            return;
+                          }
+                        }
+                      }
+                      
+                      // If no business selected, show error
+                      if (!selectedBusinessId) {
+                        const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund' : 'filing';
+                        setError(`To continue with your ${filingTypeLabel}, please select a business from the list above or create a new one. Business information is required for IRS filing.`);
                         return;
                       }
-                      if (selectedBusinessId) setStep(3);
-                      else setError('Please select or create a business');
+                      
+                      // All checks passed, proceed to next step
+                      setStep(3);
                     }}
                     className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-[#ff8b3d] text-white rounded-xl text-sm sm:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition shadow-sm touch-manipulation"
                   >
@@ -2456,10 +2571,10 @@ function NewFilingContent() {
                           placeholder="1HGBH41JXMN109186"
                           maxLength="17"
                         />
-                        <div className="flex justify-between mt-1">
+                        <div className="flex justify-between items-start mt-1 w-full">
                           {vehicleErrors.vin ? (
-                            <p className="text-xs text-red-600 flex items-center gap-1">
-                              <AlertCircle className="w-3 h-3" /> {vehicleErrors.vin}
+                            <p className="text-xs text-red-600 flex items-center gap-1 flex-1">
+                              <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{vehicleErrors.vin}</span>
                             </p>
                           ) : (
                             <p className="text-xs text-[var(--color-muted)]">
@@ -2544,11 +2659,15 @@ function NewFilingContent() {
                   <button
                     onClick={() => {
                       if (showVehicleForm && newVehicle.vin) {
-                        setError('Please save the new vehicle before proceeding, or click Cancel.');
+                        const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund' : 'filing';
+                        setError(`Please complete the vehicle form and click "Save & Add Vehicle" to add it to your ${filingTypeLabel}, or click "Cancel" to select from existing vehicles.`);
                         return;
                       }
                       if (selectedVehicleIds.length > 0) setStep(4);
-                      else setError('Please select or add at least one vehicle');
+                      else {
+                        const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund claim' : 'filing';
+                        setError(`To proceed with your ${filingTypeLabel}, please select at least one vehicle from the list above or add a new vehicle using the "Add Vehicle" button.`);
+                      }
                     }}
                     className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-2 bg-[#ff8b3d] text-white rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition shadow-sm touch-manipulation"
                   >
@@ -2933,7 +3052,9 @@ function NewFilingContent() {
                                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
                                 />
                                 {bankDetails.accountNumber && bankDetails.confirmAccountNumber && bankDetails.accountNumber !== bankDetails.confirmAccountNumber && (
-                                  <p className="mt-1 text-xs text-red-600">Account numbers do not match</p>
+                                  <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">Account numbers do not match</span>
+                                  </p>
                                 )}
                               </div>
                               <div>
@@ -2952,15 +3073,27 @@ function NewFilingContent() {
                               </div>
                               <div>
                                 <label className="block text-sm font-medium mb-1">
-                                  Phone Number <span className="text-red-500">*</span>
+                                  Phone Number <span className="text-[var(--color-orange)]">*</span>
                                 </label>
                                 <input
                                   type="tel"
                                   value={bankDetails.phoneNumber}
-                                  onChange={(e) => setBankDetails({ ...bankDetails, phoneNumber: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                                  placeholder="Enter Phone Number*"
-                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                  onChange={(e) => {
+                                    const value = e.target.value.replace(/\D/g, '').slice(0, 11);
+                                    setBankDetails({ ...bankDetails, phoneNumber: value });
+                                    // Clear error when user starts typing
+                                    if (bankDetailsErrors.phoneNumber) {
+                                      setBankDetailsErrors({ ...bankDetailsErrors, phoneNumber: '' });
+                                    }
+                                  }}
+                                  placeholder="(555) 123-4567"
+                                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] ${bankDetailsErrors.phoneNumber ? 'border-red-500' : 'border-slate-300'}`}
                                 />
+                                {bankDetailsErrors.phoneNumber && (
+                                  <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{bankDetailsErrors.phoneNumber}</span>
+                                  </p>
+                                )}
                               </div>
                               <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
                                 <p className="text-xs sm:text-sm text-red-700">
