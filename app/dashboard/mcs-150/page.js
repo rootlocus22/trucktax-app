@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { getBusinessesByUser, createBusiness, createFiling } from '@/lib/db';
+import SignatureCanvas from 'react-signature-canvas';
 import {
     ShieldCheck,
     Building2,
@@ -21,7 +22,9 @@ import {
     FileText,
     User,
     PenTool,
-    Search
+    Search,
+    Upload,
+    X
 } from 'lucide-react';
 
 export default function MCS150Page() {
@@ -97,8 +100,16 @@ export default function MCS150Page() {
     });
 
     // Submission Data
-    const [submissionMethod, setSubmissionMethod] = useState('enter_pin'); // enter_pin, request_pin, manual_sign
+    const [submissionMethod, setSubmissionMethod] = useState('enter_pin'); // enter_pin, request_pin, upload_driver_license
     const [pin, setPin] = useState('');
+    
+    // Driver License Upload Method
+    const [driverLicenseFile, setDriverLicenseFile] = useState(null);
+    const [signatureCanvas, setSignatureCanvas] = useState(null);
+    const sigCanvasRef = useRef(null);
+    const [processingPdf, setProcessingPdf] = useState(false);
+    const [pdfSubmissionId, setPdfSubmissionId] = useState(null);
+    const [pdfError, setPdfError] = useState(null);
 
     // Payment Data
     const [paymentMethod, setPaymentMethod] = useState('card');
@@ -195,6 +206,113 @@ export default function MCS150Page() {
         }
     };
 
+    const handleProcessPdf = async () => {
+        if (!driverLicenseFile || !signatureCanvas || !user) {
+            setPdfError('Please upload driver license and provide signature');
+            return;
+        }
+
+        setProcessingPdf(true);
+        setPdfError(null);
+
+        try {
+            // Get auth token
+            const idToken = await user.getIdToken(true);
+            if (!idToken) {
+                throw new Error('Failed to get authentication token');
+            }
+
+            // Prepare form data for PDF generation
+            const formDataForPdf = new FormData();
+            formDataForPdf.append('driverLicense', driverLicenseFile);
+            formDataForPdf.append('signature', signatureCanvas);
+            
+            // Calculate power units
+            const calculatePowerUnits = (vehicleType) => {
+                if (!vehicleType || typeof vehicleType !== 'object') return 0;
+                return (parseInt(vehicleType.owned) || 0) + 
+                       (parseInt(vehicleType.termLeased) || 0) + 
+                       (parseInt(vehicleType.tripLeased) || 0);
+            };
+
+            const calculatedPowerUnits = 
+                calculatePowerUnits(formData.vehicles.straightTrucks) +
+                calculatePowerUnits(formData.vehicles.truckTractors) +
+                calculatePowerUnits(formData.vehicles.hazmatCargoTrucks);
+
+            const driversTotal = formData.drivers.total || 
+                (parseInt(formData.drivers.interstate || 0) + parseInt(formData.drivers.intrastate || 0));
+
+            formDataForPdf.append('formData', JSON.stringify({
+                usdotNumber: formData.usdotNumber,
+                businessName: selectedBusiness.name,
+                ein: formData.ein || selectedBusiness.ein || '',
+                address: selectedBusiness.address ? `${selectedBusiness.address.street}, ${selectedBusiness.address.city}, ${selectedBusiness.address.state} ${selectedBusiness.address.zip}` : '',
+                mileage: formData.mileage,
+                mileageYear: formData.mileageYear,
+                powerUnits: calculatedPowerUnits.toString(),
+                vehicles: formData.vehicles,
+                drivers: {
+                    ...formData.drivers,
+                    total: driversTotal.toString()
+                },
+                classifications: formData.classifications,
+                companyOperations: formData.companyOperations,
+                companyOfficial: formData.companyOfficial,
+                contact: formData.contact,
+                filingReason: filingReason,
+                hasChanges: hasChanges,
+                selectedChanges: selectedChanges
+            }));
+
+            // Call API to generate PDF
+            const pdfResponse = await fetch('/api/mcs150/generate-pdf', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${idToken}`,
+                },
+                body: formDataForPdf,
+            });
+
+            if (!pdfResponse.ok) {
+                const errorData = await pdfResponse.json().catch(() => ({ error: 'PDF generation failed' }));
+                throw new Error(errorData.error || 'Failed to generate PDF');
+            }
+
+            const pdfResult = await pdfResponse.json();
+            
+            if (!pdfResult.pdfDataUrl) {
+                throw new Error('PDF generation failed - no PDF data received');
+            }
+
+            // Upload PDF to Firebase Storage using client-side SDK
+            const { uploadFile } = await import('@/lib/storage');
+            const pdfBlob = await fetch(pdfResult.pdfDataUrl).then(r => r.blob());
+            const pdfFile = new File([pdfBlob], `mcs150-${Date.now()}.pdf`, { type: 'application/pdf' });
+            
+            const pdfUrl = await uploadFile(pdfFile, `mcs150-submissions/${user.uid}/${Date.now()}-mcs150-filled.pdf`);
+            
+            // Create submission document in Firestore
+            const { createMcs150Submission } = await import('@/lib/db');
+            const submissionId = await createMcs150Submission(user.uid, {
+                pdfUrl: pdfUrl,
+                formData: pdfResult.formData,
+                status: 'submitted',
+                filingType: 'mcs150',
+            });
+            
+            setPdfSubmissionId(submissionId);
+            
+            // Proceed to payment step after successful PDF generation and upload
+            setCurrentStep(6);
+        } catch (err) {
+            console.error('Error processing PDF:', err);
+            setPdfError(err.message || 'Failed to process PDF. Please try again.');
+        } finally {
+            setProcessingPdf(false);
+        }
+    };
+
     const handleSubmit = async () => {
         setLoading(true);
         try {
@@ -242,6 +360,14 @@ export default function MCS150Page() {
             const driversTotal = formData.drivers.total || 
                 (parseInt(formData.drivers.interstate || 0) + parseInt(formData.drivers.intrastate || 0));
 
+            // For driver license upload method, PDF should already be processed
+            // Use the stored submission ID from PDF processing
+            const mcs150SubmissionId = submissionMethod === 'upload_driver_license' ? pdfSubmissionId : null;
+            
+            if (submissionMethod === 'upload_driver_license' && !mcs150SubmissionId) {
+                throw new Error('PDF processing was not completed. Please go back and try again.');
+            }
+
             await createFiling({
                 userId: user.uid, // Customer relationship - links filing to customer
                 businessId: businessId,
@@ -254,6 +380,7 @@ export default function MCS150Page() {
                 mcs150UsdotNumber: formData.usdotNumber,
                 mcs150Pin: submissionMethod === 'enter_pin' ? pin : null,
                 needPinService: needPin,
+                mcs150SubmissionId: mcs150SubmissionId, // Reference to the submission document
                 companyOfficial: formData.companyOfficial,
                 contact: {
                     email: formData.contact?.email || '',
@@ -286,7 +413,7 @@ export default function MCS150Page() {
             });
             setCurrentStep(7); // Go to success step
         } catch (err) {
-            setError('Submission failed. Please try again.');
+            setError(err.message || 'Submission failed. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -1185,8 +1312,8 @@ export default function MCS150Page() {
                     <input type="radio" value="enter_pin" checked={submissionMethod === 'enter_pin'} onChange={() => setSubmissionMethod('enter_pin')} className="hidden" />
                 </label>
 
-                {/* Option 2: Request New PIN */}
-                <label className={`block p-4 rounded-lg border-2 cursor-pointer transition ${submissionMethod === 'request_pin' ? 'border-[var(--color-navy)] bg-blue-50' : 'border-[var(--color-border)]'}`}>
+                {/* Option 2: Request New PIN - DISABLED */}
+                <label className={`block p-4 rounded-lg border-2 cursor-not-allowed transition opacity-50 ${submissionMethod === 'request_pin' ? 'border-[var(--color-navy)] bg-blue-50' : 'border-[var(--color-border)]'}`}>
                     <div className="flex items-start gap-3">
                         <div className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center ${submissionMethod === 'request_pin' ? 'border-[var(--color-navy)]' : 'border-[var(--color-border)]'}`}>
                             {submissionMethod === 'request_pin' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-navy)]" />}
@@ -1194,22 +1321,150 @@ export default function MCS150Page() {
                         <div>
                             <div className="font-bold text-[var(--color-text)]">Generate a new PIN (+ $20.00)</div>
                             <div className="text-sm text-[var(--color-muted)]">Don't have it handy? We can request a new PIN for you.</div>
+                            <div className="text-xs text-red-500 mt-1 italic">Currently disabled</div>
                         </div>
                     </div>
-                    <input type="radio" value="request_pin" checked={submissionMethod === 'request_pin'} onChange={() => setSubmissionMethod('request_pin')} className="hidden" />
+                    <input type="radio" value="request_pin" checked={submissionMethod === 'request_pin'} onChange={() => {}} disabled className="hidden" />
+                </label>
+
+                {/* Option 3: Upload Driver License */}
+                <label className={`block p-4 rounded-lg border-2 cursor-pointer transition ${submissionMethod === 'upload_driver_license' ? 'border-[var(--color-navy)] bg-blue-50' : 'border-[var(--color-border)]'}`}>
+                    <div className="flex items-start gap-3">
+                        <div className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center ${submissionMethod === 'upload_driver_license' ? 'border-[var(--color-navy)]' : 'border-[var(--color-border)]'}`}>
+                            {submissionMethod === 'upload_driver_license' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-navy)]" />}
+                        </div>
+                        <div className="flex-1">
+                            <div className="font-bold text-[var(--color-text)] mb-1">Upload Driver License</div>
+                            <div className="text-sm text-[var(--color-muted)] mb-4">Upload your driver license and sign the form digitally.</div>
+
+                            {submissionMethod === 'upload_driver_license' && (
+                                <div className="animate-in fade-in space-y-4 mt-4">
+                                    {/* Driver License Upload */}
+                                    <div>
+                                        <label className="block text-xs font-bold mb-1">
+                                            Upload Driver License: <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                accept="image/*,.pdf"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        setDriverLicenseFile(file);
+                                                    }
+                                                }}
+                                                className="hidden"
+                                                id="driver-license-upload"
+                                            />
+                                            <label
+                                                htmlFor="driver-license-upload"
+                                                className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50 transition"
+                                            >
+                                                <Upload className="w-5 h-5 text-slate-500" />
+                                                <span className="text-sm text-slate-700">
+                                                    {driverLicenseFile ? driverLicenseFile.name : 'Choose File'}
+                                                </span>
+                                            </label>
+                                        </div>
+                                        {driverLicenseFile && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setDriverLicenseFile(null);
+                                                    const input = document.getElementById('driver-license-upload');
+                                                    if (input) input.value = '';
+                                                }}
+                                                className="mt-2 text-xs text-red-600 hover:underline flex items-center gap-1"
+                                            >
+                                                <X className="w-3 h-3" />
+                                                Remove file
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Signature */}
+                                    <div>
+                                        <label className="block text-xs font-bold mb-1">
+                                            Signature: <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="border-2 border-slate-300 rounded-lg p-2 bg-white">
+                                            <SignatureCanvas
+                                                ref={sigCanvasRef}
+                                                canvasProps={{
+                                                    width: 600,
+                                                    height: 200,
+                                                    className: 'signature-canvas w-full border border-slate-200 rounded cursor-crosshair'
+                                                }}
+                                                backgroundColor="white"
+                                                onEnd={() => {
+                                                    if (sigCanvasRef.current) {
+                                                        setSignatureCanvas(sigCanvasRef.current.toDataURL());
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="flex gap-2 mt-2">
+                                            <button
+                                                onClick={() => {
+                                                    if (sigCanvasRef.current) {
+                                                        sigCanvasRef.current.clear();
+                                                        setSignatureCanvas(null);
+                                                    }
+                                                }}
+                                                className="text-xs px-3 py-1 border border-slate-300 rounded hover:bg-slate-50 transition"
+                                            >
+                                                Clear
+                                            </button>
+                                            <span className="text-xs text-slate-500 self-center">Draw with mouse or finger</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <input type="radio" value="upload_driver_license" checked={submissionMethod === 'upload_driver_license'} onChange={() => setSubmissionMethod('upload_driver_license')} className="hidden" />
                 </label>
             </div>
 
             <div className="flex gap-4 pt-6">
                 <button className="border border-[var(--color-navy)] text-[var(--color-navy)] py-2 px-6 rounded-lg font-bold" onClick={() => setCurrentStep(4)}>Go Back</button>
                 <button
-                    onClick={() => setCurrentStep(6)}
-                    disabled={submissionMethod === 'enter_pin' && !pin}
-                    className="bg-[var(--color-navy)] text-white py-2 px-8 rounded-lg font-bold hover:bg-[var(--color-navy-soft)] disabled:opacity-50"
+                    onClick={async () => {
+                        if (submissionMethod === 'upload_driver_license') {
+                            // Process PDF generation before proceeding to payment
+                            await handleProcessPdf();
+                        } else {
+                            // For PIN methods, go directly to payment
+                            setCurrentStep(6);
+                        }
+                    }}
+                    disabled={
+                        processingPdf ||
+                        (submissionMethod === 'enter_pin' && !pin) ||
+                        (submissionMethod === 'upload_driver_license' && (!driverLicenseFile || !signatureCanvas))
+                    }
+                    className="bg-[var(--color-navy)] text-white py-2 px-8 rounded-lg font-bold hover:bg-[var(--color-navy-soft)] disabled:opacity-50 flex items-center gap-2"
                 >
-                    Continue Filing <ChevronRight className="inline w-4 h-4" />
+                    {processingPdf ? (
+                        <>
+                            <Loader2 className="animate-spin w-4 h-4" />
+                            Processing PDF...
+                        </>
+                    ) : (
+                        <>
+                            Continue Filing <ChevronRight className="inline w-4 h-4" />
+                        </>
+                    )}
                 </button>
             </div>
+            
+            {pdfError && (
+                <div className="mt-4 bg-red-50 text-red-700 p-4 rounded-lg flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5" />
+                    {pdfError}
+                </div>
+            )}
         </div>
     );
 

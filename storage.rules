@@ -1,0 +1,25 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Filings - agents can write, authenticated users can read
+    match /filings/{filingId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        (request.auth.token.role == 'agent' || 
+         request.auth.token.role == 'admin');
+    }
+    
+    // MCS-150 Submissions - users can write to their own folder, agents can read all
+    match /mcs150-submissions/{userId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Temp uploads - users can write to their own folder
+    match /temp-uploads/{userId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+

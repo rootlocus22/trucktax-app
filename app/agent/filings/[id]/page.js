@@ -23,6 +23,7 @@ export default function AgentWorkStationPage() {
   const [agentNotes, setAgentNotes] = useState('');
   const [schedule1File, setSchedule1File] = useState(null);
   const [mcsConfirmationFile, setMcsConfirmationFile] = useState(null);
+  const [mcs150SubmissionPdfUrl, setMcs150SubmissionPdfUrl] = useState(null);
   const [error, setError] = useState('');
 
   // Rejection State
@@ -51,6 +52,11 @@ export default function AgentWorkStationPage() {
       if (filingData.rejectionReasonId) setRejectionReasonId(filingData.rejectionReasonId);
       if (filingData.rejectionCode) setRejectionCode(filingData.rejectionCode);
       if (filingData.requiredAction) setRequiredAction(filingData.requiredAction);
+
+      // Load MCS-150 submission PDF if exists
+      if (filingData.mcs150SubmissionId) {
+        loadMcs150SubmissionPdf(filingData.mcs150SubmissionId);
+      }
 
       // Load business (may be null for Schedule 1 uploads)
       if (filingData.businessId) {
@@ -104,6 +110,28 @@ export default function AgentWorkStationPage() {
   const handleCopyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     alert('Copied to clipboard!');
+  };
+
+  const loadMcs150SubmissionPdf = async (submissionId) => {
+    try {
+      const idToken = await user?.getIdToken(true);
+      if (!idToken) return;
+
+      const response = await fetch(`/api/mcs150/get-submission?id=${submissionId}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.submission?.pdfUrl) {
+          setMcs150SubmissionPdfUrl(data.submission.pdfUrl);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading MCS-150 submission PDF:', error);
+    }
   };
 
   const handleStatusChange = async (newStatus) => {
@@ -817,6 +845,21 @@ export default function AgentWorkStationPage() {
                       </button>
                     )}
                   </div>
+
+                  {/* MCS-150 Submission PDF */}
+                  {filing.mcs150SubmissionId && (
+                    <div className="bg-blue-50 border border-blue-200 rounded p-3 flex items-center gap-3">
+                      <div className="text-2xl">📄</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-bold text-blue-700 uppercase">MCS-150 Submission PDF</div>
+                        {mcs150SubmissionPdfUrl ? (
+                          <a href={mcs150SubmissionPdfUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-800 hover:underline truncate block">View Complete PDF</a>
+                        ) : (
+                          <span className="text-sm text-blue-600">Loading...</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Downloaded Confirmation Link */}
                   {filing.mcs150ConfirmationUrl && (
