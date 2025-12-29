@@ -452,9 +452,9 @@ export default function BusinessesPage() {
                   <div className="col-span-1 lg:col-span-2 flex items-center">
                     {business.ein ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center border-2 border-slate-300 shadow-sm">
+                        {/* <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center border-2 border-slate-300 shadow-sm">
                           <span className="text-xs font-bold text-slate-700 font-mono">{formatEIN(business.ein)}</span>
-                        </div>
+                        </div> */}
                         <span className="text-sm text-slate-600 font-medium hidden sm:inline font-mono">
                           {formatEIN(business.ein)}
                         </span>
