@@ -340,6 +340,19 @@ function NewFilingContent() {
   });
   const [bankDetailsErrors, setBankDetailsErrors] = useState({});
 
+  // Step 6: Service Fee Payment (Platform Fee)
+  const [serviceFeePaymentMethod, setServiceFeePaymentMethod] = useState(''); // 'credit_card', 'debit_card', 'paypal', 'apple_pay', 'google_pay'
+  const [serviceFeePaid, setServiceFeePaid] = useState(false);
+  const [serviceFeeProcessing, setServiceFeeProcessing] = useState(false);
+  const [serviceFeePaymentDetails, setServiceFeePaymentDetails] = useState({
+    cardNumber: '',
+    cardHolderName: '',
+    expiryDate: '',
+    cvv: '',
+    billingZipCode: ''
+  });
+  const [serviceFeeErrors, setServiceFeeErrors] = useState({});
+
   // Coupon State
   const [couponCode, setCouponCode] = useState('');
   const [couponDiscount, setCouponDiscount] = useState(0);
@@ -844,6 +857,78 @@ function NewFilingContent() {
     }
   };
 
+  const handleServiceFeePayment = async () => {
+    setServiceFeeProcessing(true);
+    setServiceFeeErrors({});
+    setError('');
+
+    try {
+      // Validate payment details
+      const errors = {};
+      
+      if (!serviceFeePaymentDetails.cardHolderName || serviceFeePaymentDetails.cardHolderName.trim().length < 2) {
+        errors.cardHolderName = 'Cardholder name is required and must be at least 2 characters';
+      }
+      
+      if (!serviceFeePaymentDetails.cardNumber || serviceFeePaymentDetails.cardNumber.replace(/\D/g, '').length < 13) {
+        errors.cardNumber = 'Valid card number is required (13-16 digits)';
+      }
+      
+      if (!serviceFeePaymentDetails.expiryDate || !/^\d{2}\/\d{2}$/.test(serviceFeePaymentDetails.expiryDate)) {
+        errors.expiryDate = 'Valid expiry date is required (MM/YY format)';
+      } else {
+        const [month, year] = serviceFeePaymentDetails.expiryDate.split('/');
+        const expiryMonth = parseInt(month, 10);
+        const expiryYear = parseInt('20' + year, 10);
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+        
+        if (expiryMonth < 1 || expiryMonth > 12) {
+          errors.expiryDate = 'Invalid month (must be 01-12)';
+        } else if (expiryYear < currentYear || (expiryYear === currentYear && expiryMonth < currentMonth)) {
+          errors.expiryDate = 'Card has expired';
+        }
+      }
+      
+      if (!serviceFeePaymentDetails.cvv || serviceFeePaymentDetails.cvv.length < 3) {
+        errors.cvv = 'Valid CVV is required (3-4 digits)';
+      }
+      
+      if (!serviceFeePaymentDetails.billingZipCode || serviceFeePaymentDetails.billingZipCode.length !== 5) {
+        errors.billingZipCode = 'Valid 5-digit ZIP code is required';
+      }
+
+      if (Object.keys(errors).length > 0) {
+        setServiceFeeErrors(errors);
+        setServiceFeeProcessing(false);
+        return;
+      }
+
+      // TODO: Integrate with payment gateway (Stripe, PayPal, etc.)
+      // For now, simulate payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Mark payment as paid
+      setServiceFeePaid(true);
+      setError('');
+      
+      // Clear payment details for security (in production, never store full card details)
+      setServiceFeePaymentDetails({
+        cardNumber: '',
+        cardHolderName: '',
+        expiryDate: '',
+        cvv: '',
+        billingZipCode: ''
+      });
+
+    } catch (error) {
+      console.error('Service fee payment error:', error);
+      setError('Payment processing failed. Please check your payment details and try again. If the problem persists, contact support.');
+      setServiceFeeProcessing(false);
+    }
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     setError('');
@@ -904,7 +989,14 @@ function NewFilingContent() {
 
       // Validate IRS payment method selection (Step 6)
       if (!irsPaymentMethod) {
-        setError('Please select an IRS payment method');
+        setError('Please select an IRS payment method for the tax amount. This is required to submit your filing to the IRS.');
+        setLoading(false);
+        return;
+      }
+
+      // Validate service fee payment (Step 6)
+      if (!serviceFeePaid) {
+        setError('Service fee payment is required before submitting your filing. Please complete the service fee payment in Section 2 above.');
         setLoading(false);
         return;
       }
@@ -2980,20 +3072,28 @@ function NewFilingContent() {
               </div>
             )}
 
-            {/* Step 6: Select IRS Payment Method */}
+            {/* Step 6: Payment Methods */}
             {step === 6 && (
               <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 shadow-sm">
                 <div className="mb-6 sm:mb-8">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-orange)] text-white font-bold text-lg">6</div>
-                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--color-text)]">Select Payment Method</h2>
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--color-text)]">Payment Methods</h2>
                   </div>
-                  <p className="text-sm sm:text-base text-[var(--color-muted)] ml-13">Choose how you'd like to pay the IRS tax amount</p>
+                  <p className="text-sm sm:text-base text-[var(--color-muted)] ml-13">Complete both payment sections to proceed with your filing</p>
                 </div>
 
-                <div className="grid gap-4 sm:gap-6 md:gap-8">
-                  {/* Left: Payment Method Selection */}
-                  <div className="space-y-3 sm:space-y-4 w-full">
+                <div className="space-y-6 sm:space-y-8">
+                  {/* Section 1: IRS Payment Method */}
+                  <div className="border-2 border-blue-200 rounded-xl p-4 sm:p-6 bg-blue-50/30">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">1</div>
+                      <h3 className="text-lg sm:text-xl font-bold text-blue-900">IRS Tax Payment</h3>
+                      <span className="text-xs sm:text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded">Required</span>
+                    </div>
+                    <p className="text-sm text-blue-800 mb-4 ml-10">Choose how you'd like to pay the IRS tax amount (${pricing.totalTax?.toFixed(2) || '0.00'})</p>
+
+                    <div className="space-y-3 sm:space-y-4 ml-10">
                     {/* Option 1: EFW (Electronic Fund Withdrawal) */}
                     <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'efw' ? 'border-green-500 bg-green-50' : 'border-slate-200 hover:border-green-300'}`}>
                       <label className="flex items-start gap-3 cursor-pointer w-full">
@@ -3205,34 +3305,265 @@ function NewFilingContent() {
                         </div>
                       </label>
                     </div>
-
-                    {/* Navigation Buttons */}
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 pt-4 border-t border-slate-200">
-                      <button
-                        onClick={() => setStep(5)}
-                        className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border border-slate-300 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-slate-50 active:bg-slate-100 transition font-medium touch-manipulation"
-                      >
-                        Previous Step
-                      </button>
-                      <button
-                        onClick={handleSubmit}
-                        disabled={loading || !irsPaymentMethod || (irsPaymentMethod === 'efw' && (!bankDetails.routingNumber || !bankDetails.accountNumber || !bankDetails.confirmAccountNumber || !bankDetails.accountType || !bankDetails.phoneNumber || bankDetails.accountNumber !== bankDetails.confirmAccountNumber))}
-                        className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-                      >
-                        {loading ? (
-                          <>
-                            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            <span className="hidden sm:inline">Processing...</span>
-                            <span className="sm:hidden">Processing</span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="hidden sm:inline">Continue Filing</span>
-                            <span className="sm:hidden">Continue</span>
-                          </>
-                        )}
-                      </button>
                     </div>
+                  </div>
+
+                  {/* Section 2: Service Fee Payment */}
+                  <div className={`border-2 rounded-xl p-4 sm:p-6 transition-all ${serviceFeePaid ? 'border-green-500 bg-green-50' : 'border-orange-200 bg-orange-50/30'}`}>
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className={`w-8 h-8 rounded-full ${serviceFeePaid ? 'bg-green-600' : 'bg-orange-600'} text-white flex items-center justify-center font-bold text-sm`}>2</div>
+                      <h3 className="text-lg sm:text-xl font-bold text-orange-900">Service Fee Payment</h3>
+                      {serviceFeePaid ? (
+                        <span className="text-xs sm:text-sm text-green-700 bg-green-100 px-2 py-1 rounded flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" /> Paid
+                        </span>
+                      ) : (
+                        <span className="text-xs sm:text-sm text-orange-700 bg-orange-100 px-2 py-1 rounded">Required</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-orange-800 mb-4 ml-10">
+                      Pay the platform service fee (${(pricing.serviceFee || 0).toFixed(2)}) using a US payment method. This payment must be completed before your filing can be submitted.
+                    </p>
+
+                    {!serviceFeePaid ? (
+                      <div className="ml-10 space-y-4">
+                        {/* Payment Method Selection */}
+                        <div>
+                          <label className="block text-sm font-medium mb-2 text-[var(--color-text)]">
+                            Select Payment Method <span className="text-red-500">*</span>
+                          </label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setServiceFeePaymentMethod('credit_card')}
+                              className={`p-4 border-2 rounded-lg transition-all text-left ${
+                                serviceFeePaymentMethod === 'credit_card'
+                                  ? 'border-[var(--color-orange)] bg-orange-50'
+                                  : 'border-slate-200 hover:border-orange-300'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <CreditCard className="w-5 h-5 text-[var(--color-orange)]" />
+                                <span className="font-semibold">Credit Card</span>
+                                {serviceFeePaymentMethod === 'credit_card' && <CheckCircle className="w-5 h-5 text-[var(--color-orange)] ml-auto" />}
+                              </div>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setServiceFeePaymentMethod('debit_card')}
+                              className={`p-4 border-2 rounded-lg transition-all text-left ${
+                                serviceFeePaymentMethod === 'debit_card'
+                                  ? 'border-[var(--color-orange)] bg-orange-50'
+                                  : 'border-slate-200 hover:border-orange-300'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <CreditCard className="w-5 h-5 text-[var(--color-orange)]" />
+                                <span className="font-semibold">Debit Card</span>
+                                {serviceFeePaymentMethod === 'debit_card' && <CheckCircle className="w-5 h-5 text-[var(--color-orange)] ml-auto" />}
+                              </div>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Payment Form */}
+                        {serviceFeePaymentMethod && (
+                          <div className="bg-white rounded-lg p-4 sm:p-6 border border-slate-200 space-y-4 animate-in fade-in slide-in-from-top-2">
+                            <h4 className="font-semibold text-[var(--color-text)]">Payment Details</h4>
+                            
+                            <div>
+                              <label className="block text-sm font-medium mb-1 text-[var(--color-text)]">
+                                Cardholder Name <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={serviceFeePaymentDetails.cardHolderName}
+                                onChange={(e) => setServiceFeePaymentDetails({ ...serviceFeePaymentDetails, cardHolderName: e.target.value })}
+                                placeholder="John Doe"
+                                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] ${serviceFeeErrors.cardHolderName ? 'border-red-500' : 'border-slate-300'}`}
+                              />
+                              {serviceFeeErrors.cardHolderName && (
+                                <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{serviceFeeErrors.cardHolderName}</span>
+                                </p>
+                              )}
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1 text-[var(--color-text)]">
+                                Card Number <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={serviceFeePaymentDetails.cardNumber}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/\D/g, '').slice(0, 16);
+                                  setServiceFeePaymentDetails({ ...serviceFeePaymentDetails, cardNumber: value });
+                                  if (serviceFeeErrors.cardNumber) {
+                                    setServiceFeeErrors({ ...serviceFeeErrors, cardNumber: '' });
+                                  }
+                                }}
+                                placeholder="1234 5678 9012 3456"
+                                maxLength="19"
+                                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${serviceFeeErrors.cardNumber ? 'border-red-500' : 'border-slate-300'}`}
+                              />
+                              {serviceFeeErrors.cardNumber && (
+                                <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{serviceFeeErrors.cardNumber}</span>
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium mb-1 text-[var(--color-text)]">
+                                  Expiry Date <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  value={serviceFeePaymentDetails.expiryDate}
+                                  onChange={(e) => {
+                                    let value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                                    if (value.length >= 2) {
+                                      value = value.slice(0, 2) + '/' + value.slice(2);
+                                    }
+                                    setServiceFeePaymentDetails({ ...serviceFeePaymentDetails, expiryDate: value });
+                                    if (serviceFeeErrors.expiryDate) {
+                                      setServiceFeeErrors({ ...serviceFeeErrors, expiryDate: '' });
+                                    }
+                                  }}
+                                  placeholder="MM/YY"
+                                  maxLength="5"
+                                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${serviceFeeErrors.expiryDate ? 'border-red-500' : 'border-slate-300'}`}
+                                />
+                                {serviceFeeErrors.expiryDate && (
+                                  <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{serviceFeeErrors.expiryDate}</span>
+                                  </p>
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1 text-[var(--color-text)]">
+                                  CVV <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  value={serviceFeePaymentDetails.cvv}
+                                  onChange={(e) => {
+                                    const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                                    setServiceFeePaymentDetails({ ...serviceFeePaymentDetails, cvv: value });
+                                    if (serviceFeeErrors.cvv) {
+                                      setServiceFeeErrors({ ...serviceFeeErrors, cvv: '' });
+                                    }
+                                  }}
+                                  placeholder="123"
+                                  maxLength="4"
+                                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${serviceFeeErrors.cvv ? 'border-red-500' : 'border-slate-300'}`}
+                                />
+                                {serviceFeeErrors.cvv && (
+                                  <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{serviceFeeErrors.cvv}</span>
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1 text-[var(--color-text)]">
+                                Billing ZIP Code <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={serviceFeePaymentDetails.billingZipCode}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+                                  setServiceFeePaymentDetails({ ...serviceFeePaymentDetails, billingZipCode: value });
+                                  if (serviceFeeErrors.billingZipCode) {
+                                    setServiceFeeErrors({ ...serviceFeeErrors, billingZipCode: '' });
+                                  }
+                                }}
+                                placeholder="12345"
+                                maxLength="5"
+                                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${serviceFeeErrors.billingZipCode ? 'border-red-500' : 'border-slate-300'}`}
+                              />
+                              {serviceFeeErrors.billingZipCode && (
+                                <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{serviceFeeErrors.billingZipCode}</span>
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <div className="flex items-start gap-2">
+                                <ShieldCheck className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                <div className="text-xs sm:text-sm text-blue-700">
+                                  <strong>Secure Payment:</strong> Your payment information is encrypted and processed securely. We do not store your full card details.
+                                </div>
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={handleServiceFeePayment}
+                              disabled={serviceFeeProcessing || !serviceFeePaymentDetails.cardHolderName || !serviceFeePaymentDetails.cardNumber || !serviceFeePaymentDetails.expiryDate || !serviceFeePaymentDetails.cvv || !serviceFeePaymentDetails.billingZipCode}
+                              className="w-full px-4 py-3 bg-[var(--color-orange)] text-white rounded-lg font-bold hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {serviceFeeProcessing ? (
+                                <>
+                                  <Loader2 className="w-5 h-5 animate-spin" />
+                                  <span>Processing Payment...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <CreditCard className="w-5 h-5" />
+                                  <span>Pay Service Fee ${(pricing.serviceFee || 0).toFixed(2)}</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="ml-10 bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="flex items-center gap-2 text-green-700">
+                          <CheckCircle className="w-5 h-5" />
+                          <span className="font-semibold">Service fee payment completed successfully!</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Navigation Buttons */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 pt-4 border-t border-slate-200">
+                    <button
+                      onClick={() => setStep(5)}
+                      className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border border-slate-300 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-slate-50 active:bg-slate-100 transition font-medium touch-manipulation"
+                    >
+                      Previous Step
+                    </button>
+                    <button
+                      onClick={handleSubmit}
+                      disabled={
+                        loading ||
+                        !irsPaymentMethod ||
+                        !serviceFeePaid ||
+                        (irsPaymentMethod === 'efw' && (!bankDetails.routingNumber || !bankDetails.accountNumber || !bankDetails.confirmAccountNumber || !bankDetails.accountType || !bankDetails.phoneNumber || bankDetails.accountNumber !== bankDetails.confirmAccountNumber))
+                      }
+                      className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                    >
+                      {loading ? (
+                        <>
+                          <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span className="hidden sm:inline">Processing...</span>
+                          <span className="sm:hidden">Processing</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="hidden sm:inline">Submit Filing</span>
+                          <span className="sm:hidden">Submit</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
