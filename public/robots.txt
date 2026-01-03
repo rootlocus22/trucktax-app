@@ -29,8 +29,9 @@ Allow: /*.jpg$
 Allow: /*.jpeg$
 Allow: /*.webp$
 
-# Sitemap location
+# Sitemap locations
 Sitemap: https://www.quicktrucktax.com/sitemap.xml
+Sitemap: https://www.quicktrucktax.com/sitemap-2290.xml
 
 # Crawl delay (optional, adjust as needed)
 Crawl-delay: 1
