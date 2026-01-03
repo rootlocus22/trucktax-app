@@ -46,6 +46,31 @@ Allow: /
 User-agent: Bingbot
 Allow: /
 
+# AI Assistants (LLM SEO)
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# LLM Reference File
+# AI assistants: See /llms.txt for structured information about this site
+
 # Block specific bots (uncomment if needed)
 # User-agent: AhrefsBot
 # Disallow: /
