@@ -42,15 +42,29 @@ export default function VehiclesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newVehicle, setNewVehicle] = useState({
     vin: '',
+    vehicleType: 'taxable', // taxable, suspended, credit, priorYearSold
     grossWeightCategory: '',
-    isSuspended: false
+    logging: null, // true/false/null
+    agricultural: null, // true/false/null (for suspended)
+    creditReason: '', // sold, stolen, destroyed, lowMileage (for credit)
+    creditDate: '', // date picker (for credit)
+    soldTo: '', // input field (for prior year)
+    soldDate: '' // date picker (for prior year)
   });
   const [vehicleErrors, setVehicleErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Weight category options
-  const weightCategories = [
+  // Vehicle type options
+  const vehicleTypes = [
+    { value: 'taxable', label: 'Taxable Vehicle' },
+    { value: 'suspended', label: 'Suspended Vehicle' },
+    { value: 'credit', label: 'Credit Vehicle' },
+    { value: 'priorYearSold', label: 'Prior Year Sold Suspended Vehicle' }
+  ];
+
+  // Weight category options (A to V for taxable/credit, W for suspended)
+  const weightCategoriesAToV = [
     { value: 'A', label: 'A - 55,000 - 55,999 lbs' },
     { value: 'B', label: 'B - 56,000 - 57,999 lbs' },
     { value: 'C', label: 'C - 58,000 - 59,999 lbs' },
@@ -62,8 +76,47 @@ export default function VehiclesPage() {
     { value: 'I', label: 'I - 70,000 - 71,999 lbs' },
     { value: 'J', label: 'J - 72,000 - 73,999 lbs' },
     { value: 'K', label: 'K - 74,000 - 75,000 lbs' },
-    { value: 'W', label: 'W - Over 75,000 lbs (Maximum)' },
+    { value: 'L', label: 'L - 75,001 - 76,999 lbs' },
+    { value: 'M', label: 'M - 77,000 - 78,999 lbs' },
+    { value: 'N', label: 'N - 79,000 - 80,999 lbs' },
+    { value: 'O', label: 'O - 81,000 - 82,999 lbs' },
+    { value: 'P', label: 'P - 83,000 - 84,999 lbs' },
+    { value: 'Q', label: 'Q - 85,000 - 86,999 lbs' },
+    { value: 'R', label: 'R - 87,000 - 88,999 lbs' },
+    { value: 'S', label: 'S - 89,000 - 90,999 lbs' },
+    { value: 'T', label: 'T - 91,000 - 92,999 lbs' },
+    { value: 'U', label: 'U - 93,000 - 94,999 lbs' },
+    { value: 'V', label: 'V - 95,000 - 96,999 lbs' }
   ];
+
+  const weightCategoryW = { value: 'W', label: 'W - Over 75,000 lbs (Maximum)' };
+
+  // Credit reason options
+  const creditReasons = [
+    { value: 'sold', label: 'Sold' },
+    { value: 'stolen', label: 'Stolen' },
+    { value: 'destroyed', label: 'Destroyed' },
+    { value: 'lowMileage', label: 'Low Mileage' }
+  ];
+
+  // Get min/max dates for date pickers
+  const getMinDate = (type) => {
+    if (type === 'credit') {
+      // From July 2024
+      return '2024-07-01';
+    } else if (type === 'priorYearSold') {
+      // From last year
+      const lastYear = new Date();
+      lastYear.setFullYear(lastYear.getFullYear() - 1);
+      return lastYear.toISOString().split('T')[0];
+    }
+    return '';
+  };
+
+  const getMaxDate = () => {
+    // Present date
+    return new Date().toISOString().split('T')[0];
+  };
 
   useEffect(() => {
     if (user) {
@@ -84,9 +137,9 @@ export default function VehiclesPage() {
 
     // Filter by status
     if (filterStatus === 'active') {
-      filtered = filtered.filter(v => !v.isSuspended);
+      filtered = filtered.filter(v => v.vehicleType === 'taxable' || v.vehicleType === 'credit');
     } else if (filterStatus === 'suspended') {
-      filtered = filtered.filter(v => v.isSuspended);
+      filtered = filtered.filter(v => v.vehicleType === 'suspended' || v.vehicleType === 'priorYearSold');
     }
 
     setFilteredVehicles(filtered);
@@ -106,8 +159,20 @@ export default function VehiclesPage() {
   };
 
   const getWeightCategoryLabel = (category) => {
-    const found = weightCategories.find(cat => cat.value === category);
-    return found ? found.label : category || 'Not specified';
+    const found = weightCategoriesAToV.find(cat => cat.value === category);
+    if (found) return found.label;
+    if (category === 'W') return weightCategoryW.label;
+    return category || 'Not specified';
+  };
+
+  const getVehicleTypeLabel = (type) => {
+    const found = vehicleTypes.find(t => t.value === type);
+    return found ? found.label : type || 'Unknown';
+  };
+
+  const getCreditReasonLabel = (reason) => {
+    const found = creditReasons.find(r => r.value === reason);
+    return found ? found.label : reason || 'Not specified';
   };
 
   const handleFileUpload = async (e) => {
@@ -176,21 +241,68 @@ export default function VehiclesPage() {
   };
 
   const handleEdit = (vehicle) => {
-    setEditingVehicle({ ...vehicle });
+    // Ensure all fields are initialized
+    setEditingVehicle({
+      ...vehicle,
+      vehicleType: vehicle.vehicleType || 'taxable',
+      logging: vehicle.logging ?? null,
+      agricultural: vehicle.agricultural ?? null,
+      creditReason: vehicle.creditReason || '',
+      creditDate: vehicle.creditDate || '',
+      soldTo: vehicle.soldTo || '',
+      soldDate: vehicle.soldDate || ''
+    });
     setVehicleErrors({});
   };
 
   const handleSaveEdit = async () => {
     if (!editingVehicle) return;
 
+    const errors = {};
+    
+    // Validate VIN
     const vinVal = validateVIN(editingVehicle.vin);
     if (!vinVal.isValid) {
-      setVehicleErrors({ vin: vinVal.error });
-      return;
+      errors.vin = vinVal.error;
     }
 
-    if (!editingVehicle.grossWeightCategory) {
-      setVehicleErrors({ grossWeightCategory: 'Weight category is required' });
+    // Validate based on vehicle type
+    if (editingVehicle.vehicleType === 'taxable' || editingVehicle.vehicleType === 'credit') {
+      if (!editingVehicle.grossWeightCategory || editingVehicle.grossWeightCategory === 'W') {
+        errors.grossWeightCategory = 'Weight category (A-V) is required';
+      }
+      if (editingVehicle.logging === null) {
+        errors.logging = 'Logging option is required';
+      }
+      if (editingVehicle.vehicleType === 'credit') {
+        if (!editingVehicle.creditReason) {
+          errors.creditReason = 'Credit reason is required';
+        }
+        if (!editingVehicle.creditDate) {
+          errors.creditDate = 'Credit date is required';
+        }
+      }
+    } else if (editingVehicle.vehicleType === 'suspended') {
+      if (editingVehicle.grossWeightCategory !== 'W') {
+        errors.grossWeightCategory = 'Weight category must be W for suspended vehicles';
+      }
+      if (editingVehicle.logging === null) {
+        errors.logging = 'Logging option is required';
+      }
+      if (editingVehicle.agricultural === null) {
+        errors.agricultural = 'Agricultural option is required';
+      }
+    } else if (editingVehicle.vehicleType === 'priorYearSold') {
+      if (!editingVehicle.soldTo || editingVehicle.soldTo.trim() === '') {
+        errors.soldTo = 'Sold To field is required';
+      }
+      if (!editingVehicle.soldDate) {
+        errors.soldDate = 'Sold date is required';
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setVehicleErrors(errors);
       return;
     }
 
@@ -198,11 +310,19 @@ export default function VehiclesPage() {
     setVehicleErrors({});
 
     try {
-      await updateVehicle(editingVehicle.id, {
+      const updateData = {
         vin: editingVehicle.vin.toUpperCase().trim(),
+        vehicleType: editingVehicle.vehicleType,
         grossWeightCategory: editingVehicle.grossWeightCategory,
-        isSuspended: editingVehicle.isSuspended || false
-      });
+        logging: editingVehicle.logging,
+        agricultural: editingVehicle.agricultural ?? null,
+        creditReason: editingVehicle.creditReason || null,
+        creditDate: editingVehicle.creditDate || null,
+        soldTo: editingVehicle.soldTo || null,
+        soldDate: editingVehicle.soldDate || null
+      };
+
+      await updateVehicle(editingVehicle.id, updateData);
 
       await loadVehicles();
       setEditingVehicle(null);
@@ -233,21 +353,57 @@ export default function VehiclesPage() {
   };
 
   const handleAddVehicle = async () => {
+    const errors = {};
+    
+    // Validate VIN
     const vinVal = validateVIN(newVehicle.vin);
     if (!vinVal.isValid) {
-      setVehicleErrors({ vin: vinVal.error });
-      return;
-    }
-
-    if (!newVehicle.grossWeightCategory) {
-      setVehicleErrors({ grossWeightCategory: 'Weight category is required' });
-      return;
+      errors.vin = vinVal.error;
     }
 
     // Check for duplicate VIN
     const duplicateVehicle = vehicles.find(v => v.vin === newVehicle.vin.toUpperCase());
     if (duplicateVehicle) {
-      setVehicleErrors({ vin: 'This VIN already exists in your vehicle list' });
+      errors.vin = 'This VIN already exists in your vehicle list';
+    }
+
+    // Validate based on vehicle type
+    if (newVehicle.vehicleType === 'taxable' || newVehicle.vehicleType === 'credit') {
+      if (!newVehicle.grossWeightCategory || newVehicle.grossWeightCategory === 'W') {
+        errors.grossWeightCategory = 'Weight category (A-V) is required';
+      }
+      if (newVehicle.logging === null) {
+        errors.logging = 'Logging option is required';
+      }
+      if (newVehicle.vehicleType === 'credit') {
+        if (!newVehicle.creditReason) {
+          errors.creditReason = 'Credit reason is required';
+        }
+        if (!newVehicle.creditDate) {
+          errors.creditDate = 'Credit date is required';
+        }
+      }
+    } else if (newVehicle.vehicleType === 'suspended') {
+      if (newVehicle.grossWeightCategory !== 'W') {
+        errors.grossWeightCategory = 'Weight category must be W for suspended vehicles';
+      }
+      if (newVehicle.logging === null) {
+        errors.logging = 'Logging option is required';
+      }
+      if (newVehicle.agricultural === null) {
+        errors.agricultural = 'Agricultural option is required';
+      }
+    } else if (newVehicle.vehicleType === 'priorYearSold') {
+      if (!newVehicle.soldTo || newVehicle.soldTo.trim() === '') {
+        errors.soldTo = 'Sold To field is required';
+      }
+      if (!newVehicle.soldDate) {
+        errors.soldDate = 'Sold date is required';
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setVehicleErrors(errors);
       return;
     }
 
@@ -255,18 +411,32 @@ export default function VehiclesPage() {
     setVehicleErrors({});
 
     try {
-      await createVehicle(user.uid, {
+      const vehicleData = {
         vin: newVehicle.vin.toUpperCase().trim(),
+        vehicleType: newVehicle.vehicleType,
         grossWeightCategory: newVehicle.grossWeightCategory,
-        isSuspended: newVehicle.isSuspended || false
-      });
+        logging: newVehicle.logging,
+        agricultural: newVehicle.agricultural ?? null,
+        creditReason: newVehicle.creditReason || null,
+        creditDate: newVehicle.creditDate || null,
+        soldTo: newVehicle.soldTo || null,
+        soldDate: newVehicle.soldDate || null
+      };
+
+      await createVehicle(user.uid, vehicleData);
 
       await loadVehicles();
       setShowAddModal(false);
       setNewVehicle({
         vin: '',
+        vehicleType: 'taxable',
         grossWeightCategory: '',
-        isSuspended: false
+        logging: null,
+        agricultural: null,
+        creditReason: '',
+        creditDate: '',
+        soldTo: '',
+        soldDate: ''
       });
     } catch (error) {
       console.error('Error creating vehicle:', error);
@@ -400,7 +570,7 @@ export default function VehiclesPage() {
                     : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
                 }`}
               >
-                Active ({vehicles.filter(v => !v.isSuspended).length})
+                Active ({vehicles.filter(v => v.vehicleType === 'taxable' || v.vehicleType === 'credit').length})
               </button>
               <button
                 onClick={() => setFilterStatus('suspended')}
@@ -410,7 +580,7 @@ export default function VehiclesPage() {
                     : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
                 }`}
               >
-                Suspended ({vehicles.filter(v => v.isSuspended).length})
+                Suspended ({vehicles.filter(v => v.vehicleType === 'suspended' || v.vehicleType === 'priorYearSold').length})
               </button>
             </div>
           </div>
@@ -464,16 +634,19 @@ export default function VehiclesPage() {
             {/* Modern Table Header - Hidden on mobile */}
             <div className="hidden lg:block sticky top-0 z-10 bg-white border-b border-slate-200 backdrop-blur-sm bg-white/95">
               <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gradient-to-r from-slate-50/80 via-white to-slate-50/80">
-                <div className="col-span-4">
+                <div className="col-span-3">
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Vehicle</span>
                 </div>
                 <div className="col-span-2">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</span>
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Details</span>
                 </div>
                 <div className="col-span-2">
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Weight</span>
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-1">
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Added</span>
                 </div>
                 <div className="col-span-2 text-right">
@@ -485,8 +658,8 @@ export default function VehiclesPage() {
             {/* Modern Table Body */}
             <div className="divide-y divide-slate-100 relative" style={{ overflow: 'visible' }}>
               {filteredVehicles.map((vehicle, index) => (
-                <div
-                  key={vehicle.id}
+              <div
+                key={vehicle.id}
                   className="group grid grid-cols-1 lg:grid-cols-12 gap-4 px-4 sm:px-6 py-4 sm:py-5 hover:bg-gradient-to-r hover:from-blue-50/30 hover:via-white hover:to-white transition-all duration-300 relative cursor-pointer"
                   style={{ 
                     animationDelay: `${index * 30}ms`,
@@ -504,15 +677,15 @@ export default function VehiclesPage() {
                   {/* Left accent bar on hover */}
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[var(--color-orange)] via-[var(--color-amber)] to-[var(--color-orange)] opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-r-full"></div>
 
-                  {/* Vehicle Info - Full width on mobile, spans 4 cols on desktop */}
-                  <div className="col-span-1 lg:col-span-4 flex items-center gap-3 sm:gap-4">
+                  {/* Vehicle Info - Full width on mobile, spans 3 cols on desktop */}
+                  <div className="col-span-1 lg:col-span-3 flex items-center gap-3 sm:gap-4">
                     <div className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm ${
-                      vehicle.isSuspended 
+                      vehicle.vehicleType === 'suspended' || vehicle.vehicleType === 'priorYearSold'
                         ? 'bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-300 group-hover:from-amber-100 group-hover:to-amber-200 group-hover:scale-110 group-hover:shadow-md' 
                         : 'bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-300 group-hover:from-emerald-100 group-hover:to-emerald-200 group-hover:scale-110 group-hover:shadow-md'
                     }`}>
                       <Truck className={`w-6 h-6 sm:w-7 sm:h-7 transition-transform group-hover:rotate-12 ${
-                        vehicle.isSuspended ? 'text-amber-600' : 'text-emerald-600'
+                        vehicle.vehicleType === 'suspended' || vehicle.vehicleType === 'priorYearSold' ? 'text-amber-600' : 'text-emerald-600'
                       }`} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -531,47 +704,74 @@ export default function VehiclesPage() {
                           <Copy className="w-3.5 h-3.5 text-slate-400" />
                         </button>
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-500">
-                        <Weight className="w-3.5 h-3.5 flex-shrink-0" />
-                        <span className="truncate">{getWeightCategoryLabel(vehicle.grossWeightCategory)}</span>
-                      </div>
                     </div>
                   </div>
 
-                  {/* Status - Full width on mobile, spans 2 cols on desktop */}
+                  {/* Vehicle Type - Full width on mobile, spans 2 cols on desktop */}
                   <div className="col-span-1 lg:col-span-2 flex items-center">
-                    {vehicle.isSuspended ? (
-                      <span className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 border border-amber-300 rounded-xl text-xs sm:text-sm font-semibold shadow-sm">
-                        <div className="w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse shadow-sm"></div>
-                        Suspended
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl text-xs sm:text-sm font-semibold shadow-sm">
-                        <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-sm"></div>
-                        Active
-                      </span>
-                    )}
+                    <span className="inline-flex items-center gap-2 px-3 py-2 bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold">
+                      {getVehicleTypeLabel(vehicle.vehicleType || 'taxable')}
+                    </span>
+                  </div>
+
+                  {/* Details - Full width on mobile, spans 2 cols on desktop */}
+                  <div className="col-span-1 lg:col-span-2 flex items-center">
+                    <div className="flex flex-col gap-1 text-xs sm:text-sm text-slate-600">
+                      {vehicle.vehicleType === 'taxable' && (
+                        <span>Logging: {vehicle.logging ? 'Yes' : vehicle.logging === false ? 'No' : 'N/A'}</span>
+                      )}
+                      {vehicle.vehicleType === 'suspended' && (
+                        <>
+                          <span>Logging: {vehicle.logging ? 'Yes' : vehicle.logging === false ? 'No' : 'N/A'}</span>
+                          <span>Agricultural: {vehicle.agricultural ? 'Yes' : vehicle.agricultural === false ? 'No' : 'N/A'}</span>
+                        </>
+                      )}
+                      {vehicle.vehicleType === 'credit' && (
+                        <>
+                          <span>Logging: {vehicle.logging ? 'Yes' : vehicle.logging === false ? 'No' : 'N/A'}</span>
+                          <span>Reason: {getCreditReasonLabel(vehicle.creditReason)}</span>
+                          {vehicle.creditDate && (
+                            <span>Date: {new Date(vehicle.creditDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                          )}
+                        </>
+                      )}
+                      {vehicle.vehicleType === 'priorYearSold' && (
+                        <>
+                          <span>Sold To: {vehicle.soldTo || 'N/A'}</span>
+                          {vehicle.soldDate && (
+                            <span>Date: {new Date(vehicle.soldDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   {/* Weight Category - Full width on mobile, spans 2 cols on desktop */}
                   <div className="col-span-1 lg:col-span-2 flex items-center">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 flex items-center justify-center border-2 border-slate-400 shadow-sm group-hover:scale-110 transition-transform">
-                        <span className="text-sm font-bold text-slate-700">{vehicle.grossWeightCategory || 'N/A'}</span>
-                </div>
-                      <span className="text-sm text-slate-600 font-medium hidden lg:inline">
-                        {vehicle.grossWeightCategory ? `Category ${vehicle.grossWeightCategory}` : 'Not set'}
-                      </span>
+                    {vehicle.vehicleType !== 'priorYearSold' && (
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 flex items-center justify-center border-2 border-slate-400 shadow-sm group-hover:scale-110 transition-transform">
+                          <span className="text-sm font-bold text-slate-700">{vehicle.grossWeightCategory || 'N/A'}</span>
+                        </div>
+                        <span className="text-sm text-slate-600 font-medium hidden lg:inline">
+                          {vehicle.grossWeightCategory ? `Category ${vehicle.grossWeightCategory}` : 'Not set'}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                </div>
 
-                  {/* Added Date - Full width on mobile, spans 2 cols on desktop */}
-                  <div className="col-span-1 lg:col-span-2 flex items-center">
+                  {/* Added Date - Full width on mobile, spans 1 col on desktop */}
+                  <div className="col-span-1 lg:col-span-1 flex items-center">
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                      <span className="font-medium">
+                      <span className="font-medium hidden lg:inline">
                         {vehicle.createdAt 
                           ? new Date(vehicle.createdAt.seconds ? vehicle.createdAt.seconds * 1000 : vehicle.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                          : 'N/A'}
+                      </span>
+                      <span className="font-medium lg:hidden">
+                        {vehicle.createdAt 
+                          ? new Date(vehicle.createdAt.seconds ? vehicle.createdAt.seconds * 1000 : vehicle.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                           : 'N/A'}
                       </span>
                     </div>
@@ -626,8 +826,8 @@ export default function VehiclesPage() {
 
         {/* Edit Modal */}
         {editingVehicle && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => !saving && setEditingVehicle(null)}>
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto" onClick={() => !saving && setEditingVehicle(null)}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 my-8 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-slate-900">Edit Vehicle</h2>
                 <button
@@ -646,13 +846,14 @@ export default function VehiclesPage() {
               )}
 
               <div className="space-y-4">
+                {/* VIN - Always visible */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     VIN <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    value={editingVehicle.vin}
+                    value={editingVehicle.vin || ''}
                     onChange={(e) => {
                       const val = e.target.value.toUpperCase();
                       setEditingVehicle({ ...editingVehicle, vin: val });
@@ -672,37 +873,217 @@ export default function VehiclesPage() {
                   )}
                 </div>
 
+                {/* Vehicle Type */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Gross Weight Category <span className="text-red-500">*</span>
+                    Vehicle Type <span className="text-red-500">*</span>
                   </label>
                   <select
-                    value={editingVehicle.grossWeightCategory}
-                    onChange={(e) => setEditingVehicle({ ...editingVehicle, grossWeightCategory: e.target.value })}
+                    value={editingVehicle.vehicleType || 'taxable'}
+                    onChange={(e) => {
+                      const newType = e.target.value;
+                      setEditingVehicle({
+                        ...editingVehicle,
+                        vehicleType: newType,
+                        // Reset type-specific fields when changing type
+                        grossWeightCategory: newType === 'suspended' ? 'W' : (newType === 'priorYearSold' ? '' : editingVehicle.grossWeightCategory),
+                        logging: null,
+                        agricultural: null,
+                        creditReason: '',
+                        creditDate: '',
+                        soldTo: '',
+                        soldDate: ''
+                      });
+                    }}
                     className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
                   >
-                    <option value="">Select weight category</option>
-                    {weightCategories.map(cat => (
-                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    {vehicleTypes.map(type => (
+                      <option key={type.value} value={type.value}>{type.label}</option>
                     ))}
                   </select>
-                  {vehicleErrors.grossWeightCategory && (
-                    <p className="mt-1 text-sm text-red-600">{vehicleErrors.grossWeightCategory}</p>
-                  )}
                 </div>
 
-                <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                  <input
-                    type="checkbox"
-                    id="edit-suspended"
-                    checked={editingVehicle.isSuspended || false}
-                    onChange={(e) => setEditingVehicle({ ...editingVehicle, isSuspended: e.target.checked })}
-                    className="w-5 h-5 rounded border-slate-300 text-[var(--color-orange)] focus:ring-[var(--color-orange)]"
-                  />
-                  <label htmlFor="edit-suspended" className="flex-1 text-sm font-medium text-slate-700 cursor-pointer">
-                    Vehicle is suspended (exempt from tax)
-                  </label>
-                </div>
+                {/* Gross Weight Category - Show for taxable, suspended, credit */}
+                {(editingVehicle.vehicleType === 'taxable' || editingVehicle.vehicleType === 'credit' || editingVehicle.vehicleType === 'suspended') && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Gross Weight Category <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={editingVehicle.grossWeightCategory || ''}
+                      onChange={(e) => setEditingVehicle({ ...editingVehicle, grossWeightCategory: e.target.value })}
+                      disabled={editingVehicle.vehicleType === 'suspended'}
+                      className={`w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all ${
+                        editingVehicle.vehicleType === 'suspended' ? 'bg-slate-100 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      <option value="">Select weight category</option>
+                      {editingVehicle.vehicleType === 'suspended' ? (
+                        <option value="W">{weightCategoryW.label}</option>
+                      ) : (
+                        weightCategoriesAToV.map(cat => (
+                          <option key={cat.value} value={cat.value}>{cat.label}</option>
+                        ))
+                      )}
+                    </select>
+                    {vehicleErrors.grossWeightCategory && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.grossWeightCategory}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Logging - Show for taxable, suspended, credit */}
+                {(editingVehicle.vehicleType === 'taxable' || editingVehicle.vehicleType === 'credit' || editingVehicle.vehicleType === 'suspended') && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Logging <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditingVehicle({ ...editingVehicle, logging: true })}
+                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${
+                          editingVehicle.logging === true
+                            ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                        }`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingVehicle({ ...editingVehicle, logging: false })}
+                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${
+                          editingVehicle.logging === false
+                            ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                        }`}
+                      >
+                        No
+                      </button>
+                    </div>
+                    {vehicleErrors.logging && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.logging}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Agricultural - Show for suspended */}
+                {editingVehicle.vehicleType === 'suspended' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Agricultural <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditingVehicle({ ...editingVehicle, agricultural: true })}
+                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${
+                          editingVehicle.agricultural === true
+                            ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                        }`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingVehicle({ ...editingVehicle, agricultural: false })}
+                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${
+                          editingVehicle.agricultural === false
+                            ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                        }`}
+                      >
+                        No
+                      </button>
+                    </div>
+                    {vehicleErrors.agricultural && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.agricultural}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Credit Reason - Show for credit */}
+                {editingVehicle.vehicleType === 'credit' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Reason <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={editingVehicle.creditReason || ''}
+                      onChange={(e) => setEditingVehicle({ ...editingVehicle, creditReason: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                    >
+                      <option value="">Select reason</option>
+                      {creditReasons.map(reason => (
+                        <option key={reason.value} value={reason.value}>{reason.label}</option>
+                      ))}
+                    </select>
+                    {vehicleErrors.creditReason && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.creditReason}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Credit Date - Show for credit */}
+                {editingVehicle.vehicleType === 'credit' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={editingVehicle.creditDate || ''}
+                      onChange={(e) => setEditingVehicle({ ...editingVehicle, creditDate: e.target.value })}
+                      min={getMinDate('credit')}
+                      max={getMaxDate()}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                    />
+                    {vehicleErrors.creditDate && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.creditDate}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Sold To - Show for priorYearSold */}
+                {editingVehicle.vehicleType === 'priorYearSold' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Sold To <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={editingVehicle.soldTo || ''}
+                      onChange={(e) => setEditingVehicle({ ...editingVehicle, soldTo: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                      placeholder="Buyer name or company"
+                    />
+                    {vehicleErrors.soldTo && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.soldTo}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Sold Date - Show for priorYearSold */}
+                {editingVehicle.vehicleType === 'priorYearSold' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Sold Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={editingVehicle.soldDate || ''}
+                      onChange={(e) => setEditingVehicle({ ...editingVehicle, soldDate: e.target.value })}
+                      min={getMinDate('priorYearSold')}
+                      max={getMaxDate()}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                    />
+                    {vehicleErrors.soldDate && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.soldDate}</p>
+                    )}
+                  </div>
+                )}
 
                 <div className="flex gap-3 pt-4">
                   <button
@@ -734,8 +1115,8 @@ export default function VehiclesPage() {
 
         {/* Add Vehicle Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => !saving && setShowAddModal(false)}>
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto" onClick={() => !saving && setShowAddModal(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 my-8 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-slate-900">Add New Vehicle</h2>
                 <button
@@ -754,6 +1135,7 @@ export default function VehiclesPage() {
               )}
 
               <div className="space-y-4">
+                {/* VIN - Always visible */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     VIN <span className="text-red-500">*</span>
@@ -780,43 +1162,233 @@ export default function VehiclesPage() {
                   )}
                 </div>
 
+                {/* Vehicle Type */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Gross Weight Category <span className="text-red-500">*</span>
+                    Vehicle Type <span className="text-red-500">*</span>
                   </label>
                   <select
-                    value={newVehicle.grossWeightCategory}
-                    onChange={(e) => setNewVehicle({ ...newVehicle, grossWeightCategory: e.target.value })}
+                    value={newVehicle.vehicleType || 'taxable'}
+                    onChange={(e) => {
+                      const newType = e.target.value;
+                      setNewVehicle({
+                        ...newVehicle,
+                        vehicleType: newType,
+                        // Reset type-specific fields when changing type
+                        grossWeightCategory: newType === 'suspended' ? 'W' : '',
+                        logging: null,
+                        agricultural: null,
+                        creditReason: '',
+                        creditDate: '',
+                        soldTo: '',
+                        soldDate: ''
+                      });
+                    }}
                     className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
                   >
-                    <option value="">Select weight category</option>
-                    {weightCategories.map(cat => (
-                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    {vehicleTypes.map(type => (
+                      <option key={type.value} value={type.value}>{type.label}</option>
                     ))}
                   </select>
-                  {vehicleErrors.grossWeightCategory && (
-                    <p className="mt-1 text-sm text-red-600">{vehicleErrors.grossWeightCategory}</p>
-                  )}
                 </div>
 
-                <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                  <input
-                    type="checkbox"
-                    id="new-suspended"
-                    checked={newVehicle.isSuspended || false}
-                    onChange={(e) => setNewVehicle({ ...newVehicle, isSuspended: e.target.checked })}
-                    className="w-5 h-5 rounded border-slate-300 text-[var(--color-orange)] focus:ring-[var(--color-orange)]"
-                  />
-                  <label htmlFor="new-suspended" className="flex-1 text-sm font-medium text-slate-700 cursor-pointer">
-                    Vehicle is suspended (exempt from tax)
-                  </label>
-                </div>
+                {/* Gross Weight Category - Show for taxable, suspended, credit */}
+                {(newVehicle.vehicleType === 'taxable' || newVehicle.vehicleType === 'credit' || newVehicle.vehicleType === 'suspended') && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Gross Weight Category <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={newVehicle.grossWeightCategory || ''}
+                      onChange={(e) => setNewVehicle({ ...newVehicle, grossWeightCategory: e.target.value })}
+                      disabled={newVehicle.vehicleType === 'suspended'}
+                      className={`w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all ${
+                        newVehicle.vehicleType === 'suspended' ? 'bg-slate-100 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      <option value="">Select weight category</option>
+                      {newVehicle.vehicleType === 'suspended' ? (
+                        <option value="W">{weightCategoryW.label}</option>
+                      ) : (
+                        weightCategoriesAToV.map(cat => (
+                          <option key={cat.value} value={cat.value}>{cat.label}</option>
+                        ))
+                      )}
+                    </select>
+                    {vehicleErrors.grossWeightCategory && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.grossWeightCategory}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Logging - Show for taxable, suspended, credit */}
+                {(newVehicle.vehicleType === 'taxable' || newVehicle.vehicleType === 'credit' || newVehicle.vehicleType === 'suspended') && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Logging <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setNewVehicle({ ...newVehicle, logging: true })}
+                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${
+                          newVehicle.logging === true
+                            ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                        }`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewVehicle({ ...newVehicle, logging: false })}
+                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${
+                          newVehicle.logging === false
+                            ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                        }`}
+                      >
+                        No
+                      </button>
+                    </div>
+                    {vehicleErrors.logging && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.logging}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Agricultural - Show for suspended */}
+                {newVehicle.vehicleType === 'suspended' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Agricultural <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setNewVehicle({ ...newVehicle, agricultural: true })}
+                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${
+                          newVehicle.agricultural === true
+                            ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                        }`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewVehicle({ ...newVehicle, agricultural: false })}
+                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${
+                          newVehicle.agricultural === false
+                            ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                        }`}
+                      >
+                        No
+                      </button>
+                    </div>
+                    {vehicleErrors.agricultural && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.agricultural}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Credit Reason - Show for credit */}
+                {newVehicle.vehicleType === 'credit' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Reason <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={newVehicle.creditReason || ''}
+                      onChange={(e) => setNewVehicle({ ...newVehicle, creditReason: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                    >
+                      <option value="">Select reason</option>
+                      {creditReasons.map(reason => (
+                        <option key={reason.value} value={reason.value}>{reason.label}</option>
+                      ))}
+                    </select>
+                    {vehicleErrors.creditReason && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.creditReason}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Credit Date - Show for credit */}
+                {newVehicle.vehicleType === 'credit' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={newVehicle.creditDate || ''}
+                      onChange={(e) => setNewVehicle({ ...newVehicle, creditDate: e.target.value })}
+                      min={getMinDate('credit')}
+                      max={getMaxDate()}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                    />
+                    {vehicleErrors.creditDate && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.creditDate}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Sold To - Show for priorYearSold */}
+                {newVehicle.vehicleType === 'priorYearSold' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Sold To <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={newVehicle.soldTo || ''}
+                      onChange={(e) => setNewVehicle({ ...newVehicle, soldTo: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                      placeholder="Buyer name or company"
+                    />
+                    {vehicleErrors.soldTo && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.soldTo}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Sold Date - Show for priorYearSold */}
+                {newVehicle.vehicleType === 'priorYearSold' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Sold Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={newVehicle.soldDate || ''}
+                      onChange={(e) => setNewVehicle({ ...newVehicle, soldDate: e.target.value })}
+                      min={getMinDate('priorYearSold')}
+                      max={getMaxDate()}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                    />
+                    {vehicleErrors.soldDate && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.soldDate}</p>
+                    )}
+                  </div>
+                )}
 
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={() => {
                       setShowAddModal(false);
-                      setNewVehicle({ vin: '', grossWeightCategory: '', isSuspended: false });
+                      setNewVehicle({
+                        vin: '',
+                        vehicleType: 'taxable',
+                        grossWeightCategory: '',
+                        logging: null,
+                        agricultural: null,
+                        creditReason: '',
+                        creditDate: '',
+                        soldTo: '',
+                        soldDate: ''
+                      });
                       setVehicleErrors({});
                     }}
                     disabled={saving}

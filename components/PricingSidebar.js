@@ -38,6 +38,7 @@ export function PricingSidebar({
   });
   const [pricingLoading, setPricingLoading] = useState(false);
   const [breakdown, setBreakdown] = useState([]);
+  const [vehicleBreakdown, setVehicleBreakdown] = useState([]);
   
   // Use provided pricing prop if available, otherwise use internal state
   const finalPricing = pricing && pricing.totalTax !== undefined ? pricing : internalPricing;
@@ -54,6 +55,7 @@ export function PricingSidebar({
           totalRefund: 0
         });
         setBreakdown([]);
+        setVehicleBreakdown([]);
         return;
       }
 
@@ -102,11 +104,15 @@ export function PricingSidebar({
           filingDataForPricing.amendmentData = amendmentDataForPricing;
         }
 
+        // Sanitize vehicles to remove complex objects (like Firestore Timestamps)
+        // Include vehicleType and logging for proper tax calculation
         const sanitizedVehicles = selectedVehiclesList.map(v => ({
           id: v.id,
           vin: v.vin,
           grossWeightCategory: v.grossWeightCategory,
-          isSuspended: v.isSuspended
+          isSuspended: v.isSuspended || false,
+          vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
+          logging: v.logging !== undefined ? v.logging : null
         }));
 
         const result = await calculateFilingCost(
@@ -117,6 +123,11 @@ export function PricingSidebar({
 
         if (result.success) {
           setInternalPricing(result.breakdown);
+          
+          // Store vehicle breakdown for detailed display
+          if (result.breakdown.vehicleBreakdown) {
+            setVehicleBreakdown(result.breakdown.vehicleBreakdown);
+          }
 
           // Build breakdown for display
           const breakdownItems = [];
@@ -135,15 +146,23 @@ export function PricingSidebar({
             });
           }
 
+          // Calculate service fee description based on vehicle count
+          let serviceFeeDescription = '';
+          if (selectedVehiclesList.length >= 25) {
+            serviceFeeDescription = `Enterprise pricing: $19.99 × ${selectedVehiclesList.length}`;
+          } else if (selectedVehiclesList.length >= 10) {
+            serviceFeeDescription = `Fleet pricing: $24.99 × ${selectedVehiclesList.length}`;
+          } else if (selectedVehiclesList.length >= 2) {
+            serviceFeeDescription = `Multi-vehicle pricing: $29.99 × ${selectedVehiclesList.length}`;
+          } else {
+            serviceFeeDescription = `Single vehicle pricing: $34.99`;
+          }
+
           breakdownItems.push({
             label: 'Service Fee',
             value: result.breakdown.serviceFee || 0,
             type: 'fee',
-            description: selectedVehiclesList.length >= 2
-              ? `Fleet pricing: $29.99 × ${selectedVehiclesList.length}`
-              : selectedVehiclesList.every(v => v.isSuspended)
-                ? 'Suspended vehicle pricing'
-                : 'Single vehicle pricing'
+            description: serviceFeeDescription
           });
 
           if (result.breakdown.salesTax > 0) {
@@ -156,6 +175,13 @@ export function PricingSidebar({
           }
 
           setBreakdown(breakdownItems);
+          
+          // Store vehicle breakdown for detailed tax calculation display
+          if (result.breakdown.vehicleBreakdown && Array.isArray(result.breakdown.vehicleBreakdown)) {
+            setVehicleBreakdown(result.breakdown.vehicleBreakdown);
+          } else {
+            setVehicleBreakdown([]);
+          }
         }
       } catch (err) {
         console.error('Pricing fetch error:', err);
@@ -282,31 +308,27 @@ export function PricingSidebar({
                 </div>
               )}
 
-              {/* Breakdown - Always show fields */}
-              <div className="space-y-3">
+              {/* Payment Breakdown - Clear Separation */}
+              <div className="space-y-4">
                 {!hasData ? (
                   <>
-                    {/* Show empty state with $0.00 values */}
-                    <div className="pb-3 border-b border-slate-100">
-                      <div className="flex items-start justify-between mb-1">
+                    {/* Show empty state */}
+                    <div className="pb-4 border-b-2 border-slate-200">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Payment to IRS</p>
+                      <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <p className="text-sm font-medium text-[var(--color-text)]">IRS Tax Amount</p>
+                          <p className="text-xs text-[var(--color-muted)] mt-0.5">Paid directly to IRS</p>
                         </div>
                         <p className="text-sm font-bold text-[var(--color-muted)]">$0.00</p>
                       </div>
                     </div>
-                    <div className="pb-3 border-b border-slate-100">
-                      <div className="flex items-start justify-between mb-1">
+                    <div className="pb-4 border-b-2 border-slate-200">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Service Fee</p>
+                      <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-[var(--color-text)]">Service Fee</p>
-                        </div>
-                        <p className="text-sm font-bold text-[var(--color-muted)]">$0.00</p>
-                      </div>
-                    </div>
-                    <div className="pb-3 border-b border-slate-100">
-                      <div className="flex items-start justify-between mb-1">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-[var(--color-text)]">Sales Tax</p>
+                          <p className="text-sm font-medium text-[var(--color-text)]">Platform Service Fee</p>
+                          <p className="text-xs text-[var(--color-muted)] mt-0.5">Paid to QuickTruckTax</p>
                         </div>
                         <p className="text-sm font-bold text-[var(--color-muted)]">$0.00</p>
                       </div>
@@ -314,120 +336,175 @@ export function PricingSidebar({
                   </>
                 ) : (
                   <>
-                    {/* Show actual breakdown when data is available */}
-                    {breakdown.map((item, idx) => (
-                      <div key={idx} className="pb-3 border-b border-slate-100 last:border-0">
-                        <div className="flex items-start justify-between mb-1">
+                    {/* Payment to IRS Section */}
+                    <div className="pb-4 border-b-2 border-blue-200 bg-blue-50/30 rounded-lg p-4 -mx-2">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                        <p className="text-xs font-bold text-blue-900 uppercase tracking-wide">Payment to IRS</p>
+                      </div>
+                      {filingType === 'refund' ? (
+                        <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-[var(--color-text)]">{item.label}</p>
-                            {item.description && (
-                              <p className="text-xs text-[var(--color-muted)] mt-0.5">{item.description}</p>
+                            <p className="text-sm font-semibold text-blue-900">Estimated Refund</p>
+                            <p className="text-xs text-blue-700 mt-0.5">Amount you'll receive from IRS</p>
+                          </div>
+                          <p className="text-lg font-bold text-emerald-600">+${(finalPricing.totalRefund || 0).toFixed(2)}</p>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-blue-900">IRS Tax Amount</p>
+                              <p className="text-xs text-blue-700 mt-0.5">Paid directly to IRS via selected payment method</p>
+                            </div>
+                            <p className="text-lg font-bold text-blue-900">${(finalPricing.totalTax || 0).toFixed(2)}</p>
+                          </div>
+                          
+                          {/* Detailed Vehicle Tax Breakdown */}
+                          {vehicleBreakdown && vehicleBreakdown.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-blue-200">
+                              <p className="text-xs font-semibold text-blue-800 mb-2">Tax Calculation Breakdown:</p>
+                              <div className="space-y-1.5 text-xs">
+                                {vehicleBreakdown
+                                  .filter(v => v.taxAmount !== 0)
+                                  .map((vehicle, idx) => {
+                                    const vehicleType = vehicle.vehicleType || (vehicle.isSuspended ? 'suspended' : 'taxable');
+                                    const isTaxable = vehicleType === 'taxable';
+                                    const isCredit = vehicleType === 'credit';
+                                    const loggingLabel = vehicle.logging ? ' (Logging)' : '';
+                                    
+                                    return (
+                                      <div key={idx} className="flex items-center justify-between py-1">
+                                        <div className="flex-1 min-w-0">
+                                          <span className="text-blue-700 font-mono text-xs truncate">{vehicle.vin?.substring(0, 8)}...</span>
+                                          <span className="text-blue-600 ml-1">
+                                            {isTaxable ? 'Taxable' : isCredit ? 'Credit' : ''} Cat {vehicle.grossWeightCategory}{loggingLabel}:
+                                          </span>
+                                        </div>
+                                        <span className={`font-semibold ${isCredit ? 'text-red-600' : 'text-blue-700'}`}>
+                                          {isCredit ? '-' : '+'}${Math.abs(vehicle.taxAmount || 0).toFixed(2)}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                                <div className="pt-1.5 mt-1.5 border-t border-blue-200 flex items-center justify-between">
+                                  <span className="text-xs font-bold text-blue-900">Total IRS Tax:</span>
+                                  <span className="text-sm font-bold text-blue-900">${(finalPricing.totalTax || 0).toFixed(2)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    {/* Service Fee Section */}
+                    <div className="pb-4 border-b-2 border-orange-200 bg-orange-50/30 rounded-lg p-4 -mx-2">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 bg-[var(--color-orange)] rounded-full"></div>
+                        <p className="text-xs font-bold text-orange-900 uppercase tracking-wide">Service Fee</p>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-orange-900">Platform Service Fee</p>
+                            {breakdown.find(item => item.type === 'fee')?.description && (
+                              <p className="text-xs text-orange-700 mt-0.5">
+                                {breakdown.find(item => item.type === 'fee')?.description}
+                              </p>
+                            )}
+                            {!breakdown.find(item => item.type === 'fee')?.description && (
+                              <p className="text-xs text-orange-700 mt-0.5">Paid to QuickTruckTax</p>
                             )}
                           </div>
-                          <p className={`text-sm font-bold ${item.type === 'refund' ? 'text-emerald-600' : ''}`}>
-                            {item.type === 'refund' ? '+' : ''}${item.value.toFixed(2)}
-                          </p>
+                          <p className="text-lg font-bold text-orange-900">${(finalPricing.serviceFee || 0).toFixed(2)}</p>
+                        </div>
+                        {couponApplied && couponDiscount > 0 && (
+                          <div className="flex items-start justify-between pt-2 border-t border-orange-200">
+                            <div className="flex-1">
+                              <p className="text-xs font-medium text-green-700">Coupon Discount</p>
+                              <p className="text-xs text-green-600 mt-0.5">
+                                {couponType === 'percentage' ? `${couponDiscount}% off` : `$${couponDiscount} off`}
+                              </p>
+                            </div>
+                            <p className="text-sm font-bold text-green-600">-${(finalPricing.couponDiscount || 0).toFixed(2)}</p>
+                          </div>
+                        )}
+                        {(finalPricing.salesTax || 0) > 0 && (
+                          <div className="flex items-start justify-between pt-2 border-t border-orange-200">
+                            <div className="flex-1">
+                              <p className="text-xs font-medium text-orange-700">Sales Tax</p>
+                              <p className="text-xs text-orange-600 mt-0.5">On service fee</p>
+                            </div>
+                            <p className="text-sm font-bold text-orange-700">${(finalPricing.salesTax || 0).toFixed(2)}</p>
+                          </div>
+                        )}
+                        <div className="pt-2 border-t-2 border-orange-300 mt-2">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-bold text-orange-900">Total Service Fee Due Now</p>
+                            <p className="text-lg font-bold text-orange-900">
+                              ${((finalPricing.serviceFee || 0) + (finalPricing.salesTax || 0) - (finalPricing.couponDiscount || 0)).toFixed(2)}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    ))}
+                    </div>
                   </>
                 )}
               </div>
 
-              {/* Tax Summary - Enhanced */}
-              {hasData && (
+              {/* Grand Total - Only show for refunds or if needed */}
+              {hasData && filingType === 'refund' && (
                 <div className="pt-4 border-t-2 border-slate-200">
-                  <h4 className="text-sm font-semibold text-[var(--color-text)] mb-3">Tax Summary</h4>
-                  <div className="space-y-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-[var(--color-muted)]">Total Tax:</span>
-                      <span className="font-semibold">${(finalPricing.totalTax || 0).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[var(--color-muted)]">Service Fee:</span>
-                      <span className="font-semibold">${(finalPricing.serviceFee || 0).toFixed(2)}</span>
-                    </div>
-                    {couponApplied && couponDiscount > 0 && (
-                      <div className="flex justify-between text-green-600">
-                        <span>Coupon Discount ({couponType === 'percentage' ? `${couponDiscount}%` : `$${couponDiscount}`}):</span>
-                        <span className="font-semibold">-${(finalPricing.couponDiscount || 0).toFixed(2)}</span>
-                      </div>
-                    )}
-                    {(finalPricing.salesTax || 0) > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-[var(--color-muted)]">Sales Tax:</span>
-                        <span className="font-semibold">${(finalPricing.salesTax || 0).toFixed(2)}</span>
-                      </div>
-                    )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-base font-bold text-emerald-600">Total Refund</span>
+                    <span className="text-2xl font-bold text-emerald-600">
+                      +${(finalPricing.totalRefund || 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-emerald-600 font-medium mt-1">Estimated refund amount from IRS</p>
+                </div>
+              )}
+
+              {/* Amendment VIN Correction Notice */}
+              {hasData && filingType === 'amendment' && amendmentType === 'vin_correction' && (
+                <div className="pt-4 border-t-2 border-slate-200">
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                    <p className="text-xs text-emerald-700 font-medium flex items-center gap-1.5">
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      VIN corrections are FREE - No tax or service fee
+                    </p>
                   </div>
                 </div>
               )}
 
-              {/* Total - Always show */}
-              <div className="pt-4 border-t-2 border-slate-200">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-base font-bold text-[var(--color-text)]">Total</span>
-                  <span className={`text-2xl font-bold ${hasData && filingType === 'refund' ? 'text-emerald-600' : hasData ? 'text-[var(--color-text)]' : 'text-[var(--color-muted)]'}`}>
-                    {hasData && filingType === 'refund' ? '+' : ''}${hasData ? (finalPricing.grandTotal || 0).toFixed(2) : '0.00'}
-                  </span>
+              {!hasData && (
+                <div className="pt-4 border-t-2 border-slate-200">
+                  <p className="text-xs text-[var(--color-muted)] text-center py-2">Select filing type and vehicles to see pricing</p>
                 </div>
-                {/* IRS Tax Amount Payable */}
-                {hasData && filingType !== 'refund' && (
-                  <div className="mt-3 pt-3 border-t border-slate-200">
-                    <div className="flex justify-between bg-blue-50 -mx-2 px-2 py-2 rounded mb-2">
-                      <span className="text-xs font-bold text-blue-700">IRS Tax Amount Payable:</span>
-                      <span className="text-xs font-bold text-blue-700">${(finalPricing.totalTax || 0).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between bg-orange-50 -mx-2 px-2 py-2 rounded">
-                      <span className="text-xs font-bold text-[var(--color-orange)]">Total Due Now (Service Fee):</span>
-                      <span className="text-xs font-bold text-[var(--color-orange)]">${((finalPricing.grandTotal || finalPricing.serviceFee || 0)).toFixed(2)}</span>
-                    </div>
-                  </div>
-                )}
-                {hasData && filingType === 'refund' && (
-                  <p className="text-xs text-emerald-600 font-medium">Estimated refund amount</p>
-                )}
-                {hasData && filingType === 'amendment' && amendmentType === 'vin_correction' && (
-                  <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
-                    <p className="text-xs text-emerald-700 font-medium flex items-center gap-1.5">
-                      <CheckCircle className="w-3.5 h-3.5" />
-                      VIN corrections are FREE
-                    </p>
-                  </div>
-                )}
-                {!hasData && (
-                  <p className="text-xs text-[var(--color-muted)] mt-1">Select filing type and vehicles to calculate</p>
-                )}
-              </div>
+              )}
 
-              {/* Vehicle Breakdown */}
+              {/* Vehicle Breakdown - Simplified */}
               {selectedVehicleIds.length > 0 && filingType !== 'amendment' && (
                 <div className="pt-4 border-t border-slate-100">
-                  <p className="text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wide mb-3">Vehicles</p>
-                  <div className="space-y-2">
+                  <p className="text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wide mb-2">
+                    Vehicles ({selectedVehicleIds.length})
+                  </p>
+                  <div className="space-y-1.5 max-h-32 overflow-y-auto">
                     {vehicles
                       .filter(v => selectedVehicleIds.includes(v.id))
-                      .slice(0, 5)
+                      .slice(0, 3)
                       .map((vehicle) => (
-                        <div key={vehicle.id} className="flex items-center justify-between text-xs">
+                        <div key={vehicle.id} className="flex items-center gap-2 text-xs">
                           <div className="flex-1 min-w-0">
                             <p className="font-mono text-[var(--color-text)] truncate">{vehicle.vin}</p>
-                            <p className="text-[var(--color-muted)]">
-                              {vehicle.grossWeightCategory} {vehicle.isSuspended && '(Suspended)'}
-                            </p>
                           </div>
                         </div>
                       ))}
-                    {selectedVehicleIds.length > 5 && (
-                      <p className="text-xs text-[var(--color-muted)]">+{selectedVehicleIds.length - 5} more</p>
+                    {selectedVehicleIds.length > 3 && (
+                      <p className="text-xs text-[var(--color-muted)] italic">+{selectedVehicleIds.length - 3} more vehicles</p>
                     )}
                   </div>
-                </div>
-              )}
-              {!hasData && (
-                <div className="pt-4 border-t border-slate-100">
-                  <p className="text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wide mb-3">Vehicles</p>
-                  <p className="text-xs text-[var(--color-muted)]">No vehicles selected</p>
                 </div>
               )}
 

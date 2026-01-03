@@ -11,7 +11,7 @@ import { detectDuplicateFiling, formatIncompleteFiling } from '@/lib/filingIntel
 import { uploadInputDocument } from '@/lib/storage';
 import { calculateFilingCost } from '@/app/actions/pricing'; // Server Action
 import { calculateTax, calculateRefundAmount, calculateWeightIncreaseAdditionalTax, calculateMileageExceededTax } from '@/lib/pricing'; // Keep for client-side estimation only
-import { validateBusinessName, validateEIN, formatEIN, validateVIN, validateAddress, validatePhone } from '@/lib/validation';
+import { validateBusinessName, validateEIN, formatEIN, validateVIN, validateAddress, validatePhone, validateState, validateZip, validateCity, validateCountry, validatePIN } from '@/lib/validation';
 import { validateVINCorrection, validateWeightIncrease, validateMileageExceeded, calculateWeightIncreaseDueDate, getAmendmentTypeConfig } from '@/lib/amendmentHelpers';
 import { FileText, AlertTriangle, RefreshCw, Truck, Info, CreditCard, CheckCircle, ShieldCheck, AlertCircle, RotateCcw, Clock, Building2, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
 import { PricingSidebar } from '@/components/PricingSidebar';
@@ -100,11 +100,15 @@ function MobilePricingSummary({
           filingDataForPricing.amendmentData = amendmentDataForPricing;
         }
 
+        // Sanitize vehicles to remove complex objects (like Firestore Timestamps)
+        // Include vehicleType and logging for proper tax calculation
         const sanitizedVehicles = selectedVehiclesList.map(v => ({
           id: v.id,
           vin: v.vin,
           grossWeightCategory: v.grossWeightCategory,
-          isSuspended: v.isSuspended
+          isSuspended: v.isSuspended || false,
+          vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
+          logging: v.logging !== undefined ? v.logging : null
         }));
 
         const { calculateFilingCost } = await import('@/app/actions/pricing');
@@ -207,20 +211,36 @@ function MobilePricingSummary({
                   </div>
                 ) : (
                   <>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">IRS Tax</span>
-                      <span className="font-semibold">${pricing.totalTax?.toFixed(2) || '0.00'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Service Fee</span>
-                      <span className="font-semibold">${pricing.serviceFee?.toFixed(2) || '0.00'}</span>
-                    </div>
-                    {pricing.salesTax > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Sales Tax</span>
-                        <span className="font-semibold">${pricing.salesTax?.toFixed(2)}</span>
+                    <div className="pb-2 border-b border-slate-200">
+                      <div className="flex justify-between items-start mb-1">
+                        <div className="flex-1">
+                          <span className="text-xs font-semibold text-blue-700">Payment to IRS</span>
+                          <p className="text-xs text-slate-500 mt-0.5">IRS Tax Amount</p>
+                        </div>
+                        <span className="text-sm font-bold text-blue-700">${pricing.totalTax?.toFixed(2) || '0.00'}</span>
                       </div>
-                    )}
+                    </div>
+                    <div className="pb-2 border-b border-slate-200">
+                      <div className="flex justify-between items-start mb-1">
+                        <div className="flex-1">
+                          <span className="text-xs font-semibold text-orange-700">Service Fee</span>
+                          <p className="text-xs text-slate-500 mt-0.5">Platform service fee</p>
+                        </div>
+                        <span className="text-sm font-bold text-orange-700">${pricing.serviceFee?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      {pricing.salesTax > 0 && (
+                        <div className="flex justify-between text-xs mt-1">
+                          <span className="text-slate-500">+ Sales Tax</span>
+                          <span className="font-medium">${pricing.salesTax?.toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-200">
+                        <span className="text-xs font-bold text-orange-700">Total Due Now</span>
+                        <span className="text-sm font-bold text-orange-700">
+                          ${((pricing.serviceFee || 0) + (pricing.salesTax || 0) - (pricing.couponDiscount || 0)).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
                   </>
                 )}
                 {filingType === 'amendment' && amendmentType === 'vin_correction' && (
@@ -261,9 +281,18 @@ function NewFilingContent() {
     businessName: '',
     ein: '',
     address: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: '',
     phone: '',
     signingAuthorityName: '',
-    signingAuthorityTitle: ''
+    signingAuthorityPhone: '',
+    signingAuthorityPIN: '',
+    hasThirdPartyDesignee: false,
+    thirdPartyDesigneeName: '',
+    thirdPartyDesigneePhone: '',
+    thirdPartyDesigneePIN: ''
   });
   const [businessErrors, setBusinessErrors] = useState({});
   const [showBusinessForm, setShowBusinessForm] = useState(false);
@@ -274,14 +303,76 @@ function NewFilingContent() {
   const [showVehicleForm, setShowVehicleForm] = useState(false);
   const [taxableDropdownOpen, setTaxableDropdownOpen] = useState(false);
   const [suspendedDropdownOpen, setSuspendedDropdownOpen] = useState(false);
+  const [creditDropdownOpen, setCreditDropdownOpen] = useState(false);
+  const [priorYearSoldDropdownOpen, setPriorYearSoldDropdownOpen] = useState(false);
+  const [vehicleTypeError, setVehicleTypeError] = useState('');
 
-  // Calculate vehicle categories
+  // Calculate vehicle categories by vehicleType
   const vehicleCategories = useMemo(() => {
     const isRefund = filingType === 'refund';
-    const taxable = vehicles.filter(v => !v.isSuspended);
-    const suspended = vehicles.filter(v => v.isSuspended);
-    return { isRefund, taxable, suspended };
+    const taxable = vehicles.filter(v => v.vehicleType === 'taxable' || (!v.vehicleType && !v.isSuspended));
+    const suspended = vehicles.filter(v => v.vehicleType === 'suspended' || (v.vehicleType === undefined && v.isSuspended));
+    const credit = vehicles.filter(v => v.vehicleType === 'credit');
+    const priorYearSold = vehicles.filter(v => v.vehicleType === 'priorYearSold');
+    return { isRefund, taxable, suspended, credit, priorYearSold };
   }, [vehicles, filingType]);
+
+  // Validate vehicle type combinations
+  const validateVehicleTypeCombination = (selectedIds) => {
+    if (selectedIds.length === 0) return { isValid: true, error: '' };
+
+    const selectedVehicles = vehicles.filter(v => selectedIds.includes(v.id));
+    const hasTaxable = selectedVehicles.some(v => v.vehicleType === 'taxable' || (!v.vehicleType && !v.isSuspended));
+    const hasSuspended = selectedVehicles.some(v => v.vehicleType === 'suspended' || (v.vehicleType === undefined && v.isSuspended));
+    const hasCredit = selectedVehicles.some(v => v.vehicleType === 'credit');
+    const hasPriorYearSold = selectedVehicles.some(v => v.vehicleType === 'priorYearSold');
+
+    const typeCount = [hasTaxable, hasSuspended, hasCredit, hasPriorYearSold].filter(Boolean).length;
+
+    // Valid combinations:
+    // 1. All 4 types together
+    if (hasTaxable && hasSuspended && hasCredit && hasPriorYearSold) {
+      return { isValid: true, error: '' };
+    }
+    // 2. Only taxable
+    if (hasTaxable && !hasSuspended && !hasCredit && !hasPriorYearSold) {
+      return { isValid: true, error: '' };
+    }
+    // 3. Only suspended
+    if (!hasTaxable && hasSuspended && !hasCredit && !hasPriorYearSold) {
+      return { isValid: true, error: '' };
+    }
+    // 4. Taxable + suspended + credit
+    if (hasTaxable && hasSuspended && hasCredit && !hasPriorYearSold) {
+      return { isValid: true, error: '' };
+    }
+    // 5. Taxable + suspended + Prior year
+    if (hasTaxable && hasSuspended && !hasCredit && hasPriorYearSold) {
+      return { isValid: true, error: '' };
+    }
+    // 6. Taxable + credit
+    if (hasTaxable && !hasSuspended && hasCredit && !hasPriorYearSold) {
+      return { isValid: true, error: '' };
+    }
+    // 7. Taxable + suspended
+    if (hasTaxable && hasSuspended && !hasCredit && !hasPriorYearSold) {
+      return { isValid: true, error: '' };
+    }
+    // 8. Taxable + Prior year
+    if (hasTaxable && !hasSuspended && !hasCredit && hasPriorYearSold) {
+      return { isValid: true, error: '' };
+    }
+    // 9. Suspended + Prior year sold
+    if (!hasTaxable && hasSuspended && !hasCredit && hasPriorYearSold) {
+      return { isValid: true, error: '' };
+    }
+
+    // Invalid combination
+    return {
+      isValid: false,
+      error: 'Invalid vehicle type combination. Valid combinations: All 4 types together, Only Taxable, Only Suspended, Taxable + Suspended + Credit, Taxable + Suspended + Prior Year, Taxable + Credit, Taxable + Suspended, Taxable + Prior Year, or Suspended + Prior Year Sold.'
+    };
+  };
   const [newVehicle, setNewVehicle] = useState({
     vin: '',
     grossWeightCategory: '',
@@ -407,14 +498,20 @@ function NewFilingContent() {
     }
   }, [user]);
 
-  // Clear all errors when step changes
+  // Clear all errors when step changes and reset business form visibility
   useEffect(() => {
     setError('');
     setBusinessErrors({});
     setVehicleErrors({});
     setBankDetailsErrors({});
     setCouponError('');
-  }, [step]);
+    
+    // Reset business form visibility when entering Step 2
+    // This ensures existing businesses are shown first (unless there are no businesses)
+    if (step === 2 && filingType !== 'amendment') {
+      setShowBusinessForm(false);
+    }
+  }, [step, filingType]);
 
   // Fetch Pricing from Server - Now runs on all steps for real-time pricing
   useEffect(() => {
@@ -482,11 +579,14 @@ function NewFilingContent() {
         }
 
         // Sanitize vehicles to remove complex objects (like Firestore Timestamps)
+        // Include vehicleType and logging for proper tax calculation
         const sanitizedVehicles = selectedVehiclesList.map(v => ({
           id: v.id,
           vin: v.vin,
           grossWeightCategory: v.grossWeightCategory,
-          isSuspended: v.isSuspended
+          isSuspended: v.isSuspended || false,
+          vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
+          logging: v.logging !== undefined ? v.logging : null
         }));
 
         const result = await calculateFilingCost(
@@ -675,6 +775,35 @@ function NewFilingContent() {
     if (field === 'ein') {
       formattedValue = formatEIN(value);
     }
+    if (field === 'zip') {
+      // Format ZIP: allow 5 digits or 5+4 format
+      formattedValue = value.replace(/\D/g, '');
+      if (formattedValue.length > 5) {
+        formattedValue = formattedValue.slice(0, 5) + '-' + formattedValue.slice(5, 9);
+      }
+    }
+    if (field === 'state') {
+      // Convert to uppercase for state codes
+      formattedValue = value.toUpperCase().trim();
+    }
+    if (field === 'phone' || field === 'signingAuthorityPhone' || field === 'thirdPartyDesigneePhone') {
+      // Format phone number: (XXX) XXX-XXXX
+      const cleanPhone = value.replace(/\D/g, '');
+      if (cleanPhone.length <= 3) {
+        formattedValue = cleanPhone;
+      } else if (cleanPhone.length <= 6) {
+        formattedValue = `(${cleanPhone.slice(0, 3)}) ${cleanPhone.slice(3)}`;
+      } else if (cleanPhone.length <= 10) {
+        formattedValue = `(${cleanPhone.slice(0, 3)}) ${cleanPhone.slice(3, 6)}-${cleanPhone.slice(6, 10)}`;
+      } else {
+        // Handle 11 digits (with country code 1)
+        formattedValue = `+1 (${cleanPhone.slice(1, 4)}) ${cleanPhone.slice(4, 7)}-${cleanPhone.slice(7, 11)}`;
+      }
+    }
+    if (field === 'signingAuthorityPIN' || field === 'thirdPartyDesigneePIN') {
+      // Format PIN: only allow 5 digits
+      formattedValue = value.replace(/\D/g, '').slice(0, 5);
+    }
 
     setNewBusiness(prev => ({ ...prev, [field]: formattedValue }));
 
@@ -683,7 +812,27 @@ function NewFilingContent() {
     if (field === 'businessName') validation = validateBusinessName(formattedValue);
     if (field === 'ein') validation = validateEIN(formattedValue);
     if (field === 'address') validation = validateAddress(formattedValue, true); // Required
+    if (field === 'city') validation = validateCity(formattedValue, true); // Required
+    if (field === 'state') validation = validateState(formattedValue, true); // Required
+    if (field === 'zip') validation = validateZip(formattedValue, true); // Required
+    if (field === 'country') validation = validateCountry(formattedValue, true); // Required
     if (field === 'phone') validation = validatePhone(formattedValue, true); // Required
+    if (field === 'signingAuthorityName') {
+      validation = formattedValue && formattedValue.trim().length >= 2 
+        ? { isValid: true, error: '' } 
+        : { isValid: false, error: 'Signing Authority Name is required and must be at least 2 characters' };
+    }
+    if (field === 'signingAuthorityPhone') validation = validatePhone(formattedValue, true); // Required
+    if (field === 'signingAuthorityPIN') validation = validatePIN(formattedValue, true); // Required
+    if (field === 'thirdPartyDesigneeName') {
+      validation = newBusiness.hasThirdPartyDesignee 
+        ? (formattedValue && formattedValue.trim().length >= 2 
+            ? { isValid: true, error: '' } 
+            : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
+        : { isValid: true, error: '' };
+    }
+    if (field === 'thirdPartyDesigneePhone') validation = validatePhone(formattedValue, newBusiness.hasThirdPartyDesignee); // Required if Third Party Designee is Yes
+    if (field === 'thirdPartyDesigneePIN') validation = validatePIN(formattedValue, newBusiness.hasThirdPartyDesignee); // Required if Third Party Designee is Yes
 
     if (validation) {
       setBusinessErrors(prev => ({
@@ -698,21 +847,63 @@ function NewFilingContent() {
     const nameVal = validateBusinessName(newBusiness.businessName);
     const einVal = validateEIN(newBusiness.ein);
     const addrVal = validateAddress(newBusiness.address, true); // Required
+    const cityVal = validateCity(newBusiness.city, true); // Required
+    const stateVal = validateState(newBusiness.state, true); // Required
+    const zipVal = validateZip(newBusiness.zip, true); // Required
+    const countryVal = validateCountry(newBusiness.country, true); // Required
     const phoneVal = validatePhone(newBusiness.phone, true); // Required
+    // Validate signing authority name (required, but simpler than business name)
+    const signingAuthorityNameVal = newBusiness.signingAuthorityName && newBusiness.signingAuthorityName.trim().length >= 2 
+      ? { isValid: true, error: '' } 
+      : { isValid: false, error: 'Signing Authority Name is required and must be at least 2 characters' };
+    const signingAuthorityPhoneVal = validatePhone(newBusiness.signingAuthorityPhone, true); // Required
+    const signingAuthorityPINVal = validatePIN(newBusiness.signingAuthorityPIN, true); // Required
+    // Validate third party designee name (required if Third Party Designee is Yes)
+    const thirdPartyDesigneeNameVal = newBusiness.hasThirdPartyDesignee 
+      ? (newBusiness.thirdPartyDesigneeName && newBusiness.thirdPartyDesigneeName.trim().length >= 2 
+          ? { isValid: true, error: '' } 
+          : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
+      : { isValid: true, error: '' };
+    const thirdPartyDesigneePhoneVal = validatePhone(newBusiness.thirdPartyDesigneePhone, newBusiness.hasThirdPartyDesignee);
+    const thirdPartyDesigneePINVal = validatePIN(newBusiness.thirdPartyDesigneePIN, newBusiness.hasThirdPartyDesignee);
 
-    if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !phoneVal.isValid) {
+    if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !cityVal.isValid || !stateVal.isValid || !zipVal.isValid || !countryVal.isValid || !phoneVal.isValid || 
+        !signingAuthorityNameVal.isValid || !signingAuthorityPhoneVal.isValid || !signingAuthorityPINVal.isValid ||
+        !thirdPartyDesigneeNameVal.isValid || !thirdPartyDesigneePhoneVal.isValid || !thirdPartyDesigneePINVal.isValid) {
       setBusinessErrors({
         businessName: nameVal.error,
         ein: einVal.error,
         address: addrVal.error,
-        phone: phoneVal.error
+        city: cityVal.error,
+        state: stateVal.error,
+        zip: zipVal.error,
+        country: countryVal.error,
+        phone: phoneVal.error,
+        signingAuthorityName: signingAuthorityNameVal.error,
+        signingAuthorityPhone: signingAuthorityPhoneVal.error,
+        signingAuthorityPIN: signingAuthorityPINVal.error,
+        thirdPartyDesigneeName: thirdPartyDesigneeNameVal.error,
+        thirdPartyDesigneePhone: thirdPartyDesigneePhoneVal.error,
+        thirdPartyDesigneePIN: thirdPartyDesigneePINVal.error
       });
       // Create a detailed error message listing all issues
       const errorFields = [];
       if (!nameVal.isValid) errorFields.push('Business Name');
       if (!einVal.isValid) errorFields.push('EIN');
       if (!addrVal.isValid) errorFields.push('Business Address');
+      if (!cityVal.isValid) errorFields.push('City');
+      if (!stateVal.isValid) errorFields.push('State');
+      if (!zipVal.isValid) errorFields.push('ZIP Code');
+      if (!countryVal.isValid) errorFields.push('Country');
       if (!phoneVal.isValid) errorFields.push('Phone Number');
+      if (!signingAuthorityNameVal.isValid) errorFields.push('Signing Authority Name');
+      if (!signingAuthorityPhoneVal.isValid) errorFields.push('Signing Authority Phone');
+      if (!signingAuthorityPINVal.isValid) errorFields.push('Signing Authority PIN');
+      if (newBusiness.hasThirdPartyDesignee) {
+        if (!thirdPartyDesigneeNameVal.isValid) errorFields.push('Third Party Designee Name');
+        if (!thirdPartyDesigneePhoneVal.isValid) errorFields.push('Third Party Designee Phone');
+        if (!thirdPartyDesigneePINVal.isValid) errorFields.push('Third Party Designee PIN');
+      }
       
       setError(`Please correct the following required fields: ${errorFields.join(', ')}. All fields marked with an asterisk (*) are required.`);
       return false; // Return false to indicate failure
@@ -727,9 +918,18 @@ function NewFilingContent() {
         businessName: '',
         ein: '',
         address: '',
+        city: '',
+        state: '',
+        zip: '',
+        country: '',
         phone: '',
         signingAuthorityName: '',
-        signingAuthorityTitle: ''
+        signingAuthorityPhone: '',
+        signingAuthorityPIN: '',
+        hasThirdPartyDesignee: false,
+        thirdPartyDesigneeName: '',
+        thirdPartyDesigneePhone: '',
+        thirdPartyDesigneePIN: ''
       });
       setBusinessErrors({});
       setError('');
@@ -804,11 +1004,19 @@ function NewFilingContent() {
       // Use a small delay to ensure state has updated
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Add the new vehicle to selected vehicles
+      // Add the new vehicle to selected vehicles with validation
       setSelectedVehicleIds(prev => {
         if (prev.includes(vehicleId)) {
           return prev; // Already selected
         }
+        const newSelectedIds = [...prev, vehicleId];
+        const validation = validateVehicleTypeCombination(newSelectedIds);
+        if (!validation.isValid) {
+          setVehicleTypeError(validation.error);
+        } else {
+          setVehicleTypeError('');
+        }
+        return newSelectedIds;
         return [...prev, vehicleId];
       });
       
@@ -1186,7 +1394,13 @@ function NewFilingContent() {
     } else if (step === 2 && selectedBusinessId) {
       setStep(3);
     } else if (step === 3 && selectedVehicleIds.length > 0) {
+      const validation = validateVehicleTypeCombination(selectedVehicleIds);
+      if (validation.isValid) {
+        setVehicleTypeError('');
       setStep(4);
+      } else {
+        setVehicleTypeError(validation.error);
+      }
     } else if (step === 4) {
       setStep(5);
     } else if (step === 5) {
@@ -1260,11 +1474,15 @@ function NewFilingContent() {
         firstUsedMonth: filingData.firstUsedMonth
       };
 
+      // Sanitize vehicles to remove complex objects (like Firestore Timestamps)
+      // Include vehicleType and logging for proper tax calculation
       const sanitizedVehicles = selectedVehiclesList.map(v => ({
         id: v.id,
         vin: v.vin,
         grossWeightCategory: v.grossWeightCategory,
-        isSuspended: v.isSuspended
+        isSuspended: v.isSuspended || false,
+        vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
+        logging: v.logging !== undefined ? v.logging : null
       }));
 
       const result = await calculateFilingCost(
@@ -1434,6 +1652,7 @@ function NewFilingContent() {
                     onClick={() => {
                       setFilingType('standard');
                       setAmendmentType('');
+                      setShowBusinessForm(false); // Reset business form visibility to show existing businesses
                     }}
                     className={`group relative p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-lg active:scale-[0.98] touch-manipulation ${filingType === 'standard'
                       ? 'border-blue-600 bg-blue-50/50 ring-1 ring-blue-600'
@@ -2172,11 +2391,81 @@ function NewFilingContent() {
                           value={newBusiness.address}
                           onChange={(e) => handleBusinessChange('address', e.target.value)}
                           className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.address ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                          placeholder="123 Main St, City, State ZIP"
+                          placeholder="123 Main St"
                         />
                         {businessErrors.address && (
                           <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
                             <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.address}</span>
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                          City <span className="text-[var(--color-orange)]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={newBusiness.city}
+                          onChange={(e) => handleBusinessChange('city', e.target.value)}
+                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.city ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                          placeholder="Los Angeles"
+                        />
+                        {businessErrors.city && (
+                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.city}</span>
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                          State <span className="text-[var(--color-orange)]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={newBusiness.state}
+                          onChange={(e) => handleBusinessChange('state', e.target.value)}
+                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] uppercase ${businessErrors.state ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                          placeholder="CA"
+                          maxLength="2"
+                        />
+                        {businessErrors.state && (
+                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.state}</span>
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                          ZIP Code <span className="text-[var(--color-orange)]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={newBusiness.zip}
+                          onChange={(e) => handleBusinessChange('zip', e.target.value)}
+                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${businessErrors.zip ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                          placeholder="12345"
+                          maxLength="10"
+                        />
+                        {businessErrors.zip && (
+                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.zip}</span>
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                          Country <span className="text-[var(--color-orange)]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={newBusiness.country}
+                          onChange={(e) => handleBusinessChange('country', e.target.value)}
+                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.country ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                          placeholder="United States"
+                        />
+                        {businessErrors.country && (
+                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.country}</span>
                           </p>
                         )}
                       </div>
@@ -2197,30 +2486,203 @@ function NewFilingContent() {
                           </p>
                         )}
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+                      {/* Signing Authority Section */}
+                      <div className="md:col-span-2 border-t border-[var(--color-border)] pt-4 mt-2">
+                        <div className="flex items-center gap-2 mb-4">
+                          <h3 className="text-base font-semibold text-[var(--color-text)]">Signing Authority</h3>
+                          <div className="group relative">
+                            <Info className="w-4 h-4 text-[var(--color-muted)] cursor-help" />
+                            <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
+                              The person authorized to sign Form 2290 on behalf of the business. This person must have the legal authority to sign tax returns.
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                         <div>
                           <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                            Signing Authority Name
+                              Name <span className="text-[var(--color-orange)]">*</span>
                           </label>
                           <input
                             type="text"
                             value={newBusiness.signingAuthorityName}
-                            onChange={(e) => setNewBusiness({ ...newBusiness, signingAuthorityName: e.target.value })}
-                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation"
+                              onChange={(e) => handleBusinessChange('signingAuthorityName', e.target.value)}
+                              className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation ${businessErrors.signingAuthorityName ? 'border-red-500' : 'border-[var(--color-border)]'}`}
                             placeholder="John Doe"
                           />
+                            {businessErrors.signingAuthorityName && (
+                              <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityName}</span>
+                              </p>
+                            )}
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                            Title
+                              Phone <span className="text-[var(--color-orange)]">*</span>
+                            </label>
+                            <input
+                              type="tel"
+                              value={newBusiness.signingAuthorityPhone}
+                              onChange={(e) => handleBusinessChange('signingAuthorityPhone', e.target.value)}
+                              className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation ${businessErrors.signingAuthorityPhone ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                              placeholder="(555) 123-4567"
+                            />
+                            {businessErrors.signingAuthorityPhone && (
+                              <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityPhone}</span>
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                              PIN <span className="text-[var(--color-orange)]">*</span>
                           </label>
                           <input
                             type="text"
-                            value={newBusiness.signingAuthorityTitle}
-                            onChange={(e) => setNewBusiness({ ...newBusiness, signingAuthorityTitle: e.target.value })}
-                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation"
-                            placeholder="Owner, President, etc."
-                          />
+                              value={newBusiness.signingAuthorityPIN}
+                              onChange={(e) => handleBusinessChange('signingAuthorityPIN', e.target.value)}
+                              className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono touch-manipulation ${businessErrors.signingAuthorityPIN ? 'border-red-500' : 'border-[var(--color-border)]'}`}
+                              placeholder="12345"
+                              maxLength="5"
+                            />
+                            {businessErrors.signingAuthorityPIN && (
+                              <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityPIN}</span>
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Third Party Designee */}
+                        <div className="mt-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <label className="block text-sm font-medium text-[var(--color-text)]">
+                              Third Party Designee
+                            </label>
+                            <div className="group relative">
+                              <Info className="w-4 h-4 text-[var(--color-muted)] cursor-help" />
+                              <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
+                                A third party designee is someone you authorize to discuss your Form 2290 with the IRS. This is optional.
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setNewBusiness({ ...newBusiness, hasThirdPartyDesignee: false, thirdPartyDesigneeName: '', thirdPartyDesigneePhone: '', thirdPartyDesigneePIN: '' })}
+                              className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${
+                                newBusiness.hasThirdPartyDesignee === false
+                                  ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
+                                  : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
+                              }`}
+                            >
+                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                newBusiness.hasThirdPartyDesignee === false
+                                  ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
+                                  : 'border-slate-300 bg-white'
+                              }`}>
+                                {newBusiness.hasThirdPartyDesignee === false && (
+                                  <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
+                                )}
+                              </div>
+                              <span className={`text-sm font-semibold ${
+                                newBusiness.hasThirdPartyDesignee === false
+                                  ? 'text-[var(--color-orange)]'
+                                  : 'text-slate-600'
+                              }`}>
+                                No
+                              </span>
+                              {newBusiness.hasThirdPartyDesignee === false && (
+                                <CheckCircle className="w-4 h-4 text-[var(--color-orange)] absolute top-2 right-2" />
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setNewBusiness({ ...newBusiness, hasThirdPartyDesignee: true })}
+                              className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${
+                                newBusiness.hasThirdPartyDesignee === true
+                                  ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
+                                  : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
+                              }`}
+                            >
+                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                newBusiness.hasThirdPartyDesignee === true
+                                  ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
+                                  : 'border-slate-300 bg-white'
+                              }`}>
+                                {newBusiness.hasThirdPartyDesignee === true && (
+                                  <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
+                                )}
+                              </div>
+                              <span className={`text-sm font-semibold ${
+                                newBusiness.hasThirdPartyDesignee === true
+                                  ? 'text-[var(--color-orange)]'
+                                  : 'text-slate-600'
+                              }`}>
+                                Yes
+                              </span>
+                              {newBusiness.hasThirdPartyDesignee === true && (
+                                <CheckCircle className="w-4 h-4 text-[var(--color-orange)] absolute top-2 right-2" />
+                              )}
+                            </button>
+                          </div>
+
+                          {newBusiness.hasThirdPartyDesignee && (
+                            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                              <div>
+                                <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                                  Name <span className="text-[var(--color-orange)]">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  value={newBusiness.thirdPartyDesigneeName}
+                                  onChange={(e) => handleBusinessChange('thirdPartyDesigneeName', e.target.value)}
+                                  className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation ${businessErrors.thirdPartyDesigneeName ? 'border-red-500' : 'border-blue-300'}`}
+                                  placeholder="Jane Smith"
+                                />
+                                {businessErrors.thirdPartyDesigneeName && (
+                                  <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneeName}</span>
+                                  </p>
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                                  Phone <span className="text-[var(--color-orange)]">*</span>
+                                </label>
+                                <input
+                                  type="tel"
+                                  value={newBusiness.thirdPartyDesigneePhone}
+                                  onChange={(e) => handleBusinessChange('thirdPartyDesigneePhone', e.target.value)}
+                                  className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation ${businessErrors.thirdPartyDesigneePhone ? 'border-red-500' : 'border-blue-300'}`}
+                                  placeholder="(555) 123-4567"
+                                />
+                                {businessErrors.thirdPartyDesigneePhone && (
+                                  <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneePhone}</span>
+                                  </p>
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                                  PIN <span className="text-[var(--color-orange)]">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  value={newBusiness.thirdPartyDesigneePIN}
+                                  onChange={(e) => handleBusinessChange('thirdPartyDesigneePIN', e.target.value)}
+                                  className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono touch-manipulation ${businessErrors.thirdPartyDesigneePIN ? 'border-red-500' : 'border-blue-300'}`}
+                                  placeholder="12345"
+                                  maxLength="5"
+                                />
+                                {businessErrors.thirdPartyDesigneePIN && (
+                                  <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneePIN}</span>
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <button
@@ -2254,7 +2716,7 @@ function NewFilingContent() {
                           const success = await handleAddBusiness();
                           // Only hide form if business was successfully created
                           if (success) {
-                            setShowBusinessForm(false);
+                          setShowBusinessForm(false);
                           }
                         }}
                         disabled={loading}
@@ -2300,8 +2762,8 @@ function NewFilingContent() {
                             // Form is valid but not saved - prompt to save first
                             const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund' : 'filing';
                             setError(`Your business information looks complete. Please click "Save & Add Business" to save it before proceeding with your ${filingTypeLabel}.`);
-                            return;
-                          }
+                        return;
+                      }
                         }
                       }
                       
@@ -2380,6 +2842,8 @@ function NewFilingContent() {
                             onClick={() => {
                               setTaxableDropdownOpen(!taxableDropdownOpen);
                               setSuspendedDropdownOpen(false);
+                              setCreditDropdownOpen(false);
+                              setPriorYearSoldDropdownOpen(false);
                             }}
                             className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-green-50 border-2 border-green-200 rounded-xl hover:border-green-300 transition-all text-left"
                           >
@@ -2417,10 +2881,19 @@ function NewFilingContent() {
                                         type="checkbox"
                                         checked={isSelected}
                                         onChange={(e) => {
+                                          let newSelectedIds;
                                           if (e.target.checked) {
-                                            setSelectedVehicleIds([...selectedVehicleIds, vehicle.id]);
+                                            newSelectedIds = [...selectedVehicleIds, vehicle.id];
                                           } else {
-                                            setSelectedVehicleIds(selectedVehicleIds.filter(id => id !== vehicle.id));
+                                            newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
+                                          }
+                                          
+                                          const validation = validateVehicleTypeCombination(newSelectedIds);
+                                          if (validation.isValid) {
+                                            setSelectedVehicleIds(newSelectedIds);
+                                            setVehicleTypeError('');
+                                          } else {
+                                            setVehicleTypeError(validation.error);
                                           }
                                         }}
                                         className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
@@ -2455,6 +2928,8 @@ function NewFilingContent() {
                             onClick={() => {
                               setSuspendedDropdownOpen(!suspendedDropdownOpen);
                               setTaxableDropdownOpen(false);
+                              setCreditDropdownOpen(false);
+                              setPriorYearSoldDropdownOpen(false);
                             }}
                             className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-amber-50 border-2 border-amber-200 rounded-xl hover:border-amber-300 transition-all text-left"
                           >
@@ -2492,10 +2967,19 @@ function NewFilingContent() {
                                         type="checkbox"
                                         checked={isSelected}
                                         onChange={(e) => {
+                                          let newSelectedIds;
                                           if (e.target.checked) {
-                                            setSelectedVehicleIds([...selectedVehicleIds, vehicle.id]);
+                                            newSelectedIds = [...selectedVehicleIds, vehicle.id];
                                           } else {
-                                            setSelectedVehicleIds(selectedVehicleIds.filter(id => id !== vehicle.id));
+                                            newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
+                                          }
+                                          
+                                          const validation = validateVehicleTypeCombination(newSelectedIds);
+                                          if (validation.isValid) {
+                                            setSelectedVehicleIds(newSelectedIds);
+                                            setVehicleTypeError('');
+                                          } else {
+                                            setVehicleTypeError(validation.error);
                                           }
                                         }}
                                         className="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
@@ -2525,6 +3009,235 @@ function NewFilingContent() {
                         </div>
                       )}
 
+                    {/* Credit Vehicles Dropdown */}
+                    {vehicleCategories.credit.length > 0 && (
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCreditDropdownOpen(!creditDropdownOpen);
+                              setTaxableDropdownOpen(false);
+                              setSuspendedDropdownOpen(false);
+                              setPriorYearSoldDropdownOpen(false);
+                            }}
+                            className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-blue-50 border-2 border-blue-200 rounded-xl hover:border-blue-300 transition-all text-left"
+                          >
+                            <div className="flex items-center gap-3">
+                              <CreditCard className="w-5 h-5 text-blue-600" />
+                              <div>
+                                <div className="font-bold text-blue-900">Credit Vehicles</div>
+                                <div className="text-xs text-blue-700">
+                                  {selectedVehicleIds.filter(id => vehicleCategories.credit.some(v => v.id === id)).length} of {vehicleCategories.credit.length} selected
+                                </div>
+                              </div>
+                            </div>
+                            {creditDropdownOpen ? (
+                              <ChevronUp className="w-5 h-5 text-blue-600" />
+                            ) : (
+                              <ChevronDown className="w-5 h-5 text-blue-600" />
+                            )}
+                          </button>
+
+                          {creditDropdownOpen && (
+                            <div className="mt-2 border-2 border-blue-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
+                              <div className="p-2 space-y-1">
+                                {vehicleCategories.credit.map((vehicle) => {
+                                  const isSelected = selectedVehicleIds.includes(vehicle.id);
+
+                                  return (
+                                    <label
+                                      key={vehicle.id}
+                                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-blue-50 transition ${isSelected ? 'bg-blue-100 border border-blue-300' : ''}`}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={(e) => {
+                                          let newSelectedIds;
+                                          if (e.target.checked) {
+                                            newSelectedIds = [...selectedVehicleIds, vehicle.id];
+                                          } else {
+                                            newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
+                                          }
+                                          
+                                          const validation = validateVehicleTypeCombination(newSelectedIds);
+                                          if (validation.isValid) {
+                                            setSelectedVehicleIds(newSelectedIds);
+                                            setVehicleTypeError('');
+                                          } else {
+                                            setVehicleTypeError(validation.error);
+                                          }
+                                        }}
+                                        className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                                      />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
+                                          {vehicle.vin}
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                            Cat: {vehicle.grossWeightCategory}
+                                          </span>
+                                          <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-semibold">
+                                            Credit
+                                          </span>
+                                          {vehicle.creditReason && (
+                                            <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded">
+                                              {vehicle.creditReason}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                    {/* Prior Year Sold Suspended Vehicles Dropdown */}
+                    {vehicleCategories.priorYearSold.length > 0 && (
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPriorYearSoldDropdownOpen(!priorYearSoldDropdownOpen);
+                              setTaxableDropdownOpen(false);
+                              setSuspendedDropdownOpen(false);
+                              setCreditDropdownOpen(false);
+                            }}
+                            className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-purple-50 border-2 border-purple-200 rounded-xl hover:border-purple-300 transition-all text-left"
+                          >
+                            <div className="flex items-center gap-3">
+                              <RotateCcw className="w-5 h-5 text-purple-600" />
+                              <div>
+                                <div className="font-bold text-purple-900">Prior Year Sold Suspended Vehicles</div>
+                                <div className="text-xs text-purple-700">
+                                  {selectedVehicleIds.filter(id => vehicleCategories.priorYearSold.some(v => v.id === id)).length} of {vehicleCategories.priorYearSold.length} selected
+                                </div>
+                              </div>
+                            </div>
+                            {priorYearSoldDropdownOpen ? (
+                              <ChevronUp className="w-5 h-5 text-purple-600" />
+                            ) : (
+                              <ChevronDown className="w-5 h-5 text-purple-600" />
+                            )}
+                          </button>
+
+                          {priorYearSoldDropdownOpen && (
+                            <div className="mt-2 border-2 border-purple-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
+                              <div className="p-2 space-y-1">
+                                {vehicleCategories.priorYearSold.map((vehicle) => {
+                                  const isSelected = selectedVehicleIds.includes(vehicle.id);
+
+                                  return (
+                                    <label
+                                      key={vehicle.id}
+                                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-purple-50 transition ${isSelected ? 'bg-purple-100 border border-purple-300' : ''}`}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={(e) => {
+                                          let newSelectedIds;
+                                          if (e.target.checked) {
+                                            newSelectedIds = [...selectedVehicleIds, vehicle.id];
+                                          } else {
+                                            newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
+                                          }
+                                          
+                                          const validation = validateVehicleTypeCombination(newSelectedIds);
+                                          if (validation.isValid) {
+                                            setSelectedVehicleIds(newSelectedIds);
+                                            setVehicleTypeError('');
+                                          } else {
+                                            setVehicleTypeError(validation.error);
+                                          }
+                                        }}
+                                        className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                                      />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
+                                          {vehicle.vin}
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded font-semibold">
+                                            Prior Year Sold
+                                          </span>
+                                          {vehicle.soldTo && (
+                                            <span className="text-xs px-2 py-0.5 bg-purple-50 text-purple-600 rounded">
+                                              Sold To: {vehicle.soldTo}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                    {/* Vehicle Type Combination Error */}
+                    {vehicleTypeError && (
+                      <div className="mt-4 p-5 bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 rounded-xl shadow-sm">
+                        <div className="flex items-start gap-3 mb-4">
+                          <div className="flex-shrink-0 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                            <AlertCircle className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-base font-bold text-red-900 mb-2">Invalid Vehicle Type Combination</h4>
+                            <p className="text-sm text-red-800 mb-3">The selected vehicle types cannot be combined. Please choose one of the following valid combinations:</p>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white rounded-lg p-4 border border-red-200">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                            <div className="flex items-start gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                              <span className="text-xs text-slate-700 font-medium">All 4 types together</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                              <span className="text-xs text-slate-700 font-medium">Only Taxable</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                              <span className="text-xs text-slate-700 font-medium">Only Suspended</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                              <span className="text-xs text-slate-700 font-medium">Taxable + Suspended + Credit</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                              <span className="text-xs text-slate-700 font-medium">Taxable + Suspended + Prior Year</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                              <span className="text-xs text-slate-700 font-medium">Taxable + Credit</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                              <span className="text-xs text-slate-700 font-medium">Taxable + Suspended</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                              <span className="text-xs text-slate-700 font-medium">Taxable + Prior Year</span>
+                            </div>
+                            <div className="flex items-start gap-2 md:col-span-2">
+                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                              <span className="text-xs text-slate-700 font-medium">Suspended + Prior Year Sold</span>
+                            </div>
+                          </div>
+                        </div>
+                        </div>
+                      )}
+
                     {/* Selected Vehicles Summary */}
                     {selectedVehicleIds.length > 0 && (
                       <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
@@ -2533,7 +3246,10 @@ function NewFilingContent() {
                             Selected Vehicles ({selectedVehicleIds.length})
                           </span>
                           <button
-                            onClick={() => setSelectedVehicleIds([])}
+                            onClick={() => {
+                              setSelectedVehicleIds([]);
+                              setVehicleTypeError('');
+                            }}
                             className="text-xs text-blue-600 hover:text-blue-800 underline"
                           >
                             Clear All
@@ -2552,7 +3268,16 @@ function NewFilingContent() {
                                   {vehicle.vin}
                                 </span>
                                 <button
-                                  onClick={() => setSelectedVehicleIds(selectedVehicleIds.filter(id => id !== vehicleId))}
+                                  onClick={() => {
+                                    const newSelectedIds = selectedVehicleIds.filter(id => id !== vehicleId);
+                                    setSelectedVehicleIds(newSelectedIds);
+                                    const validation = validateVehicleTypeCombination(newSelectedIds);
+                                    if (validation.isValid) {
+                                      setVehicleTypeError('');
+                                    } else {
+                                      setVehicleTypeError(validation.error);
+                                    }
+                                  }}
                                   className="text-blue-600 hover:text-blue-800 text-xs font-bold"
                                 >
                                   ×
@@ -3011,45 +3736,284 @@ function NewFilingContent() {
 
                   {/* Business & Vehicle Summary */}
                   {selectedBusiness && (
-                    <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200">
-                      <h3 className="font-bold text-lg sm:text-xl text-[var(--color-text)] mb-4 flex items-center gap-2">
-                        <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-orange)]" />
+                    <div className="bg-gradient-to-br from-white to-slate-50 rounded-xl p-5 sm:p-6 md:p-8 border-2 border-slate-200 shadow-sm">
+                      <h3 className="font-bold text-lg sm:text-xl text-[var(--color-text)] mb-6 flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-full bg-[var(--color-orange)]/10 flex items-center justify-center">
+                          <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-orange)]" />
+                        </div>
                         Business Information
                       </h3>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm text-[var(--color-muted)]">Business Name:</span>
-                          <span className="font-semibold text-sm sm:text-base">{selectedBusiness.businessName}</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white rounded-lg p-4 border border-slate-200">
+                          <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Business Name</p>
+                          <p className="font-bold text-base text-[var(--color-text)] break-words">{selectedBusiness.businessName}</p>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-[var(--color-muted)]">EIN:</span>
-                          <span className="font-semibold text-sm sm:text-base font-mono">{selectedBusiness.ein}</span>
+                        <div className="bg-white rounded-lg p-4 border border-slate-200">
+                          <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">EIN</p>
+                          <p className="font-bold text-base font-mono text-[var(--color-text)]">{selectedBusiness.ein}</p>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-[var(--color-muted)]">Address:</span>
-                          <span className="font-semibold text-sm sm:text-base text-right max-w-[60%]">{selectedBusiness.address}</span>
+                        <div className="bg-white rounded-lg p-4 border border-slate-200 md:col-span-2">
+                          <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Address</p>
+                          <p className="font-semibold text-sm text-[var(--color-text)] break-words">
+                            {selectedBusiness.address}
+                            {selectedBusiness.city && `, ${selectedBusiness.city}`}
+                            {selectedBusiness.state && `, ${selectedBusiness.state}`}
+                            {selectedBusiness.zip && ` ${selectedBusiness.zip}`}
+                            {selectedBusiness.country && `, ${selectedBusiness.country}`}
+                          </p>
                         </div>
+                        {selectedBusiness.phone && (
+                          <div className="bg-white rounded-lg p-4 border border-slate-200">
+                            <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Phone</p>
+                            <p className="font-semibold text-sm text-[var(--color-text)]">{selectedBusiness.phone}</p>
+                          </div>
+                        )}
+                        {(selectedBusiness.signingAuthorityName || selectedBusiness.signingAuthorityPhone) && (
+                          <div className="bg-white rounded-lg p-4 border border-slate-200">
+                            <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Signing Authority</p>
+                            <p className="font-semibold text-sm text-[var(--color-text)]">
+                              {selectedBusiness.signingAuthorityName}
+                              {selectedBusiness.signingAuthorityPhone && ` • ${selectedBusiness.signingAuthorityPhone}`}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  {/* Selected Vehicles Summary */}
+                  {/* Selected Vehicles Summary - Enhanced */}
                   {selectedVehicles.length > 0 && (
-                    <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200">
-                      <h3 className="font-bold text-lg sm:text-xl text-[var(--color-text)] mb-4 flex items-center gap-2">
+                    <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl p-5 sm:p-6 md:p-8 border border-slate-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="font-bold text-lg sm:text-xl text-[var(--color-text)] flex items-center gap-2">
                         <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-orange)]" />
-                        Selected Vehicles ({selectedVehicles.length})
+                          Selected Vehicles
                       </h3>
-                      <div className="space-y-2 max-h-64 overflow-y-auto">
-                        {selectedVehicles.map((vehicle) => (
-                          <div key={vehicle.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <span className="px-3 py-1 bg-[var(--color-orange)] text-white rounded-full text-sm font-bold">
+                          {selectedVehicles.length} {selectedVehicles.length === 1 ? 'Vehicle' : 'Vehicles'}
+                        </span>
+                      </div>
+
+                      {/* Group vehicles by type */}
+                      {(() => {
+                        const groupedVehicles = {
+                          taxable: selectedVehicles.filter(v => v.vehicleType === 'taxable' || (!v.vehicleType && !v.isSuspended)),
+                          suspended: selectedVehicles.filter(v => v.vehicleType === 'suspended' || (v.vehicleType === undefined && v.isSuspended)),
+                          credit: selectedVehicles.filter(v => v.vehicleType === 'credit'),
+                          priorYearSold: selectedVehicles.filter(v => v.vehicleType === 'priorYearSold')
+                        };
+
+                        const getVehicleTypeLabel = (vehicle) => {
+                          if (vehicle.vehicleType === 'taxable') return 'Taxable Vehicle';
+                          if (vehicle.vehicleType === 'suspended') return 'Suspended Vehicle';
+                          if (vehicle.vehicleType === 'credit') return 'Credit Vehicle';
+                          if (vehicle.vehicleType === 'priorYearSold') return 'Prior Year Sold Suspended Vehicle';
+                          return vehicle.isSuspended ? 'Suspended Vehicle' : 'Taxable Vehicle';
+                        };
+
+                        const getVehicleTypeColor = (vehicle) => {
+                          if (vehicle.vehicleType === 'taxable' || (!vehicle.vehicleType && !vehicle.isSuspended)) return 'green';
+                          if (vehicle.vehicleType === 'suspended' || (vehicle.vehicleType === undefined && vehicle.isSuspended)) return 'amber';
+                          if (vehicle.vehicleType === 'credit') return 'blue';
+                          if (vehicle.vehicleType === 'priorYearSold') return 'purple';
+                          return 'slate';
+                        };
+
+                        const getCreditReasonLabel = (reason) => {
+                          const reasons = {
+                            'sold': 'Sold',
+                            'stolen': 'Stolen',
+                            'destroyed': 'Destroyed',
+                            'lowMileage': 'Low Mileage'
+                          };
+                          return reasons[reason] || reason || 'N/A';
+                        };
+
+                        return (
+                          <div className="space-y-4">
+                            {/* Taxable Vehicles */}
+                            {groupedVehicles.taxable.length > 0 && (
+                              <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                  <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                                    Taxable Vehicles ({groupedVehicles.taxable.length})
+                                  </h4>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {groupedVehicles.taxable.map((vehicle) => (
+                                    <div key={vehicle.id} className="bg-white rounded-xl p-4 border-2 border-green-200 hover:border-green-300 transition-all shadow-sm">
+                                      <div className="flex items-start justify-between mb-3">
                             <div className="flex-1 min-w-0">
-                              <p className="font-mono font-semibold text-sm break-all">{vehicle.vin}</p>
-                              <p className="text-xs text-[var(--color-muted)]">Category: {vehicle.grossWeightCategory} {vehicle.isSuspended && '(Suspended)'}</p>
+                                          <p className="font-mono font-bold text-base text-slate-900 break-all mb-1">{vehicle.vin}</p>
+                                          <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-semibold">
+                                              {getVehicleTypeLabel(vehicle)}
+                                            </span>
+                                            <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
+                                              Cat: {vehicle.grossWeightCategory || 'N/A'}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                                        {vehicle.logging !== null && vehicle.logging !== undefined && (
+                                          <div className="flex items-center justify-between text-xs">
+                                            <span className="text-slate-600">Logging:</span>
+                                            <span className="font-semibold text-slate-700">{vehicle.logging ? 'Yes' : 'No'}</span>
+                                          </div>
+                                        )}
                             </div>
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                            {/* Suspended Vehicles */}
+                            {groupedVehicles.suspended.length > 0 && (
+                              <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                  <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                                  <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                                    Suspended Vehicles ({groupedVehicles.suspended.length})
+                                  </h4>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {groupedVehicles.suspended.map((vehicle) => (
+                                    <div key={vehicle.id} className="bg-white rounded-xl p-4 border-2 border-amber-200 hover:border-amber-300 transition-all shadow-sm">
+                                      <div className="flex items-start justify-between mb-3">
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-mono font-bold text-base text-slate-900 break-all mb-1">{vehicle.vin}</p>
+                                          <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-xs font-semibold">
+                                              {getVehicleTypeLabel(vehicle)}
+                                            </span>
+                                            <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
+                                              Cat: {vehicle.grossWeightCategory || 'W'}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                                        {vehicle.logging !== null && vehicle.logging !== undefined && (
+                                          <div className="flex items-center justify-between text-xs">
+                                            <span className="text-slate-600">Logging:</span>
+                                            <span className="font-semibold text-slate-700">{vehicle.logging ? 'Yes' : 'No'}</span>
+                                          </div>
+                                        )}
+                                        {vehicle.agricultural !== null && vehicle.agricultural !== undefined && (
+                                          <div className="flex items-center justify-between text-xs">
+                                            <span className="text-slate-600">Agricultural:</span>
+                                            <span className="font-semibold text-slate-700">{vehicle.agricultural ? 'Yes' : 'No'}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Credit Vehicles */}
+                            {groupedVehicles.credit.length > 0 && (
+                              <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                  <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                                    Credit Vehicles ({groupedVehicles.credit.length})
+                                  </h4>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {groupedVehicles.credit.map((vehicle) => (
+                                    <div key={vehicle.id} className="bg-white rounded-xl p-4 border-2 border-blue-200 hover:border-blue-300 transition-all shadow-sm">
+                                      <div className="flex items-start justify-between mb-3">
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-mono font-bold text-base text-slate-900 break-all mb-1">{vehicle.vin}</p>
+                                          <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold">
+                                              {getVehicleTypeLabel(vehicle)}
+                                            </span>
+                                            <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
+                                              Cat: {vehicle.grossWeightCategory || 'N/A'}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                                        {vehicle.logging !== null && vehicle.logging !== undefined && (
+                                          <div className="flex items-center justify-between text-xs">
+                                            <span className="text-slate-600">Logging:</span>
+                                            <span className="font-semibold text-slate-700">{vehicle.logging ? 'Yes' : 'No'}</span>
+                                          </div>
+                                        )}
+                                        {vehicle.creditReason && (
+                                          <div className="flex items-center justify-between text-xs">
+                                            <span className="text-slate-600">Reason:</span>
+                                            <span className="font-semibold text-blue-700">{getCreditReasonLabel(vehicle.creditReason)}</span>
+                                          </div>
+                                        )}
+                                        {vehicle.creditDate && (
+                                          <div className="flex items-center justify-between text-xs">
+                                            <span className="text-slate-600">Date:</span>
+                                            <span className="font-semibold text-slate-700">
+                                              {new Date(vehicle.creditDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Prior Year Sold Vehicles */}
+                            {groupedVehicles.priorYearSold.length > 0 && (
+                              <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                  <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                                    Prior Year Sold Suspended Vehicles ({groupedVehicles.priorYearSold.length})
+                                  </h4>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {groupedVehicles.priorYearSold.map((vehicle) => (
+                                    <div key={vehicle.id} className="bg-white rounded-xl p-4 border-2 border-purple-200 hover:border-purple-300 transition-all shadow-sm">
+                                      <div className="flex items-start justify-between mb-3">
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-mono font-bold text-base text-slate-900 break-all mb-1">{vehicle.vin}</p>
+                                          <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold">
+                                              {getVehicleTypeLabel(vehicle)}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                                        {vehicle.soldTo && (
+                                          <div className="flex items-center justify-between text-xs">
+                                            <span className="text-slate-600">Sold To:</span>
+                                            <span className="font-semibold text-slate-700 text-right max-w-[60%] break-words">{vehicle.soldTo}</span>
+                                          </div>
+                                        )}
+                                        {vehicle.soldDate && (
+                                          <div className="flex items-center justify-between text-xs">
+                                            <span className="text-slate-600">Sold Date:</span>
+                                            <span className="font-semibold text-slate-700">
+                                              {new Date(vehicle.soldDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
@@ -3531,39 +4495,39 @@ function NewFilingContent() {
                         </div>
                       </div>
                     )}
-                  </div>
+                    </div>
 
-                  {/* Navigation Buttons */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 pt-4 border-t border-slate-200">
-                    <button
-                      onClick={() => setStep(5)}
-                      className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border border-slate-300 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-slate-50 active:bg-slate-100 transition font-medium touch-manipulation"
-                    >
-                      Previous Step
-                    </button>
-                    <button
-                      onClick={handleSubmit}
+                    {/* Navigation Buttons */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 pt-4 border-t border-slate-200">
+                      <button
+                        onClick={() => setStep(5)}
+                        className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border border-slate-300 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-slate-50 active:bg-slate-100 transition font-medium touch-manipulation"
+                      >
+                        Previous Step
+                      </button>
+                      <button
+                        onClick={handleSubmit}
                       disabled={
                         loading ||
                         !irsPaymentMethod ||
                         !serviceFeePaid ||
                         (irsPaymentMethod === 'efw' && (!bankDetails.routingNumber || !bankDetails.accountNumber || !bankDetails.confirmAccountNumber || !bankDetails.accountType || !bankDetails.phoneNumber || bankDetails.accountNumber !== bankDetails.confirmAccountNumber))
                       }
-                      className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-                    >
-                      {loading ? (
-                        <>
-                          <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span className="hidden sm:inline">Processing...</span>
-                          <span className="sm:hidden">Processing</span>
-                        </>
-                      ) : (
-                        <>
+                        className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                      >
+                        {loading ? (
+                          <>
+                            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span className="hidden sm:inline">Processing...</span>
+                            <span className="sm:hidden">Processing</span>
+                          </>
+                        ) : (
+                          <>
                           <span className="hidden sm:inline">Submit Filing</span>
                           <span className="sm:hidden">Submit</span>
-                        </>
-                      )}
-                    </button>
+                          </>
+                        )}
+                      </button>
                   </div>
                 </div>
               </div>

@@ -4,8 +4,8 @@ import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { getBusinessesByUser, updateBusiness, deleteBusiness } from '@/lib/db';
-import { validateBusinessName, validateEIN, formatEIN } from '@/lib/validation';
+import { getBusinessesByUser, createBusiness, updateBusiness, deleteBusiness } from '@/lib/db';
+import { validateBusinessName, validateEIN, formatEIN, validateAddress, validatePhone, validateCity, validateState, validateZip, validateCountry, validatePIN } from '@/lib/validation';
 import {
   Building2,
   Plus,
@@ -25,7 +25,8 @@ import {
   AlertCircle,
   ChevronUp,
   ChevronDown,
-  ChevronsUpDown
+  ChevronsUpDown,
+  Info
 } from 'lucide-react';
 
 export default function BusinessesPage() {
@@ -41,8 +42,18 @@ export default function BusinessesPage() {
     businessName: '',
     ein: '',
     address: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: '',
     phone: '',
     signingAuthorityName: '',
+    signingAuthorityPhone: '',
+    signingAuthorityPIN: '',
+    hasThirdPartyDesignee: false,
+    thirdPartyDesigneeName: '',
+    thirdPartyDesigneePhone: '',
+    thirdPartyDesigneePIN: '',
     entityType: ''
   });
   const [businessErrors, setBusinessErrors] = useState({});
@@ -132,67 +143,226 @@ export default function BusinessesPage() {
   };
 
   const handleEdit = (business) => {
-    setEditingBusiness({ ...business });
+    setEditingBusiness({ 
+      ...business,
+      city: business.city || '',
+      state: business.state || '',
+      zip: business.zip || '',
+      country: business.country || '',
+      signingAuthorityName: business.signingAuthorityName || '',
+      signingAuthorityPhone: business.signingAuthorityPhone || '',
+      signingAuthorityPIN: business.signingAuthorityPIN || '',
+      hasThirdPartyDesignee: business.hasThirdPartyDesignee || false,
+      thirdPartyDesigneeName: business.thirdPartyDesigneeName || '',
+      thirdPartyDesigneePhone: business.thirdPartyDesigneePhone || '',
+      thirdPartyDesigneePIN: business.thirdPartyDesigneePIN || ''
+    });
     setBusinessErrors({});
+  };
+
+  const handleBusinessChange = (field, value, isEdit = false) => {
+    let formattedValue = value;
+    if (field === 'ein') {
+      formattedValue = formatEIN(value);
+    }
+    if (field === 'zip') {
+      // Format ZIP: allow 5 digits or 5+4 format
+      formattedValue = value.replace(/\D/g, '');
+      if (formattedValue.length > 5) {
+        formattedValue = formattedValue.slice(0, 5) + '-' + formattedValue.slice(5, 9);
+      }
+    }
+    if (field === 'state') {
+      // Convert to uppercase for state codes
+      formattedValue = value.toUpperCase().trim();
+    }
+    if (field === 'phone' || field === 'signingAuthorityPhone' || field === 'thirdPartyDesigneePhone') {
+      // Format phone number: (XXX) XXX-XXXX
+      const cleanPhone = value.replace(/\D/g, '');
+      if (cleanPhone.length <= 3) {
+        formattedValue = cleanPhone;
+      } else if (cleanPhone.length <= 6) {
+        formattedValue = `(${cleanPhone.slice(0, 3)}) ${cleanPhone.slice(3)}`;
+      } else if (cleanPhone.length <= 10) {
+        formattedValue = `(${cleanPhone.slice(0, 3)}) ${cleanPhone.slice(3, 6)}-${cleanPhone.slice(6, 10)}`;
+      } else {
+        // Handle 11 digits (with country code 1)
+        formattedValue = `+1 (${cleanPhone.slice(1, 4)}) ${cleanPhone.slice(4, 7)}-${cleanPhone.slice(7, 11)}`;
+      }
+    }
+    if (field === 'signingAuthorityPIN' || field === 'thirdPartyDesigneePIN') {
+      // Format PIN: only allow 5 digits
+      formattedValue = value.replace(/\D/g, '').slice(0, 5);
+    }
+
+    if (isEdit) {
+      setEditingBusiness(prev => ({ ...prev, [field]: formattedValue }));
+    } else {
+      setNewBusiness(prev => ({ ...prev, [field]: formattedValue }));
+    }
+
+    // Real-time validation
+    let validation;
+    if (field === 'businessName') validation = validateBusinessName(formattedValue);
+    if (field === 'ein') validation = validateEIN(formattedValue);
+    if (field === 'address') validation = validateAddress(formattedValue, true);
+    if (field === 'city') validation = validateCity(formattedValue, true);
+    if (field === 'state') validation = validateState(formattedValue, true);
+    if (field === 'zip') validation = validateZip(formattedValue, true);
+    if (field === 'country') validation = validateCountry(formattedValue, true);
+    if (field === 'phone') validation = validatePhone(formattedValue, true);
+    if (field === 'signingAuthorityName') {
+      validation = formattedValue && formattedValue.trim().length >= 2 
+        ? { isValid: true, error: '' } 
+        : { isValid: false, error: 'Signing Authority Name is required and must be at least 2 characters' };
+    }
+    if (field === 'signingAuthorityPhone') validation = validatePhone(formattedValue, true);
+    if (field === 'signingAuthorityPIN') validation = validatePIN(formattedValue, true);
+    if (field === 'thirdPartyDesigneeName') {
+      const hasThirdParty = isEdit ? editingBusiness?.hasThirdPartyDesignee : newBusiness.hasThirdPartyDesignee;
+      validation = hasThirdParty 
+        ? (formattedValue && formattedValue.trim().length >= 2 
+            ? { isValid: true, error: '' } 
+            : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
+        : { isValid: true, error: '' };
+    }
+    if (field === 'thirdPartyDesigneePhone') validation = validatePhone(formattedValue, isEdit ? editingBusiness?.hasThirdPartyDesignee : newBusiness.hasThirdPartyDesignee);
+    if (field === 'thirdPartyDesigneePIN') validation = validatePIN(formattedValue, isEdit ? editingBusiness?.hasThirdPartyDesignee : newBusiness.hasThirdPartyDesignee);
+
+    if (validation) {
+      setBusinessErrors(prev => ({
+        ...prev,
+        [field]: validation.isValid ? '' : validation.error
+      }));
+    }
+  };
+
+  const handleAddBusiness = async () => {
+    // Run all validations
+    const nameVal = validateBusinessName(newBusiness.businessName);
+    const einVal = validateEIN(newBusiness.ein);
+    const addrVal = validateAddress(newBusiness.address, true);
+    const cityVal = validateCity(newBusiness.city, true);
+    const stateVal = validateState(newBusiness.state, true);
+    const zipVal = validateZip(newBusiness.zip, true);
+    const countryVal = validateCountry(newBusiness.country, true);
+    const phoneVal = validatePhone(newBusiness.phone, true);
+    // Validate signing authority name (required, but simpler than business name)
+    const signingAuthorityNameVal = newBusiness.signingAuthorityName && newBusiness.signingAuthorityName.trim().length >= 2 
+      ? { isValid: true, error: '' } 
+      : { isValid: false, error: 'Signing Authority Name is required and must be at least 2 characters' };
+    const signingAuthorityPhoneVal = validatePhone(newBusiness.signingAuthorityPhone, true);
+    const signingAuthorityPINVal = validatePIN(newBusiness.signingAuthorityPIN, true);
+    // Validate third party designee name (required if Third Party Designee is Yes)
+    const thirdPartyDesigneeNameVal = newBusiness.hasThirdPartyDesignee 
+      ? (newBusiness.thirdPartyDesigneeName && newBusiness.thirdPartyDesigneeName.trim().length >= 2 
+          ? { isValid: true, error: '' } 
+          : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
+      : { isValid: true, error: '' };
+    const thirdPartyDesigneePhoneVal = validatePhone(newBusiness.thirdPartyDesigneePhone, newBusiness.hasThirdPartyDesignee);
+    const thirdPartyDesigneePINVal = validatePIN(newBusiness.thirdPartyDesigneePIN, newBusiness.hasThirdPartyDesignee);
+
+    if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !cityVal.isValid || !stateVal.isValid || !zipVal.isValid || !countryVal.isValid || !phoneVal.isValid ||
+        !signingAuthorityNameVal.isValid || !signingAuthorityPhoneVal.isValid || !signingAuthorityPINVal.isValid ||
+        !thirdPartyDesigneeNameVal.isValid || !thirdPartyDesigneePhoneVal.isValid || !thirdPartyDesigneePINVal.isValid) {
+      setBusinessErrors({
+        businessName: nameVal.error,
+        ein: einVal.error,
+        address: addrVal.error,
+        city: cityVal.error,
+        state: stateVal.error,
+        zip: zipVal.error,
+        country: countryVal.error,
+        phone: phoneVal.error,
+        signingAuthorityName: signingAuthorityNameVal.error,
+        signingAuthorityPhone: signingAuthorityPhoneVal.error,
+        signingAuthorityPIN: signingAuthorityPINVal.error,
+        thirdPartyDesigneeName: thirdPartyDesigneeNameVal.error,
+        thirdPartyDesigneePhone: thirdPartyDesigneePhoneVal.error,
+        thirdPartyDesigneePIN: thirdPartyDesigneePINVal.error
+      });
+      return;
+    }
+
+    setSaving(true);
+    setBusinessErrors({});
+
+    try {
+      await createBusiness(user.uid, newBusiness);
+      await loadBusinesses();
+      setShowAddModal(false);
+      setNewBusiness({
+        businessName: '',
+        ein: '',
+        address: '',
+        city: '',
+        state: '',
+        zip: '',
+        country: '',
+        phone: '',
+        signingAuthorityName: '',
+        signingAuthorityPhone: '',
+        signingAuthorityPIN: '',
+        hasThirdPartyDesignee: false,
+        thirdPartyDesigneeName: '',
+        thirdPartyDesigneePhone: '',
+        thirdPartyDesigneePIN: '',
+        entityType: ''
+      });
+    } catch (error) {
+      console.error('Error creating business:', error);
+      setBusinessErrors({ general: 'Failed to create business. Please try again.' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSaveEdit = async () => {
     if (!editingBusiness) return;
 
-    const errors = {};
+    // Run all validations
+    const nameVal = validateBusinessName(editingBusiness.businessName);
+    const einVal = validateEIN(editingBusiness.ein);
+    const addrVal = validateAddress(editingBusiness.address, true);
+    const cityVal = validateCity(editingBusiness.city, true);
+    const stateVal = validateState(editingBusiness.state, true);
+    const zipVal = validateZip(editingBusiness.zip, true);
+    const countryVal = validateCountry(editingBusiness.country, true);
+    const phoneVal = validatePhone(editingBusiness.phone, true);
+    // Validate signing authority name (required, but simpler than business name)
+    const signingAuthorityNameVal = editingBusiness.signingAuthorityName && editingBusiness.signingAuthorityName.trim().length >= 2 
+      ? { isValid: true, error: '' } 
+      : { isValid: false, error: 'Signing Authority Name is required and must be at least 2 characters' };
+    const signingAuthorityPhoneVal = validatePhone(editingBusiness.signingAuthorityPhone, true);
+    const signingAuthorityPINVal = validatePIN(editingBusiness.signingAuthorityPIN, true);
+    // Validate third party designee name (required if Third Party Designee is Yes)
+    const thirdPartyDesigneeNameVal = editingBusiness.hasThirdPartyDesignee 
+      ? (editingBusiness.thirdPartyDesigneeName && editingBusiness.thirdPartyDesigneeName.trim().length >= 2 
+          ? { isValid: true, error: '' } 
+          : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
+      : { isValid: true, error: '' };
+    const thirdPartyDesigneePhoneVal = validatePhone(editingBusiness.thirdPartyDesigneePhone, editingBusiness.hasThirdPartyDesignee);
+    const thirdPartyDesigneePINVal = validatePIN(editingBusiness.thirdPartyDesigneePIN, editingBusiness.hasThirdPartyDesignee);
 
-    // Validate business name (required)
-    if (!editingBusiness.businessName || editingBusiness.businessName.trim() === '') {
-      errors.businessName = 'Business name is required';
-    } else {
-      const nameVal = validateBusinessName(editingBusiness.businessName.trim());
-      if (!nameVal.isValid) {
-        errors.businessName = nameVal.error;
-      }
-    }
-
-    // Validate EIN if provided (must be exactly 9 digits)
-    if (editingBusiness.ein && editingBusiness.ein.trim() !== '') {
-      const einVal = validateEIN(editingBusiness.ein.trim());
-      if (!einVal.isValid) {
-        errors.ein = einVal.error;
-      }
-    }
-
-    // Validate phone number format (optional but if provided, should be valid)
-    if (editingBusiness.phone && editingBusiness.phone.trim() !== '') {
-      const phoneRegex = /^[\d\s\-\(\)]+$/;
-      const cleanPhone = editingBusiness.phone.replace(/\D/g, '');
-      if (cleanPhone.length < 10 || cleanPhone.length > 15) {
-        errors.phone = 'Phone number must be between 10 and 15 digits';
-      } else if (!phoneRegex.test(editingBusiness.phone)) {
-        errors.phone = 'Phone number contains invalid characters';
-      }
-    }
-
-    // Validate address (optional but if provided, should have reasonable length)
-    if (editingBusiness.address && editingBusiness.address.trim() !== '') {
-      if (editingBusiness.address.trim().length < 5) {
-        errors.address = 'Address is too short';
-      } else if (editingBusiness.address.trim().length > 200) {
-        errors.address = 'Address is too long (max 200 characters)';
-      }
-    }
-
-    // Validate signing authority name (optional but if provided, should be valid)
-    if (editingBusiness.signingAuthorityName && editingBusiness.signingAuthorityName.trim() !== '') {
-      if (editingBusiness.signingAuthorityName.trim().length < 2) {
-        errors.signingAuthorityName = 'Name is too short';
-      } else if (editingBusiness.signingAuthorityName.trim().length > 100) {
-        errors.signingAuthorityName = 'Name is too long (max 100 characters)';
-      } else if (!/^[a-zA-Z\s\-'\.]+$/.test(editingBusiness.signingAuthorityName.trim())) {
-        errors.signingAuthorityName = 'Name contains invalid characters';
-      }
-    }
-
-    // If there are errors, set them and return
-    if (Object.keys(errors).length > 0) {
-      setBusinessErrors(errors);
+    if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !cityVal.isValid || !stateVal.isValid || !zipVal.isValid || !countryVal.isValid || !phoneVal.isValid ||
+        !signingAuthorityNameVal.isValid || !signingAuthorityPhoneVal.isValid || !signingAuthorityPINVal.isValid ||
+        !thirdPartyDesigneeNameVal.isValid || !thirdPartyDesigneePhoneVal.isValid || !thirdPartyDesigneePINVal.isValid) {
+      setBusinessErrors({
+        businessName: nameVal.error,
+        ein: einVal.error,
+        address: addrVal.error,
+        city: cityVal.error,
+        state: stateVal.error,
+        zip: zipVal.error,
+        country: countryVal.error,
+        phone: phoneVal.error,
+        signingAuthorityName: signingAuthorityNameVal.error,
+        signingAuthorityPhone: signingAuthorityPhoneVal.error,
+        signingAuthorityPIN: signingAuthorityPINVal.error,
+        thirdPartyDesigneeName: thirdPartyDesigneeNameVal.error,
+        thirdPartyDesigneePhone: thirdPartyDesigneePhoneVal.error,
+        thirdPartyDesigneePIN: thirdPartyDesigneePINVal.error
+      });
       return;
     }
 
@@ -204,8 +374,18 @@ export default function BusinessesPage() {
         businessName: editingBusiness.businessName.trim(),
         ein: editingBusiness.ein?.trim() || '',
         address: editingBusiness.address?.trim() || '',
+        city: editingBusiness.city?.trim() || '',
+        state: editingBusiness.state?.trim() || '',
+        zip: editingBusiness.zip?.trim() || '',
+        country: editingBusiness.country?.trim() || '',
         phone: editingBusiness.phone?.trim() || '',
         signingAuthorityName: editingBusiness.signingAuthorityName?.trim() || '',
+        signingAuthorityPhone: editingBusiness.signingAuthorityPhone?.trim() || '',
+        signingAuthorityPIN: editingBusiness.signingAuthorityPIN?.trim() || '',
+        hasThirdPartyDesignee: editingBusiness.hasThirdPartyDesignee || false,
+        thirdPartyDesigneeName: editingBusiness.hasThirdPartyDesignee ? (editingBusiness.thirdPartyDesigneeName?.trim() || '') : '',
+        thirdPartyDesigneePhone: editingBusiness.hasThirdPartyDesignee ? (editingBusiness.thirdPartyDesigneePhone?.trim() || '') : '',
+        thirdPartyDesigneePIN: editingBusiness.hasThirdPartyDesignee ? (editingBusiness.thirdPartyDesigneePIN?.trim() || '') : '',
         entityType: editingBusiness.entityType || ''
       });
 
@@ -238,33 +418,54 @@ export default function BusinessesPage() {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-slate-500 hover:text-[var(--color-orange)] mb-4 transition-colors group"
-          >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-medium">Back to Dashboard</span>
-          </Link>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 text-slate-500 hover:text-[var(--color-orange)] mb-4 transition-colors group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              <span className="text-sm font-medium">Back to Dashboard</span>
+            </Link>
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">
                 Business Management
-              </h1>
-              <p className="text-slate-500">
-                Manage your business profiles and filing information
-              </p>
-            </div>
+            </h1>
+            <p className="text-slate-500">
+              Manage your business profiles and filing information
+            </p>
+          </div>
             
             <div className="flex items-center gap-3">
-              <Link
-                href="/dashboard/new-filing"
+              <button
+                onClick={() => {
+                  setShowAddModal(true);
+                  setNewBusiness({
+                    businessName: '',
+                    ein: '',
+                    address: '',
+                    city: '',
+                    state: '',
+                    zip: '',
+                    country: '',
+                    phone: '',
+                    signingAuthorityName: '',
+                    signingAuthorityPhone: '',
+                    signingAuthorityPIN: '',
+                    hasThirdPartyDesignee: false,
+                    thirdPartyDesigneeName: '',
+                    thirdPartyDesigneePhone: '',
+                    thirdPartyDesigneePIN: '',
+                    entityType: ''
+                  });
+                  setBusinessErrors({});
+                }}
                 className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-4 sm:px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-lg active:scale-95 transition-all duration-200 shadow-md"
-              >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden sm:inline">Add Business</span>
-                <span className="sm:hidden">Add</span>
-              </Link>
+          >
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Add Business</span>
+            <span className="sm:hidden">Add</span>
+              </button>
             </div>
           </div>
         </div>
@@ -310,13 +511,34 @@ export default function BusinessesPage() {
                 : 'Add your business details to get started with your tax filings. You can manage multiple businesses from here.'}
             </p>
             {!searchQuery && (
-              <Link
-                href="/dashboard/new-filing"
-                className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
-              >
-                Add Your First Business
-                <ArrowLeft className="w-4 h-4 rotate-180" />
-              </Link>
+              <button
+                onClick={() => {
+                  setShowAddModal(true);
+                  setNewBusiness({
+                    businessName: '',
+                    ein: '',
+                    address: '',
+                    city: '',
+                    state: '',
+                    zip: '',
+                    country: '',
+                    phone: '',
+                    signingAuthorityName: '',
+                    signingAuthorityPhone: '',
+                    signingAuthorityPIN: '',
+                    hasThirdPartyDesignee: false,
+                    thirdPartyDesigneeName: '',
+                    thirdPartyDesigneePhone: '',
+                    thirdPartyDesigneePIN: '',
+                    entityType: ''
+                  });
+                  setBusinessErrors({});
+                }}
+              className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
+            >
+              Add Your First Business
+              <ArrowLeft className="w-4 h-4 rotate-180" />
+              </button>
             )}
           </div>
         ) : (
@@ -401,8 +623,8 @@ export default function BusinessesPage() {
             {/* Modern Table Body */}
             <div className="divide-y divide-slate-100 relative" style={{ overflow: 'visible' }}>
               {filteredBusinesses.map((business, index) => (
-                <div
-                  key={business.id}
+              <div
+                key={business.id}
                   className="group grid grid-cols-1 lg:grid-cols-12 gap-4 px-4 sm:px-6 py-4 sm:py-5 hover:bg-gradient-to-r hover:from-blue-50/30 hover:via-white hover:to-white transition-all duration-300 relative cursor-pointer"
                   style={{ 
                     animationDelay: `${index * 30}ms`,
@@ -457,8 +679,8 @@ export default function BusinessesPage() {
                         </div> */}
                         <span className="text-sm text-slate-600 font-medium hidden sm:inline font-mono">
                           {formatEIN(business.ein)}
-                        </span>
-                      </div>
+                      </span>
+                    </div>
                     ) : (
                       <span className="text-sm text-slate-400 italic">Not set</span>
                     )}
@@ -473,7 +695,7 @@ export default function BusinessesPage() {
                     ) : (
                       <span className="text-sm text-slate-400 italic">Not set</span>
                     )}
-                  </div>
+                          </div>
 
                   {/* Added Date */}
                   <div className="col-span-1 lg:col-span-2 flex items-center">
@@ -532,10 +754,431 @@ export default function BusinessesPage() {
           </div>
         )}
 
+        {/* Add Business Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => !saving && setShowAddModal(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-slate-900">Add New Business</h2>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  disabled={saving}
+                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {businessErrors.general && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {businessErrors.general}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="block text-sm font-semibold text-slate-700">
+                      Business Name <span className="text-[var(--color-orange)]">*</span>
+                    </label>
+                    <div className="group relative">
+                      <Info className="w-4 h-4 text-slate-400 cursor-help" />
+                      <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
+                        <strong>IRS Rule:</strong> Only letters, numbers, spaces, "&" and "-" are allowed. Do not use commas, periods, or other symbols.
+                      </div>
+                    </div>
+                  </div>
+                  <input
+                    type="text"
+                    value={newBusiness.businessName}
+                    onChange={(e) => handleBusinessChange('businessName', e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.businessName ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="ABC Trucking LLC"
+                  />
+                  {businessErrors.businessName && (
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.businessName}</span>
+                    </p>
+                    )}
+                  </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    EIN (Employer Identification Number) <span className="text-[var(--color-orange)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newBusiness.ein}
+                    onChange={(e) => handleBusinessChange('ein', e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${businessErrors.ein ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="12-3456789"
+                    maxLength="10"
+                  />
+                  {businessErrors.ein && (
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.ein}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Business Address <span className="text-[var(--color-orange)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newBusiness.address}
+                    onChange={(e) => handleBusinessChange('address', e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.address ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="123 Main St"
+                  />
+                  {businessErrors.address && (
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.address}</span>
+                    </p>
+                  )}
+                        </div>
+
+                        <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    City <span className="text-[var(--color-orange)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newBusiness.city}
+                    onChange={(e) => handleBusinessChange('city', e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.city ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="Los Angeles"
+                  />
+                  {businessErrors.city && (
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.city}</span>
+                    </p>
+                  )}
+                        </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    State <span className="text-[var(--color-orange)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newBusiness.state}
+                    onChange={(e) => handleBusinessChange('state', e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] uppercase ${businessErrors.state ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="CA"
+                    maxLength="2"
+                  />
+                  {businessErrors.state && (
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.state}</span>
+                    </p>
+                  )}
+                      </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    ZIP Code <span className="text-[var(--color-orange)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newBusiness.zip}
+                    onChange={(e) => handleBusinessChange('zip', e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${businessErrors.zip ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="12345"
+                    maxLength="10"
+                  />
+                  {businessErrors.zip && (
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.zip}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Country <span className="text-[var(--color-orange)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newBusiness.country}
+                    onChange={(e) => handleBusinessChange('country', e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.country ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="United States"
+                  />
+                  {businessErrors.country && (
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.country}</span>
+                    </p>
+                  )}
+                          </div>
+
+                          <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Phone <span className="text-[var(--color-orange)]">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    value={newBusiness.phone}
+                    onChange={(e) => handleBusinessChange('phone', e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.phone ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="(555) 123-4567"
+                  />
+                  {businessErrors.phone && (
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.phone}</span>
+                    </p>
+                  )}
+                          </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Entity Type
+                  </label>
+                  <select
+                    value={newBusiness.entityType || ''}
+                    onChange={(e) => setNewBusiness({ ...newBusiness, entityType: e.target.value })}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                  >
+                    <option value="">Select entity type</option>
+                    {entityTypes.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                        </div>
+
+                {/* Signing Authority Section */}
+                <div className="md:col-span-2 border-t border-slate-200 pt-4 mt-2">
+                  <div className="flex items-center gap-2 mb-4">
+                    <h3 className="text-base font-semibold text-slate-700">Signing Authority</h3>
+                    <div className="group relative">
+                      <Info className="w-4 h-4 text-slate-400 cursor-help" />
+                      <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
+                        The person authorized to sign Form 2290 on behalf of the business. This person must have the legal authority to sign tax returns.
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Name <span className="text-[var(--color-orange)]">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newBusiness.signingAuthorityName}
+                        onChange={(e) => handleBusinessChange('signingAuthorityName', e.target.value)}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.signingAuthorityName ? 'border-red-500' : 'border-slate-200'}`}
+                        placeholder="John Doe"
+                      />
+                      {businessErrors.signingAuthorityName && (
+                        <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityName}</span>
+                        </p>
+                      )}
+                          </div>
+                          <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Phone <span className="text-[var(--color-orange)]">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        value={newBusiness.signingAuthorityPhone}
+                        onChange={(e) => handleBusinessChange('signingAuthorityPhone', e.target.value)}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.signingAuthorityPhone ? 'border-red-500' : 'border-slate-200'}`}
+                        placeholder="(555) 123-4567"
+                      />
+                      {businessErrors.signingAuthorityPhone && (
+                        <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityPhone}</span>
+                        </p>
+                      )}
+                          </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        PIN <span className="text-[var(--color-orange)]">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newBusiness.signingAuthorityPIN}
+                        onChange={(e) => handleBusinessChange('signingAuthorityPIN', e.target.value)}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${businessErrors.signingAuthorityPIN ? 'border-red-500' : 'border-slate-200'}`}
+                        placeholder="12345"
+                        maxLength="5"
+                      />
+                      {businessErrors.signingAuthorityPIN && (
+                        <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityPIN}</span>
+                        </p>
+                      )}
+                        </div>
+                  </div>
+
+                  {/* Third Party Designee */}
+                  <div className="mt-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <label className="block text-sm font-semibold text-slate-700">
+                        Third Party Designee
+                      </label>
+                      <div className="group relative">
+                        <Info className="w-4 h-4 text-slate-400 cursor-help" />
+                        <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
+                          A third party designee is someone you authorize to discuss your Form 2290 with the IRS. This is optional.
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setNewBusiness({ ...newBusiness, hasThirdPartyDesignee: false, thirdPartyDesigneeName: '', thirdPartyDesigneePhone: '', thirdPartyDesigneePIN: '' })}
+                        className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${
+                          newBusiness.hasThirdPartyDesignee === false
+                            ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
+                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                          newBusiness.hasThirdPartyDesignee === false
+                            ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
+                            : 'border-slate-300 bg-white'
+                        }`}>
+                          {newBusiness.hasThirdPartyDesignee === false && (
+                            <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
+                      )}
+                    </div>
+                        <span className={`text-sm font-semibold ${
+                          newBusiness.hasThirdPartyDesignee === false
+                            ? 'text-[var(--color-orange)]'
+                            : 'text-slate-600'
+                        }`}>
+                          No
+                        </span>
+                        {newBusiness.hasThirdPartyDesignee === false && (
+                          <CheckCircle className="w-4 h-4 text-[var(--color-orange)] absolute top-2 right-2" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewBusiness({ ...newBusiness, hasThirdPartyDesignee: true })}
+                        className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${
+                          newBusiness.hasThirdPartyDesignee === true
+                            ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
+                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                          newBusiness.hasThirdPartyDesignee === true
+                            ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
+                            : 'border-slate-300 bg-white'
+                        }`}>
+                          {newBusiness.hasThirdPartyDesignee === true && (
+                            <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
+                          )}
+                        </div>
+                        <span className={`text-sm font-semibold ${
+                          newBusiness.hasThirdPartyDesignee === true
+                            ? 'text-[var(--color-orange)]'
+                            : 'text-slate-600'
+                        }`}>
+                          Yes
+                        </span>
+                        {newBusiness.hasThirdPartyDesignee === true && (
+                          <CheckCircle className="w-4 h-4 text-[var(--color-orange)] absolute top-2 right-2" />
+                        )}
+                      </button>
+                  </div>
+
+                    {newBusiness.hasThirdPartyDesignee && (
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">
+                            Name <span className="text-[var(--color-orange)]">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={newBusiness.thirdPartyDesigneeName}
+                            onChange={(e) => handleBusinessChange('thirdPartyDesigneeName', e.target.value)}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.thirdPartyDesigneeName ? 'border-red-500' : 'border-blue-300'}`}
+                            placeholder="Jane Smith"
+                          />
+                          {businessErrors.thirdPartyDesigneeName && (
+                            <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneeName}</span>
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">
+                            Phone <span className="text-[var(--color-orange)]">*</span>
+                          </label>
+                          <input
+                            type="tel"
+                            value={newBusiness.thirdPartyDesigneePhone}
+                            onChange={(e) => handleBusinessChange('thirdPartyDesigneePhone', e.target.value)}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.thirdPartyDesigneePhone ? 'border-red-500' : 'border-blue-300'}`}
+                            placeholder="(555) 123-4567"
+                          />
+                          {businessErrors.thirdPartyDesigneePhone && (
+                            <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneePhone}</span>
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">
+                            PIN <span className="text-[var(--color-orange)]">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={newBusiness.thirdPartyDesigneePIN}
+                            onChange={(e) => handleBusinessChange('thirdPartyDesigneePIN', e.target.value)}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${businessErrors.thirdPartyDesigneePIN ? 'border-red-500' : 'border-blue-300'}`}
+                            placeholder="12345"
+                            maxLength="5"
+                          />
+                          {businessErrors.thirdPartyDesigneePIN && (
+                            <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneePIN}</span>
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  disabled={saving}
+                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                    </button>
+                <button
+                  onClick={handleAddBusiness}
+                  disabled={saving}
+                  className="flex-1 px-4 py-3 bg-[var(--color-orange)] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-soft)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Adding...
+                    </>
+                  ) : (
+                    'Add Business'
+                  )}
+                </button>
+                  </div>
+                </div>
+              </div>
+        )}
+
         {/* Edit Modal */}
         {editingBusiness && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => !saving && setEditingBusiness(null)}>
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-slate-900">Edit Business</h2>
                 <button
@@ -553,54 +1196,159 @@ export default function BusinessesPage() {
                 </div>
               )}
 
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Business Name <span className="text-red-500">*</span>
-                  </label>
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="block text-sm font-semibold text-slate-700">
+                      Business Name <span className="text-[var(--color-orange)]">*</span>
+                    </label>
+                    <div className="group relative">
+                      <Info className="w-4 h-4 text-slate-400 cursor-help" />
+                      <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
+                        <strong>IRS Rule:</strong> Only letters, numbers, spaces, "&" and "-" are allowed. Do not use commas, periods, or other symbols.
+                      </div>
+                    </div>
+                  </div>
                   <input
                     type="text"
                     value={editingBusiness.businessName || ''}
-                    onChange={(e) => {
-                      setEditingBusiness({ ...editingBusiness, businessName: e.target.value });
-                      // Clear error when user starts typing
-                      if (businessErrors.businessName) {
-                        setBusinessErrors({ ...businessErrors, businessName: '' });
-                      }
-                    }}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all ${
-                      businessErrors.businessName ? 'border-red-300 bg-red-50' : 'border-slate-200'
-                    }`}
-                    placeholder="Enter business name"
+                    onChange={(e) => handleBusinessChange('businessName', e.target.value, true)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.businessName ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="ABC Trucking LLC"
                   />
                   {businessErrors.businessName && (
-                    <p className="mt-1 text-sm text-red-600">{businessErrors.businessName}</p>
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.businessName}</span>
+                    </p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    EIN (Employer Identification Number)
+                    EIN (Employer Identification Number) <span className="text-[var(--color-orange)]">*</span>
                   </label>
                   <input
                     type="text"
                     value={editingBusiness.ein || ''}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '').slice(0, 9);
-                      setEditingBusiness({ ...editingBusiness, ein: value });
-                      // Clear error when user starts typing
-                      if (businessErrors.ein) {
-                        setBusinessErrors({ ...businessErrors, ein: '' });
-                      }
-                    }}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all font-mono ${
-                      businessErrors.ein ? 'border-red-300 bg-red-50' : 'border-slate-200'
-                    }`}
-                    placeholder="123456789"
-                    maxLength={9}
+                    onChange={(e) => handleBusinessChange('ein', e.target.value, true)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${businessErrors.ein ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="12-3456789"
+                    maxLength="10"
                   />
                   {businessErrors.ein && (
-                    <p className="mt-1 text-sm text-red-600">{businessErrors.ein}</p>
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.ein}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Business Address <span className="text-[var(--color-orange)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editingBusiness.address || ''}
+                    onChange={(e) => handleBusinessChange('address', e.target.value, true)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.address ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="123 Main St"
+                  />
+                  {businessErrors.address && (
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.address}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    City <span className="text-[var(--color-orange)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editingBusiness.city || ''}
+                    onChange={(e) => handleBusinessChange('city', e.target.value, true)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.city ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="Los Angeles"
+                  />
+                  {businessErrors.city && (
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.city}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    State <span className="text-[var(--color-orange)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editingBusiness.state || ''}
+                    onChange={(e) => handleBusinessChange('state', e.target.value, true)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] uppercase ${businessErrors.state ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="CA"
+                    maxLength="2"
+                  />
+                  {businessErrors.state && (
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.state}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    ZIP Code <span className="text-[var(--color-orange)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editingBusiness.zip || ''}
+                    onChange={(e) => handleBusinessChange('zip', e.target.value, true)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${businessErrors.zip ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="12345"
+                    maxLength="10"
+                  />
+                  {businessErrors.zip && (
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.zip}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Country <span className="text-[var(--color-orange)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editingBusiness.country || ''}
+                    onChange={(e) => handleBusinessChange('country', e.target.value, true)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.country ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="United States"
+                  />
+                  {businessErrors.country && (
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.country}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Phone <span className="text-[var(--color-orange)]">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    value={editingBusiness.phone || ''}
+                    onChange={(e) => handleBusinessChange('phone', e.target.value, true)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.phone ? 'border-red-500' : 'border-slate-200'}`}
+                    placeholder="(555) 123-4567"
+                  />
+                  {businessErrors.phone && (
+                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.phone}</span>
+                    </p>
                   )}
                 </div>
 
@@ -620,76 +1368,202 @@ export default function BusinessesPage() {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Address
-                  </label>
-                  <textarea
-                    value={editingBusiness.address || ''}
-                    onChange={(e) => {
-                      setEditingBusiness({ ...editingBusiness, address: e.target.value });
-                      // Clear error when user starts typing
-                      if (businessErrors.address) {
-                        setBusinessErrors({ ...businessErrors, address: '' });
-                      }
-                    }}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all ${
-                      businessErrors.address ? 'border-red-300 bg-red-50' : 'border-slate-200'
-                    }`}
-                    placeholder="Enter business address"
-                    rows={3}
-                  />
-                  {businessErrors.address && (
-                    <p className="mt-1 text-sm text-red-600">{businessErrors.address}</p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Phone
-                    </label>
-                    <input
-                      type="tel"
-                      value={editingBusiness.phone || ''}
-                      onChange={(e) => {
-                        setEditingBusiness({ ...editingBusiness, phone: e.target.value });
-                        // Clear error when user starts typing
-                        if (businessErrors.phone) {
-                          setBusinessErrors({ ...businessErrors, phone: '' });
-                        }
-                      }}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all ${
-                        businessErrors.phone ? 'border-red-300 bg-red-50' : 'border-slate-200'
-                      }`}
-                      placeholder="(555) 123-4567"
-                    />
-                    {businessErrors.phone && (
-                      <p className="mt-1 text-sm text-red-600">{businessErrors.phone}</p>
-                    )}
+                {/* Signing Authority Section */}
+                <div className="md:col-span-2 border-t border-slate-200 pt-4 mt-2">
+                  <div className="flex items-center gap-2 mb-4">
+                    <h3 className="text-base font-semibold text-slate-700">Signing Authority</h3>
+                    <div className="group relative">
+                      <Info className="w-4 h-4 text-slate-400 cursor-help" />
+                      <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
+                        The person authorized to sign Form 2290 on behalf of the business. This person must have the legal authority to sign tax returns.
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Name <span className="text-[var(--color-orange)]">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={editingBusiness.signingAuthorityName || ''}
+                        onChange={(e) => handleBusinessChange('signingAuthorityName', e.target.value, true)}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.signingAuthorityName ? 'border-red-500' : 'border-slate-200'}`}
+                        placeholder="John Doe"
+                      />
+                      {businessErrors.signingAuthorityName && (
+                        <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityName}</span>
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Phone <span className="text-[var(--color-orange)]">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        value={editingBusiness.signingAuthorityPhone || ''}
+                        onChange={(e) => handleBusinessChange('signingAuthorityPhone', e.target.value, true)}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.signingAuthorityPhone ? 'border-red-500' : 'border-slate-200'}`}
+                        placeholder="(555) 123-4567"
+                      />
+                      {businessErrors.signingAuthorityPhone && (
+                        <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityPhone}</span>
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        PIN <span className="text-[var(--color-orange)]">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={editingBusiness.signingAuthorityPIN || ''}
+                        onChange={(e) => handleBusinessChange('signingAuthorityPIN', e.target.value, true)}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${businessErrors.signingAuthorityPIN ? 'border-red-500' : 'border-slate-200'}`}
+                        placeholder="12345"
+                        maxLength="5"
+                      />
+                      {businessErrors.signingAuthorityPIN && (
+                        <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityPIN}</span>
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Signing Authority Name
-                    </label>
-                    <input
-                      type="text"
-                      value={editingBusiness.signingAuthorityName || ''}
-                      onChange={(e) => {
-                        setEditingBusiness({ ...editingBusiness, signingAuthorityName: e.target.value });
-                        // Clear error when user starts typing
-                        if (businessErrors.signingAuthorityName) {
-                          setBusinessErrors({ ...businessErrors, signingAuthorityName: '' });
-                        }
-                      }}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all ${
-                        businessErrors.signingAuthorityName ? 'border-red-300 bg-red-50' : 'border-slate-200'
-                      }`}
-                      placeholder="John Doe"
-                    />
-                    {businessErrors.signingAuthorityName && (
-                      <p className="mt-1 text-sm text-red-600">{businessErrors.signingAuthorityName}</p>
+                  {/* Third Party Designee */}
+                  <div className="mt-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <label className="block text-sm font-semibold text-slate-700">
+                        Third Party Designee
+                      </label>
+                      <div className="group relative">
+                        <Info className="w-4 h-4 text-slate-400 cursor-help" />
+                        <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
+                          A third party designee is someone you authorize to discuss your Form 2290 with the IRS. This is optional.
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditingBusiness({ ...editingBusiness, hasThirdPartyDesignee: false, thirdPartyDesigneeName: '', thirdPartyDesigneePhone: '', thirdPartyDesigneePIN: '' })}
+                        className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${
+                          editingBusiness.hasThirdPartyDesignee === false
+                            ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
+                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                          editingBusiness.hasThirdPartyDesignee === false
+                            ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
+                            : 'border-slate-300 bg-white'
+                        }`}>
+                          {editingBusiness.hasThirdPartyDesignee === false && (
+                            <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
+                          )}
+                        </div>
+                        <span className={`text-sm font-semibold ${
+                          editingBusiness.hasThirdPartyDesignee === false
+                            ? 'text-[var(--color-orange)]'
+                            : 'text-slate-600'
+                        }`}>
+                          No
+                        </span>
+                        {editingBusiness.hasThirdPartyDesignee === false && (
+                          <CheckCircle className="w-4 h-4 text-[var(--color-orange)] absolute top-2 right-2" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingBusiness({ ...editingBusiness, hasThirdPartyDesignee: true })}
+                        className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${
+                          editingBusiness.hasThirdPartyDesignee === true
+                            ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
+                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                          editingBusiness.hasThirdPartyDesignee === true
+                            ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
+                            : 'border-slate-300 bg-white'
+                        }`}>
+                          {editingBusiness.hasThirdPartyDesignee === true && (
+                            <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
+                          )}
+                        </div>
+                        <span className={`text-sm font-semibold ${
+                          editingBusiness.hasThirdPartyDesignee === true
+                            ? 'text-[var(--color-orange)]'
+                            : 'text-slate-600'
+                        }`}>
+                          Yes
+                        </span>
+                        {editingBusiness.hasThirdPartyDesignee === true && (
+                          <CheckCircle className="w-4 h-4 text-[var(--color-orange)] absolute top-2 right-2" />
+                        )}
+                      </button>
+                    </div>
+
+                    {editingBusiness.hasThirdPartyDesignee && (
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">
+                            Name <span className="text-[var(--color-orange)]">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={editingBusiness.thirdPartyDesigneeName || ''}
+                            onChange={(e) => handleBusinessChange('thirdPartyDesigneeName', e.target.value, true)}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.thirdPartyDesigneeName ? 'border-red-500' : 'border-blue-300'}`}
+                            placeholder="Jane Smith"
+                          />
+                          {businessErrors.thirdPartyDesigneeName && (
+                            <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneeName}</span>
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">
+                            Phone <span className="text-[var(--color-orange)]">*</span>
+                          </label>
+                          <input
+                            type="tel"
+                            value={editingBusiness.thirdPartyDesigneePhone || ''}
+                            onChange={(e) => handleBusinessChange('thirdPartyDesigneePhone', e.target.value, true)}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.thirdPartyDesigneePhone ? 'border-red-500' : 'border-blue-300'}`}
+                            placeholder="(555) 123-4567"
+                          />
+                          {businessErrors.thirdPartyDesigneePhone && (
+                            <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneePhone}</span>
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">
+                            PIN <span className="text-[var(--color-orange)]">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={editingBusiness.thirdPartyDesigneePIN || ''}
+                            onChange={(e) => handleBusinessChange('thirdPartyDesigneePIN', e.target.value, true)}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${businessErrors.thirdPartyDesigneePIN ? 'border-red-500' : 'border-blue-300'}`}
+                            placeholder="12345"
+                            maxLength="5"
+                          />
+                          {businessErrors.thirdPartyDesigneePIN && (
+                            <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneePIN}</span>
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
