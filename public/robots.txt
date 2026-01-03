@@ -31,7 +31,7 @@ Allow: /*.webp$
 
 # Sitemap locations
 Sitemap: https://www.quicktrucktax.com/sitemap.xml
-Sitemap: https://www.quicktrucktax.com/sitemap-2290.xml
+Sitemap: https://www.quicktrucktax.com/sitemap-twotwoninezero.xml
 
 # Crawl delay (optional, adjust as needed)
 Crawl-delay: 1
