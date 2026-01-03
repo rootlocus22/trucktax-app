@@ -86,5 +86,11 @@ service cloud.firestore {
     match /early_access_leads/{lead} {
         allow create: if true;
     }
+
+    // pSEO Pages - Public Read Access (Generated Content)
+    match /pseo_pages/{page} {
+        allow read: if true;
+        allow write: if false; // Only admin SDK can write
+    }
   }
 }

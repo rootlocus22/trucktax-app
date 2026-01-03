@@ -8,25 +8,30 @@ import "./globals.css";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap", // Prevent FOIT (Flash of Invisible Text)
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: false, // Not critical for initial render
 });
 
 export const metadata = {
   metadataBase: new URL("https://www.quicktrucktax.com"),
   title: {
-    default: "QuickTruckTax | Trucking Compliance Guides & Form 2290 Filing",
-    template: "%s | QuickTruckTax",
+    default: "QuickTruckTax | 2025-2026 Tax Year Form 2290 E-Filing",
+    template: "%s | QuickTruckTax (2025-2026)",
   },
   description:
-    "E-file IRS Form 2290 with QuickTruckTax. Fast, secure, and instant Schedule 1. We help carriers stay compliant with HVUT, UCR, MCS-150, and IFTA.",
+    "E-file IRS Form 2290 for Tax Year 2025-2026 with QuickTruckTax. Fast, secure, and instant Schedule 1. We help carriers stay compliant with HVUT, UCR, MCS-150, and IFTA.",
   keywords: [
     "form 2290",
     "e-file form 2290",
     "HVUT",
+    "2025-2026 tax year",
     "eform2290",
     "eform 2290",
     "file 2290 online",
@@ -72,7 +77,7 @@ export const metadata = {
     google: "-95Bq4XHD66PIeHdHG3cDSad9_yp6kTmOVeUtUKUIc0",
   },
   openGraph: {
-    title: "QuickTruckTax | Trucking Compliance Guides & Form 2290 Filing",
+    title: "QuickTruckTax | 2025-2026 Tax Year Form 2290 E-Filing",
     description:
       "Actionable guides and checklists for Form 2290, UCR, MCS-150, IFTA, and trucking authority filings. Stay compliant and avoid penalties.",
     url: "https://www.quicktrucktax.com",
@@ -93,7 +98,7 @@ export const metadata = {
     card: "summary_large_image",
     site: "@quicktrucktax",
     creator: "@quicktrucktax",
-    title: "QuickTruckTax | Trucking Compliance Guides",
+    title: "QuickTruckTax | 2025-2026 Tax Year Form 2290 E-Filing",
     description:
       "Stay ahead of trucking compliance deadlines with detailed Form 2290 and HVUT guides.",
     images: ["https://www.quicktrucktax.com/quicktrucktax-logo-new.png"],
@@ -102,10 +107,33 @@ export const metadata = {
 
 import Header from "@/components/ui/Header";
 
+// JSON-LD for WebSite
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'QuickTruckTax',
+  alternateName: ['QuickTruckTax E-Filing', 'QTT'],
+  url: 'https://www.quicktrucktax.com',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: 'https://www.quicktrucktax.com/search?q={search_term_string}'
+    },
+    'query-input': 'required name=search_term_string'
+  }
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        {/* Resource Hints for Performance */}
+        <link rel="preconnect" href="https://firestore.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+
+        <Script id="structured-data-website" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
         <Script id="microsoft-clarity" strategy="afterInteractive">
           {`
             (function(c,l,a,r,i,t,y){
@@ -172,6 +200,9 @@ export default function RootLayout({ children }) {
                     </Link>
                     <Link href="/insights/form-2290-checklist-download" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2">
                       Form 2290 Checklist
+                    </Link>
+                    <Link href="/resources/2290-tax-directory" className="text-sm text-[#f97316] hover:text-[#fbbf24] transition flex items-center gap-2 font-bold">
+                      Tax Guide Directory <span className="text-[10px] bg-white/10 px-1 rounded">NEW</span>
                     </Link>
                   </div>
                 </div>

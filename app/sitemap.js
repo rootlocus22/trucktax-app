@@ -1,13 +1,15 @@
 import { complianceGuides } from "@/lib/guides";
 import { blogPosts } from "./blog/blogData";
 import usStates from '@/data/us-states.json';
+import { getPseoRoutes } from "@/lib/pseo/data";
+import { errorCodes } from "@/lib/error-codes";
 
 const baseUrl = "https://www.quicktrucktax.com";
 
 /**
  * Sitemap configuration for QuickTruckTax
  * Generates sitemap.xml for all pages, blogs, and guides
- * Updated: 2025-12-14 (SEO Expansion)
+ * Updated: 2026-01-03 (SEO Expansion)
  */
 export default function sitemap() {
   const now = new Date().toISOString();
@@ -29,6 +31,9 @@ export default function sitemap() {
     { path: "/tools", priority: 0.8, changeFrequency: "weekly" },
     { path: "/tools/hvut-calculator", priority: 0.8, changeFrequency: "monthly" },
     { path: "/tools/ifta-calculator", priority: 0.8, changeFrequency: "monthly" },
+    { path: "/error-codes", priority: 0.8, changeFrequency: "weekly" },
+    { path: "/comparisons", priority: 0.8, changeFrequency: "weekly" },
+    { path: "/comparisons/vs-express-truck-tax", priority: 0.8, changeFrequency: "monthly" },
   ].map(({ path, priority, changeFrequency }) => ({
     url: `${baseUrl}${path || "/"}`,
     lastModified: now,
@@ -44,7 +49,7 @@ export default function sitemap() {
     priority: 0.8,
   }));
 
-  // Compliance guides from /insights
+  // Compilance guides from /insights
   const guideRoutes = complianceGuides.map((guide) => ({
     url: `${baseUrl}/insights/${guide.slug}`,
     lastModified: new Date(guide.updatedAt).toISOString(),
@@ -60,5 +65,21 @@ export default function sitemap() {
     priority: 0.8,
   }));
 
-  return [...coreRoutes, ...stateRoutes, ...guideRoutes, ...blogRoutes];
+  // Error Code Pages
+  const errorRoutes = errorCodes.map((error) => ({
+    url: `${baseUrl}/error-codes/${error.code}`,
+    lastModified: now, // Should probably track update time in data, but now is fine for MVP
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
+
+  // pSEO Routes (Dynamic Variable Strategy)
+  const pseoRoutes = getPseoRoutes().map((route) => ({
+    url: `${baseUrl}${route.url}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.7,
+  }));
+
+  return [...coreRoutes, ...stateRoutes, ...guideRoutes, ...blogRoutes, ...errorRoutes, ...pseoRoutes];
 }

@@ -77,11 +77,36 @@ export default function Home() {
     ],
   };
 
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: 'IRS Form 2290 E-Filing Service (2025-2026)',
+    image: 'https://www.quicktrucktax.com/quicktrucktax-logo-new.png',
+    description: 'Secure, IRS-authorized E-file provider for Form 2290 (HVUT). Get your Schedule 1 in minutes.',
+    brand: {
+      '@type': 'Brand',
+      name: 'QuickTruckTax'
+    },
+    offers: {
+      '@type': 'Offer',
+      url: 'https://www.quicktrucktax.com/services/form-2290-filing',
+      priceCurrency: 'USD',
+      price: '34.99',
+      priceValidUntil: '2026-12-31',
+      availability: 'https://schema.org/InStock'
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.9',
+      ratingCount: '1240'
+    }
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, productJsonLd]) }}
       />
 
       <div className="flex flex-col gap-20 sm:gap-24">
@@ -104,10 +129,10 @@ export default function Home() {
                 <ShieldCheck className="w-4 h-4" /> IRS-Authorized Smart E-Filing
               </div>
               <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl text-white">
-                File Form 2290 Online for Just <span className="text-[var(--color-orange)]">$34.99</span>.
+                File Form 2290 <span className="block text-blue-200">for 2025-2026</span> for Just <span className="text-[var(--color-orange)]">$34.99</span>.
               </h1>
               <p className="text-lg leading-8 text-slate-300 max-w-xl">
-                Get your IRS-stamped Schedule 1 in minutes. Save 40% vs leading competitors. Smart, secure, and no phone calls required.
+                Get your IRS-stamped Schedule 1 for the 2025-2026 tax year in minutes. Save 40% vs leading competitors. Smart, secure, and no phone calls required.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">

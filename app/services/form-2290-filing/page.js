@@ -3,9 +3,9 @@ import { Truck, CheckCircle, Clock, ShieldCheck, ArrowRight, FileText, DollarSig
 import SchemaMarkup from '@/components/seo/SchemaMarkup';
 
 export const metadata = {
-    title: 'E-file Form 2290 Online | Instant Schedule 1 | QuickTruckTax',
-    description: 'File IRS Form 2290 (HVUT) online in minutes. Get your stamped Schedule 1 instantly. Secure, authorized e-file provider for owner-operators and fleets.',
-    keywords: 'e-file form 2290, file 2290 online, hvut filing, schedule 1, 2290 tax, heavy vehicle use tax',
+    title: 'E-File Form 2290 for 2025-2026 Tax Year | Instant Schedule 1',
+    description: 'File IRS Form 2290 for tax year 2025-2026 online. Get your Schedule 1 in minutes. IRS-authorized E-file provider starting at just $34.99.',
+    keywords: 'e-file form 2290, file 2290 online, hvut filing, schedule 1, 2290 tax, heavy vehicle use tax, 2025-2026 tax year',
     alternates: {
         canonical: 'https://www.quicktrucktax.com/services/form-2290-filing',
     },
