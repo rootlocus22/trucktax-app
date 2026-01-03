@@ -1,8 +1,7 @@
-import { Metadata } from 'next';
 import Link from 'next/link';
 import { HelpCircle, Truck, DollarSign, Calendar, FileText, Shield } from 'lucide-react';
 
-export const metadata: Metadata = {
+export const metadata = {
     title: 'Form 2290 FAQ - Complete Guide for Truckers | QuickTruckTax',
     description: 'Comprehensive FAQ about Form 2290 Heavy Vehicle Use Tax. Get answers to all your HVUT filing questions from IRS-authorized e-file experts.',
     keywords: ['form 2290 faq', 'hvut questions', 'truck tax help', 'schedule 1 questions'],
@@ -82,7 +81,7 @@ export default function FAQPage() {
             questions: [
                 {
                     q: 'I got IRS rejection code R0000-058. What does this mean?',
-                    a: 'This is a VIN error. Use our free manufacturer-specific VIN decoder (Freightliner, Peterbilt, etc.) to verify your VIN format: https://www.quicktrucktax.com/freightliner-vin-decoding'
+                    a: 'This is a VIN error. Use our free manufacturer-specific VIN decoder (Freightliner, Peterbilt, etc.) to verify your VIN format.'
                 },
                 {
                     q: 'Where do I find my VIN?',
@@ -139,30 +138,33 @@ export default function FAQPage() {
 
             {/* FAQ Content */}
             <div className="max-w-5xl mx-auto px-6 py-16">
-                {faqs.map((category, idx) => (
-                    <section key={idx} className="mb-16">
-                        <div className="flex items-center gap-3 mb-8">
-                            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                                <category.icon className="w-6 h-6 text-[#173b63]" />
+                {faqs.map((category, idx) => {
+                    const IconComponent = category.icon;
+                    return (
+                        <section key={idx} className="mb-16">
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                                    <IconComponent className="w-6 h-6 text-[#173b63]" />
+                                </div>
+                                <h2 className="text-3xl font-bold text-[#0f172a]">{category.category}</h2>
                             </div>
-                            <h2 className="text-3xl font-bold text-[#0f172a]">{category.category}</h2>
-                        </div>
 
-                        <div className="space-y-4">
-                            {category.questions.map((faq, i) => (
-                                <details key={i} className="group bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                    <summary className="flex justify-between items-center cursor-pointer p-6 font-bold text-slate-900 hover:bg-slate-50 transition">
-                                        <span className="text-lg">{faq.q}</span>
-                                        <span className="text-slate-400 group-open:rotate-180 transition-transform">▼</span>
-                                    </summary>
-                                    <div className="px-6 pb-6 text-slate-600 leading-relaxed border-t border-slate-100 pt-4">
-                                        {faq.a}
-                                    </div>
-                                </details>
-                            ))}
-                        </div>
-                    </section>
-                ))}
+                            <div className="space-y-4">
+                                {category.questions.map((faq, i) => (
+                                    <details key={i} className="group bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                        <summary className="flex justify-between items-center cursor-pointer p-6 font-bold text-slate-900 hover:bg-slate-50 transition">
+                                            <span className="text-lg">{faq.q}</span>
+                                            <span className="text-slate-400 group-open:rotate-180 transition-transform">▼</span>
+                                        </summary>
+                                        <div className="px-6 pb-6 text-slate-600 leading-relaxed border-t border-slate-100 pt-4">
+                                            {faq.a}
+                                        </div>
+                                    </details>
+                                ))}
+                            </div>
+                        </section>
+                    );
+                })}
 
                 {/* CTA Section */}
                 <div className="mt-16 bg-gradient-to-br from-[#173b63] to-[#0f172a] rounded-3xl p-12 text-center text-white">
