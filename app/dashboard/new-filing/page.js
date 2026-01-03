@@ -472,7 +472,10 @@ function NewFilingContent() {
           if (draft && draft.userId === user.uid) {
             // Restore draft state
             setDraftId(draft.id);
-            if (draft.step) setStep(draft.step);
+            // Skip step 4 (Documents) - redirect to step 5 if draft was on step 4
+            if (draft.step) {
+              setStep(draft.step === 4 ? 5 : draft.step);
+            }
             if (draft.filingType) setFilingType(draft.filingType);
             if (draft.selectedBusinessId) setSelectedBusinessId(draft.selectedBusinessId);
             if (draft.selectedVehicleIds) setSelectedVehicleIds(draft.selectedVehicleIds);
@@ -491,6 +494,13 @@ function NewFilingContent() {
     };
     loadDraft();
   }, [user, searchParams]);
+
+  // Auto-redirect from step 4 (Documents) to step 5 (Review) since step 4 is hidden
+  useEffect(() => {
+    if (step === 4) {
+      setStep(5);
+    }
+  }, [step]);
 
   useEffect(() => {
     if (user) {
@@ -1381,7 +1391,7 @@ function NewFilingContent() {
       case 1: return 'Filing Type';
       case 2: return 'Business Information';
       case 3: return 'Vehicles';
-      case 4: return 'Documents';
+      case 4: return 'Documents'; // Hidden but kept for internal step numbering
       case 5: return 'Review';
       case 6: return 'Select IRS Payment Method';
       default: return '';
@@ -1397,12 +1407,10 @@ function NewFilingContent() {
       const validation = validateVehicleTypeCombination(selectedVehicleIds);
       if (validation.isValid) {
         setVehicleTypeError('');
-      setStep(4);
+      setStep(5); // Skip step 4 (Documents), go directly to Review
       } else {
         setVehicleTypeError(validation.error);
       }
-    } else if (step === 4) {
-      setStep(5);
     } else if (step === 5) {
       setStep(6);
     } else {
@@ -1520,41 +1528,48 @@ function NewFilingContent() {
             <div className="w-full md:w-auto">
               <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight mb-1 sm:mb-2">New Filing Request</h1>
               <p className="text-xs sm:text-sm md:text-base text-slate-500 font-medium">
-                Step {step} of 6: <span className="text-[var(--color-orange)] font-bold">{getStepTitle(step)}</span>
+                Step {step === 4 ? 4 : step > 4 ? step - 1 : step} of 5: <span className="text-[var(--color-orange)] font-bold">{getStepTitle(step)}</span>
               </p>
             </div>
             {/* Desktop Stepper */}
             <div className="hidden md:flex items-center">
-              {[1, 2, 3, 4, 5, 6].map((s) => (
-                <div key={s} className="flex items-center">
-                  <div className={`
-                    w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 border-2
-                    ${s < step
-                      ? 'bg-[var(--color-orange)] border-[var(--color-orange)] text-white'
-                      : s === step
-                        ? 'bg-white border-[var(--color-orange)] text-[var(--color-orange)] shadow-lg scale-110'
-                        : 'bg-white border-slate-200 text-slate-400'
-                    }
-                  `}>
-                    {s < step ? <CheckCircle className="w-5 h-5" /> : s}
+              {[1, 2, 3, 5, 6].map((s) => {
+                // Map step numbers for display (skip step 4)
+                const displayStep = s > 4 ? s - 1 : s;
+                const isCurrentStep = s === step;
+                const isCompleted = s < step || (step === 4 && s === 3); // If we're on step 4 (hidden), step 3 is completed
+                
+                return (
+                  <div key={s} className="flex items-center">
+                    <div className={`
+                      w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 border-2
+                      ${isCompleted
+                        ? 'bg-[var(--color-orange)] border-[var(--color-orange)] text-white'
+                        : isCurrentStep
+                          ? 'bg-white border-[var(--color-orange)] text-[var(--color-orange)] shadow-lg scale-110'
+                          : 'bg-white border-slate-200 text-slate-400'
+                      }
+                    `}>
+                      {isCompleted ? <CheckCircle className="w-5 h-5" /> : displayStep}
+                    </div>
+                    {s < 6 && (
+                      <div className={`w-12 h-1 transition-colors duration-300 ${isCompleted ? 'bg-[var(--color-orange)]' : 'bg-slate-200'}`} />
+                    )}
                   </div>
-                  {s < 6 && (
-                    <div className={`w-12 h-1 transition-colors duration-300 ${s < step ? 'bg-[var(--color-orange)]' : 'bg-slate-200'}`} />
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
           {/* Mobile Progress Bar with Label */}
           <div className="md:hidden mb-3 sm:mb-4 md:mb-6">
             <div className="flex justify-between items-center mb-1.5 sm:mb-2">
-              <span className="text-xs sm:text-sm font-bold text-slate-900">Step {step} of 6</span>
+              <span className="text-xs sm:text-sm font-bold text-slate-900">Step {step === 4 ? 4 : step > 4 ? step - 1 : step} of 5</span>
               <span className="text-xs sm:text-sm font-medium text-[var(--color-orange)]">{getStepTitle(step)}</span>
             </div>
             <div className="h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className="h-full bg-[var(--color-orange)] transition-all duration-500 ease-out"
-                style={{ width: `${(step / 6) * 100}%` }}
+                style={{ width: `${((step === 4 ? 4 : step > 4 ? step - 1 : step) / 5) * 100}%` }}
               />
             </div>
           </div>
@@ -1694,29 +1709,6 @@ function NewFilingContent() {
                     </p>
                   </button>
 
-                  <button
-                    onClick={() => {
-                      setFilingType('refund');
-                      setAmendmentType('');
-                    }}
-                    className={`group relative p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-lg active:scale-[0.98] touch-manipulation ${filingType === 'refund'
-                      ? 'border-green-600 bg-green-50/50 ring-1 ring-green-600'
-                      : 'border-slate-200 hover:border-green-300 bg-white active:bg-slate-50'
-                      }`}
-                  >
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-3 md:mb-4 transition-colors ${filingType === 'refund' ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500 group-hover:bg-green-50 group-hover:text-green-600'}`}>
-                      <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" strokeWidth={1.5} />
-                    </div>
-                    {filingType === 'refund' && (
-                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 text-green-600 bg-white rounded-full p-0.5 sm:p-1 shadow-sm">
-                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 fill-green-100" />
-                      </div>
-                    )}
-                    <h3 className={`font-bold text-sm sm:text-base md:text-lg mb-1 sm:mb-2 ${filingType === 'refund' ? 'text-green-900' : 'text-slate-900'}`}>Refund (8849)</h3>
-                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
-                      Claim a credit for sold, destroyed, or low-mileage vehicles.
-                    </p>
-                  </button>
                 </div>
 
                 {/* Amendment Type Sub-Selection */}
@@ -3494,8 +3486,8 @@ function NewFilingContent() {
               </div>
             )}
 
-            {/* Step 4: Documents */}
-            {step === 4 && (
+            {/* Step 4: Documents - HIDDEN (skipped in navigation) */}
+            {false && step === 4 && (
               <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 lg:p-10 shadow-sm">
                 <div className="mb-6 sm:mb-8">
                   <div className="flex items-center gap-3 mb-2">
@@ -4021,7 +4013,7 @@ function NewFilingContent() {
                 {/* Action Buttons - Mobile Optimized */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 pt-3 sm:pt-4 md:pt-6 border-t border-slate-200">
                   <button
-                    onClick={() => setStep(4)}
+                    onClick={() => setStep(3)}
                     className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border border-slate-300 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-slate-50 active:bg-slate-100 transition font-medium touch-manipulation"
                   >
                     Previous Step
