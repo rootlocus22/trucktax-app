@@ -1356,16 +1356,93 @@ export default function AgentWorkStationPage() {
                             </div>
                           </div>
                         )}
-                        {business.signingAuthorityName && (
-                          <div className="flex items-start justify-between gap-2">
-                            <span className="text-[var(--color-muted)] min-w-[120px]">Signing Authority:</span>
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <span className="text-[var(--color-text)] flex-1 text-right">
-                                {business.signingAuthorityName}
-                                {business.signingAuthorityTitle && ` (${business.signingAuthorityTitle})`}
-                              </span>
-                              <button onClick={() => handleCopyToClipboard(business.signingAuthorityName)} className="text-[var(--color-navy)] hover:underline text-xs flex-shrink-0">Copy</button>
-                            </div>
+                        {/* Enhanced Business Address Fields */}
+                        {(business.city || business.state || business.zip || business.country) && (
+                          <div className="pt-2 border-t border-[var(--color-border)]">
+                            <div className="text-xs font-semibold text-[var(--color-muted)] uppercase mb-2">Full Address</div>
+                            {business.city && (
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <span className="text-[var(--color-muted)] min-w-[120px]">City:</span>
+                                <span className="text-[var(--color-text)] flex-1 text-right">{business.city}</span>
+                              </div>
+                            )}
+                            {business.state && (
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <span className="text-[var(--color-muted)] min-w-[120px]">State:</span>
+                                <span className="text-[var(--color-text)] flex-1 text-right">{business.state}</span>
+                              </div>
+                            )}
+                            {business.zip && (
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <span className="text-[var(--color-muted)] min-w-[120px]">ZIP:</span>
+                                <span className="text-[var(--color-text)] flex-1 text-right">{business.zip}</span>
+                              </div>
+                            )}
+                            {business.country && (
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="text-[var(--color-muted)] min-w-[120px]">Country:</span>
+                                <span className="text-[var(--color-text)] flex-1 text-right">{business.country}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Signing Authority Section */}
+                        {(business.signingAuthorityName || business.signingAuthorityPhone || business.signingAuthorityPIN) && (
+                          <div className="pt-2 border-t border-[var(--color-border)]">
+                            <div className="text-xs font-semibold text-[var(--color-muted)] uppercase mb-2">Signing Authority</div>
+                            {business.signingAuthorityName && (
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <span className="text-[var(--color-muted)] min-w-[120px]">Name:</span>
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <span className="text-[var(--color-text)] flex-1 text-right">{business.signingAuthorityName}</span>
+                                  <button onClick={() => handleCopyToClipboard(business.signingAuthorityName)} className="text-[var(--color-navy)] hover:underline text-xs flex-shrink-0">Copy</button>
+                                </div>
+                              </div>
+                            )}
+                            {business.signingAuthorityPhone && (
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <span className="text-[var(--color-muted)] min-w-[120px]">Phone:</span>
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <span className="text-[var(--color-text)] flex-1 text-right font-mono">{business.signingAuthorityPhone}</span>
+                                  <button onClick={() => handleCopyToClipboard(business.signingAuthorityPhone)} className="text-[var(--color-navy)] hover:underline text-xs flex-shrink-0">Copy</button>
+                                </div>
+                              </div>
+                            )}
+                            {business.signingAuthorityPIN && (
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="text-[var(--color-muted)] min-w-[120px]">PIN:</span>
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <span className="text-[var(--color-text)] flex-1 text-right font-mono">{business.signingAuthorityPIN}</span>
+                                  <button onClick={() => handleCopyToClipboard(business.signingAuthorityPIN)} className="text-[var(--color-navy)] hover:underline text-xs flex-shrink-0">Copy</button>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Third Party Designee */}
+                            {business.hasThirdPartyDesignee && (
+                              <div className="mt-2 pt-2 border-t border-[var(--color-border)]">
+                                <div className="text-xs font-semibold text-[var(--color-muted)] uppercase mb-2">Third Party Designee</div>
+                                {business.thirdPartyDesigneeName && (
+                                  <div className="flex items-start justify-between gap-2 mb-1">
+                                    <span className="text-[var(--color-muted)] min-w-[120px]">Name:</span>
+                                    <span className="text-[var(--color-text)] flex-1 text-right">{business.thirdPartyDesigneeName}</span>
+                                  </div>
+                                )}
+                                {business.thirdPartyDesigneePhone && (
+                                  <div className="flex items-start justify-between gap-2 mb-1">
+                                    <span className="text-[var(--color-muted)] min-w-[120px]">Phone:</span>
+                                    <span className="text-[var(--color-text)] flex-1 text-right font-mono">{business.thirdPartyDesigneePhone}</span>
+                                  </div>
+                                )}
+                                {business.thirdPartyDesigneePIN && (
+                                  <div className="flex items-start justify-between gap-2">
+                                    <span className="text-[var(--color-muted)] min-w-[120px]">PIN:</span>
+                                    <span className="text-[var(--color-text)] flex-1 text-right font-mono">{business.thirdPartyDesigneePIN}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         )}
                       </>
@@ -1385,29 +1462,113 @@ export default function AgentWorkStationPage() {
                   <h3 className="font-semibold text-[var(--color-text)] mb-2">Vehicles ({vehicles.length})</h3>
                   <div className="bg-[var(--color-page-alt)] p-4 rounded-lg">
                     {vehicles.length > 0 ? (
-                      <div className="space-y-3">
-                        {vehicles.map((vehicle) => (
-                          <div key={vehicle.id} className="border-b border-[var(--color-border)] pb-3 last:border-0 last:pb-0">
-                            <div className="space-y-1.5 text-sm">
-                              <div className="flex items-start justify-between gap-2">
-                                <span className="text-[var(--color-muted)] min-w-[80px]">VIN:</span>
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                  <span className="text-[var(--color-text)] font-mono font-medium truncate">{vehicle.vin}</span>
-                                  <button onClick={() => handleCopyToClipboard(vehicle.vin)} className="text-[var(--color-navy)] hover:underline text-xs flex-shrink-0">Copy</button>
-                                </div>
+                      <div className="space-y-4">
+                        {vehicles.map((vehicle) => {
+                          const vehicleType = vehicle.vehicleType || (vehicle.isSuspended ? 'suspended' : 'taxable');
+                          const getVehicleTypeLabel = (type) => {
+                            switch(type) {
+                              case 'taxable': return 'Taxable Vehicle';
+                              case 'suspended': return 'Suspended Vehicle';
+                              case 'credit': return 'Credit Vehicle';
+                              case 'priorYearSold': return 'Prior Year Sold Suspended Vehicle';
+                              default: return vehicle.isSuspended ? 'Suspended Vehicle' : 'Taxable Vehicle';
+                            }
+                          };
+                          const getVehicleTypeColor = (type) => {
+                            switch(type) {
+                              case 'taxable': return 'bg-green-100 text-green-700 border-green-200';
+                              case 'suspended': return 'bg-amber-100 text-amber-700 border-amber-200';
+                              case 'credit': return 'bg-blue-100 text-blue-700 border-blue-200';
+                              case 'priorYearSold': return 'bg-purple-100 text-purple-700 border-purple-200';
+                              default: return 'bg-slate-100 text-slate-700 border-slate-200';
+                            }
+                          };
+                          
+                          return (
+                            <div key={vehicle.id} className="border border-[var(--color-border)] rounded-lg p-3 bg-white">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className={`px-2 py-1 rounded text-xs font-semibold border ${getVehicleTypeColor(vehicleType)}`}>
+                                  {getVehicleTypeLabel(vehicleType)}
+                                </span>
                               </div>
-                              <div className="flex items-start justify-between gap-2">
-                                <span className="text-[var(--color-muted)] min-w-[80px]">Weight:</span>
-                                <span className="text-[var(--color-text)] font-medium">{vehicle.grossWeightCategory}</span>
-                              </div>
-                              {vehicle.isSuspended && (
-                                <div className="flex items-center gap-1.5 pt-1">
-                                  <span className="text-xs font-medium text-orange-600">⚠️ Suspended Vehicle</span>
+                              <div className="space-y-1.5 text-sm">
+                                <div className="flex items-start justify-between gap-2">
+                                  <span className="text-[var(--color-muted)] min-w-[80px]">VIN:</span>
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <span className="text-[var(--color-text)] font-mono font-medium truncate">{vehicle.vin}</span>
+                                    <button onClick={() => handleCopyToClipboard(vehicle.vin)} className="text-[var(--color-navy)] hover:underline text-xs flex-shrink-0">Copy</button>
+                                  </div>
                                 </div>
-                              )}
+                                <div className="flex items-start justify-between gap-2">
+                                  <span className="text-[var(--color-muted)] min-w-[80px]">Weight Category:</span>
+                                  <span className="text-[var(--color-text)] font-medium">{vehicle.grossWeightCategory || (vehicleType === 'suspended' ? 'W' : 'N/A')}</span>
+                                </div>
+                                
+                                {/* Taxable/Suspended/Credit Vehicle Fields */}
+                                {(vehicleType === 'taxable' || vehicleType === 'suspended' || vehicleType === 'credit') && vehicle.logging !== null && vehicle.logging !== undefined && (
+                                  <div className="flex items-start justify-between gap-2">
+                                    <span className="text-[var(--color-muted)] min-w-[80px]">Logging:</span>
+                                    <span className="text-[var(--color-text)] font-medium">{vehicle.logging ? 'Yes' : 'No'}</span>
+                                  </div>
+                                )}
+                                
+                                {/* Suspended Vehicle Fields */}
+                                {vehicleType === 'suspended' && vehicle.agricultural !== null && vehicle.agricultural !== undefined && (
+                                  <div className="flex items-start justify-between gap-2">
+                                    <span className="text-[var(--color-muted)] min-w-[80px]">Agricultural:</span>
+                                    <span className="text-[var(--color-text)] font-medium">{vehicle.agricultural ? 'Yes' : 'No'}</span>
+                                  </div>
+                                )}
+                                
+                                {/* Credit Vehicle Fields */}
+                                {vehicleType === 'credit' && (
+                                  <>
+                                    {vehicle.creditReason && (
+                                      <div className="flex items-start justify-between gap-2">
+                                        <span className="text-[var(--color-muted)] min-w-[80px]">Credit Reason:</span>
+                                        <span className="text-[var(--color-text)] font-medium capitalize">
+                                          {vehicle.creditReason === 'sold' ? 'Sold' :
+                                           vehicle.creditReason === 'stolen' ? 'Stolen' :
+                                           vehicle.creditReason === 'destroyed' ? 'Destroyed' :
+                                           vehicle.creditReason === 'lowMileage' ? 'Low Mileage' :
+                                           vehicle.creditReason}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {vehicle.creditDate && (
+                                      <div className="flex items-start justify-between gap-2">
+                                        <span className="text-[var(--color-muted)] min-w-[80px]">Credit Date:</span>
+                                        <span className="text-[var(--color-text)] font-medium">
+                                          {new Date(vehicle.creditDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                                
+                                {/* Prior Year Sold Vehicle Fields */}
+                                {vehicleType === 'priorYearSold' && (
+                                  <>
+                                    {vehicle.soldTo && (
+                                      <div className="flex items-start justify-between gap-2">
+                                        <span className="text-[var(--color-muted)] min-w-[80px]">Sold To:</span>
+                                        <span className="text-[var(--color-text)] font-medium">{vehicle.soldTo}</span>
+                                      </div>
+                                    )}
+                                    {vehicle.soldDate && (
+                                      <div className="flex items-start justify-between gap-2">
+                                        <span className="text-[var(--color-muted)] min-w-[80px]">Sold Date:</span>
+                                        <span className="text-[var(--color-text)] font-medium">
+                                          {new Date(vehicle.soldDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : filing.vehicleIds && filing.vehicleIds.length > 0 ? (
                       <div className="text-sm text-[var(--color-muted)] italic">
@@ -1444,6 +1605,23 @@ export default function AgentWorkStationPage() {
                   <h3 className="font-semibold text-[var(--color-text)] mb-2">Filing Details</h3>
                   <div className="bg-[var(--color-page-alt)] p-4 rounded-lg space-y-2 text-sm">
                     <div className="flex justify-between">
+                      <span className="text-[var(--color-muted)]">Filing Type:</span>
+                      <span className="text-[var(--color-text)] font-medium capitalize">
+                        {filing.filingType === 'amendment' ? 'Amendment' : filing.filingType === 'refund' ? 'Refund (8849)' : 'Standard 2290'}
+                      </span>
+                    </div>
+                    {filing.filingType === 'amendment' && filing.amendmentType && (
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-muted)]">Amendment Type:</span>
+                        <span className="text-[var(--color-text)] font-medium capitalize">
+                          {filing.amendmentType === 'vin_correction' ? 'VIN Correction' :
+                           filing.amendmentType === 'weight_increase' ? 'Weight Increase' :
+                           filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded' :
+                           filing.amendmentType}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
                       <span className="text-[var(--color-muted)]">Tax Year:</span>
                       <span className="text-[var(--color-text)] font-medium">{filing.taxYear}</span>
                     </div>
@@ -1451,6 +1629,76 @@ export default function AgentWorkStationPage() {
                       <span className="text-[var(--color-muted)]">First Used Month:</span>
                       <span className="text-[var(--color-text)] font-medium">{filing.firstUsedMonth}</span>
                     </div>
+                    
+                    {/* Payment Details */}
+                    {filing.paymentDetails && (
+                      <div className="pt-2 border-t border-[var(--color-border)]">
+                        <div className="text-xs font-semibold text-[var(--color-muted)] uppercase mb-2">Payment Information</div>
+                        {filing.paymentDetails.irsPaymentMethod && (
+                          <div className="flex justify-between mb-1">
+                            <span className="text-[var(--color-muted)]">IRS Payment Method:</span>
+                            <span className="text-[var(--color-text)] font-medium capitalize">
+                              {filing.paymentDetails.irsPaymentMethod === 'efw' ? 'EFW (Electronic Fund Withdrawal)' :
+                               filing.paymentDetails.irsPaymentMethod === 'eftps' ? 'EFTPS' :
+                               filing.paymentDetails.irsPaymentMethod === 'credit_card' ? 'Credit/Debit Card' :
+                               filing.paymentDetails.irsPaymentMethod === 'check' ? 'Check/Money Order' :
+                               filing.paymentDetails.irsPaymentMethod}
+                            </span>
+                          </div>
+                        )}
+                        {filing.paymentDetails.bankDetails && (
+                          <div className="space-y-1 mt-2">
+                            <div className="flex justify-between">
+                              <span className="text-[var(--color-muted)]">Account Type:</span>
+                              <span className="text-[var(--color-text)] font-medium capitalize">{filing.paymentDetails.bankDetails.accountType}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-[var(--color-muted)]">Routing Number:</span>
+                              <span className="text-[var(--color-text)] font-mono font-medium">{filing.paymentDetails.bankDetails.routingNumber}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-[var(--color-muted)]">Account Number:</span>
+                              <span className="text-[var(--color-text)] font-mono font-medium">****{filing.paymentDetails.bankDetails.accountNumber?.slice(-4)}</span>
+                            </div>
+                          </div>
+                        )}
+                        {filing.paymentDetails.couponCode && (
+                          <div className="flex justify-between mt-2">
+                            <span className="text-[var(--color-muted)]">Coupon Applied:</span>
+                            <span className="text-[var(--color-text)] font-medium">
+                              {filing.paymentDetails.couponCode} ({filing.paymentDetails.couponDiscount > 0 ? `-$${filing.paymentDetails.couponDiscount.toFixed(2)}` : 'N/A'})
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Pricing Breakdown */}
+                    {filing.pricing && (
+                      <div className="pt-2 border-t border-[var(--color-border)]">
+                        <div className="text-xs font-semibold text-[var(--color-muted)] uppercase mb-2">Pricing Breakdown</div>
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span className="text-[var(--color-muted)]">IRS Tax Amount:</span>
+                            <span className="text-[var(--color-text)] font-medium">${(filing.pricing.totalTax || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-[var(--color-muted)]">Service Fee:</span>
+                            <span className="text-[var(--color-text)] font-medium">${(filing.pricing.serviceFee || 0).toFixed(2)}</span>
+                          </div>
+                          {filing.pricing.salesTax > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-[var(--color-muted)]">Sales Tax:</span>
+                              <span className="text-[var(--color-text)] font-medium">${(filing.pricing.salesTax || 0).toFixed(2)}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between pt-1 border-t border-[var(--color-border)] font-semibold">
+                            <span className="text-[var(--color-text)]">Total:</span>
+                            <span className="text-[var(--color-text)]">${(filing.pricing.grandTotal || 0).toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
