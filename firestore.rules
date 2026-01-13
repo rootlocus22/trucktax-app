@@ -87,6 +87,11 @@ service cloud.firestore {
         allow create: if true;
     }
 
+    // Compliance Alert Signups - Public Write Access
+    match /compliance_alerts/{alert} {
+        allow create: if true;
+    }
+
     // pSEO Pages - Public Read Access (Generated Content)
     match /pseo_pages/{page} {
         allow read: if true;

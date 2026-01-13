@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { complianceGuides } from "@/lib/guides";
+import ComplianceAlertSignup from "@/app/components/ComplianceAlertSignup";
 
 function getGuide(slug) {
   return complianceGuides.find((guide) => guide.slug === slug);
@@ -143,15 +144,8 @@ export default async function GuidePage({ params }) {
         ) : null}
       </section>
 
-      <aside className="rounded-3xl border border-dashed border-[var(--color-border)] bg-[var(--color-card)] p-6 text-sm text-[var(--color-muted)] shadow-lg shadow-[rgba(15,38,71,0.08)] sm:p-8">
-        <h2 className="text-lg font-semibold text-[var(--color-text)]">Stay in the loop</h2>
-        <p className="mt-2">
-          Join our monthly compliance digest to receive Form 2290 reminders, fuel tax updates, and audit checklists.
-        </p>
-        <p className="mt-4 text-xs text-[var(--color-muted)]/80">
-          (Email signup coming soon. For now, bookmark this page or share it with your safety manager.)
-        </p>
-      </aside>
+      {/* Email Signup for Compliance Alerts */}
+      <ComplianceAlertSignup />
     </article>
   );
 }
