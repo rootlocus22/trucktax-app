@@ -102,7 +102,7 @@ export default function MCS150Page() {
     // Submission Data
     const [submissionMethod, setSubmissionMethod] = useState('enter_pin'); // enter_pin, request_pin, upload_driver_license
     const [pin, setPin] = useState('');
-    
+
     // Driver License Upload Method
     const [driverLicenseFile, setDriverLicenseFile] = useState(null);
     const [signatureCanvas, setSignatureCanvas] = useState(null);
@@ -226,21 +226,21 @@ export default function MCS150Page() {
             const formDataForPdf = new FormData();
             formDataForPdf.append('driverLicense', driverLicenseFile);
             formDataForPdf.append('signature', signatureCanvas);
-            
+
             // Calculate power units
             const calculatePowerUnits = (vehicleType) => {
                 if (!vehicleType || typeof vehicleType !== 'object') return 0;
-                return (parseInt(vehicleType.owned) || 0) + 
-                       (parseInt(vehicleType.termLeased) || 0) + 
-                       (parseInt(vehicleType.tripLeased) || 0);
+                return (parseInt(vehicleType.owned) || 0) +
+                    (parseInt(vehicleType.termLeased) || 0) +
+                    (parseInt(vehicleType.tripLeased) || 0);
             };
 
-            const calculatedPowerUnits = 
+            const calculatedPowerUnits =
                 calculatePowerUnits(formData.vehicles.straightTrucks) +
                 calculatePowerUnits(formData.vehicles.truckTractors) +
                 calculatePowerUnits(formData.vehicles.hazmatCargoTrucks);
 
-            const driversTotal = formData.drivers.total || 
+            const driversTotal = formData.drivers.total ||
                 (parseInt(formData.drivers.interstate || 0) + parseInt(formData.drivers.intrastate || 0));
 
             formDataForPdf.append('formData', JSON.stringify({
@@ -280,29 +280,40 @@ export default function MCS150Page() {
             }
 
             const pdfResult = await pdfResponse.json();
-            
-            if (!pdfResult.pdfDataUrl) {
-                throw new Error('PDF generation failed - no PDF data received');
+
+            if (!pdfResult.pdfUrl && !pdfResult.pdfDataUrl) {
+                throw new Error('PDF generation failed - no PDF received');
             }
 
-            // Upload PDF to Firebase Storage using client-side SDK
-            const { uploadFile } = await import('@/lib/storage');
-            const pdfBlob = await fetch(pdfResult.pdfDataUrl).then(r => r.blob());
-            const pdfFile = new File([pdfBlob], `mcs150-${Date.now()}.pdf`, { type: 'application/pdf' });
-            
-            const pdfUrl = await uploadFile(pdfFile, `mcs150-submissions/${user.uid}/${Date.now()}-mcs150-filled.pdf`);
-            
-            // Create submission document in Firestore
-            const { createMcs150Submission } = await import('@/lib/db');
-            const submissionId = await createMcs150Submission(user.uid, {
-                pdfUrl: pdfUrl,
-                formData: pdfResult.formData,
-                status: 'submitted',
-                filingType: 'mcs150',
-            });
-            
+            let pdfUrl = pdfResult.pdfUrl;
+            let submissionId = pdfResult.submissionId;
+
+            // If for some reason server upload failed but we got data URL fallback
+            if (!pdfUrl && pdfResult.pdfDataUrl) {
+                console.warn('Server upload failed, attempting client-side upload fallback');
+                const { uploadFile } = await import('@/lib/storage');
+                const pdfBlob = await fetch(pdfResult.pdfDataUrl).then(r => r.blob());
+                const pdfFile = new File([pdfBlob], `mcs150-${Date.now()}.pdf`, { type: 'application/pdf' });
+                pdfUrl = await uploadFile(pdfFile, `mcs150-submissions/${user.uid}/${Date.now()}-mcs150-filled.pdf`);
+
+                // If we also didn't get a submissionId, we need to create it manually
+                if (!submissionId) {
+                    const { createMcs150Submission } = await import('@/lib/db');
+                    submissionId = await createMcs150Submission(user.uid, {
+                        pdfUrl: pdfUrl,
+                        formData: pdfResult.formData,
+                        status: 'submitted',
+                        filingType: 'mcs150',
+                    });
+                }
+            }
+
+            if (!submissionId) {
+                throw new Error('Failed to create submission record');
+            }
+
             setPdfSubmissionId(submissionId);
-            
+
             // Proceed to payment step after successful PDF generation and upload
             setCurrentStep(6);
         } catch (err) {
@@ -345,25 +356,25 @@ export default function MCS150Page() {
             // Power units = trucks/tractors (not trailers). Sum owned + termLeased + tripLeased for each power unit type
             const calculatePowerUnits = (vehicleType) => {
                 if (!vehicleType || typeof vehicleType !== 'object') return 0;
-                return (parseInt(vehicleType.owned) || 0) + 
-                       (parseInt(vehicleType.termLeased) || 0) + 
-                       (parseInt(vehicleType.tripLeased) || 0);
+                return (parseInt(vehicleType.owned) || 0) +
+                    (parseInt(vehicleType.termLeased) || 0) +
+                    (parseInt(vehicleType.tripLeased) || 0);
             };
 
-            const calculatedPowerUnits = 
+            const calculatedPowerUnits =
                 calculatePowerUnits(formData.vehicles.straightTrucks) +
                 calculatePowerUnits(formData.vehicles.truckTractors) +
                 calculatePowerUnits(formData.vehicles.hazmatCargoTrucks);
             // Note: Trailers and hazmatCargoTrailers are NOT power units, they're separate
 
             // Calculate total drivers if not provided
-            const driversTotal = formData.drivers.total || 
+            const driversTotal = formData.drivers.total ||
                 (parseInt(formData.drivers.interstate || 0) + parseInt(formData.drivers.intrastate || 0));
 
             // For driver license upload method, PDF should already be processed
             // Use the stored submission ID from PDF processing
             const mcs150SubmissionId = submissionMethod === 'upload_driver_license' ? pdfSubmissionId : null;
-            
+
             if (submissionMethod === 'upload_driver_license' && !mcs150SubmissionId) {
                 throw new Error('PDF processing was not completed. Please go back and try again.');
             }
@@ -1324,7 +1335,7 @@ export default function MCS150Page() {
                             <div className="text-xs text-red-500 mt-1 italic">Currently disabled</div>
                         </div>
                     </div>
-                    <input type="radio" value="request_pin" checked={submissionMethod === 'request_pin'} onChange={() => {}} disabled className="hidden" />
+                    <input type="radio" value="request_pin" checked={submissionMethod === 'request_pin'} onChange={() => { }} disabled className="hidden" />
                 </label>
 
                 {/* Option 3: Upload Driver License */}
@@ -1458,7 +1469,7 @@ export default function MCS150Page() {
                     )}
                 </button>
             </div>
-            
+
             {pdfError && (
                 <div className="mt-4 bg-red-50 text-red-700 p-4 rounded-lg flex items-center gap-2">
                     <AlertCircle className="w-5 h-5" />

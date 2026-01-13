@@ -15,7 +15,7 @@ try {
   if (!getApps().length) {
     const hasClientEmail = process.env.FIREBASE_CLIENT_EMAIL;
     const hasPrivateKey = process.env.FIREBASE_PRIVATE_KEY;
-    
+
     if (!hasClientEmail || !hasPrivateKey) {
       console.warn('⚠️ Firebase Admin credentials not found.');
       adminInitialized = false;
@@ -24,7 +24,7 @@ try {
         const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
         const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
         const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
-        
+
         const adminApp = initializeApp({
           credential: cert({
             projectId: projectId,
@@ -33,7 +33,7 @@ try {
           }),
           storageBucket: storageBucket,
         });
-        
+
         auth = getAuth(adminApp);
         storage = getStorage(adminApp);
         db = getFirestore(adminApp);
@@ -88,12 +88,12 @@ export async function POST(request) {
     // Create a new PDF document instead of loading the template
     // The template PDF appears to be encrypted/corrupted, so we'll create a new form PDF
     const pdfDoc = await PDFDocument.create();
-    
+
     // Embed driver license FIRST (handle both PDF and image)
     let driverLicenseImage = null;
     let driverLicensePages = [];
     const driverLicenseBuffer = Buffer.from(await driverLicenseFile.arrayBuffer());
-    
+
     // Check if it's a PDF or image
     if (driverLicenseFile.type === 'application/pdf') {
       // If it's a PDF, we'll add it as the first page(s) before the form
@@ -180,7 +180,7 @@ export async function POST(request) {
     addField('USDOT Number', formDataJson.usdotNumber);
     addField('Business Name', formDataJson.businessName);
     addField('EIN', formDataJson.ein);
-    
+
     // Address (multi-line)
     if (formDataJson.address) {
       page.drawText('Address:', {
@@ -206,7 +206,7 @@ export async function POST(request) {
     addField('Mileage', formDataJson.mileage);
     addField('Mileage Year', formDataJson.mileageYear);
     addField('Power Units', formDataJson.powerUnits);
-    
+
     // Drivers information
     if (formDataJson.drivers) {
       currentY -= 10;
@@ -275,7 +275,7 @@ export async function POST(request) {
       const licenseWidth = 250;
       const licenseHeight = (driverLicenseImage.height / driverLicenseImage.width) * licenseWidth;
       const licenseY = signatureY - licenseHeight - 30;
-      
+
       page.drawText('Driver License:', {
         x: leftMargin,
         y: licenseY + licenseHeight + 10,
@@ -283,7 +283,7 @@ export async function POST(request) {
         color: labelColor,
         font: helveticaBoldFont,
       });
-      
+
       page.drawImage(driverLicenseImage, {
         x: leftMargin + labelWidth,
         y: licenseY,
@@ -302,18 +302,101 @@ export async function POST(request) {
     // Save PDF
     const pdfBytes = await pdfDoc.save();
 
-    // Convert PDF to base64 for client-side upload
-    // This avoids server-side storage bucket configuration issues
-    const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
-    const pdfDataUrl = `data:application/pdf;base64,${pdfBase64}`;
+    // Upload to Firebase Storage using Admin SDK
+    // This bypasses client-side security rules and is more reliable
+    let pdfUrl = '';
+    try {
+      const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'modern-eform2290';
 
-    // Return PDF data to client for upload using client-side Firebase Storage
-    // This is more reliable than server-side admin SDK storage
+      // Try to get the bucket. We'll try a few common names.
+      let bucket;
+      const bucketNamesToTry = [
+        process.env.FIREBASE_STORAGE_BUCKET,
+        process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+        `${projectId}.firebasestorage.app`,
+        `${projectId}.appspot.com`,
+        projectId
+      ].filter(Boolean);
+
+      console.log('Attempting to find storage bucket. Trying:', bucketNamesToTry);
+
+      for (const name of bucketNamesToTry) {
+        try {
+          const b = storage.bucket(name);
+          // Check if bucket exists
+          await b.getMetadata();
+          bucket = b;
+          console.log('✅ Found working bucket:', name);
+          break;
+        } catch (e) {
+          console.warn(`⚠️ Bucket ${name} failed:`, e.message);
+        }
+      }
+
+      if (!bucket) {
+        console.log('Fallback: using default bucket');
+        bucket = storage.bucket();
+      }
+
+      const userId = decodedToken.uid;
+      const fileName = `mcs150-submissions/${userId}/${Date.now()}-mcs150-filled.pdf`;
+      const fileRef = bucket.file(fileName);
+
+      await fileRef.save(Buffer.from(pdfBytes), {
+        metadata: {
+          contentType: 'application/pdf',
+          metadata: {
+            uploadedBy: userId,
+            type: 'mcs150-submission'
+          },
+        },
+      });
+
+      // Generate a signed URL that's valid for a long time (up to 1 year for V4)
+      const [signedUrl] = await fileRef.getSignedUrl({
+        action: 'read',
+        expires: '03-09-2491', // Far future
+      });
+      pdfUrl = signedUrl;
+      console.log('✅ PDF uploaded to storage:', fileName);
+    } catch (uploadError) {
+      console.error('❌ Error uploading PDF to storage:', uploadError);
+      // Fallback: still return the base64 if upload fails, though the client might still fail
+      const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
+      return NextResponse.json({
+        success: true,
+        pdfDataUrl: `data:application/pdf;base64,${pdfBase64}`,
+        formData: formDataJson,
+        uploadError: uploadError.message
+      });
+    }
+
+    // Create submission document in Firestore using Admin SDK
+    let submissionId = '';
+    try {
+      const submissionsRef = db.collection('mcs150Submissions');
+      const docRef = await submissionsRef.add({
+        pdfUrl: pdfUrl,
+        formData: formDataJson,
+        userId: decodedToken.uid,
+        status: 'submitted',
+        filingType: 'mcs150',
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
+      });
+      submissionId = docRef.id;
+      console.log('✅ Submission document created in Firestore:', submissionId);
+    } catch (dbError) {
+      console.error('❌ Error creating submission document in Firestore:', dbError);
+      // Still return success if PDF was uploaded, as we have the URL
+    }
+
+    // Return PDF data and submission ID to client
     return NextResponse.json({
       success: true,
-      pdfDataUrl: pdfDataUrl,
+      pdfUrl: pdfUrl,
+      submissionId: submissionId,
       formData: formDataJson,
-      // Client will upload and create the submission document
     });
   } catch (error) {
     console.error('Error generating MCS-150 PDF:', error);
