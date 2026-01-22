@@ -134,17 +134,22 @@ function calculateCreditAmount(category, creditMonth, isLogging = false) {
 
 /**
  * Calculate Service Fee based on filing type and volume
+ * Updated pricing structure to protect margins:
+ * - Single (1): $34.99 (45.7% margin)
+ * - Multi (2-9): $29.99 (36.6% margin)
+ * - Fleet (10-24): $25.99 (27.0% margin) - Raised from $24.99
+ * - Enterprise (25+): $21.99 (13.6% margin) - Raised from $19.99 to protect against payment processing fees
  */
 function calculateServiceFee(filingType, vehicleCount) {
     if (filingType === 'amendment') return 0.00; // Amendments are free per IRS guidelines
     if (filingType === 'refund') return 34.99;
 
-    // Standard Filing
-    if (vehicleCount >= 25) return 19.99 * vehicleCount; // Enterprise
-    if (vehicleCount >= 10) return 24.99 * vehicleCount; // Fleet
-    if (vehicleCount >= 2) return 29.99 * vehicleCount;  // Multi-vehicle
+    // Standard Filing - Tiered pricing structure
+    if (vehicleCount >= 25) return 21.99 * vehicleCount; // Enterprise (25+ vehicles)
+    if (vehicleCount >= 10) return 25.99 * vehicleCount; // Fleet (10-24 vehicles)
+    if (vehicleCount >= 2) return 29.99 * vehicleCount;  // Multi-vehicle (2-9 vehicles)
 
-    return 34.99; // Single vehicle
+    return 34.99; // Single vehicle (1 vehicle)
 }
 
 /**
@@ -336,6 +341,12 @@ export async function calculateFilingCost(filingData, vehicles, businessAddress)
         // 2. Calculate Service Fee
         // Service fee is always charged based on total number of vehicles (all types)
         const serviceFee = calculateServiceFee(filingData.filingType, vehicles.length);
+        
+        // Calculate bulk savings/discount for display purposes
+        // Standard rate is single vehicle price ($34.99)
+        const standardRate = 34.99;
+        const standardTotal = standardRate * vehicles.length;
+        const bulkSavings = Math.max(0, standardTotal - serviceFee);
 
         // 3. Calculate Sales Tax on Service Fee
         // Note: IRS Tax itself is not subject to sales tax, only the service fee is.
@@ -358,7 +369,11 @@ export async function calculateFilingCost(filingData, vehicles, businessAddress)
                 salesTaxRate: salesTaxResult.rate,
                 grandTotal: truncateTo2Decimals(grandTotal),
                 totalRefund: truncateTo2Decimals(totalRefund),
-                vehicleBreakdown
+                vehicleBreakdown,
+                // Bulk savings information for display
+                bulkSavings: truncateTo2Decimals(bulkSavings),
+                standardRate: standardRate,
+                vehicleCount: vehicles.length
             }
         };
     } catch (error) {

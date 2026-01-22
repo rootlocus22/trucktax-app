@@ -38,7 +38,10 @@ function MobilePricingSummary({
     serviceFee: 0,
     salesTax: 0,
     grandTotal: 0,
-    totalRefund: 0
+    totalRefund: 0,
+    bulkSavings: 0,
+    standardRate: 34.99,
+    vehicleCount: 0
   });
   const [pricingLoading, setPricingLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -135,7 +138,11 @@ function MobilePricingSummary({
 
   const hasData = filingType && selectedVehicleIds.length > 0;
   const vehicleCount = selectedVehicleIds.length;
-  const totalAmount = filingType === 'refund' ? pricing.totalRefund : pricing.grandTotal;
+  // For collapsed view, show what's due now (service fee + sales tax), not grand total
+  // IRS tax is paid separately, so we only show platform fees in the collapsed summary
+  const totalAmount = filingType === 'refund' 
+    ? pricing.totalRefund 
+    : (pricing.serviceFee || 0) + (pricing.salesTax || 0) - (pricing.couponDiscount || 0);
 
   return (
     <div className="w-full">
@@ -229,6 +236,27 @@ function MobilePricingSummary({
                         </div>
                         <span className="text-sm font-bold text-orange-700">${pricing.serviceFee?.toFixed(2) || '0.00'}</span>
                       </div>
+                      {/* Show standard rate and bulk savings for multi-vehicle filings */}
+                      {vehicleCount > 1 && filingType !== 'amendment' && filingType !== 'refund' && (
+                        <div className="mt-2 pt-2 border-t border-slate-200 space-y-1">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="text-xs text-slate-500">Standard Rate</p>
+                              <p className="text-xs text-slate-400 mt-0.5">($34.99 × {vehicleCount})</p>
+                            </div>
+                            <p className="text-xs font-medium text-slate-400 line-through">${(34.99 * vehicleCount).toFixed(2)}</p>
+                          </div>
+                          {pricing.bulkSavings > 0 && (
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <p className="text-xs font-semibold text-emerald-700">Volume Discount</p>
+                                <p className="text-xs text-emerald-600 mt-0.5">Bulk savings</p>
+                              </div>
+                              <p className="text-xs font-bold text-emerald-700">-${(pricing.bulkSavings || 0).toFixed(2)}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {pricing.salesTax > 0 && (
                         <div className="flex justify-between text-xs mt-1">
                           <span className="text-slate-500">+ Sales Tax</span>
@@ -4082,9 +4110,9 @@ function NewFilingContent() {
                       <h3 className="text-lg sm:text-xl font-bold text-blue-900">IRS Tax Payment</h3>
                       <span className="text-xs sm:text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded">Required</span>
                     </div>
-                    <p className="text-sm text-blue-800 mb-4 ml-10">Choose how you'd like to pay the IRS tax amount (${pricing.totalTax?.toFixed(2) || '0.00'})</p>
+                    <p className="text-sm text-blue-800 mb-4 ml-0 sm:ml-10">Choose how you'd like to pay the IRS tax amount (${pricing.totalTax?.toFixed(2) || '0.00'})</p>
 
-                    <div className="space-y-3 sm:space-y-4 ml-10">
+                    <div className="space-y-3 sm:space-y-4 ml-0 sm:ml-10">
                     {/* Option 1: EFW (Electronic Fund Withdrawal) */}
                     <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'efw' ? 'border-green-500 bg-green-50' : 'border-slate-200 hover:border-green-300'}`}>
                       <label className="flex items-start gap-3 cursor-pointer w-full">
@@ -4312,18 +4340,18 @@ function NewFilingContent() {
                         <span className="text-xs sm:text-sm text-orange-700 bg-orange-100 px-2 py-1 rounded">Required</span>
                       )}
                     </div>
-                    <p className="text-sm text-orange-800 mb-4 ml-10">
+                    <p className="text-sm text-orange-800 mb-4 ml-0 sm:ml-10">
                       Pay the platform service fee (${(pricing.serviceFee || 0).toFixed(2)}) using a US payment method. This payment must be completed before your filing can be submitted.
                     </p>
 
                     {!serviceFeePaid ? (
-                      <div className="ml-10 space-y-4">
+                      <div className="ml-0 sm:ml-10 space-y-4">
                         {/* Payment Method Selection */}
                         <div>
                           <label className="block text-sm font-medium mb-2 text-[var(--color-text)]">
                             Select Payment Method <span className="text-red-500">*</span>
                           </label>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
                             <button
                               type="button"
                               onClick={() => setServiceFeePaymentMethod('credit_card')}
@@ -4359,7 +4387,7 @@ function NewFilingContent() {
 
                         {/* Payment Form */}
                         {serviceFeePaymentMethod && (
-                          <div className="bg-white rounded-lg p-4 sm:p-6 border border-slate-200 space-y-4 animate-in fade-in slide-in-from-top-2">
+                          <div className="bg-white rounded-lg p-4 sm:p-6 border border-slate-200 space-y-4 animate-in fade-in slide-in-from-top-2 w-full">
                             <h4 className="font-semibold text-[var(--color-text)]">Payment Details</h4>
                             
                             <div>
@@ -4515,7 +4543,7 @@ function NewFilingContent() {
                         )}
                       </div>
                     ) : (
-                      <div className="ml-10 bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="ml-0 sm:ml-10 bg-green-50 border border-green-200 rounded-lg p-4">
                         <div className="flex items-center gap-2 text-green-700">
                           <CheckCircle className="w-5 h-5" />
                           <span className="font-semibold">Service fee payment completed successfully!</span>

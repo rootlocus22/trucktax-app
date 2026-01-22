@@ -42,6 +42,9 @@ export function PricingSidebar({
   
   // Use provided pricing prop if available, otherwise use internal state
   const finalPricing = pricing && pricing.totalTax !== undefined ? pricing : internalPricing;
+  
+  // Get selected vehicles list for display purposes
+  const selectedVehiclesList = vehicles.filter(v => selectedVehicleIds.includes(v.id));
 
   useEffect(() => {
     const fetchPricing = async () => {
@@ -52,14 +55,14 @@ export function PricingSidebar({
           serviceFee: 0,
           salesTax: 0,
           grandTotal: 0,
-          totalRefund: 0
+          totalRefund: 0,
+          bulkSavings: 0
         });
         setBreakdown([]);
         setVehicleBreakdown([]);
         return;
       }
 
-      const selectedVehiclesList = vehicles.filter(v => selectedVehicleIds.includes(v.id));
       const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
 
       // Parse state from address
@@ -123,7 +126,10 @@ export function PricingSidebar({
         );
 
         if (result.success) {
-          setInternalPricing(result.breakdown);
+          setInternalPricing({
+            ...result.breakdown,
+            bulkSavings: result.breakdown.bulkSavings || 0
+          });
           
           // Store vehicle breakdown for detailed display
           if (result.breakdown.vehicleBreakdown) {
@@ -149,14 +155,25 @@ export function PricingSidebar({
 
           // Calculate service fee description based on vehicle count
           let serviceFeeDescription = '';
+          let tierName = '';
+          let pricePerVehicle = 0;
+          
           if (selectedVehiclesList.length >= 25) {
-            serviceFeeDescription = `Enterprise pricing: $19.99 × ${selectedVehiclesList.length}`;
+            tierName = 'Enterprise';
+            pricePerVehicle = 21.99;
+            serviceFeeDescription = `Enterprise pricing: $${pricePerVehicle.toFixed(2)} × ${selectedVehiclesList.length}`;
           } else if (selectedVehiclesList.length >= 10) {
-            serviceFeeDescription = `Fleet pricing: $24.99 × ${selectedVehiclesList.length}`;
+            tierName = 'Fleet';
+            pricePerVehicle = 25.99;
+            serviceFeeDescription = `Fleet pricing: $${pricePerVehicle.toFixed(2)} × ${selectedVehiclesList.length}`;
           } else if (selectedVehiclesList.length >= 2) {
-            serviceFeeDescription = `Multi-vehicle pricing: $29.99 × ${selectedVehiclesList.length}`;
+            tierName = 'Multi-vehicle';
+            pricePerVehicle = 29.99;
+            serviceFeeDescription = `Multi-vehicle pricing: $${pricePerVehicle.toFixed(2)} × ${selectedVehiclesList.length}`;
           } else {
-            serviceFeeDescription = `Single vehicle pricing: $34.99`;
+            tierName = 'Single vehicle';
+            pricePerVehicle = 34.99;
+            serviceFeeDescription = `Single vehicle pricing: $${pricePerVehicle.toFixed(2)}`;
           }
 
           breakdownItems.push({
@@ -406,6 +423,27 @@ export function PricingSidebar({
                         <p className="text-xs font-bold text-orange-900 uppercase tracking-wide">Service Fee</p>
                       </div>
                       <div className="space-y-2">
+                        {/* Show standard rate and bulk savings for multi-vehicle filings */}
+                        {selectedVehiclesList.length > 1 && filingType !== 'amendment' && filingType !== 'refund' && (
+                          <div className="mb-3 pb-3 border-b border-orange-200">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                <p className="text-xs text-orange-600">Standard Rate</p>
+                                <p className="text-xs text-orange-500 mt-0.5">($34.99 × {selectedVehiclesList.length})</p>
+                              </div>
+                              <p className="text-sm font-medium text-orange-600 line-through">${(34.99 * selectedVehiclesList.length).toFixed(2)}</p>
+                            </div>
+                            {finalPricing.bulkSavings > 0 && (
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <p className="text-xs font-semibold text-emerald-700">Volume Discount</p>
+                                  <p className="text-xs text-emerald-600 mt-0.5">Bulk savings applied</p>
+                                </div>
+                                <p className="text-sm font-bold text-emerald-700">-${(finalPricing.bulkSavings || 0).toFixed(2)}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <p className="text-sm font-semibold text-orange-900">Platform Service Fee</p>
