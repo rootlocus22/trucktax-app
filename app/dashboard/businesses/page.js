@@ -45,7 +45,7 @@ export default function BusinessesPage() {
     city: '',
     state: '',
     zip: '',
-    country: '',
+    country: 'United States of America', // Default to United States
     phone: '',
     signingAuthorityName: '',
     signingAuthorityPhone: '',
@@ -53,21 +53,12 @@ export default function BusinessesPage() {
     hasThirdPartyDesignee: false,
     thirdPartyDesigneeName: '',
     thirdPartyDesigneePhone: '',
-    thirdPartyDesigneePIN: '',
-    entityType: ''
+    thirdPartyDesigneePIN: ''
   });
   const [businessErrors, setBusinessErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
-  // Entity type options
-  const entityTypes = [
-    'Corporation',
-    'LLC',
-    'Partnership',
-    'Sole Proprietorship',
-    'Other'
-  ];
 
   useEffect(() => {
     if (user) {
@@ -151,11 +142,12 @@ export default function BusinessesPage() {
       country: business.country || '',
       signingAuthorityName: business.signingAuthorityName || '',
       signingAuthorityPhone: business.signingAuthorityPhone || '',
-      signingAuthorityPIN: business.signingAuthorityPIN || '',
-      hasThirdPartyDesignee: business.hasThirdPartyDesignee || false,
-      thirdPartyDesigneeName: business.thirdPartyDesigneeName || '',
-      thirdPartyDesigneePhone: business.thirdPartyDesigneePhone || '',
-      thirdPartyDesigneePIN: business.thirdPartyDesigneePIN || ''
+        signingAuthorityPIN: business.signingAuthorityPIN || '',
+        hasThirdPartyDesignee: business.hasThirdPartyDesignee || false,
+        thirdPartyDesigneeName: business.thirdPartyDesigneeName || '',
+        thirdPartyDesigneePhone: business.thirdPartyDesigneePhone || '',
+        thirdPartyDesigneePIN: business.thirdPartyDesigneePIN || '',
+        country: business.country || 'United States of America'
     });
     setBusinessErrors({});
   };
@@ -306,8 +298,7 @@ export default function BusinessesPage() {
         hasThirdPartyDesignee: false,
         thirdPartyDesigneeName: '',
         thirdPartyDesigneePhone: '',
-        thirdPartyDesigneePIN: '',
-        entityType: ''
+        thirdPartyDesigneePIN: ''
       });
     } catch (error) {
       console.error('Error creating business:', error);
@@ -377,7 +368,7 @@ export default function BusinessesPage() {
         city: editingBusiness.city?.trim() || '',
         state: editingBusiness.state?.trim() || '',
         zip: editingBusiness.zip?.trim() || '',
-        country: editingBusiness.country?.trim() || '',
+        country: editingBusiness.country?.trim() || 'United States of America',
         phone: editingBusiness.phone?.trim() || '',
         signingAuthorityName: editingBusiness.signingAuthorityName?.trim() || '',
         signingAuthorityPhone: editingBusiness.signingAuthorityPhone?.trim() || '',
@@ -385,8 +376,7 @@ export default function BusinessesPage() {
         hasThirdPartyDesignee: editingBusiness.hasThirdPartyDesignee || false,
         thirdPartyDesigneeName: editingBusiness.hasThirdPartyDesignee ? (editingBusiness.thirdPartyDesigneeName?.trim() || '') : '',
         thirdPartyDesigneePhone: editingBusiness.hasThirdPartyDesignee ? (editingBusiness.thirdPartyDesigneePhone?.trim() || '') : '',
-        thirdPartyDesigneePIN: editingBusiness.hasThirdPartyDesignee ? (editingBusiness.thirdPartyDesigneePIN?.trim() || '') : '',
-        entityType: editingBusiness.entityType || ''
+        thirdPartyDesigneePIN: editingBusiness.hasThirdPartyDesignee ? (editingBusiness.thirdPartyDesigneePIN?.trim() || '') : ''
       });
 
       await loadBusinesses();
@@ -447,7 +437,7 @@ export default function BusinessesPage() {
                     city: '',
                     state: '',
                     zip: '',
-                    country: '',
+                    country: 'United States of America',
                     phone: '',
                     signingAuthorityName: '',
                     signingAuthorityPhone: '',
@@ -455,8 +445,7 @@ export default function BusinessesPage() {
                     hasThirdPartyDesignee: false,
                     thirdPartyDesigneeName: '',
                     thirdPartyDesigneePhone: '',
-                    thirdPartyDesigneePIN: '',
-                    entityType: ''
+                    thirdPartyDesigneePIN: ''
                   });
                   setBusinessErrors({});
                 }}
@@ -521,7 +510,7 @@ export default function BusinessesPage() {
                     city: '',
                     state: '',
                     zip: '',
-                    country: '',
+                    country: 'United States of America',
                     phone: '',
                     signingAuthorityName: '',
                     signingAuthorityPhone: '',
@@ -529,8 +518,7 @@ export default function BusinessesPage() {
                     hasThirdPartyDesignee: false,
                     thirdPartyDesigneeName: '',
                     thirdPartyDesigneePhone: '',
-                    thirdPartyDesigneePIN: '',
-                    entityType: ''
+                    thirdPartyDesigneePIN: ''
                   });
                   setBusinessErrors({});
                 }}
@@ -546,7 +534,7 @@ export default function BusinessesPage() {
             {/* Modern Table Header - Hidden on mobile */}
             <div className="hidden lg:block sticky top-0 z-20 bg-white border-b border-slate-200 backdrop-blur-sm bg-white/95">
               <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gradient-to-r from-slate-50/80 via-white to-slate-50/80">
-                <div className="col-span-4">
+                <div className="col-span-5">
                   <button
                     onClick={() => handleSort('businessName')}
                     className="flex items-center gap-1 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:text-slate-700 transition-colors"
@@ -580,24 +568,7 @@ export default function BusinessesPage() {
                     )}
                   </button>
                 </div>
-                <div className="col-span-2">
-                  <button
-                    onClick={() => handleSort('entityType')}
-                    className="flex items-center gap-1 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:text-slate-700 transition-colors"
-                  >
-                    Type
-                    {sortConfig.key === 'entityType' ? (
-                      sortConfig.direction === 'asc' ? (
-                        <ChevronUp className="w-3 h-3" />
-                      ) : (
-                        <ChevronDown className="w-3 h-3" />
-                      )
-                    ) : (
-                      <ChevronsUpDown className="w-3 h-3 opacity-30" />
-                    )}
-                  </button>
-                </div>
-                <div className="col-span-2">
+                <div className="col-span-3">
                   <button
                     onClick={() => handleSort('createdAt')}
                     className="flex items-center gap-1 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:text-slate-700 transition-colors"
@@ -642,8 +613,8 @@ export default function BusinessesPage() {
                   {/* Left accent bar on hover */}
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[var(--color-orange)] via-[var(--color-amber)] to-[var(--color-orange)] opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-r-full"></div>
 
-                  {/* Business Info - Full width on mobile, spans 4 cols on desktop */}
-                  <div className="col-span-1 lg:col-span-4 flex items-center gap-3 sm:gap-4">
+                  {/* Business Info - Full width on mobile, spans 5 cols on desktop */}
+                  <div className="col-span-1 lg:col-span-5 flex items-center gap-3 sm:gap-4">
                     <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300 group-hover:from-blue-100 group-hover:to-blue-200 group-hover:scale-110 group-hover:shadow-md">
                       <Building2 className="w-6 h-6 sm:w-7 sm:h-7 text-blue-600 transition-transform group-hover:rotate-12" />
                     </div>
@@ -685,17 +656,6 @@ export default function BusinessesPage() {
                       <span className="text-sm text-slate-400 italic">Not set</span>
                     )}
                   </div>
-
-                  {/* Entity Type */}
-                  <div className="col-span-1 lg:col-span-2 flex items-center">
-                    {business.entityType ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 border border-purple-300 rounded-xl text-xs sm:text-sm font-semibold shadow-sm">
-                        {business.entityType}
-                      </span>
-                    ) : (
-                      <span className="text-sm text-slate-400 italic">Not set</span>
-                    )}
-                          </div>
 
                   {/* Added Date */}
                   <div className="col-span-1 lg:col-span-2 flex items-center">
@@ -792,7 +752,7 @@ export default function BusinessesPage() {
                     type="text"
                     value={newBusiness.businessName}
                     onChange={(e) => handleBusinessChange('businessName', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.businessName ? 'border-red-500' : 'border-slate-200'}`}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] placeholder:text-slate-400 ${businessErrors.businessName ? 'border-red-500' : 'border-slate-200'}`}
                     placeholder="ABC Trucking LLC"
                   />
                   {businessErrors.businessName && (
@@ -902,15 +862,14 @@ export default function BusinessesPage() {
                   <input
                     type="text"
                     value={newBusiness.country}
-                    onChange={(e) => handleBusinessChange('country', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.country ? 'border-red-500' : 'border-slate-200'}`}
-                    placeholder="United States"
+                    readOnly
+                    disabled
+                    className="w-full px-4 py-3 border rounded-xl bg-slate-50 text-slate-600 cursor-not-allowed border-slate-200"
+                    placeholder="United States of America"
                   />
-                  {businessErrors.country && (
-                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.country}</span>
-                    </p>
-                  )}
+                  <p className="mt-1 text-xs text-slate-500">
+                    Only United States is allowed for Form 2290 filings
+                  </p>
                           </div>
 
                           <div>
@@ -921,7 +880,7 @@ export default function BusinessesPage() {
                     type="tel"
                     value={newBusiness.phone}
                     onChange={(e) => handleBusinessChange('phone', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.phone ? 'border-red-500' : 'border-slate-200'}`}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] placeholder:text-slate-400 ${businessErrors.phone ? 'border-red-500' : 'border-slate-200'}`}
                     placeholder="(555) 123-4567"
                   />
                   {businessErrors.phone && (
@@ -930,22 +889,6 @@ export default function BusinessesPage() {
                     </p>
                   )}
                           </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Entity Type
-                  </label>
-                  <select
-                    value={newBusiness.entityType || ''}
-                    onChange={(e) => setNewBusiness({ ...newBusiness, entityType: e.target.value })}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
-                  >
-                    <option value="">Select entity type</option>
-                    {entityTypes.map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                        </div>
 
                 {/* Signing Authority Section */}
                 <div className="md:col-span-2 border-t border-slate-200 pt-4 mt-2">
@@ -968,7 +911,7 @@ export default function BusinessesPage() {
                         type="text"
                         value={newBusiness.signingAuthorityName}
                         onChange={(e) => handleBusinessChange('signingAuthorityName', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.signingAuthorityName ? 'border-red-500' : 'border-slate-200'}`}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] placeholder:text-slate-400 ${businessErrors.signingAuthorityName ? 'border-red-500' : 'border-slate-200'}`}
                         placeholder="John Doe"
                       />
                       {businessErrors.signingAuthorityName && (
@@ -985,7 +928,7 @@ export default function BusinessesPage() {
                         type="tel"
                         value={newBusiness.signingAuthorityPhone}
                         onChange={(e) => handleBusinessChange('signingAuthorityPhone', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.signingAuthorityPhone ? 'border-red-500' : 'border-slate-200'}`}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] placeholder:text-slate-400 ${businessErrors.signingAuthorityPhone ? 'border-red-500' : 'border-slate-200'}`}
                         placeholder="(555) 123-4567"
                       />
                       {businessErrors.signingAuthorityPhone && (
@@ -1002,7 +945,7 @@ export default function BusinessesPage() {
                         type="text"
                         value={newBusiness.signingAuthorityPIN}
                         onChange={(e) => handleBusinessChange('signingAuthorityPIN', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${businessErrors.signingAuthorityPIN ? 'border-red-500' : 'border-slate-200'}`}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono placeholder:text-slate-400 ${businessErrors.signingAuthorityPIN ? 'border-red-500' : 'border-slate-200'}`}
                         placeholder="12345"
                         maxLength="5"
                       />
@@ -1098,7 +1041,7 @@ export default function BusinessesPage() {
                             type="text"
                             value={newBusiness.thirdPartyDesigneeName}
                             onChange={(e) => handleBusinessChange('thirdPartyDesigneeName', e.target.value)}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.thirdPartyDesigneeName ? 'border-red-500' : 'border-blue-300'}`}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] placeholder:text-slate-400 ${businessErrors.thirdPartyDesigneeName ? 'border-red-500' : 'border-blue-300'}`}
                             placeholder="Jane Smith"
                           />
                           {businessErrors.thirdPartyDesigneeName && (
@@ -1115,7 +1058,7 @@ export default function BusinessesPage() {
                             type="tel"
                             value={newBusiness.thirdPartyDesigneePhone}
                             onChange={(e) => handleBusinessChange('thirdPartyDesigneePhone', e.target.value)}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.thirdPartyDesigneePhone ? 'border-red-500' : 'border-blue-300'}`}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] placeholder:text-slate-400 ${businessErrors.thirdPartyDesigneePhone ? 'border-red-500' : 'border-blue-300'}`}
                             placeholder="(555) 123-4567"
                           />
                           {businessErrors.thirdPartyDesigneePhone && (
@@ -1132,7 +1075,7 @@ export default function BusinessesPage() {
                             type="text"
                             value={newBusiness.thirdPartyDesigneePIN}
                             onChange={(e) => handleBusinessChange('thirdPartyDesigneePIN', e.target.value)}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${businessErrors.thirdPartyDesigneePIN ? 'border-red-500' : 'border-blue-300'}`}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono placeholder:text-slate-400 ${businessErrors.thirdPartyDesigneePIN ? 'border-red-500' : 'border-blue-300'}`}
                             placeholder="12345"
                             maxLength="5"
                           />
@@ -1213,7 +1156,7 @@ export default function BusinessesPage() {
                     type="text"
                     value={editingBusiness.businessName || ''}
                     onChange={(e) => handleBusinessChange('businessName', e.target.value, true)}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.businessName ? 'border-red-500' : 'border-slate-200'}`}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] placeholder:text-slate-400 ${businessErrors.businessName ? 'border-red-500' : 'border-slate-200'}`}
                     placeholder="ABC Trucking LLC"
                   />
                   {businessErrors.businessName && (
@@ -1322,16 +1265,15 @@ export default function BusinessesPage() {
                   </label>
                   <input
                     type="text"
-                    value={editingBusiness.country || ''}
-                    onChange={(e) => handleBusinessChange('country', e.target.value, true)}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.country ? 'border-red-500' : 'border-slate-200'}`}
-                    placeholder="United States"
+                    value={editingBusiness.country || 'United States of America'}
+                    readOnly
+                    disabled
+                    className="w-full px-4 py-3 border rounded-xl bg-slate-50 text-slate-600 cursor-not-allowed border-slate-200"
+                    placeholder="United States of America"
                   />
-                  {businessErrors.country && (
-                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.country}</span>
-                    </p>
-                  )}
+                  <p className="mt-1 text-xs text-slate-500">
+                    Only United States is allowed for Form 2290 filings
+                  </p>
                 </div>
 
                 <div>
@@ -1342,7 +1284,7 @@ export default function BusinessesPage() {
                     type="tel"
                     value={editingBusiness.phone || ''}
                     onChange={(e) => handleBusinessChange('phone', e.target.value, true)}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.phone ? 'border-red-500' : 'border-slate-200'}`}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] placeholder:text-slate-400 ${businessErrors.phone ? 'border-red-500' : 'border-slate-200'}`}
                     placeholder="(555) 123-4567"
                   />
                   {businessErrors.phone && (
@@ -1350,22 +1292,6 @@ export default function BusinessesPage() {
                       <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.phone}</span>
                     </p>
                   )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Entity Type
-                  </label>
-                  <select
-                    value={editingBusiness.entityType || ''}
-                    onChange={(e) => setEditingBusiness({ ...editingBusiness, entityType: e.target.value })}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
-                  >
-                    <option value="">Select entity type</option>
-                    {entityTypes.map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
                 </div>
 
                 {/* Signing Authority Section */}
@@ -1389,7 +1315,7 @@ export default function BusinessesPage() {
                         type="text"
                         value={editingBusiness.signingAuthorityName || ''}
                         onChange={(e) => handleBusinessChange('signingAuthorityName', e.target.value, true)}
-                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.signingAuthorityName ? 'border-red-500' : 'border-slate-200'}`}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] placeholder:text-slate-400 ${businessErrors.signingAuthorityName ? 'border-red-500' : 'border-slate-200'}`}
                         placeholder="John Doe"
                       />
                       {businessErrors.signingAuthorityName && (
@@ -1406,7 +1332,7 @@ export default function BusinessesPage() {
                         type="tel"
                         value={editingBusiness.signingAuthorityPhone || ''}
                         onChange={(e) => handleBusinessChange('signingAuthorityPhone', e.target.value, true)}
-                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.signingAuthorityPhone ? 'border-red-500' : 'border-slate-200'}`}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] placeholder:text-slate-400 ${businessErrors.signingAuthorityPhone ? 'border-red-500' : 'border-slate-200'}`}
                         placeholder="(555) 123-4567"
                       />
                       {businessErrors.signingAuthorityPhone && (
@@ -1423,7 +1349,7 @@ export default function BusinessesPage() {
                         type="text"
                         value={editingBusiness.signingAuthorityPIN || ''}
                         onChange={(e) => handleBusinessChange('signingAuthorityPIN', e.target.value, true)}
-                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${businessErrors.signingAuthorityPIN ? 'border-red-500' : 'border-slate-200'}`}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono placeholder:text-slate-400 ${businessErrors.signingAuthorityPIN ? 'border-red-500' : 'border-slate-200'}`}
                         placeholder="12345"
                         maxLength="5"
                       />
@@ -1519,7 +1445,7 @@ export default function BusinessesPage() {
                             type="text"
                             value={editingBusiness.thirdPartyDesigneeName || ''}
                             onChange={(e) => handleBusinessChange('thirdPartyDesigneeName', e.target.value, true)}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.thirdPartyDesigneeName ? 'border-red-500' : 'border-blue-300'}`}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] placeholder:text-slate-400 ${businessErrors.thirdPartyDesigneeName ? 'border-red-500' : 'border-blue-300'}`}
                             placeholder="Jane Smith"
                           />
                           {businessErrors.thirdPartyDesigneeName && (
@@ -1536,7 +1462,7 @@ export default function BusinessesPage() {
                             type="tel"
                             value={editingBusiness.thirdPartyDesigneePhone || ''}
                             onChange={(e) => handleBusinessChange('thirdPartyDesigneePhone', e.target.value, true)}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.thirdPartyDesigneePhone ? 'border-red-500' : 'border-blue-300'}`}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] placeholder:text-slate-400 ${businessErrors.thirdPartyDesigneePhone ? 'border-red-500' : 'border-blue-300'}`}
                             placeholder="(555) 123-4567"
                           />
                           {businessErrors.thirdPartyDesigneePhone && (
@@ -1553,7 +1479,7 @@ export default function BusinessesPage() {
                             type="text"
                             value={editingBusiness.thirdPartyDesigneePIN || ''}
                             onChange={(e) => handleBusinessChange('thirdPartyDesigneePIN', e.target.value, true)}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${businessErrors.thirdPartyDesigneePIN ? 'border-red-500' : 'border-blue-300'}`}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono placeholder:text-slate-400 ${businessErrors.thirdPartyDesigneePIN ? 'border-red-500' : 'border-blue-300'}`}
                             placeholder="12345"
                             maxLength="5"
                           />

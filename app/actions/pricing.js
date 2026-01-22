@@ -11,7 +11,7 @@ const TAX_RATES_NON_LOGGING = {
     'F': 210.00, 'G': 232.00, 'H': 254.00, 'I': 276.00, 'J': 298.00,
     'K': 320.00, 'L': 342.00, 'M': 364.00, 'N': 386.00, 'O': 408.00,
     'P': 430.00, 'Q': 452.00, 'R': 474.00, 'S': 496.00, 'T': 518.00,
-    'U': 550.00, 'V': 550.00, 'W': 550.00 // Category U and above capped at $550
+    'U': 540.00, 'V': 550.00, 'W': 550.00 // Category U is $540, V and W capped at $550
 };
 
 // Logging Tax Rates (75% of non-logging)
@@ -20,7 +20,7 @@ const TAX_RATES_LOGGING = {
     'F': 157.50, 'G': 174.00, 'H': 190.50, 'I': 207.00, 'J': 223.50,
     'K': 240.00, 'L': 256.50, 'M': 273.00, 'N': 289.50, 'O': 306.00,
     'P': 322.50, 'Q': 339.00, 'R': 355.50, 'S': 372.00, 'T': 388.50,
-    'U': 412.50, 'V': 412.50, 'W': 412.50 // Category U and above capped at $412.50
+    'U': 405.00, 'V': 412.50, 'W': 412.50 // Category U is $405 (75% of $540), V and W capped at $412.50
 };
 
 // Helper function to calculate tax for any category (including missing ones)
@@ -47,13 +47,23 @@ function getAnnualTaxForCategory(category, isLogging = false) {
     
     if (index < 0 || index > 21) return 0.00; // Out of range
     
-    // Categories U and V both map to 75,000 lbs = $550 (non-logging) or $412.50 (logging)
-    if (index === 20 || index === 21) {
+    // Categories U and V have specific rates
+    if (index === 20) { // U
+        return isLogging ? 405.00 : 540.00;
+    }
+    if (index === 21) { // V
         return isLogging ? 412.50 : 550.00;
     }
     
     const nonLoggingTax = 100.00 + (22.00 * index);
-    return isLogging ? nonLoggingTax * 0.75 : nonLoggingTax;
+    // For logging, use exact 2-decimal values from lookup table instead of calculating
+    if (isLogging) {
+        // Use exact logging rates from TAX_RATES_LOGGING table
+        // Use exact logging rate from lookup table, truncate to 2 decimals if calculating
+        const calculatedLoggingTax = nonLoggingTax * 0.75;
+        return TAX_RATES_LOGGING[normalizedCategory] || Math.floor(calculatedLoggingTax * 100) / 100;
+    }
+    return nonLoggingTax;
 }
 
 const MONTHS = [
@@ -85,7 +95,41 @@ function calculateVehicleTax(category, isSuspended, firstUsedMonth, isLogging = 
     const monthsRemaining = 12 - monthIndex;
     const proratedTax = (annualTax / 12) * monthsRemaining;
 
-    return parseFloat(proratedTax.toFixed(2));
+    // Truncate to 2 decimal places (no rounding)
+    return Math.floor(proratedTax * 100) / 100;
+}
+
+/**
+ * Calculate Credit Amount for a credit vehicle
+ * Credit is calculated for months AFTER the credit date (credit month itself is NOT included)
+ * @param {string} category - Weight category (A-V, W)
+ * @param {string} creditMonth - Month when credit event occurred
+ * @param {boolean} isLogging - Whether vehicle is used for logging (75% tax rate)
+ * @returns {number} Credit amount (positive value, will be negated when used)
+ */
+function calculateCreditAmount(category, creditMonth, isLogging = false) {
+    if (!category) return 0.00;
+    
+    const annualTax = getAnnualTaxForCategory(category, isLogging);
+    if (annualTax === 0) return 0.00;
+
+    const monthIndex = MONTHS.indexOf(creditMonth);
+
+    // If month not found, return 0
+    if (monthIndex === -1) return 0.00;
+
+    // For credit: calculate months AFTER the credit month (credit month itself is NOT included)
+    // If credit is in June (last month), no credit (0 months remaining)
+    // If credit is in July (first month), credit for 11 months (Aug through Jun)
+    const monthsRemaining = 12 - monthIndex - 1;
+    
+    // If no months remaining (credit in June), return 0
+    if (monthsRemaining <= 0) return 0.00;
+
+    const proratedCredit = (annualTax / 12) * monthsRemaining;
+
+    // Truncate to 2 decimal places (no rounding)
+    return Math.floor(proratedCredit * 100) / 100;
 }
 
 /**
@@ -180,15 +224,51 @@ export async function calculateFilingCost(filingData, vehicles, businessAddress)
             });
 
             // Calculate tax for credit vehicles (subtract - they were previously taxed)
+            // Use creditDate for proration instead of firstUsedMonth
             creditVehicles.forEach(v => {
                 const isLogging = v.logging === true;
-                const tax = calculateVehicleTax(
+                
+                // Extract month from creditDate for proration calculation
+                // Credit vehicles should be prorated based on when the credit event occurred
+                let creditMonth = filingData.firstUsedMonth; // Default fallback
+                
+                if (v.creditDate) {
+                    try {
+                        const creditDateObj = new Date(v.creditDate);
+                        // Check if date is valid
+                        if (isNaN(creditDateObj.getTime())) {
+                            console.warn('Invalid creditDate:', v.creditDate);
+                        } else {
+                            // Get month name from date (0-indexed: 0=January, 11=December)
+                            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                              'July', 'August', 'September', 'October', 'November', 'December'];
+                            const monthName = monthNames[creditDateObj.getMonth()];
+                            
+                            // HVUT tax period is July to June, so MONTHS array already has correct order
+                            // Use the month from creditDate if it's valid, otherwise fallback to firstUsedMonth
+                            if (MONTHS.includes(monthName)) {
+                                creditMonth = monthName;
+                                console.log(`Credit vehicle ${v.vin}: Using creditDate month ${creditMonth} for proration`);
+                            } else {
+                                console.warn(`Credit vehicle ${v.vin}: Month ${monthName} not in HVUT period, using firstUsedMonth ${filingData.firstUsedMonth}`);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error parsing creditDate:', error, v.creditDate);
+                        // Fallback to firstUsedMonth if date parsing fails
+                    }
+                } else {
+                    console.warn(`Credit vehicle ${v.vin}: No creditDate provided, using firstUsedMonth ${filingData.firstUsedMonth}`);
+                }
+                
+                // Use calculateCreditAmount for credit vehicles (excludes credit month itself)
+                const creditAmount = calculateCreditAmount(
                     v.grossWeightCategory,
-                    false, // Not suspended
-                    filingData.firstUsedMonth,
+                    creditMonth, // Use credit month for proration
                     isLogging
                 );
-                creditTaxTotal += tax;
+                creditTaxTotal += creditAmount;
+                console.log(`Credit vehicle ${v.vin}: Credit month ${creditMonth}, Credit amount: $${creditAmount.toFixed(2)}`);
             });
 
             // Total IRS Tax = Taxable vehicles tax - Credit vehicles tax
@@ -205,9 +285,47 @@ export async function calculateFilingCost(filingData, vehicles, businessAddress)
                 if (vehicleType === 'taxable') {
                     const isLogging = v.logging === true;
                     taxAmount = calculateVehicleTax(v.grossWeightCategory, false, filingData.firstUsedMonth, isLogging);
+                    // Truncate to 2 decimal places (no rounding)
+                    taxAmount = Math.floor(taxAmount * 100) / 100;
                 } else if (vehicleType === 'credit') {
                     const isLogging = v.logging === true;
-                    taxAmount = -calculateVehicleTax(v.grossWeightCategory, false, filingData.firstUsedMonth, isLogging); // Negative for credit
+                    
+                    // Extract month from creditDate for proration calculation
+                    // Credit vehicles should be prorated based on when the credit event occurred
+                    let creditMonth = filingData.firstUsedMonth; // Default fallback
+                    
+                    if (v.creditDate) {
+                        try {
+                            const creditDateObj = new Date(v.creditDate);
+                            // Check if date is valid
+                            if (isNaN(creditDateObj.getTime())) {
+                                console.warn(`Vehicle breakdown - Invalid creditDate:`, v.creditDate);
+                            } else {
+                                // Get month name from date (0-indexed: 0=January, 11=December)
+                                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                                  'July', 'August', 'September', 'October', 'November', 'December'];
+                                const monthName = monthNames[creditDateObj.getMonth()];
+                                
+                                // HVUT tax period is July to June, so MONTHS array already has correct order
+                                // Use the month from creditDate if it's valid, otherwise fallback to firstUsedMonth
+                                if (MONTHS.includes(monthName)) {
+                                    creditMonth = monthName;
+                                    console.log(`Vehicle breakdown - Credit vehicle ${v.vin}: Using creditDate month ${creditMonth} for proration`);
+                                } else {
+                                    console.warn(`Vehicle breakdown - Credit vehicle ${v.vin}: Month ${monthName} not in HVUT period, using firstUsedMonth ${filingData.firstUsedMonth}`);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Vehicle breakdown - Error parsing creditDate:', error, v.creditDate);
+                            // Fallback to firstUsedMonth if date parsing fails
+                        }
+                    } else {
+                        console.warn(`Vehicle breakdown - Credit vehicle ${v.vin}: No creditDate provided, using firstUsedMonth ${filingData.firstUsedMonth}`);
+                    }
+                    
+                    // Use calculateCreditAmount for credit vehicles (excludes credit month itself)
+                    const creditAmount = calculateCreditAmount(v.grossWeightCategory, creditMonth, isLogging);
+                    taxAmount = -creditAmount; // Negative for credit (already truncated in calculateCreditAmount)
                 }
                 // Suspended and Prior Year Sold vehicles have $0 tax
 
@@ -226,15 +344,20 @@ export async function calculateFilingCost(filingData, vehicles, businessAddress)
         // 4. Calculate Grand Total
         const grandTotal = totalTax + serviceFee + salesTaxResult.amount;
 
+        // Truncate all amounts to 2 decimal places (no rounding)
+        const truncateTo2Decimals = (amount) => {
+            return Math.floor(amount * 100) / 100;
+        };
+
         return {
             success: true,
             breakdown: {
-                totalTax: parseFloat(totalTax.toFixed(2)),
-                serviceFee: parseFloat(serviceFee.toFixed(2)),
-                salesTax: salesTaxResult.amount,
+                totalTax: truncateTo2Decimals(totalTax),
+                serviceFee: truncateTo2Decimals(serviceFee),
+                salesTax: truncateTo2Decimals(salesTaxResult.amount),
                 salesTaxRate: salesTaxResult.rate,
-                grandTotal: parseFloat(grandTotal.toFixed(2)),
-                totalRefund: parseFloat(totalRefund.toFixed(2)),
+                grandTotal: truncateTo2Decimals(grandTotal),
+                totalRefund: truncateTo2Decimals(totalRefund),
                 vehicleBreakdown
             }
         };

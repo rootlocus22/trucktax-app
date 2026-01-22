@@ -105,14 +105,15 @@ export function PricingSidebar({
         }
 
         // Sanitize vehicles to remove complex objects (like Firestore Timestamps)
-        // Include vehicleType and logging for proper tax calculation
+        // Include vehicleType, logging, and creditDate for proper tax calculation
         const sanitizedVehicles = selectedVehiclesList.map(v => ({
           id: v.id,
           vin: v.vin,
           grossWeightCategory: v.grossWeightCategory,
           isSuspended: v.isSuspended || false,
           vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
-          logging: v.logging !== undefined ? v.logging : null
+          logging: v.logging !== undefined ? v.logging : null,
+          creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
         }));
 
         const result = await calculateFilingCost(
@@ -382,7 +383,7 @@ export function PricingSidebar({
                                           </span>
                                         </div>
                                         <span className={`font-semibold ${isCredit ? 'text-red-600' : 'text-blue-700'}`}>
-                                          {isCredit ? '-' : '+'}${Math.abs(vehicle.taxAmount || 0).toFixed(2)}
+                                          {isCredit ? '-' : '+'}${(Math.abs(vehicle.taxAmount || 0)).toFixed(2)}
                                         </span>
                                       </div>
                                     );

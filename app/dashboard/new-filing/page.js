@@ -101,14 +101,15 @@ function MobilePricingSummary({
         }
 
         // Sanitize vehicles to remove complex objects (like Firestore Timestamps)
-        // Include vehicleType and logging for proper tax calculation
+        // Include vehicleType, logging, and creditDate for proper tax calculation
         const sanitizedVehicles = selectedVehiclesList.map(v => ({
           id: v.id,
           vin: v.vin,
           grossWeightCategory: v.grossWeightCategory,
           isSuspended: v.isSuspended || false,
           vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
-          logging: v.logging !== undefined ? v.logging : null
+          logging: v.logging !== undefined ? v.logging : null,
+          creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
         }));
 
         const { calculateFilingCost } = await import('@/app/actions/pricing');
@@ -508,6 +509,35 @@ function NewFilingContent() {
     }
   }, [user]);
 
+  // Reload vehicles when business selection changes
+  useEffect(() => {
+    if (user && selectedBusinessId) {
+      const reloadVehicles = async () => {
+        try {
+          const filteredVehicles = await getVehiclesByUser(user.uid, selectedBusinessId);
+          setVehicles(filteredVehicles);
+          // Clear selected vehicles if they're not in the filtered list
+          const filteredIds = filteredVehicles.map(v => v.id);
+          setSelectedVehicleIds(prev => prev.filter(id => filteredIds.includes(id)));
+        } catch (error) {
+          console.error('Error reloading vehicles:', error);
+        }
+      };
+      reloadVehicles();
+    } else if (user && !selectedBusinessId) {
+      // If no business selected, load all vehicles
+      const reloadVehicles = async () => {
+        try {
+          const allVehicles = await getVehiclesByUser(user.uid);
+          setVehicles(allVehicles);
+        } catch (error) {
+          console.error('Error reloading vehicles:', error);
+        }
+      };
+      reloadVehicles();
+    }
+  }, [selectedBusinessId, user]);
+
   // Clear all errors when step changes and reset business form visibility
   useEffect(() => {
     setError('');
@@ -589,14 +619,15 @@ function NewFilingContent() {
         }
 
         // Sanitize vehicles to remove complex objects (like Firestore Timestamps)
-        // Include vehicleType and logging for proper tax calculation
+        // Include vehicleType, logging, and creditDate for proper tax calculation
         const sanitizedVehicles = selectedVehiclesList.map(v => ({
           id: v.id,
           vin: v.vin,
           grossWeightCategory: v.grossWeightCategory,
           isSuspended: v.isSuspended || false,
           vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
-          logging: v.logging !== undefined ? v.logging : null
+          logging: v.logging !== undefined ? v.logging : null,
+          creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
         }));
 
         const result = await calculateFilingCost(
@@ -732,7 +763,10 @@ function NewFilingContent() {
   const loadData = async () => {
     try {
       const userBusinesses = await getBusinessesByUser(user.uid);
-      const userVehicles = await getVehiclesByUser(user.uid);
+      // Load vehicles filtered by selected business if one is selected
+      const userVehicles = selectedBusinessId 
+        ? await getVehiclesByUser(user.uid, selectedBusinessId)
+        : await getVehiclesByUser(user.uid);
       setBusinesses(userBusinesses);
       setVehicles(userVehicles);
 
@@ -1483,14 +1517,15 @@ function NewFilingContent() {
       };
 
       // Sanitize vehicles to remove complex objects (like Firestore Timestamps)
-      // Include vehicleType and logging for proper tax calculation
+      // Include vehicleType, logging, and creditDate for proper tax calculation
       const sanitizedVehicles = selectedVehiclesList.map(v => ({
         id: v.id,
         vin: v.vin,
         grossWeightCategory: v.grossWeightCategory,
         isSuspended: v.isSuspended || false,
         vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
-        logging: v.logging !== undefined ? v.logging : null
+        logging: v.logging !== undefined ? v.logging : null,
+        creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
       }));
 
       const result = await calculateFilingCost(

@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { getVehiclesByUser, createVehicle, updateVehicle, deleteVehicle } from '@/lib/db';
+import { getVehiclesByUser, createVehicle, updateVehicle, deleteVehicle, getBusinessesByUser } from '@/lib/db';
 import { validateVIN } from '@/lib/validation';
 import {
   Truck,
@@ -31,6 +31,7 @@ export default function VehiclesPage() {
   const { user } = useAuth();
   const [vehicles, setVehicles] = useState([]);
   const [filteredVehicles, setFilteredVehicles] = useState([]);
+  const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
@@ -49,10 +50,13 @@ export default function VehiclesPage() {
     creditReason: '', // sold, stolen, destroyed, lowMileage (for credit)
     creditDate: '', // date picker (for credit)
     soldTo: '', // input field (for prior year)
-    soldDate: '' // date picker (for prior year)
+    soldDate: '', // date picker (for prior year)
+    businessId: '' // business association
   });
   const [vehicleErrors, setVehicleErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [csvBusinessId, setCsvBusinessId] = useState('');
+  const [showCsvBusinessModal, setShowCsvBusinessModal] = useState(false);
   const fileInputRef = useRef(null);
 
   // Vehicle type options
@@ -63,31 +67,96 @@ export default function VehiclesPage() {
     { value: 'priorYearSold', label: 'Prior Year Sold Suspended Vehicle' }
   ];
 
+  // Tax rate mappings
+  const TAX_RATES_NON_LOGGING = {
+    'A': 100.00, 'B': 122.00, 'C': 144.00, 'D': 166.00, 'E': 188.00,
+    'F': 210.00, 'G': 232.00, 'H': 254.00, 'I': 276.00, 'J': 298.00,
+    'K': 320.00, 'L': 342.00, 'M': 364.00, 'N': 386.00, 'O': 408.00,
+    'P': 430.00, 'Q': 452.00, 'R': 474.00, 'S': 496.00, 'T': 518.00,
+    'U': 540.00, 'V': 550.00, 'W': 550.00
+  };
+
+  const TAX_RATES_LOGGING = {
+    'A': 75.00, 'B': 91.50, 'C': 108.00, 'D': 124.50, 'E': 141.00,
+    'F': 157.50, 'G': 174.00, 'H': 190.50, 'I': 207.00, 'J': 223.50,
+    'K': 240.00, 'L': 256.50, 'M': 273.00, 'N': 289.50, 'O': 306.00,
+    'P': 322.50, 'Q': 339.00, 'R': 355.50, 'S': 372.00, 'T': 388.50,
+    'U': 405.00, 'V': 412.50, 'W': 412.50
+  };
+
+  // Helper function to format currency with 2 decimal places
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  // Helper function to get weight category options with pricing
+  const getWeightCategoryOptions = (isLogging) => {
+    const taxRates = isLogging === true ? TAX_RATES_LOGGING : TAX_RATES_NON_LOGGING;
+    const loggingText = isLogging === true ? ' (Logging)' : isLogging === false ? ' (Non-Logging)' : '';
+    
+    return [
+      { value: 'A', label: `A - 55,000 lbs${loggingText} - ${formatCurrency(taxRates['A'])}` },
+      { value: 'B', label: `B - 55,001 - 56,000 lbs${loggingText} - ${formatCurrency(taxRates['B'])}` },
+      { value: 'C', label: `C - 56,001 - 57,000 lbs${loggingText} - ${formatCurrency(taxRates['C'])}` },
+      { value: 'D', label: `D - 57,001 - 58,000 lbs${loggingText} - ${formatCurrency(taxRates['D'])}` },
+      { value: 'E', label: `E - 58,001 - 59,000 lbs${loggingText} - ${formatCurrency(taxRates['E'])}` },
+      { value: 'F', label: `F - 59,001 - 60,000 lbs${loggingText} - ${formatCurrency(taxRates['F'])}` },
+      { value: 'G', label: `G - 60,001 - 61,000 lbs${loggingText} - ${formatCurrency(taxRates['G'])}` },
+      { value: 'H', label: `H - 61,001 - 62,000 lbs${loggingText} - ${formatCurrency(taxRates['H'])}` },
+      { value: 'I', label: `I - 62,001 - 63,000 lbs${loggingText} - ${formatCurrency(taxRates['I'])}` },
+      { value: 'J', label: `J - 63,001 - 64,000 lbs${loggingText} - ${formatCurrency(taxRates['J'])}` },
+      { value: 'K', label: `K - 64,001 - 65,000 lbs${loggingText} - ${formatCurrency(taxRates['K'])}` },
+      { value: 'L', label: `L - 65,001 - 66,000 lbs${loggingText} - ${formatCurrency(taxRates['L'])}` },
+      { value: 'M', label: `M - 66,001 - 67,000 lbs${loggingText} - ${formatCurrency(taxRates['M'])}` },
+      { value: 'N', label: `N - 67,001 - 68,000 lbs${loggingText} - ${formatCurrency(taxRates['N'])}` },
+      { value: 'O', label: `O - 68,001 - 69,000 lbs${loggingText} - ${formatCurrency(taxRates['O'])}` },
+      { value: 'P', label: `P - 69,001 - 70,000 lbs${loggingText} - ${formatCurrency(taxRates['P'])}` },
+      { value: 'Q', label: `Q - 70,001 - 71,000 lbs${loggingText} - ${formatCurrency(taxRates['Q'])}` },
+      { value: 'R', label: `R - 71,001 - 72,000 lbs${loggingText} - ${formatCurrency(taxRates['R'])}` },
+      { value: 'S', label: `S - 72,001 - 73,000 lbs${loggingText} - ${formatCurrency(taxRates['S'])}` },
+      { value: 'T', label: `T - 73,001 - 74,000 lbs${loggingText} - ${formatCurrency(taxRates['T'])}` },
+      { value: 'U', label: `U - 74,001 - 75,000 lbs${loggingText} - ${formatCurrency(taxRates['U'])}` },
+      { value: 'V', label: `V - More than 75,000 lbs${loggingText} - ${formatCurrency(taxRates['V'])}` }
+    ];
+  };
+
   // Weight category options (A to V for taxable/credit, W for suspended)
+  // These are used for display purposes when logging is not yet selected
   const weightCategoriesAToV = [
-    { value: 'A', label: 'A - 55,000 - 55,999 lbs' },
-    { value: 'B', label: 'B - 56,000 - 57,999 lbs' },
-    { value: 'C', label: 'C - 58,000 - 59,999 lbs' },
-    { value: 'D', label: 'D - 60,000 - 61,999 lbs' },
-    { value: 'E', label: 'E - 62,000 - 63,999 lbs' },
-    { value: 'F', label: 'F - 64,000 - 65,999 lbs' },
-    { value: 'G', label: 'G - 66,000 - 67,999 lbs' },
-    { value: 'H', label: 'H - 68,000 - 69,999 lbs' },
-    { value: 'I', label: 'I - 70,000 - 71,999 lbs' },
-    { value: 'J', label: 'J - 72,000 - 73,999 lbs' },
-    { value: 'K', label: 'K - 74,000 - 75,000 lbs' },
-    { value: 'L', label: 'L - 75,001 - 76,999 lbs' },
-    { value: 'M', label: 'M - 77,000 - 78,999 lbs' },
-    { value: 'N', label: 'N - 79,000 - 80,999 lbs' },
-    { value: 'O', label: 'O - 81,000 - 82,999 lbs' },
-    { value: 'P', label: 'P - 83,000 - 84,999 lbs' },
-    { value: 'Q', label: 'Q - 85,000 - 86,999 lbs' },
-    { value: 'R', label: 'R - 87,000 - 88,999 lbs' },
-    { value: 'S', label: 'S - 89,000 - 90,999 lbs' },
-    { value: 'T', label: 'T - 91,000 - 92,999 lbs' },
-    { value: 'U', label: 'U - 93,000 - 94,999 lbs' },
-    { value: 'V', label: 'V - 95,000 - 96,999 lbs' }
+    { value: 'A', label: 'A - 55,000 lbs' },
+    { value: 'B', label: 'B - 55,001 - 56,000 lbs' },
+    { value: 'C', label: 'C - 56,001 - 57,000 lbs' },
+    { value: 'D', label: 'D - 57,001 - 58,000 lbs' },
+    { value: 'E', label: 'E - 58,001 - 59,000 lbs' },
+    { value: 'F', label: 'F - 59,001 - 60,000 lbs' },
+    { value: 'G', label: 'G - 60,001 - 61,000 lbs' },
+    { value: 'H', label: 'H - 61,001 - 62,000 lbs' },
+    { value: 'I', label: 'I - 62,001 - 63,000 lbs' },
+    { value: 'J', label: 'J - 63,001 - 64,000 lbs' },
+    { value: 'K', label: 'K - 64,001 - 65,000 lbs' },
+    { value: 'L', label: 'L - 65,001 - 66,000 lbs' },
+    { value: 'M', label: 'M - 66,001 - 67,000 lbs' },
+    { value: 'N', label: 'N - 67,001 - 68,000 lbs' },
+    { value: 'O', label: 'O - 68,001 - 69,000 lbs' },
+    { value: 'P', label: 'P - 69,001 - 70,000 lbs' },
+    { value: 'Q', label: 'Q - 70,001 - 71,000 lbs' },
+    { value: 'R', label: 'R - 71,001 - 72,000 lbs' },
+    { value: 'S', label: 'S - 72,001 - 73,000 lbs' },
+    { value: 'T', label: 'T - 73,001 - 74,000 lbs' },
+    { value: 'U', label: 'U - 74,001 - 75,000 lbs' },
+    { value: 'V', label: 'V - More than 75,000 lbs' }
   ];
+
+  const getWeightCategoryWLabel = (isLogging) => {
+    const taxRates = isLogging === true ? TAX_RATES_LOGGING : TAX_RATES_NON_LOGGING;
+    const loggingText = isLogging === true ? ' (Logging)' : isLogging === false ? ' (Non-Logging)' : '';
+    return `W - Over 75,000 lbs (Maximum)${loggingText} - ${formatCurrency(taxRates['W'])}`;
+  };
 
   const weightCategoryW = { value: 'W', label: 'W - Over 75,000 lbs (Maximum)' };
 
@@ -113,14 +182,28 @@ export default function VehiclesPage() {
     return '';
   };
 
-  const getMaxDate = () => {
-    // Present date
+  const getMaxDate = (type) => {
+    // For credit dates, exclude June (last month of tax period - no credit available)
+    if (type === 'credit') {
+      const today = new Date();
+      const currentMonth = today.getMonth(); // 0-indexed: 0=January, 5=June
+      const currentYear = today.getFullYear();
+      
+      // If current month is June or later, set max to May 31st of current year
+      // Otherwise, use current date
+      if (currentMonth >= 5) { // June (5) or later
+        return `${currentYear}-05-31`; // May 31st
+      }
+      return today.toISOString().split('T')[0];
+    }
+    // For other types, use present date
     return new Date().toISOString().split('T')[0];
   };
 
   useEffect(() => {
     if (user) {
       loadVehicles();
+      loadBusinesses();
     }
   }, [user]);
 
@@ -158,6 +241,17 @@ export default function VehiclesPage() {
     }
   };
 
+  const loadBusinesses = async () => {
+    if (!user) return;
+
+    try {
+      const userBusinesses = await getBusinessesByUser(user.uid);
+      setBusinesses(userBusinesses);
+    } catch (error) {
+      console.error('Error loading businesses:', error);
+    }
+  };
+
   const getWeightCategoryLabel = (category) => {
     const found = weightCategoriesAToV.find(cat => cat.value === category);
     if (found) return found.label;
@@ -175,9 +269,29 @@ export default function VehiclesPage() {
     return found ? found.label : reason || 'Not specified';
   };
 
+  const handleCsvBusinessSelect = () => {
+    if (!csvBusinessId || csvBusinessId.trim() === '') {
+      setUploadError('Please select a business before uploading CSV.');
+      return;
+    }
+    // Trigger file input after business is selected
+    fileInputRef.current?.click();
+    setShowCsvBusinessModal(false);
+  };
+
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Check if business is selected (should be set before file selection)
+    if (!csvBusinessId || csvBusinessId.trim() === '') {
+      setUploadError('Please select a business first.');
+      setShowCsvBusinessModal(true);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
 
     if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
       setUploadError('Please upload a valid CSV file.');
@@ -212,7 +326,9 @@ export default function VehiclesPage() {
               await createVehicle(user.uid, {
                 vin,
                 grossWeightCategory: weight,
-                isSuspended: suspended
+                isSuspended: suspended,
+                vehicleType: suspended ? 'suspended' : 'taxable',
+                businessId: csvBusinessId // Include businessId for all CSV imports
               });
               successCount++;
             } catch (err) {
@@ -225,7 +341,10 @@ export default function VehiclesPage() {
         }
 
         await loadVehicles();
-        setUploadSuccess(`Successfully added ${successCount} vehicles.${failCount > 0 ? ` Failed to add ${failCount} rows.` : ''}`);
+        setUploadSuccess(`Successfully added ${successCount} vehicles to selected business.${failCount > 0 ? ` Failed to add ${failCount} rows.` : ''}`);
+        
+        // Reset CSV business selection after successful upload
+        setCsvBusinessId('');
 
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
@@ -250,7 +369,8 @@ export default function VehiclesPage() {
       creditReason: vehicle.creditReason || '',
       creditDate: vehicle.creditDate || '',
       soldTo: vehicle.soldTo || '',
-      soldDate: vehicle.soldDate || ''
+      soldDate: vehicle.soldDate || '',
+      businessId: vehicle.businessId || ''
     });
     setVehicleErrors({});
   };
@@ -264,6 +384,11 @@ export default function VehiclesPage() {
     const vinVal = validateVIN(editingVehicle.vin);
     if (!vinVal.isValid) {
       errors.vin = vinVal.error;
+    }
+
+    // Validate business selection
+    if (!editingVehicle.businessId || editingVehicle.businessId.trim() === '') {
+      errors.businessId = 'Business selection is required';
     }
 
     // Validate based on vehicle type
@@ -280,6 +405,13 @@ export default function VehiclesPage() {
         }
         if (!editingVehicle.creditDate) {
           errors.creditDate = 'Credit date is required';
+        } else {
+          // Validate that credit date is not in June (last month of tax period - no credit available)
+          const creditDateObj = new Date(editingVehicle.creditDate);
+          const creditMonth = creditDateObj.getMonth(); // 0-indexed: 0=January, 5=June
+          if (creditMonth === 5) { // June is month index 5
+            errors.creditDate = 'You cannot claim credit for the June month for any reason. June is the last month of the tax period, so there are no remaining months to claim credit.';
+          }
         }
       }
     } else if (editingVehicle.vehicleType === 'suspended') {
@@ -319,7 +451,8 @@ export default function VehiclesPage() {
         creditReason: editingVehicle.creditReason || null,
         creditDate: editingVehicle.creditDate || null,
         soldTo: editingVehicle.soldTo || null,
-        soldDate: editingVehicle.soldDate || null
+        soldDate: editingVehicle.soldDate || null,
+        businessId: editingVehicle.businessId
       };
 
       await updateVehicle(editingVehicle.id, updateData);
@@ -367,6 +500,11 @@ export default function VehiclesPage() {
       errors.vin = 'This VIN already exists in your vehicle list';
     }
 
+    // Validate business selection
+    if (!newVehicle.businessId || newVehicle.businessId.trim() === '') {
+      errors.businessId = 'Business selection is required';
+    }
+
     // Validate based on vehicle type
     if (newVehicle.vehicleType === 'taxable' || newVehicle.vehicleType === 'credit') {
       if (!newVehicle.grossWeightCategory || newVehicle.grossWeightCategory === 'W') {
@@ -381,6 +519,13 @@ export default function VehiclesPage() {
         }
         if (!newVehicle.creditDate) {
           errors.creditDate = 'Credit date is required';
+        } else {
+          // Validate that credit date is not in June (last month of tax period - no credit available)
+          const creditDateObj = new Date(newVehicle.creditDate);
+          const creditMonth = creditDateObj.getMonth(); // 0-indexed: 0=January, 5=June
+          if (creditMonth === 5) { // June is month index 5
+            errors.creditDate = 'You cannot claim credit for the June month for any reason. June is the last month of the tax period, so there are no remaining months to claim credit.';
+          }
         }
       }
     } else if (newVehicle.vehicleType === 'suspended') {
@@ -420,7 +565,8 @@ export default function VehiclesPage() {
         creditReason: newVehicle.creditReason || null,
         creditDate: newVehicle.creditDate || null,
         soldTo: newVehicle.soldTo || null,
-        soldDate: newVehicle.soldDate || null
+        soldDate: newVehicle.soldDate || null,
+        businessId: newVehicle.businessId
       };
 
       await createVehicle(user.uid, vehicleData);
@@ -436,7 +582,8 @@ export default function VehiclesPage() {
         creditReason: '',
         creditDate: '',
         soldTo: '',
-        soldDate: ''
+        soldDate: '',
+        businessId: ''
       });
     } catch (error) {
       console.error('Error creating vehicle:', error);
@@ -484,8 +631,14 @@ export default function VehiclesPage() {
               className="hidden"
             />
             <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
+              onClick={() => {
+                if (businesses.length === 0) {
+                  setUploadError('Please create a business first before importing vehicles.');
+                  return;
+                }
+                setShowCsvBusinessModal(true);
+              }}
+              disabled={uploading || businesses.length === 0}
                 className="inline-flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 sm:px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all shadow-sm disabled:opacity-50"
             >
               {uploading ? (
@@ -613,8 +766,15 @@ export default function VehiclesPage() {
             {(!searchQuery && filterStatus === 'all') && (
             <div className="flex flex-col sm:flex-row gap-4 mt-6">
               <button
-                onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-700 font-bold text-sm border-2 border-slate-200 rounded-xl hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] transition-colors"
+                onClick={() => {
+                  if (businesses.length === 0) {
+                    setUploadError('Please create a business first before importing vehicles.');
+                    return;
+                  }
+                  setShowCsvBusinessModal(true);
+                }}
+                disabled={businesses.length === 0}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-700 font-bold text-sm border-2 border-slate-200 rounded-xl hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Upload className="w-4 h-4" />
                 Import CSV
@@ -873,6 +1033,33 @@ export default function VehiclesPage() {
                   )}
                 </div>
 
+                {/* Business Selection */}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Business <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={editingVehicle.businessId || ''}
+                    onChange={(e) => setEditingVehicle({ ...editingVehicle, businessId: e.target.value })}
+                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                  >
+                    <option value="">Select a business</option>
+                    {businesses.map(business => (
+                      <option key={business.id} value={business.id}>
+                        {business.businessName || business.name || 'Unnamed Business'}
+                      </option>
+                    ))}
+                  </select>
+                  {vehicleErrors.businessId && (
+                    <p className="mt-1 text-sm text-red-600">{vehicleErrors.businessId}</p>
+                  )}
+                  {businesses.length === 0 && (
+                    <p className="mt-1 text-sm text-amber-600">
+                      No businesses found. Please create a business first.
+                    </p>
+                  )}
+                </div>
+
                 {/* Vehicle Type */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -917,13 +1104,15 @@ export default function VehiclesPage() {
                         editingVehicle.vehicleType === 'suspended' ? 'bg-slate-100 cursor-not-allowed' : ''
                       }`}
                     >
-                      <option value="">Select weight category</option>
                       {editingVehicle.vehicleType === 'suspended' ? (
-                        <option value="W">{weightCategoryW.label}</option>
+                        <option value="W">W</option>
                       ) : (
-                        weightCategoriesAToV.map(cat => (
-                          <option key={cat.value} value={cat.value}>{cat.label}</option>
-                        ))
+                        <>
+                          <option value="">Select weight category</option>
+                          {getWeightCategoryOptions(editingVehicle.logging).map(cat => (
+                            <option key={cat.value} value={cat.value}>{cat.label}</option>
+                          ))}
+                        </>
                       )}
                     </select>
                     {vehicleErrors.grossWeightCategory && (
@@ -1035,10 +1224,32 @@ export default function VehiclesPage() {
                     <input
                       type="date"
                       value={editingVehicle.creditDate || ''}
-                      onChange={(e) => setEditingVehicle({ ...editingVehicle, creditDate: e.target.value })}
+                      onChange={(e) => {
+                        const selectedDate = e.target.value;
+                        setEditingVehicle({ ...editingVehicle, creditDate: selectedDate });
+                        
+                        // Real-time validation for June
+                        if (selectedDate) {
+                          const dateObj = new Date(selectedDate);
+                          const month = dateObj.getMonth(); // 0-indexed: 0=January, 5=June
+                          if (month === 5) {
+                            setVehicleErrors({
+                              ...vehicleErrors,
+                              creditDate: 'You cannot claim credit for the June month for any reason. June is the last month of the tax period, so there are no remaining months to claim credit.'
+                            });
+                          } else {
+                            // Clear error if not June
+                            const newErrors = { ...vehicleErrors };
+                            delete newErrors.creditDate;
+                            setVehicleErrors(newErrors);
+                          }
+                        }
+                      }}
                       min={getMinDate('credit')}
-                      max={getMaxDate()}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                      max={getMaxDate('credit')}
+                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all ${
+                        vehicleErrors.creditDate ? 'border-red-500' : 'border-slate-200'
+                      }`}
                     />
                     {vehicleErrors.creditDate && (
                       <p className="mt-1 text-sm text-red-600">{vehicleErrors.creditDate}</p>
@@ -1162,6 +1373,33 @@ export default function VehiclesPage() {
                   )}
                 </div>
 
+                {/* Business Selection */}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Business <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={newVehicle.businessId || ''}
+                    onChange={(e) => setNewVehicle({ ...newVehicle, businessId: e.target.value })}
+                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                  >
+                    <option value="">Select a business</option>
+                    {businesses.map(business => (
+                      <option key={business.id} value={business.id}>
+                        {business.businessName || business.name || 'Unnamed Business'}
+                      </option>
+                    ))}
+                  </select>
+                  {vehicleErrors.businessId && (
+                    <p className="mt-1 text-sm text-red-600">{vehicleErrors.businessId}</p>
+                  )}
+                  {businesses.length === 0 && (
+                    <p className="mt-1 text-sm text-amber-600">
+                      No businesses found. Please create a business first.
+                    </p>
+                  )}
+                </div>
+
                 {/* Vehicle Type */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -1206,13 +1444,15 @@ export default function VehiclesPage() {
                         newVehicle.vehicleType === 'suspended' ? 'bg-slate-100 cursor-not-allowed' : ''
                       }`}
                     >
-                      <option value="">Select weight category</option>
                       {newVehicle.vehicleType === 'suspended' ? (
-                        <option value="W">{weightCategoryW.label}</option>
+                        <option value="W">W</option>
                       ) : (
-                        weightCategoriesAToV.map(cat => (
-                          <option key={cat.value} value={cat.value}>{cat.label}</option>
-                        ))
+                        <>
+                          <option value="">Select weight category</option>
+                          {getWeightCategoryOptions(newVehicle.logging).map(cat => (
+                            <option key={cat.value} value={cat.value}>{cat.label}</option>
+                          ))}
+                        </>
                       )}
                     </select>
                     {vehicleErrors.grossWeightCategory && (
@@ -1324,10 +1564,32 @@ export default function VehiclesPage() {
                     <input
                       type="date"
                       value={newVehicle.creditDate || ''}
-                      onChange={(e) => setNewVehicle({ ...newVehicle, creditDate: e.target.value })}
+                      onChange={(e) => {
+                        const selectedDate = e.target.value;
+                        setNewVehicle({ ...newVehicle, creditDate: selectedDate });
+                        
+                        // Real-time validation for June
+                        if (selectedDate) {
+                          const dateObj = new Date(selectedDate);
+                          const month = dateObj.getMonth(); // 0-indexed: 0=January, 5=June
+                          if (month === 5) {
+                            setVehicleErrors({
+                              ...vehicleErrors,
+                              creditDate: 'You cannot claim credit for the June month for any reason. June is the last month of the tax period, so there are no remaining months to claim credit.'
+                            });
+                          } else {
+                            // Clear error if not June
+                            const newErrors = { ...vehicleErrors };
+                            delete newErrors.creditDate;
+                            setVehicleErrors(newErrors);
+                          }
+                        }
+                      }}
                       min={getMinDate('credit')}
-                      max={getMaxDate()}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                      max={getMaxDate('credit')}
+                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all ${
+                        vehicleErrors.creditDate ? 'border-red-500' : 'border-slate-200'
+                      }`}
                     />
                     {vehicleErrors.creditDate && (
                       <p className="mt-1 text-sm text-red-600">{vehicleErrors.creditDate}</p>
@@ -1387,7 +1649,8 @@ export default function VehiclesPage() {
                         creditReason: '',
                         creditDate: '',
                         soldTo: '',
-                        soldDate: ''
+                        soldDate: '',
+                        businessId: ''
                       });
                       setVehicleErrors({});
                     }}
@@ -1412,6 +1675,84 @@ export default function VehiclesPage() {
                         Add Vehicle
                       </>
                     )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CSV Business Selection Modal */}
+        {showCsvBusinessModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-slate-900">Select Business for CSV Import</h2>
+                <button
+                  onClick={() => {
+                    setShowCsvBusinessModal(false);
+                    setCsvBusinessId('');
+                    setUploadError('');
+                  }}
+                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Business <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={csvBusinessId}
+                    onChange={(e) => {
+                      setCsvBusinessId(e.target.value);
+                      setUploadError('');
+                    }}
+                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                  >
+                    <option value="">Select a business</option>
+                    {businesses.map(business => (
+                      <option key={business.id} value={business.id}>
+                        {business.businessName || business.name || 'Unnamed Business'}
+                      </option>
+                    ))}
+                  </select>
+                  {uploadError && csvBusinessId === '' && (
+                    <p className="mt-1 text-sm text-red-600">{uploadError}</p>
+                  )}
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>CSV Format:</strong> VIN, Weight Category, Suspended (optional)
+                    <br />
+                    <span className="text-xs text-blue-600 mt-1 block">
+                      Example: 1HGBH41JXMN109186, F, false
+                    </span>
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => {
+                      setShowCsvBusinessModal(false);
+                      setCsvBusinessId('');
+                      setUploadError('');
+                    }}
+                    className="flex-1 px-4 py-3 border-2 border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCsvBusinessSelect}
+                    disabled={!csvBusinessId || csvBusinessId.trim() === ''}
+                    className="flex-1 px-4 py-3 bg-[var(--color-orange)] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-soft)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    Continue to Upload
+                    <Upload className="w-4 h-4" />
                   </button>
                 </div>
               </div>
