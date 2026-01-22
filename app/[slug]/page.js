@@ -63,8 +63,65 @@ export async function generateMetadata({ params }) {
         // ignore
     }
 
-    const title = dbMeta.meta_title || `${slug.replace(/-/g, ' ')} | QuickTruckTax`;
-    const description = dbMeta.meta_description || `Complete guide for ${slug.replace(/-/g, ' ')}. E-file Form 2290 today.`;
+    // Improved fallback titles with keyword optimization
+    const generateOptimizedTitle = (slug, data) => {
+      if (dbMeta.meta_title) return dbMeta.meta_title;
+      
+      // Extract keywords from slug
+      const slugWords = slug.replace(/-/g, ' ');
+      
+      // For calculator pages, include price and value prop
+      if (data.type === "calculator" || data.type === "state-calculator") {
+        const weight = data.weight ? `${parseInt(data.weight).toLocaleString()} lb` : '';
+        const vehicle = data.vehicle_type ? data.vehicle_type.replace(/-/g, ' ') : '';
+        const state = data.state ? ` in ${data.state.replace(/-/g, ' ')}` : '';
+        return `Form 2290 Tax for ${weight} ${vehicle}${state} | File Online $34.99`;
+      }
+      
+      // For deadline pages, include urgency
+      if (data.type === "deadline" || data.type === "state-deadline") {
+        const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1) : '';
+        const year = data.year || '';
+        const state = data.state ? ` in ${data.state.replace(/-/g, ' ')}` : '';
+        return `File Form 2290 ${month} ${year}${state} | Deadline & Rates | QuickTruckTax`;
+      }
+      
+      // For vehicle type pages
+      if (data.type === "state-type") {
+        const vehicle = data.vehicle_type ? data.vehicle_type.replace(/-/g, ' ') : '';
+        const state = data.state ? ` in ${data.state.replace(/-/g, ' ')}` : '';
+        return `Form 2290 for ${vehicle}${state} | File Online $34.99 | QuickTruckTax`;
+      }
+      
+      // Default: include primary keyword + value prop
+      return `${slugWords.charAt(0).toUpperCase() + slugWords.slice(1)} | File Form 2290 Online $34.99`;
+    };
+    
+    const generateOptimizedDescription = (slug, data) => {
+      if (dbMeta.meta_description) return dbMeta.meta_description;
+      
+      const slugWords = slug.replace(/-/g, ' ');
+      
+      // Include price, speed, and guarantee in descriptions
+      if (data.type === "calculator" || data.type === "state-calculator") {
+        const weight = data.weight ? `${parseInt(data.weight).toLocaleString()} lb` : '';
+        const vehicle = data.vehicle_type ? data.vehicle_type.replace(/-/g, ' ') : '';
+        const state = data.state ? ` in ${data.state.replace(/-/g, ' ')}` : '';
+        return `File Form 2290 for ${weight} ${vehicle}${state}. Get IRS Schedule 1 in minutes. $34.99 flat fee. Free VIN corrections. Start now →`;
+      }
+      
+      if (data.type === "deadline" || data.type === "state-deadline") {
+        const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1) : '';
+        const year = data.year || '';
+        return `File Form 2290 in ${month} ${year}. Learn deadlines, prorated rates, and get Schedule 1 instantly. $34.99 flat fee. E-file now →`;
+      }
+      
+      // Default: include value props
+      return `Complete guide for ${slugWords}. File Form 2290 online in 2 minutes. Get IRS Schedule 1 instantly. $34.99 flat fee. Free VIN corrections. Start now →`;
+    };
+    
+    const title = generateOptimizedTitle(slug, data);
+    const description = generateOptimizedDescription(slug, data);
 
     // Common OpenGraph Data
     const ogData = {
@@ -271,7 +328,7 @@ export default async function PseoPage({ params }) {
                         <TableOfContents headers={headers} />
                         <div className="sticky top-24 space-y-6">
                             <CtaBox />
-                            <RelatedGuides currentSlug={slug} />
+                            <RelatedGuides currentSlug={slug} data={data} />
                         </div>
                     </aside>
                 </div>
@@ -355,7 +412,7 @@ export default async function PseoPage({ params }) {
                         <TableOfContents headers={headers} />
                         <div className="sticky top-24 space-y-6">
                             <CtaBox />
-                            <RelatedGuides currentSlug={slug} />
+                            <RelatedGuides currentSlug={slug} data={data} />
                         </div>
                     </aside>
                 </div>
@@ -600,19 +657,81 @@ function CtaBox() {
 }
 
 
-function RelatedGuides({ currentSlug }) {
-    const guides = [
-        { label: "File for 55,000 lb Truck", href: "/2290-tax-for-55000-lb-semi-truck", icon: "truck" },
-        { label: "File for 80,000 lb Truck", href: "/2290-tax-for-80000-lb-semi-truck", icon: "truck" },
-        { label: "Logging Truck Tax", href: "/2290-tax-for-75000-lb-logging-truck", icon: "truck" },
-        { label: "California Tax Guide", href: "/filing-2290-in-california", icon: "map" },
-        { label: "Texas Tax Guide", href: "/filing-2290-in-texas", icon: "map" },
-        { label: "Florida Tax Guide", href: "/filing-2290-in-florida", icon: "map" },
-    ];
+function RelatedGuides({ currentSlug, data }) {
+    // Strategic internal linking based on page type
+    const getRelatedGuides = () => {
+        const baseGuides = [
+            { label: "File Form 2290 Online", href: "/services/form-2290-filing", icon: "file", priority: true },
+            { label: "HVUT Tax Calculator", href: "/tools/hvut-calculator", icon: "calculator", priority: true },
+            { label: "Form 2290 Ultimate Guide", href: "/insights/form-2290-ultimate-guide", icon: "guide", priority: true },
+        ];
+
+        // Add context-specific guides based on page type
+        if (data?.type === "state-calculator" || data?.type === "state-deadline" || data?.type === "state-type") {
+            const state = data.state?.replace(/-/g, ' ');
+            if (state) {
+                baseGuides.push(
+                    { label: `Form 2290 in ${state}`, href: `/filing-2290-in-${data.state}`, icon: "map", priority: false },
+                    { label: `${state} Tax Guide`, href: `/insights/state/${data.state}`, icon: "map", priority: false }
+                );
+            }
+        }
+
+        if (data?.type === "calculator" || data?.type === "state-calculator") {
+            const weight = data.weight ? parseInt(data.weight) : null;
+            if (weight) {
+                // Add nearby weight guides
+                const nearbyWeights = [weight - 5000, weight + 5000].filter(w => w >= 55000 && w <= 80000);
+                nearbyWeights.forEach(w => {
+                    baseGuides.push({
+                        label: `Form 2290 for ${w.toLocaleString()} lb Truck`,
+                        href: `/2290-tax-for-${w}-lb-truck${data.state ? `-in-${data.state}` : ''}`,
+                        icon: "truck",
+                        priority: false
+                    });
+                });
+            }
+        }
+
+        // Add popular state guides
+        const popularStates = [
+            { name: "Texas", slug: "texas" },
+            { name: "California", slug: "california" },
+            { name: "Florida", slug: "florida" },
+            { name: "Ohio", slug: "ohio" },
+        ];
+
+        popularStates.forEach(state => {
+            if (!currentSlug.includes(state.slug)) {
+                baseGuides.push({
+                    label: `${state.name} Tax Guide`,
+                    href: `/filing-2290-in-${state.slug}`,
+                    icon: "map",
+                    priority: false
+                });
+            }
+        });
+
+        // Sort: priority first, then by relevance
+        return baseGuides
+            .filter(g => g.href !== `/${currentSlug}`)
+            .sort((a, b) => {
+                if (a.priority && !b.priority) return -1;
+                if (!a.priority && b.priority) return 1;
+                return 0;
+            })
+            .slice(0, 6);
+    };
+
+    const guides = getRelatedGuides();
 
     const getIcon = (type) => {
         if (type === 'truck') return <Truck className="w-4 h-4 text-blue-500" />;
-        return <MapPin className="w-4 h-4 text-red-500" />;
+        if (type === 'map') return <MapPin className="w-4 h-4 text-red-500" />;
+        if (type === 'calculator') return <Calculator className="w-4 h-4 text-green-500" />;
+        if (type === 'file') return <FileText className="w-4 h-4 text-orange-500" />;
+        if (type === 'guide') return <FileText className="w-4 h-4 text-purple-500" />;
+        return <Compass className="w-4 h-4 text-slate-500" />;
     };
 
     return (
@@ -625,7 +744,7 @@ function RelatedGuides({ currentSlug }) {
                 Explore Related Guides
             </h3>
             <div className="space-y-3 relative z-10">
-                {guides.filter(g => g.href !== `/${currentSlug}`).slice(0, 5).map((guide, i) => (
+                {guides.map((guide, i) => (
                     <Link key={i} href={guide.href} className="group flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-xl hover:border-blue-200 hover:shadow-md hover:scale-[1.02] transition-all duration-300">
                         <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors shadow-sm">
                             {getIcon(guide.icon)}
@@ -639,7 +758,7 @@ function RelatedGuides({ currentSlug }) {
             </div>
             <div className="mt-6 text-center relative z-10">
                 <Link href="/services/form-2290-filing" className="text-xs font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors flex items-center justify-center gap-1">
-                    View All Guides <ArrowRight className="w-3 h-3" />
+                    File Form 2290 Now <ArrowRight className="w-3 h-3" />
                 </Link>
             </div>
         </div>

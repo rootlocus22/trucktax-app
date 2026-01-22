@@ -22,11 +22,11 @@ const geistMono = Geist_Mono({
 export const metadata = {
   metadataBase: new URL("https://www.quicktrucktax.com"),
   title: {
-    default: "QuickTruckTax | 2025-2026 Tax Year Form 2290 E-Filing",
-    template: "%s | QuickTruckTax (2025-2026)",
+    default: "File Form 2290 Online - $34.99 | Get Schedule 1 in Minutes | QuickTruckTax",
+    template: "%s | QuickTruckTax",
   },
   description:
-    "E-file IRS Form 2290 for Tax Year 2025-2026 with QuickTruckTax. Fast, secure, and instant Schedule 1. We help carriers stay compliant with HVUT, UCR, MCS-150, and IFTA.",
+    "File Form 2290 in 2 minutes. Get IRS Schedule 1 instantly. $34.99 flat fee. Free VIN corrections. Trusted by 10,000+ truckers. E-file Form 2290 for 2025-2026 tax year. Start now →",
   keywords: [
     "form 2290",
     "e-file form 2290",
@@ -77,9 +77,9 @@ export const metadata = {
     google: "-95Bq4XHD66PIeHdHG3cDSad9_yp6kTmOVeUtUKUIc0",
   },
   openGraph: {
-    title: "QuickTruckTax | 2025-2026 Tax Year Form 2290 E-Filing",
+    title: "File Form 2290 Online - $34.99 | Get Schedule 1 in Minutes",
     description:
-      "Actionable guides and checklists for Form 2290, UCR, MCS-150, IFTA, and trucking authority filings. Stay compliant and avoid penalties.",
+      "File Form 2290 in 2 minutes. Get IRS Schedule 1 instantly. $34.99 flat fee. Free VIN corrections. Trusted by 10,000+ truckers. E-file now.",
     url: "https://www.quicktrucktax.com",
     siteName: "QuickTruckTax",
     type: "website",
@@ -98,9 +98,9 @@ export const metadata = {
     card: "summary_large_image",
     site: "@quicktrucktax",
     creator: "@quicktrucktax",
-    title: "QuickTruckTax | 2025-2026 Tax Year Form 2290 E-Filing",
+    title: "File Form 2290 Online - $34.99 | Get Schedule 1 in Minutes",
     description:
-      "Stay ahead of trucking compliance deadlines with detailed Form 2290 and HVUT guides.",
+      "File Form 2290 in 2 minutes. Get IRS Schedule 1 instantly. $34.99 flat fee. Free VIN corrections. Trusted by 10,000+ truckers.",
     images: ["https://www.quicktrucktax.com/quicktrucktax-logo-new.png"],
   },
 };

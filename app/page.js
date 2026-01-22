@@ -102,11 +102,83 @@ export default function Home() {
     }
   };
 
+  // FAQ Schema for Featured Snippets - Target: "How to file Form 2290"
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'How to file Form 2290?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'File Form 2290 online in 3 steps: 1) Enter your business and vehicle information, 2) We review and submit to the IRS, 3) Receive your IRS-stamped Schedule 1 via email in minutes. E-filing costs $34.99 and takes about 2 minutes to complete.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'How much does it cost to file Form 2290?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'QuickTruckTax charges a flat fee of $34.99 to e-file Form 2290. This includes IRS submission, error checking, and instant delivery of your Schedule 1. Free VIN corrections are included if you make a mistake.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'How long does it take to get Schedule 1 after filing Form 2290?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'With QuickTruckTax e-filing, you receive your IRS-stamped Schedule 1 within minutes of IRS acceptance. Most filings are accepted instantly, and we email your Schedule 1 immediately. Paper filings can take 2-4 weeks.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'What is the deadline for filing Form 2290?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'The annual deadline for existing vehicles is August 31st. For new vehicles, file by the end of the month following the month of first use. The tax year runs from July 1 to June 30.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'Do I need to file Form 2290 for my truck?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'You must file Form 2290 if your vehicle has a taxable gross weight of 55,000 pounds or more and is used on public highways. Agricultural vehicles have a 7,500-mile threshold instead of 5,000 miles.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'What happens if I make a mistake on Form 2290?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'QuickTruckTax offers free VIN corrections if you make a mistake. If the IRS rejects your filing, we will re-file at no additional cost. Our expert review process catches most errors before submission.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'Can I file Form 2290 online?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes, you can file Form 2290 online through QuickTruckTax. E-filing is faster, more secure, and recommended by the IRS. You get your Schedule 1 instantly instead of waiting weeks for paper processing.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'What information do I need to file Form 2290?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'You need: your EIN or SSN, vehicle VIN numbers, taxable gross weight for each vehicle, first use month, and business information. QuickTruckTax guides you through each step with clear instructions.'
+        }
+      }
+    ]
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, productJsonLd]) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, productJsonLd, faqJsonLd]) }}
       />
 
       <div className="flex flex-col gap-20 sm:gap-24">

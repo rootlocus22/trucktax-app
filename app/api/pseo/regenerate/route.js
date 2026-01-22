@@ -104,7 +104,7 @@ async function generateContent(slug, type, context, fixIssues = null) {
     }
 
     const prompt = `
-    You are an expert Trucking Tax Consultant and SEO Copywriter. Write a comprehensive guide for: "${topic}".
+    You are an expert Trucking Tax Consultant and SEO Copywriter. Write a comprehensive, conversion-focused guide for: "${topic}".
     
     Context: ${JSON.stringify(context || {})}
     Page Type: ${type || 'general'}
@@ -117,28 +117,56 @@ async function generateContent(slug, type, context, fixIssues = null) {
       "faq": [
         { "q": "Question?", "a": "Answer." }
       ],
-      "meta_title": "SEO Optimized Title (MUST be 50-60 chars)",
-      "meta_description": "SEO Optimized Description (MUST be 140-155 chars)"
+      "meta_title": "SEO Optimized Title (MUST be 50-60 chars, include primary keyword + value prop)",
+      "meta_description": "SEO Optimized Description (MUST be 140-155 chars, include price/speed/guarantee)"
     }
 
     CONTENT RULES (Strict):
-    1. **intro_html**: MUST be 500+ words of rich HTML. 
+    1. **intro_html**: MUST be 1,000+ words of rich HTML (not 500). 
        - Use clean <h2> subheadings to break up text.
-       - Include a <table> or <ul> where appropriate.
-       - Use <strong> tags for semantic emphasis.
-       - NO generic fluff. Be specific.
+       - Include a <table> or <ul> where appropriate to show data/rates.
+       - Use <strong> tags for semantic emphasis on keywords like 'Form 2290', 'HVUT', 'Deadline'.
+       - Include commercial intent: Mention "file online", "e-file", "$34.99", "get Schedule 1 in minutes"
+       - Answer specific questions: "How much does it cost?", "How long does it take?", "What if I make a mistake?"
+       - NO generic fluff. Be specific to the State, Vehicle Weight, or Month provided.
+       - Include at least 3 internal linking opportunities (mention related topics naturally).
     
     2. **tips_html**: 
-       - Provide 4-5 detailed, actionable tips.
-       - Format as a stylized list.
+       - Provide 5-7 detailed, actionable tips.
+       - Include at least one tip about e-filing benefits or using QuickTruckTax service.
+       - Format as a stylized list with <strong> emphasis on key points.
 
-    3. **meta_title**: EXACTLY between 50-60 characters. This is critical for SEO.
-    
-    4. **meta_description**: EXACTLY between 140-155 characters. This is critical for SEO.
+    3. **meta_title**: 
+       - MUST be 50-60 characters exactly
+       - Include primary keyword (Form 2290, HVUT, etc.)
+       - Include value prop: "$34.99", "File Online", "Get Schedule 1 in Minutes"
+       - Format: "[Primary Keyword] + [Value Prop] | QuickTruckTax"
+       - Example: "Form 2290 for 60,000 lb Truck in Texas | File Online $34.99"
 
-    5. **Tone**: Authoritative, Trustworthy, and Direct.
+    4. **meta_description**:
+       - MUST be 140-155 characters exactly
+       - Include primary keyword in first 20 characters
+       - Include price: "$34.99 flat fee"
+       - Include speed: "Get Schedule 1 in minutes"
+       - Include guarantee: "Free VIN corrections" or "Trusted by 10,000+ truckers"
+       - End with CTA: "Start now →" or "E-file now →"
+       - Example: "File Form 2290 for 60,000 lb trucks in Texas. Get IRS Schedule 1 in minutes. $34.99 flat fee. Free VIN corrections. Start now →"
 
-    6. **Safety**: Do not invent fake laws. Stick to federal IRS code (Section 4481).
+    5. **faq**: 
+       - Generate 5-6 questions that people actually search for
+       - Include commercial questions: "How much does it cost to file Form 2290?", "How long does it take to get Schedule 1?"
+       - Keep answers concise (40-60 words) for featured snippet eligibility
+       - Use natural language questions (not keyword-stuffed)
+
+    6. **Tone**: Authoritative, Trustworthy, Direct, and Conversion-Focused.
+
+    7. **Safety**: Do not invent fake laws. Stick to federal IRS code (Section 4481).
+
+    8. **SEO Keywords to Naturally Include**:
+       - Primary: "Form 2290", "file Form 2290", "e-file Form 2290", "Form 2290 online"
+       - Secondary: "HVUT", "Heavy Vehicle Use Tax", "Schedule 1", "2290 tax calculator"
+       - Commercial: "file online", "e-file", "$34.99", "get Schedule 1", "instant Schedule 1"
+       - Use variations naturally throughout content (don't keyword stuff)
   `;
 
     try {
