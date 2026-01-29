@@ -15,6 +15,8 @@ import { validateBusinessName, validateEIN, formatEIN, validateVIN, validateAddr
 import { validateVINCorrection, validateWeightIncrease, validateMileageExceeded, calculateWeightIncreaseDueDate, getAmendmentTypeConfig } from '@/lib/amendmentHelpers';
 import { FileText, AlertTriangle, RefreshCw, Truck, Info, CreditCard, CheckCircle, ShieldCheck, AlertCircle, RotateCcw, Clock, Building2, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
 import { PricingSidebar } from '@/components/PricingSidebar';
+import StripeWrapper from '@/components/StripeWrapper';
+
 
 // Mobile Pricing Summary Component - Sticky Bottom
 function MobilePricingSummary({
@@ -140,8 +142,8 @@ function MobilePricingSummary({
   const vehicleCount = selectedVehicleIds.length;
   // For collapsed view, show what's due now (service fee + sales tax), not grand total
   // IRS tax is paid separately, so we only show platform fees in the collapsed summary
-  const totalAmount = filingType === 'refund' 
-    ? pricing.totalRefund 
+  const totalAmount = filingType === 'refund'
+    ? pricing.totalRefund
     : (pricing.serviceFee || 0) + (pricing.salesTax || 0) - (pricing.couponDiscount || 0);
 
   return (
@@ -296,6 +298,8 @@ function NewFilingContent() {
   const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [filingId, setFilingId] = useState(null);
+
   const [error, setError] = useState('');
   const [draftId, setDraftId] = useState(null);
   const draftSavingRef = useRef(false);
@@ -573,7 +577,7 @@ function NewFilingContent() {
     setVehicleErrors({});
     setBankDetailsErrors({});
     setCouponError('');
-    
+
     // Reset business form visibility when entering Step 2
     // This ensures existing businesses are shown first (unless there are no businesses)
     if (step === 2 && filingType !== 'amendment') {
@@ -792,7 +796,7 @@ function NewFilingContent() {
     try {
       const userBusinesses = await getBusinessesByUser(user.uid);
       // Load vehicles filtered by selected business if one is selected
-      const userVehicles = selectedBusinessId 
+      const userVehicles = selectedBusinessId
         ? await getVehiclesByUser(user.uid, selectedBusinessId)
         : await getVehiclesByUser(user.uid);
       setBusinesses(userBusinesses);
@@ -890,17 +894,17 @@ function NewFilingContent() {
     if (field === 'country') validation = validateCountry(formattedValue, true); // Required
     if (field === 'phone') validation = validatePhone(formattedValue, true); // Required
     if (field === 'signingAuthorityName') {
-      validation = formattedValue && formattedValue.trim().length >= 2 
-        ? { isValid: true, error: '' } 
+      validation = formattedValue && formattedValue.trim().length >= 2
+        ? { isValid: true, error: '' }
         : { isValid: false, error: 'Signing Authority Name is required and must be at least 2 characters' };
     }
     if (field === 'signingAuthorityPhone') validation = validatePhone(formattedValue, true); // Required
     if (field === 'signingAuthorityPIN') validation = validatePIN(formattedValue, true); // Required
     if (field === 'thirdPartyDesigneeName') {
-      validation = newBusiness.hasThirdPartyDesignee 
-        ? (formattedValue && formattedValue.trim().length >= 2 
-            ? { isValid: true, error: '' } 
-            : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
+      validation = newBusiness.hasThirdPartyDesignee
+        ? (formattedValue && formattedValue.trim().length >= 2
+          ? { isValid: true, error: '' }
+          : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
         : { isValid: true, error: '' };
     }
     if (field === 'thirdPartyDesigneePhone') validation = validatePhone(formattedValue, newBusiness.hasThirdPartyDesignee); // Required if Third Party Designee is Yes
@@ -925,23 +929,23 @@ function NewFilingContent() {
     const countryVal = validateCountry(newBusiness.country, true); // Required
     const phoneVal = validatePhone(newBusiness.phone, true); // Required
     // Validate signing authority name (required, but simpler than business name)
-    const signingAuthorityNameVal = newBusiness.signingAuthorityName && newBusiness.signingAuthorityName.trim().length >= 2 
-      ? { isValid: true, error: '' } 
+    const signingAuthorityNameVal = newBusiness.signingAuthorityName && newBusiness.signingAuthorityName.trim().length >= 2
+      ? { isValid: true, error: '' }
       : { isValid: false, error: 'Signing Authority Name is required and must be at least 2 characters' };
     const signingAuthorityPhoneVal = validatePhone(newBusiness.signingAuthorityPhone, true); // Required
     const signingAuthorityPINVal = validatePIN(newBusiness.signingAuthorityPIN, true); // Required
     // Validate third party designee name (required if Third Party Designee is Yes)
-    const thirdPartyDesigneeNameVal = newBusiness.hasThirdPartyDesignee 
-      ? (newBusiness.thirdPartyDesigneeName && newBusiness.thirdPartyDesigneeName.trim().length >= 2 
-          ? { isValid: true, error: '' } 
-          : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
+    const thirdPartyDesigneeNameVal = newBusiness.hasThirdPartyDesignee
+      ? (newBusiness.thirdPartyDesigneeName && newBusiness.thirdPartyDesigneeName.trim().length >= 2
+        ? { isValid: true, error: '' }
+        : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
       : { isValid: true, error: '' };
     const thirdPartyDesigneePhoneVal = validatePhone(newBusiness.thirdPartyDesigneePhone, newBusiness.hasThirdPartyDesignee);
     const thirdPartyDesigneePINVal = validatePIN(newBusiness.thirdPartyDesigneePIN, newBusiness.hasThirdPartyDesignee);
 
-    if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !cityVal.isValid || !stateVal.isValid || !zipVal.isValid || !countryVal.isValid || !phoneVal.isValid || 
-        !signingAuthorityNameVal.isValid || !signingAuthorityPhoneVal.isValid || !signingAuthorityPINVal.isValid ||
-        !thirdPartyDesigneeNameVal.isValid || !thirdPartyDesigneePhoneVal.isValid || !thirdPartyDesigneePINVal.isValid) {
+    if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !cityVal.isValid || !stateVal.isValid || !zipVal.isValid || !countryVal.isValid || !phoneVal.isValid ||
+      !signingAuthorityNameVal.isValid || !signingAuthorityPhoneVal.isValid || !signingAuthorityPINVal.isValid ||
+      !thirdPartyDesigneeNameVal.isValid || !thirdPartyDesigneePhoneVal.isValid || !thirdPartyDesigneePINVal.isValid) {
       setBusinessErrors({
         businessName: nameVal.error,
         ein: einVal.error,
@@ -976,7 +980,7 @@ function NewFilingContent() {
         if (!thirdPartyDesigneePhoneVal.isValid) errorFields.push('Third Party Designee Phone');
         if (!thirdPartyDesigneePINVal.isValid) errorFields.push('Third Party Designee PIN');
       }
-      
+
       setError(`Please correct the following required fields: ${errorFields.join(', ')}. All fields marked with an asterisk (*) are required.`);
       return false; // Return false to indicate failure
     }
@@ -1056,26 +1060,26 @@ function NewFilingContent() {
     setLoading(true);
     setError('');
     setVehicleErrors({});
-    
+
     try {
       const vinToSave = newVehicle.vin.toUpperCase().trim();
-      
+
       // Create vehicle in database
       const vehicleId = await createVehicle(user.uid, {
         vin: vinToSave,
         grossWeightCategory: newVehicle.grossWeightCategory,
         isSuspended: newVehicle.isSuspended || false
       });
-      
+
       console.log('Vehicle created with ID:', vehicleId);
-      
+
       // Reload vehicles from database to get the new vehicle
       await loadData();
-      
+
       // Verify the vehicle was added by checking the vehicles list
       // Use a small delay to ensure state has updated
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       // Add the new vehicle to selected vehicles with validation
       setSelectedVehicleIds(prev => {
         if (prev.includes(vehicleId)) {
@@ -1091,7 +1095,7 @@ function NewFilingContent() {
         return newSelectedIds;
         return [...prev, vehicleId];
       });
-      
+
       // Reset form
       setNewVehicle({
         vin: '',
@@ -1100,9 +1104,9 @@ function NewFilingContent() {
       });
       setVehicleErrors({});
       setError('');
-      
+
       console.log('Vehicle successfully added and selected');
-      
+
       // Return success indicator
       return true;
     } catch (error) {
@@ -1145,15 +1149,15 @@ function NewFilingContent() {
     try {
       // Validate payment details
       const errors = {};
-      
+
       if (!serviceFeePaymentDetails.cardHolderName || serviceFeePaymentDetails.cardHolderName.trim().length < 2) {
         errors.cardHolderName = 'Cardholder name is required and must be at least 2 characters';
       }
-      
+
       if (!serviceFeePaymentDetails.cardNumber || serviceFeePaymentDetails.cardNumber.replace(/\D/g, '').length < 13) {
         errors.cardNumber = 'Valid card number is required (13-16 digits)';
       }
-      
+
       if (!serviceFeePaymentDetails.expiryDate || !/^\d{2}\/\d{2}$/.test(serviceFeePaymentDetails.expiryDate)) {
         errors.expiryDate = 'Valid expiry date is required (MM/YY format)';
       } else {
@@ -1163,18 +1167,18 @@ function NewFilingContent() {
         const now = new Date();
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth() + 1;
-        
+
         if (expiryMonth < 1 || expiryMonth > 12) {
           errors.expiryDate = 'Invalid month (must be 01-12)';
         } else if (expiryYear < currentYear || (expiryYear === currentYear && expiryMonth < currentMonth)) {
           errors.expiryDate = 'Card has expired';
         }
       }
-      
+
       if (!serviceFeePaymentDetails.cvv || serviceFeePaymentDetails.cvv.length < 3) {
         errors.cvv = 'Valid CVV is required (3-4 digits)';
       }
-      
+
       if (!serviceFeePaymentDetails.billingZipCode || serviceFeePaymentDetails.billingZipCode.length !== 5) {
         errors.billingZipCode = 'Valid 5-digit ZIP code is required';
       }
@@ -1192,7 +1196,7 @@ function NewFilingContent() {
       // Mark payment as paid
       setServiceFeePaid(true);
       setError('');
-      
+
       // Clear payment details for security (in production, never store full card details)
       setServiceFeePaymentDetails({
         cardNumber: '',
@@ -1209,7 +1213,111 @@ function NewFilingContent() {
     }
   };
 
+  const initiatePaymentFlow = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      // Logic from handleSubmit to prepare data
+      let businessIdToUse = selectedBusinessId;
+      let vehicleIdsToUse = selectedVehicleIds;
+
+      if (filingType === 'amendment') {
+        let vehicleIdForAmendment = null;
+        if (amendmentType === 'weight_increase' && weightIncreaseData.vehicleId) {
+          vehicleIdForAmendment = weightIncreaseData.vehicleId;
+        } else if (amendmentType === 'mileage_exceeded' && mileageExceededData.vehicleId) {
+          vehicleIdForAmendment = mileageExceededData.vehicleId;
+        }
+
+        if (!businessIdToUse && vehicleIdForAmendment) {
+          const previousFilings = await getFilingsByUser(user.uid);
+          const filingWithVehicle = previousFilings.find(filing =>
+            filing.vehicleIds && filing.vehicleIds.includes(vehicleIdForAmendment) && filing.businessId
+          );
+          if (filingWithVehicle && filingWithVehicle.businessId) {
+            businessIdToUse = filingWithVehicle.businessId;
+          } else if (businesses.length > 0) {
+            businessIdToUse = businesses[0].id;
+          }
+        } else if (!businessIdToUse && businesses.length > 0) {
+          businessIdToUse = businesses[0].id;
+        }
+
+        if (vehicleIdForAmendment && !vehicleIdsToUse.includes(vehicleIdForAmendment)) {
+          vehicleIdsToUse = [vehicleIdForAmendment];
+        }
+      }
+
+      // Prepare amendment details if filing is an amendment
+      let amendmentDetails = {};
+      let amendmentDueDate = null;
+
+      if (filingType === 'amendment') {
+        if (amendmentType === 'vin_correction') {
+          amendmentDetails = {
+            vinCorrection: {
+              originalVIN: vinCorrectionData.originalVIN,
+              correctedVIN: vinCorrectionData.correctedVIN,
+              originalFilingId: vinCorrectionData.originalFilingId || null
+            }
+          };
+        } else if (amendmentType === 'weight_increase') {
+          amendmentDetails = {
+            weightIncrease: {
+              vehicleId: weightIncreaseData.vehicleId,
+              originalWeightCategory: weightIncreaseData.originalWeightCategory,
+              newWeightCategory: weightIncreaseData.newWeightCategory,
+              increaseMonth: weightIncreaseData.increaseMonth,
+              additionalTaxDue: weightIncreaseData.additionalTaxDue
+            }
+          };
+          // Calculate due date (last day of following month)
+          amendmentDueDate = calculateWeightIncreaseDueDate(weightIncreaseData.increaseMonth);
+        } else if (amendmentType === 'mileage_exceeded') {
+          amendmentDetails = {
+            mileageExceeded: {
+              vehicleId: mileageExceededData.vehicleId,
+              originalMileageLimit: mileageExceededData.originalMileageLimit,
+              actualMileageUsed: mileageExceededData.actualMileageUsed,
+              exceededMonth: mileageExceededData.exceededMonth,
+              isAgriculturalVehicle: mileageExceededData.isAgriculturalVehicle
+            }
+          };
+        }
+      }
+
+
+      const fId = await createFiling({
+        userId: user.uid,
+        businessId: businessIdToUse,
+        vehicleIds: vehicleIdsToUse,
+        taxYear: filingData.taxYear,
+        firstUsedMonth: filingData.firstUsedMonth,
+        filingType: filingType,
+        amendmentType: filingType === 'amendment' ? amendmentType : null,
+        amendmentDetails: filingType === 'amendment' ? amendmentDetails : {},
+        amendmentDueDate: amendmentDueDate,
+        refundDetails: filingType === 'refund' ? refundDetails : {},
+        inputDocuments: [],
+        pricing: pricing,
+        status: 'pending_payment',
+        paymentStatus: 'pending',
+        createdAt: new Date().toISOString()
+      });
+
+      setFilingId(fId);
+      setStep(6);
+    } catch (error) {
+      console.error('Error initiating payment flow:', error);
+      setError('Failed to prepare your filing. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
+
     setLoading(true);
     setError('');
 
@@ -1384,35 +1492,48 @@ function NewFilingContent() {
         couponType: couponApplied ? couponType : null
       };
 
-      // Create filing
-      const filingId = await createFiling({
+      // Create or Update filing
+      let finalFilingId = filingId;
+      const filingPayload = {
         userId: user.uid,
         businessId: businessIdToUse,
         vehicleIds: vehicleIdsToUse,
         taxYear: filingData.taxYear,
         firstUsedMonth: filingData.firstUsedMonth,
-        filingType: filingType, // Add filing type
-        amendmentType: filingType === 'amendment' ? amendmentType : null, // Add amendment type
-        amendmentDetails: filingType === 'amendment' ? amendmentDetails : {}, // Add amendment details
-        amendmentDueDate: amendmentDueDate, // Add due date for weight increases
-        refundDetails: filingType === 'refund' ? refundDetails : {}, // Add refund details
+        filingType: filingType,
+        amendmentType: filingType === 'amendment' ? amendmentType : null,
+        amendmentDetails: filingType === 'amendment' ? amendmentDetails : {},
+        amendmentDueDate: amendmentDueDate,
+        refundDetails: filingType === 'refund' ? refundDetails : {},
         inputDocuments: [],
-        pricing: pricing, // Save pricing snapshot
-        paymentDetails: paymentDetails // Add payment details including IRS method and coupon
-      });
+        pricing: pricing,
+        paymentDetails: paymentDetails,
+        status: 'submitted',
+        paymentStatus: 'paid',
+        updatedAt: new Date().toISOString()
+      };
+
+      if (finalFilingId) {
+        const { updateFiling } = await import('@/lib/db');
+        await updateFiling(finalFilingId, filingPayload);
+      } else {
+        finalFilingId = await createFiling(filingPayload);
+      }
+
 
       // Upload documents if any
       const documentUrls = [];
       for (let i = 0; i < documents.length; i++) {
-        const url = await uploadInputDocument(documents[i], filingId, `document-${i}`);
+        const url = await uploadInputDocument(documents[i], finalFilingId, `document-${i}`);
         documentUrls.push(url);
       }
 
       // Update filing with document URLs
       if (documentUrls.length > 0) {
         const { updateFiling } = await import('@/lib/db');
-        await updateFiling(filingId, { inputDocuments: documentUrls });
+        await updateFiling(finalFilingId, { inputDocuments: documentUrls });
       }
+
 
       // Delete draft immediately after successful submission
       if (draftId) {
@@ -1427,7 +1548,8 @@ function NewFilingContent() {
         }
       }
 
-      router.push(`/dashboard/filings/${filingId}`);
+      router.push(`/dashboard/filings/${finalFilingId}`);
+
     } catch (error) {
       console.error('Error creating filing:', error);
       const filingTypeLabel = filingType === 'amendment' ? 'amendment filing' : filingType === 'refund' ? 'refund claim' : 'filing';
@@ -1469,7 +1591,7 @@ function NewFilingContent() {
       const validation = validateVehicleTypeCombination(selectedVehicleIds);
       if (validation.isValid) {
         setVehicleTypeError('');
-      setStep(5); // Skip step 4 (Documents), go directly to Review
+        setStep(5); // Skip step 4 (Documents), go directly to Review
       } else {
         setVehicleTypeError(validation.error);
       }
@@ -1496,7 +1618,7 @@ function NewFilingContent() {
     }
 
     setCouponError('');
-    
+
     // Mock coupon validation (replace with actual API call)
     // For testing, use dummy coupon codes
     const validCoupons = {
@@ -1508,13 +1630,13 @@ function NewFilingContent() {
     };
 
     const coupon = validCoupons[couponCode.toUpperCase()];
-    
+
     if (coupon) {
       setCouponType(coupon.type);
       setCouponDiscount(coupon.value);
       setCouponApplied(true);
       setCouponError('');
-      
+
       // Recalculate pricing with coupon
       await recalculatePricingWithCoupon(coupon.type, coupon.value);
     } else {
@@ -1601,7 +1723,7 @@ function NewFilingContent() {
                 const displayStep = s > 4 ? s - 1 : s;
                 const isCurrentStep = s === step;
                 const isCompleted = s < step || (step === 4 && s === 3); // If we're on step 4 (hidden), step 3 is completed
-                
+
                 return (
                   <div key={s} className="flex items-center">
                     <div className={`
@@ -1711,7 +1833,7 @@ function NewFilingContent() {
         </div>
 
         {/* Main Content - Full width for steps 1-5, Grid for step 6 */}
-        <div className={`w-full ${step === 6 ? 'grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-3 sm:gap-4 md:gap-6 lg:gap-8' :  'mx-auto'}`}>
+        <div className={`w-full ${step === 6 ? 'grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-3 sm:gap-4 md:gap-6 lg:gap-8' : 'mx-auto'}`}>
           {/* Form Content */}
           <div className="space-y-3 sm:space-y-4 md:space-y-6">
             {/* Step 1: Filing Type */}
@@ -2274,8 +2396,8 @@ function NewFilingContent() {
                       if (amendmentType === 'vin_correction') {
                         const validation = validateVINCorrection(vinCorrectionData.originalVIN, vinCorrectionData.correctedVIN);
                         if (!validation.isValid) {
-                          const errorDetails = validation.errors.length > 0 
-                            ? validation.errors.join('. ') 
+                          const errorDetails = validation.errors.length > 0
+                            ? validation.errors.join('. ')
                             : 'Please check that both the original and corrected VINs are valid 17-character VINs.';
                           setError(`VIN Correction Error: ${errorDetails}`);
                           return;
@@ -2552,27 +2674,27 @@ function NewFilingContent() {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-                        <div>
-                          <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                          <div>
+                            <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
                               Name <span className="text-[var(--color-orange)]">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={newBusiness.signingAuthorityName}
+                            </label>
+                            <input
+                              type="text"
+                              value={newBusiness.signingAuthorityName}
                               onChange={(e) => handleBusinessChange('signingAuthorityName', e.target.value)}
                               className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation ${businessErrors.signingAuthorityName ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                            placeholder="John Doe"
-                          />
+                              placeholder="John Doe"
+                            />
                             {businessErrors.signingAuthorityName && (
                               <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
                                 <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityName}</span>
                               </p>
                             )}
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
                               Phone <span className="text-[var(--color-orange)]">*</span>
                             </label>
                             <input
@@ -2591,9 +2713,9 @@ function NewFilingContent() {
                           <div>
                             <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
                               PIN <span className="text-[var(--color-orange)]">*</span>
-                          </label>
-                          <input
-                            type="text"
+                            </label>
+                            <input
+                              type="text"
                               value={newBusiness.signingAuthorityPIN}
                               onChange={(e) => handleBusinessChange('signingAuthorityPIN', e.target.value)}
                               className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono touch-manipulation ${businessErrors.signingAuthorityPIN ? 'border-red-500' : 'border-[var(--color-border)]'}`}
@@ -2625,26 +2747,23 @@ function NewFilingContent() {
                             <button
                               type="button"
                               onClick={() => setNewBusiness({ ...newBusiness, hasThirdPartyDesignee: false, thirdPartyDesigneeName: '', thirdPartyDesigneePhone: '', thirdPartyDesigneePIN: '' })}
-                              className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${
-                                newBusiness.hasThirdPartyDesignee === false
-                                  ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
-                                  : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
-                              }`}
+                              className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${newBusiness.hasThirdPartyDesignee === false
+                                ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
+                                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
+                                }`}
                             >
-                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                                newBusiness.hasThirdPartyDesignee === false
-                                  ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
-                                  : 'border-slate-300 bg-white'
-                              }`}>
+                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${newBusiness.hasThirdPartyDesignee === false
+                                ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
+                                : 'border-slate-300 bg-white'
+                                }`}>
                                 {newBusiness.hasThirdPartyDesignee === false && (
                                   <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
                                 )}
                               </div>
-                              <span className={`text-sm font-semibold ${
-                                newBusiness.hasThirdPartyDesignee === false
-                                  ? 'text-[var(--color-orange)]'
-                                  : 'text-slate-600'
-                              }`}>
+                              <span className={`text-sm font-semibold ${newBusiness.hasThirdPartyDesignee === false
+                                ? 'text-[var(--color-orange)]'
+                                : 'text-slate-600'
+                                }`}>
                                 No
                               </span>
                               {newBusiness.hasThirdPartyDesignee === false && (
@@ -2654,26 +2773,23 @@ function NewFilingContent() {
                             <button
                               type="button"
                               onClick={() => setNewBusiness({ ...newBusiness, hasThirdPartyDesignee: true })}
-                              className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${
-                                newBusiness.hasThirdPartyDesignee === true
-                                  ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
-                                  : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
-                              }`}
+                              className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${newBusiness.hasThirdPartyDesignee === true
+                                ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
+                                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
+                                }`}
                             >
-                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                                newBusiness.hasThirdPartyDesignee === true
-                                  ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
-                                  : 'border-slate-300 bg-white'
-                              }`}>
+                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${newBusiness.hasThirdPartyDesignee === true
+                                ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
+                                : 'border-slate-300 bg-white'
+                                }`}>
                                 {newBusiness.hasThirdPartyDesignee === true && (
                                   <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
                                 )}
                               </div>
-                              <span className={`text-sm font-semibold ${
-                                newBusiness.hasThirdPartyDesignee === true
-                                  ? 'text-[var(--color-orange)]'
-                                  : 'text-slate-600'
-                              }`}>
+                              <span className={`text-sm font-semibold ${newBusiness.hasThirdPartyDesignee === true
+                                ? 'text-[var(--color-orange)]'
+                                : 'text-slate-600'
+                                }`}>
                                 Yes
                               </span>
                               {newBusiness.hasThirdPartyDesignee === true && (
@@ -2761,7 +2877,7 @@ function NewFilingContent() {
                             if (!einVal.isValid) errorFields.push('EIN');
                             if (!addrVal.isValid) errorFields.push('Business Address');
                             if (!phoneVal.isValid) errorFields.push('Phone Number');
-                            
+
                             setError(`Please correct the following required fields before saving: ${errorFields.join(', ')}. All fields marked with an asterisk (*) are required.`);
                             // Keep form visible - don't hide it
                             return;
@@ -2771,7 +2887,7 @@ function NewFilingContent() {
                           const success = await handleAddBusiness();
                           // Only hide form if business was successfully created
                           if (success) {
-                          setShowBusinessForm(false);
+                            setShowBusinessForm(false);
                           }
                         }}
                         disabled={loading}
@@ -2817,18 +2933,18 @@ function NewFilingContent() {
                             // Form is valid but not saved - prompt to save first
                             const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund' : 'filing';
                             setError(`Your business information looks complete. Please click "Save & Add Business" to save it before proceeding with your ${filingTypeLabel}.`);
-                        return;
-                      }
+                            return;
+                          }
                         }
                       }
-                      
+
                       // If no business selected, show error
                       if (!selectedBusinessId) {
                         const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund' : 'filing';
                         setError(`To continue with your ${filingTypeLabel}, please select a business from the list above or create a new one. Business information is required for IRS filing.`);
                         return;
                       }
-                      
+
                       // All checks passed, proceed to next step
                       setStep(3);
                     }}
@@ -2891,351 +3007,351 @@ function NewFilingContent() {
 
                     {/* Taxable Vehicles Dropdown */}
                     {vehicleCategories.taxable.length > 0 && (
-                        <div className="relative">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setTaxableDropdownOpen(!taxableDropdownOpen);
-                              setSuspendedDropdownOpen(false);
-                              setCreditDropdownOpen(false);
-                              setPriorYearSoldDropdownOpen(false);
-                            }}
-                            className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-green-50 border-2 border-green-200 rounded-xl hover:border-green-300 transition-all text-left"
-                          >
-                            <div className="flex items-center gap-3">
-                              <Truck className="w-5 h-5 text-green-600" />
-                              <div>
-                                <div className="font-bold text-green-900">Taxable Vehicles</div>
-                                <div className="text-xs text-green-700">
-                                  {selectedVehicleIds.filter(id => vehicleCategories.taxable.some(v => v.id === id)).length} of {vehicleCategories.taxable.length} selected
-                                </div>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTaxableDropdownOpen(!taxableDropdownOpen);
+                            setSuspendedDropdownOpen(false);
+                            setCreditDropdownOpen(false);
+                            setPriorYearSoldDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-green-50 border-2 border-green-200 rounded-xl hover:border-green-300 transition-all text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Truck className="w-5 h-5 text-green-600" />
+                            <div>
+                              <div className="font-bold text-green-900">Taxable Vehicles</div>
+                              <div className="text-xs text-green-700">
+                                {selectedVehicleIds.filter(id => vehicleCategories.taxable.some(v => v.id === id)).length} of {vehicleCategories.taxable.length} selected
                               </div>
                             </div>
-                            {taxableDropdownOpen ? (
-                              <ChevronUp className="w-5 h-5 text-green-600" />
-                            ) : (
-                              <ChevronDown className="w-5 h-5 text-green-600" />
-                            )}
-                          </button>
-
-                          {taxableDropdownOpen && (
-                            <div className="mt-2 border-2 border-green-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
-                              <div className="p-2 space-y-1">
-                                {vehicleCategories.taxable.map((vehicle) => {
-                                  const isSelected = selectedVehicleIds.includes(vehicle.id);
-                                  const estimatedAmount = vehicleCategories.isRefund
-                                    ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
-                                    : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
-
-                                  return (
-                                    <label
-                                      key={vehicle.id}
-                                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-green-50 transition ${isSelected ? 'bg-green-100 border border-green-300' : ''}`}
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={isSelected}
-                                        onChange={(e) => {
-                                          let newSelectedIds;
-                                          if (e.target.checked) {
-                                            newSelectedIds = [...selectedVehicleIds, vehicle.id];
-                                          } else {
-                                            newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
-                                          }
-                                          
-                                          const validation = validateVehicleTypeCombination(newSelectedIds);
-                                          if (validation.isValid) {
-                                            setSelectedVehicleIds(newSelectedIds);
-                                            setVehicleTypeError('');
-                                          } else {
-                                            setVehicleTypeError(validation.error);
-                                          }
-                                        }}
-                                        className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
-                                      />
-                                      <div className="flex-1 min-w-0">
-                                        <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
-                                          {vehicle.vin}
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-1">
-                                          <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
-                                            Cat: {vehicle.grossWeightCategory}
-                                          </span>
-                                          <span className={`text-xs font-semibold ${vehicleCategories.isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>
-                                            {vehicleCategories.isRefund ? 'Refund' : 'Tax'}: ${estimatedAmount.toFixed(2)}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </label>
-                                  );
-                                })}
-                              </div>
-                            </div>
+                          </div>
+                          {taxableDropdownOpen ? (
+                            <ChevronUp className="w-5 h-5 text-green-600" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5 text-green-600" />
                           )}
-                        </div>
-                      )}
+                        </button>
+
+                        {taxableDropdownOpen && (
+                          <div className="mt-2 border-2 border-green-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
+                            <div className="p-2 space-y-1">
+                              {vehicleCategories.taxable.map((vehicle) => {
+                                const isSelected = selectedVehicleIds.includes(vehicle.id);
+                                const estimatedAmount = vehicleCategories.isRefund
+                                  ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
+                                  : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
+
+                                return (
+                                  <label
+                                    key={vehicle.id}
+                                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-green-50 transition ${isSelected ? 'bg-green-100 border border-green-300' : ''}`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={(e) => {
+                                        let newSelectedIds;
+                                        if (e.target.checked) {
+                                          newSelectedIds = [...selectedVehicleIds, vehicle.id];
+                                        } else {
+                                          newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
+                                        }
+
+                                        const validation = validateVehicleTypeCombination(newSelectedIds);
+                                        if (validation.isValid) {
+                                          setSelectedVehicleIds(newSelectedIds);
+                                          setVehicleTypeError('');
+                                        } else {
+                                          setVehicleTypeError(validation.error);
+                                        }
+                                      }}
+                                      className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
+                                        {vehicle.vin}
+                                      </div>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                          Cat: {vehicle.grossWeightCategory}
+                                        </span>
+                                        <span className={`text-xs font-semibold ${vehicleCategories.isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>
+                                          {vehicleCategories.isRefund ? 'Refund' : 'Tax'}: ${estimatedAmount.toFixed(2)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Suspended Vehicles Dropdown */}
                     {vehicleCategories.suspended.length > 0 && (
-                        <div className="relative">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSuspendedDropdownOpen(!suspendedDropdownOpen);
-                              setTaxableDropdownOpen(false);
-                              setCreditDropdownOpen(false);
-                              setPriorYearSoldDropdownOpen(false);
-                            }}
-                            className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-amber-50 border-2 border-amber-200 rounded-xl hover:border-amber-300 transition-all text-left"
-                          >
-                            <div className="flex items-center gap-3">
-                              <ShieldCheck className="w-5 h-5 text-amber-600" />
-                              <div>
-                                <div className="font-bold text-amber-900">Suspended Vehicles (Low Mileage)</div>
-                                <div className="text-xs text-amber-700">
-                                  {selectedVehicleIds.filter(id => vehicleCategories.suspended.some(v => v.id === id)).length} of {vehicleCategories.suspended.length} selected • $0 Tax
-                                </div>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSuspendedDropdownOpen(!suspendedDropdownOpen);
+                            setTaxableDropdownOpen(false);
+                            setCreditDropdownOpen(false);
+                            setPriorYearSoldDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-amber-50 border-2 border-amber-200 rounded-xl hover:border-amber-300 transition-all text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <ShieldCheck className="w-5 h-5 text-amber-600" />
+                            <div>
+                              <div className="font-bold text-amber-900">Suspended Vehicles (Low Mileage)</div>
+                              <div className="text-xs text-amber-700">
+                                {selectedVehicleIds.filter(id => vehicleCategories.suspended.some(v => v.id === id)).length} of {vehicleCategories.suspended.length} selected • $0 Tax
                               </div>
                             </div>
-                            {suspendedDropdownOpen ? (
-                              <ChevronUp className="w-5 h-5 text-amber-600" />
-                            ) : (
-                              <ChevronDown className="w-5 h-5 text-amber-600" />
-                            )}
-                          </button>
-
-                          {suspendedDropdownOpen && (
-                            <div className="mt-2 border-2 border-amber-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
-                              <div className="p-2 space-y-1">
-                                {vehicleCategories.suspended.map((vehicle) => {
-                                  const isSelected = selectedVehicleIds.includes(vehicle.id);
-                                  const estimatedAmount = vehicleCategories.isRefund
-                                    ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
-                                    : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
-
-                                  return (
-                                    <label
-                                      key={vehicle.id}
-                                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-amber-50 transition ${isSelected ? 'bg-amber-100 border border-amber-300' : ''}`}
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={isSelected}
-                                        onChange={(e) => {
-                                          let newSelectedIds;
-                                          if (e.target.checked) {
-                                            newSelectedIds = [...selectedVehicleIds, vehicle.id];
-                                          } else {
-                                            newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
-                                          }
-                                          
-                                          const validation = validateVehicleTypeCombination(newSelectedIds);
-                                          if (validation.isValid) {
-                                            setSelectedVehicleIds(newSelectedIds);
-                                            setVehicleTypeError('');
-                                          } else {
-                                            setVehicleTypeError(validation.error);
-                                          }
-                                        }}
-                                        className="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
-                                      />
-                                      <div className="flex-1 min-w-0">
-                                        <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
-                                          {vehicle.vin}
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-1">
-                                          <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
-                                            Cat: {vehicle.grossWeightCategory}
-                                          </span>
-                                          <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-semibold">
-                                            Suspended
-                                          </span>
-                                          <span className={`text-xs font-semibold ${vehicleCategories.isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>
-                                            {vehicleCategories.isRefund ? 'Refund' : 'Tax'}: ${estimatedAmount.toFixed(2)}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </label>
-                                  );
-                                })}
-                              </div>
-                            </div>
+                          </div>
+                          {suspendedDropdownOpen ? (
+                            <ChevronUp className="w-5 h-5 text-amber-600" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5 text-amber-600" />
                           )}
-                        </div>
-                      )}
+                        </button>
+
+                        {suspendedDropdownOpen && (
+                          <div className="mt-2 border-2 border-amber-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
+                            <div className="p-2 space-y-1">
+                              {vehicleCategories.suspended.map((vehicle) => {
+                                const isSelected = selectedVehicleIds.includes(vehicle.id);
+                                const estimatedAmount = vehicleCategories.isRefund
+                                  ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
+                                  : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
+
+                                return (
+                                  <label
+                                    key={vehicle.id}
+                                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-amber-50 transition ${isSelected ? 'bg-amber-100 border border-amber-300' : ''}`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={(e) => {
+                                        let newSelectedIds;
+                                        if (e.target.checked) {
+                                          newSelectedIds = [...selectedVehicleIds, vehicle.id];
+                                        } else {
+                                          newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
+                                        }
+
+                                        const validation = validateVehicleTypeCombination(newSelectedIds);
+                                        if (validation.isValid) {
+                                          setSelectedVehicleIds(newSelectedIds);
+                                          setVehicleTypeError('');
+                                        } else {
+                                          setVehicleTypeError(validation.error);
+                                        }
+                                      }}
+                                      className="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
+                                        {vehicle.vin}
+                                      </div>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                          Cat: {vehicle.grossWeightCategory}
+                                        </span>
+                                        <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-semibold">
+                                          Suspended
+                                        </span>
+                                        <span className={`text-xs font-semibold ${vehicleCategories.isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>
+                                          {vehicleCategories.isRefund ? 'Refund' : 'Tax'}: ${estimatedAmount.toFixed(2)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Credit Vehicles Dropdown */}
                     {vehicleCategories.credit.length > 0 && (
-                        <div className="relative">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setCreditDropdownOpen(!creditDropdownOpen);
-                              setTaxableDropdownOpen(false);
-                              setSuspendedDropdownOpen(false);
-                              setPriorYearSoldDropdownOpen(false);
-                            }}
-                            className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-blue-50 border-2 border-blue-200 rounded-xl hover:border-blue-300 transition-all text-left"
-                          >
-                            <div className="flex items-center gap-3">
-                              <CreditCard className="w-5 h-5 text-blue-600" />
-                              <div>
-                                <div className="font-bold text-blue-900">Credit Vehicles</div>
-                                <div className="text-xs text-blue-700">
-                                  {selectedVehicleIds.filter(id => vehicleCategories.credit.some(v => v.id === id)).length} of {vehicleCategories.credit.length} selected
-                                </div>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCreditDropdownOpen(!creditDropdownOpen);
+                            setTaxableDropdownOpen(false);
+                            setSuspendedDropdownOpen(false);
+                            setPriorYearSoldDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-blue-50 border-2 border-blue-200 rounded-xl hover:border-blue-300 transition-all text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <CreditCard className="w-5 h-5 text-blue-600" />
+                            <div>
+                              <div className="font-bold text-blue-900">Credit Vehicles</div>
+                              <div className="text-xs text-blue-700">
+                                {selectedVehicleIds.filter(id => vehicleCategories.credit.some(v => v.id === id)).length} of {vehicleCategories.credit.length} selected
                               </div>
                             </div>
-                            {creditDropdownOpen ? (
-                              <ChevronUp className="w-5 h-5 text-blue-600" />
-                            ) : (
-                              <ChevronDown className="w-5 h-5 text-blue-600" />
-                            )}
-                          </button>
-
-                          {creditDropdownOpen && (
-                            <div className="mt-2 border-2 border-blue-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
-                              <div className="p-2 space-y-1">
-                                {vehicleCategories.credit.map((vehicle) => {
-                                  const isSelected = selectedVehicleIds.includes(vehicle.id);
-
-                                  return (
-                                    <label
-                                      key={vehicle.id}
-                                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-blue-50 transition ${isSelected ? 'bg-blue-100 border border-blue-300' : ''}`}
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={isSelected}
-                                        onChange={(e) => {
-                                          let newSelectedIds;
-                                          if (e.target.checked) {
-                                            newSelectedIds = [...selectedVehicleIds, vehicle.id];
-                                          } else {
-                                            newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
-                                          }
-                                          
-                                          const validation = validateVehicleTypeCombination(newSelectedIds);
-                                          if (validation.isValid) {
-                                            setSelectedVehicleIds(newSelectedIds);
-                                            setVehicleTypeError('');
-                                          } else {
-                                            setVehicleTypeError(validation.error);
-                                          }
-                                        }}
-                                        className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                                      />
-                                      <div className="flex-1 min-w-0">
-                                        <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
-                                          {vehicle.vin}
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-1">
-                                          <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
-                                            Cat: {vehicle.grossWeightCategory}
-                                          </span>
-                                          <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-semibold">
-                                            Credit
-                                          </span>
-                                          {vehicle.creditReason && (
-                                            <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded">
-                                              {vehicle.creditReason}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </label>
-                                  );
-                                })}
-                              </div>
-                            </div>
+                          </div>
+                          {creditDropdownOpen ? (
+                            <ChevronUp className="w-5 h-5 text-blue-600" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5 text-blue-600" />
                           )}
-                        </div>
-                      )}
+                        </button>
+
+                        {creditDropdownOpen && (
+                          <div className="mt-2 border-2 border-blue-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
+                            <div className="p-2 space-y-1">
+                              {vehicleCategories.credit.map((vehicle) => {
+                                const isSelected = selectedVehicleIds.includes(vehicle.id);
+
+                                return (
+                                  <label
+                                    key={vehicle.id}
+                                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-blue-50 transition ${isSelected ? 'bg-blue-100 border border-blue-300' : ''}`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={(e) => {
+                                        let newSelectedIds;
+                                        if (e.target.checked) {
+                                          newSelectedIds = [...selectedVehicleIds, vehicle.id];
+                                        } else {
+                                          newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
+                                        }
+
+                                        const validation = validateVehicleTypeCombination(newSelectedIds);
+                                        if (validation.isValid) {
+                                          setSelectedVehicleIds(newSelectedIds);
+                                          setVehicleTypeError('');
+                                        } else {
+                                          setVehicleTypeError(validation.error);
+                                        }
+                                      }}
+                                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
+                                        {vehicle.vin}
+                                      </div>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                          Cat: {vehicle.grossWeightCategory}
+                                        </span>
+                                        <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-semibold">
+                                          Credit
+                                        </span>
+                                        {vehicle.creditReason && (
+                                          <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded">
+                                            {vehicle.creditReason}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Prior Year Sold Suspended Vehicles Dropdown */}
                     {vehicleCategories.priorYearSold.length > 0 && (
-                        <div className="relative">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPriorYearSoldDropdownOpen(!priorYearSoldDropdownOpen);
-                              setTaxableDropdownOpen(false);
-                              setSuspendedDropdownOpen(false);
-                              setCreditDropdownOpen(false);
-                            }}
-                            className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-purple-50 border-2 border-purple-200 rounded-xl hover:border-purple-300 transition-all text-left"
-                          >
-                            <div className="flex items-center gap-3">
-                              <RotateCcw className="w-5 h-5 text-purple-600" />
-                              <div>
-                                <div className="font-bold text-purple-900">Prior Year Sold Suspended Vehicles</div>
-                                <div className="text-xs text-purple-700">
-                                  {selectedVehicleIds.filter(id => vehicleCategories.priorYearSold.some(v => v.id === id)).length} of {vehicleCategories.priorYearSold.length} selected
-                                </div>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPriorYearSoldDropdownOpen(!priorYearSoldDropdownOpen);
+                            setTaxableDropdownOpen(false);
+                            setSuspendedDropdownOpen(false);
+                            setCreditDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-purple-50 border-2 border-purple-200 rounded-xl hover:border-purple-300 transition-all text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <RotateCcw className="w-5 h-5 text-purple-600" />
+                            <div>
+                              <div className="font-bold text-purple-900">Prior Year Sold Suspended Vehicles</div>
+                              <div className="text-xs text-purple-700">
+                                {selectedVehicleIds.filter(id => vehicleCategories.priorYearSold.some(v => v.id === id)).length} of {vehicleCategories.priorYearSold.length} selected
                               </div>
                             </div>
-                            {priorYearSoldDropdownOpen ? (
-                              <ChevronUp className="w-5 h-5 text-purple-600" />
-                            ) : (
-                              <ChevronDown className="w-5 h-5 text-purple-600" />
-                            )}
-                          </button>
-
-                          {priorYearSoldDropdownOpen && (
-                            <div className="mt-2 border-2 border-purple-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
-                              <div className="p-2 space-y-1">
-                                {vehicleCategories.priorYearSold.map((vehicle) => {
-                                  const isSelected = selectedVehicleIds.includes(vehicle.id);
-
-                                  return (
-                                    <label
-                                      key={vehicle.id}
-                                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-purple-50 transition ${isSelected ? 'bg-purple-100 border border-purple-300' : ''}`}
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={isSelected}
-                                        onChange={(e) => {
-                                          let newSelectedIds;
-                                          if (e.target.checked) {
-                                            newSelectedIds = [...selectedVehicleIds, vehicle.id];
-                                          } else {
-                                            newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
-                                          }
-                                          
-                                          const validation = validateVehicleTypeCombination(newSelectedIds);
-                                          if (validation.isValid) {
-                                            setSelectedVehicleIds(newSelectedIds);
-                                            setVehicleTypeError('');
-                                          } else {
-                                            setVehicleTypeError(validation.error);
-                                          }
-                                        }}
-                                        className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
-                                      />
-                                      <div className="flex-1 min-w-0">
-                                        <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
-                                          {vehicle.vin}
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-1">
-                                          <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded font-semibold">
-                                            Prior Year Sold
-                                          </span>
-                                          {vehicle.soldTo && (
-                                            <span className="text-xs px-2 py-0.5 bg-purple-50 text-purple-600 rounded">
-                                              Sold To: {vehicle.soldTo}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </label>
-                                  );
-                                })}
-                              </div>
-                            </div>
+                          </div>
+                          {priorYearSoldDropdownOpen ? (
+                            <ChevronUp className="w-5 h-5 text-purple-600" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5 text-purple-600" />
                           )}
-                        </div>
-                      )}
+                        </button>
+
+                        {priorYearSoldDropdownOpen && (
+                          <div className="mt-2 border-2 border-purple-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
+                            <div className="p-2 space-y-1">
+                              {vehicleCategories.priorYearSold.map((vehicle) => {
+                                const isSelected = selectedVehicleIds.includes(vehicle.id);
+
+                                return (
+                                  <label
+                                    key={vehicle.id}
+                                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-purple-50 transition ${isSelected ? 'bg-purple-100 border border-purple-300' : ''}`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={(e) => {
+                                        let newSelectedIds;
+                                        if (e.target.checked) {
+                                          newSelectedIds = [...selectedVehicleIds, vehicle.id];
+                                        } else {
+                                          newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
+                                        }
+
+                                        const validation = validateVehicleTypeCombination(newSelectedIds);
+                                        if (validation.isValid) {
+                                          setSelectedVehicleIds(newSelectedIds);
+                                          setVehicleTypeError('');
+                                        } else {
+                                          setVehicleTypeError(validation.error);
+                                        }
+                                      }}
+                                      className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
+                                        {vehicle.vin}
+                                      </div>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded font-semibold">
+                                          Prior Year Sold
+                                        </span>
+                                        {vehicle.soldTo && (
+                                          <span className="text-xs px-2 py-0.5 bg-purple-50 text-purple-600 rounded">
+                                            Sold To: {vehicle.soldTo}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Vehicle Type Combination Error */}
                     {vehicleTypeError && (
@@ -3249,7 +3365,7 @@ function NewFilingContent() {
                             <p className="text-sm text-red-800 mb-3">The selected vehicle types cannot be combined. Please choose one of the following valid combinations:</p>
                           </div>
                         </div>
-                        
+
                         <div className="bg-white rounded-lg p-4 border border-red-200">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                             <div className="flex items-start gap-2">
@@ -3290,8 +3406,8 @@ function NewFilingContent() {
                             </div>
                           </div>
                         </div>
-                        </div>
-                      )}
+                      </div>
+                    )}
 
                     {/* Selected Vehicles Summary */}
                     {selectedVehicleIds.length > 0 && (
@@ -3391,7 +3507,7 @@ function NewFilingContent() {
                         })}
                       </div>
                     )}
-                      
+
                     {/* Add Another Vehicle Button */}
                     <button
                       onClick={() => setShowVehicleForm(true)}
@@ -3841,9 +3957,9 @@ function NewFilingContent() {
                     <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl p-5 sm:p-6 md:p-8 border border-slate-200 shadow-sm">
                       <div className="flex items-center justify-between mb-6">
                         <h3 className="font-bold text-lg sm:text-xl text-[var(--color-text)] flex items-center gap-2">
-                        <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-orange)]" />
+                          <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-orange)]" />
                           Selected Vehicles
-                      </h3>
+                        </h3>
                         <span className="px-3 py-1 bg-[var(--color-orange)] text-white rounded-full text-sm font-bold">
                           {selectedVehicles.length} {selectedVehicles.length === 1 ? 'Vehicle' : 'Vehicles'}
                         </span>
@@ -3899,7 +4015,7 @@ function NewFilingContent() {
                                   {groupedVehicles.taxable.map((vehicle) => (
                                     <div key={vehicle.id} className="bg-white rounded-xl p-4 border-2 border-green-200 hover:border-green-300 transition-all shadow-sm">
                                       <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1 min-w-0">
+                                        <div className="flex-1 min-w-0">
                                           <p className="font-mono font-bold text-base text-slate-900 break-all mb-1">{vehicle.vin}</p>
                                           <div className="flex items-center gap-2 flex-wrap">
                                             <span className="px-2 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-semibold">
@@ -3918,12 +4034,12 @@ function NewFilingContent() {
                                             <span className="font-semibold text-slate-700">{vehicle.logging ? 'Yes' : 'No'}</span>
                                           </div>
                                         )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
 
                             {/* Suspended Vehicles */}
                             {groupedVehicles.suspended.length > 0 && (
@@ -4082,11 +4198,13 @@ function NewFilingContent() {
                     Previous Step
                   </button>
                   <button
-                    onClick={() => setStep(6)}
-                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 touch-manipulation"
+                    onClick={initiatePaymentFlow}
+                    disabled={loading}
+                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50"
                   >
-                    Continue Filing
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Continue Filing'}
                   </button>
+
                 </div>
               </div>
             )}
@@ -4113,217 +4231,217 @@ function NewFilingContent() {
                     <p className="text-sm text-blue-800 mb-4 ml-0 sm:ml-10">Choose how you'd like to pay the IRS tax amount (${pricing.totalTax?.toFixed(2) || '0.00'})</p>
 
                     <div className="space-y-3 sm:space-y-4 ml-0 sm:ml-10">
-                    {/* Option 1: EFW (Electronic Fund Withdrawal) */}
-                    <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'efw' ? 'border-green-500 bg-green-50' : 'border-slate-200 hover:border-green-300'}`}>
-                      <label className="flex items-start gap-3 cursor-pointer w-full">
-                        <input
-                          type="radio"
-                          name="irsPaymentMethod"
-                          value="efw"
-                          checked={irsPaymentMethod === 'efw'}
-                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                          className="mt-1 w-5 h-5 text-green-600"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-bold text-base sm:text-lg">Option 1: EFW (Electronic Fund Withdrawal)</span>
-                            {irsPaymentMethod === 'efw' && <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />}
-                          </div>
-                          <p className="text-sm text-slate-600 mb-2">Direct bank withdrawal - Free & Fast (Recommended)</p>
-                          {irsPaymentMethod === 'efw' && (
-                            <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-2">
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  Routing Number <span className="text-red-500">*</span>
-                                  <Info className="w-4 h-4 inline ml-1 text-slate-400" />
-                                </label>
-                                <input
-                                  type="text"
-                                  value={bankDetails.routingNumber}
-                                  onChange={(e) => setBankDetails({ ...bankDetails, routingNumber: e.target.value.replace(/\D/g, '').slice(0, 9) })}
-                                  placeholder="Enter Routing Number*"
-                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                  maxLength="9"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  Account Number <span className="text-red-500">*</span>
-                                  <Info className="w-4 h-4 inline ml-1 text-slate-400" />
-                                </label>
-                                <input
-                                  type="text"
-                                  value={bankDetails.accountNumber}
-                                  onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value.replace(/\D/g, '') })}
-                                  placeholder="Enter Account Number*"
-                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  Confirm Account Number <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                  type="text"
-                                  value={bankDetails.confirmAccountNumber}
-                                  onChange={(e) => setBankDetails({ ...bankDetails, confirmAccountNumber: e.target.value.replace(/\D/g, '') })}
-                                  placeholder="Re-enter Account Number*"
-                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                />
-                                {bankDetails.accountNumber && bankDetails.confirmAccountNumber && bankDetails.accountNumber !== bankDetails.confirmAccountNumber && (
-                                  <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">Account numbers do not match</span>
+                      {/* Option 1: EFW (Electronic Fund Withdrawal) */}
+                      <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'efw' ? 'border-green-500 bg-green-50' : 'border-slate-200 hover:border-green-300'}`}>
+                        <label className="flex items-start gap-3 cursor-pointer w-full">
+                          <input
+                            type="radio"
+                            name="irsPaymentMethod"
+                            value="efw"
+                            checked={irsPaymentMethod === 'efw'}
+                            onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                            className="mt-1 w-5 h-5 text-green-600"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-bold text-base sm:text-lg">Option 1: EFW (Electronic Fund Withdrawal)</span>
+                              {irsPaymentMethod === 'efw' && <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />}
+                            </div>
+                            <p className="text-sm text-slate-600 mb-2">Direct bank withdrawal - Free & Fast (Recommended)</p>
+                            {irsPaymentMethod === 'efw' && (
+                              <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-2">
+                                <div>
+                                  <label className="block text-sm font-medium mb-1">
+                                    Routing Number <span className="text-red-500">*</span>
+                                    <Info className="w-4 h-4 inline ml-1 text-slate-400" />
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={bankDetails.routingNumber}
+                                    onChange={(e) => setBankDetails({ ...bankDetails, routingNumber: e.target.value.replace(/\D/g, '').slice(0, 9) })}
+                                    placeholder="Enter Routing Number*"
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                    maxLength="9"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium mb-1">
+                                    Account Number <span className="text-red-500">*</span>
+                                    <Info className="w-4 h-4 inline ml-1 text-slate-400" />
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={bankDetails.accountNumber}
+                                    onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value.replace(/\D/g, '') })}
+                                    placeholder="Enter Account Number*"
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium mb-1">
+                                    Confirm Account Number <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={bankDetails.confirmAccountNumber}
+                                    onChange={(e) => setBankDetails({ ...bankDetails, confirmAccountNumber: e.target.value.replace(/\D/g, '') })}
+                                    placeholder="Re-enter Account Number*"
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                  />
+                                  {bankDetails.accountNumber && bankDetails.confirmAccountNumber && bankDetails.accountNumber !== bankDetails.confirmAccountNumber && (
+                                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">Account numbers do not match</span>
+                                    </p>
+                                  )}
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium mb-1">
+                                    Account Type <span className="text-red-500">*</span>
+                                  </label>
+                                  <select
+                                    value={bankDetails.accountType}
+                                    onChange={(e) => setBankDetails({ ...bankDetails, accountType: e.target.value })}
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                  >
+                                    <option value="">Select the Account Type*</option>
+                                    <option value="checking">Checking</option>
+                                    <option value="savings">Savings</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium mb-1">
+                                    Phone Number <span className="text-[var(--color-orange)]">*</span>
+                                  </label>
+                                  <input
+                                    type="tel"
+                                    value={bankDetails.phoneNumber}
+                                    onChange={(e) => {
+                                      const value = e.target.value.replace(/\D/g, '').slice(0, 11);
+                                      setBankDetails({ ...bankDetails, phoneNumber: value });
+                                      // Clear error when user starts typing
+                                      if (bankDetailsErrors.phoneNumber) {
+                                        setBankDetailsErrors({ ...bankDetailsErrors, phoneNumber: '' });
+                                      }
+                                    }}
+                                    placeholder="(555) 123-4567"
+                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] ${bankDetailsErrors.phoneNumber ? 'border-red-500' : 'border-slate-300'}`}
+                                  />
+                                  {bankDetailsErrors.phoneNumber && (
+                                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{bankDetailsErrors.phoneNumber}</span>
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                                  <p className="text-xs sm:text-sm text-red-700">
+                                    <strong>Notice:</strong> The IRS will automatically deduct the tax amount payable directly from your account after your filing is accepted.
                                   </p>
-                                )}
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  Account Type <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                  value={bankDetails.accountType}
-                                  onChange={(e) => setBankDetails({ ...bankDetails, accountType: e.target.value })}
-                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                >
-                                  <option value="">Select the Account Type*</option>
-                                  <option value="checking">Checking</option>
-                                  <option value="savings">Savings</option>
-                                </select>
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  Phone Number <span className="text-[var(--color-orange)]">*</span>
-                                </label>
-                                <input
-                                  type="tel"
-                                  value={bankDetails.phoneNumber}
-                                  onChange={(e) => {
-                                    const value = e.target.value.replace(/\D/g, '').slice(0, 11);
-                                    setBankDetails({ ...bankDetails, phoneNumber: value });
-                                    // Clear error when user starts typing
-                                    if (bankDetailsErrors.phoneNumber) {
-                                      setBankDetailsErrors({ ...bankDetailsErrors, phoneNumber: '' });
-                                    }
-                                  }}
-                                  placeholder="(555) 123-4567"
-                                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] ${bankDetailsErrors.phoneNumber ? 'border-red-500' : 'border-slate-300'}`}
-                                />
-                                {bankDetailsErrors.phoneNumber && (
-                                  <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{bankDetailsErrors.phoneNumber}</span>
-                                  </p>
-                                )}
-                              </div>
-                              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
-                                <p className="text-xs sm:text-sm text-red-700">
-                                  <strong>Notice:</strong> The IRS will automatically deduct the tax amount payable directly from your account after your filing is accepted.
-                                </p>
-                                <div className="mt-2 flex items-center gap-2">
-                                  <ShieldCheck className="w-4 h-4 text-green-600" />
-                                  <span className="text-xs text-green-700 font-semibold">Ident Trust Secured</span>
+                                  <div className="mt-2 flex items-center gap-2">
+                                    <ShieldCheck className="w-4 h-4 text-green-600" />
+                                    <span className="text-xs text-green-700 font-semibold">Ident Trust Secured</span>
+                                  </div>
                                 </div>
                               </div>
+                            )}
+                          </div>
+                        </label>
+                      </div>
+
+                      {/* Option 2: EFTPS */}
+                      <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'eftps' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300'}`}>
+                        <label className="flex items-start gap-3 cursor-pointer w-full">
+                          <input
+                            type="radio"
+                            name="irsPaymentMethod"
+                            value="eftps"
+                            checked={irsPaymentMethod === 'eftps'}
+                            onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                            className="mt-1 w-5 h-5 text-blue-600"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-bold text-base sm:text-lg">Option 2: EFTPS</span>
+                              {irsPaymentMethod === 'eftps' && <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />}
                             </div>
-                          )}
-                        </div>
-                      </label>
-                    </div>
-
-                    {/* Option 2: EFTPS */}
-                    <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'eftps' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300'}`}>
-                      <label className="flex items-start gap-3 cursor-pointer w-full">
-                        <input
-                          type="radio"
-                          name="irsPaymentMethod"
-                          value="eftps"
-                          checked={irsPaymentMethod === 'eftps'}
-                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                          className="mt-1 w-5 h-5 text-blue-600"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-bold text-base sm:text-lg">Option 2: EFTPS</span>
-                            {irsPaymentMethod === 'eftps' && <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />}
-                          </div>
-                          <p className="text-sm text-slate-600 mb-2">Electronic Federal Tax Payment System</p>
-                          {irsPaymentMethod === 'eftps' && (
-                            <p className="text-sm text-slate-600 mt-2">
-                              Once the IRS accepts your filing you will receive the payment link via email.
-                            </p>
-                          )}
-                        </div>
-                      </label>
-                    </div>
-
-                    {/* Option 3: Credit or Debit Card */}
-                    <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'credit_card' ? 'border-purple-500 bg-purple-50' : 'border-slate-200 hover:border-purple-300'}`}>
-                      <label className="flex items-start gap-3 cursor-pointer w-full">
-                        <input
-                          type="radio"
-                          name="irsPaymentMethod"
-                          value="credit_card"
-                          checked={irsPaymentMethod === 'credit_card'}
-                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                          className="mt-1 w-5 h-5 text-purple-600"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-bold text-base sm:text-lg">Option 3: Credit or Debit Card</span>
-                            {irsPaymentMethod === 'credit_card' && <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0" />}
-                          </div>
-                          <p className="text-sm text-slate-600 mb-2">Pay via credit/debit card (3rd party fee applies)</p>
-                          {irsPaymentMethod === 'credit_card' && (
-                            <div className="mt-3 space-y-2">
-                              <p className="text-sm text-slate-600">
-                                Once the IRS accepts your filing, you will receive the payment link. The IRS uses service providers that may charge an additional service fee additional to the tax amount payable.
+                            <p className="text-sm text-slate-600 mb-2">Electronic Federal Tax Payment System</p>
+                            {irsPaymentMethod === 'eftps' && (
+                              <p className="text-sm text-slate-600 mt-2">
+                                Once the IRS accepts your filing you will receive the payment link via email.
                               </p>
-                              <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
-                                <strong>Note:</strong> The IRS imposes a limit on the frequency of credit card payments for Form 2290.
-                              </p>
-                              <label className="flex items-center gap-2 mt-3">
-                                <input type="checkbox" className="w-4 h-4" />
-                                <span className="text-sm text-slate-600">
-                                  I understand that if I fail to pay the tax due within 10 business days, the IRS may assess penalties.
-                                </span>
-                              </label>
+                            )}
+                          </div>
+                        </label>
+                      </div>
+
+                      {/* Option 3: Credit or Debit Card */}
+                      <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'credit_card' ? 'border-purple-500 bg-purple-50' : 'border-slate-200 hover:border-purple-300'}`}>
+                        <label className="flex items-start gap-3 cursor-pointer w-full">
+                          <input
+                            type="radio"
+                            name="irsPaymentMethod"
+                            value="credit_card"
+                            checked={irsPaymentMethod === 'credit_card'}
+                            onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                            className="mt-1 w-5 h-5 text-purple-600"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-bold text-base sm:text-lg">Option 3: Credit or Debit Card</span>
+                              {irsPaymentMethod === 'credit_card' && <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0" />}
                             </div>
-                          )}
-                        </div>
-                      </label>
-                    </div>
-
-                    {/* Option 4: Check or Money Order */}
-                    <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'check' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-300'}`}>
-                      <label className="flex items-start gap-3 cursor-pointer w-full">
-                        <input
-                          type="radio"
-                          name="irsPaymentMethod"
-                          value="check"
-                          checked={irsPaymentMethod === 'check'}
-                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                          className="mt-1 w-5 h-5 text-orange-600"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-bold text-base sm:text-lg">Option 4: Check or Money Order</span>
-                            {irsPaymentMethod === 'check' && <CheckCircle className="w-5 h-5 text-orange-600 flex-shrink-0" />}
-                          </div>
-                          <p className="text-sm text-slate-600 mb-2">Mail a check or money order with voucher</p>
-                          {irsPaymentMethod === 'check' && (
-                            <div className="mt-3 space-y-2 text-sm text-slate-600">
-                              <p>
-                                Make the tax amount payable to the 'United States Treasury'. Please mention your EIN, phone number, and 'Form 2290' on the money order/check. Print your money order voucher, enclose it, and mail it to:
-                              </p>
-                              <div className="bg-white p-3 rounded border border-slate-200 font-mono text-sm">
-                                Internal Revenue Service<br />
-                                P.O. Box 932500<br />
-                                Louisville, KY 40293-2500
+                            <p className="text-sm text-slate-600 mb-2">Pay via credit/debit card (3rd party fee applies)</p>
+                            {irsPaymentMethod === 'credit_card' && (
+                              <div className="mt-3 space-y-2">
+                                <p className="text-sm text-slate-600">
+                                  Once the IRS accepts your filing, you will receive the payment link. The IRS uses service providers that may charge an additional service fee additional to the tax amount payable.
+                                </p>
+                                <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
+                                  <strong>Note:</strong> The IRS imposes a limit on the frequency of credit card payments for Form 2290.
+                                </p>
+                                <label className="flex items-center gap-2 mt-3">
+                                  <input type="checkbox" className="w-4 h-4" />
+                                  <span className="text-sm text-slate-600">
+                                    I understand that if I fail to pay the tax due within 10 business days, the IRS may assess penalties.
+                                  </span>
+                                </label>
                               </div>
+                            )}
+                          </div>
+                        </label>
+                      </div>
+
+                      {/* Option 4: Check or Money Order */}
+                      <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'check' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-300'}`}>
+                        <label className="flex items-start gap-3 cursor-pointer w-full">
+                          <input
+                            type="radio"
+                            name="irsPaymentMethod"
+                            value="check"
+                            checked={irsPaymentMethod === 'check'}
+                            onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                            className="mt-1 w-5 h-5 text-orange-600"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-bold text-base sm:text-lg">Option 4: Check or Money Order</span>
+                              {irsPaymentMethod === 'check' && <CheckCircle className="w-5 h-5 text-orange-600 flex-shrink-0" />}
                             </div>
-                          )}
-                        </div>
-                      </label>
-                    </div>
+                            <p className="text-sm text-slate-600 mb-2">Mail a check or money order with voucher</p>
+                            {irsPaymentMethod === 'check' && (
+                              <div className="mt-3 space-y-2 text-sm text-slate-600">
+                                <p>
+                                  Make the tax amount payable to the 'United States Treasury'. Please mention your EIN, phone number, and 'Form 2290' on the money order/check. Print your money order voucher, enclose it, and mail it to:
+                                </p>
+                                <div className="bg-white p-3 rounded border border-slate-200 font-mono text-sm">
+                                  Internal Revenue Service<br />
+                                  P.O. Box 932500<br />
+                                  Louisville, KY 40293-2500
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </label>
+                      </div>
                     </div>
                   </div>
 
@@ -4341,206 +4459,27 @@ function NewFilingContent() {
                       )}
                     </div>
                     <p className="text-sm text-orange-800 mb-4 ml-0 sm:ml-10">
-                      Pay the platform service fee (${(pricing.serviceFee || 0).toFixed(2)}) using a US payment method. This payment must be completed before your filing can be submitted.
+                      Pay the platform service fee (${((pricing.serviceFee || 0) + (pricing.salesTax || 0)).toFixed(2)}) using a US payment method. This payment must be completed before your filing can be submitted.
                     </p>
 
                     {!serviceFeePaid ? (
                       <div className="ml-0 sm:ml-10 space-y-4">
-                        {/* Payment Method Selection */}
-                        <div>
-                          <label className="block text-sm font-medium mb-2 text-[var(--color-text)]">
-                            Select Payment Method <span className="text-red-500">*</span>
-                          </label>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-                            <button
-                              type="button"
-                              onClick={() => setServiceFeePaymentMethod('credit_card')}
-                              className={`p-4 border-2 rounded-lg transition-all text-left ${
-                                serviceFeePaymentMethod === 'credit_card'
-                                  ? 'border-[var(--color-orange)] bg-orange-50'
-                                  : 'border-slate-200 hover:border-orange-300'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2">
-                                <CreditCard className="w-5 h-5 text-[var(--color-orange)]" />
-                                <span className="font-semibold">Credit Card</span>
-                                {serviceFeePaymentMethod === 'credit_card' && <CheckCircle className="w-5 h-5 text-[var(--color-orange)] ml-auto" />}
-                              </div>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setServiceFeePaymentMethod('debit_card')}
-                              className={`p-4 border-2 rounded-lg transition-all text-left ${
-                                serviceFeePaymentMethod === 'debit_card'
-                                  ? 'border-[var(--color-orange)] bg-orange-50'
-                                  : 'border-slate-200 hover:border-orange-300'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2">
-                                <CreditCard className="w-5 h-5 text-[var(--color-orange)]" />
-                                <span className="font-semibold">Debit Card</span>
-                                {serviceFeePaymentMethod === 'debit_card' && <CheckCircle className="w-5 h-5 text-[var(--color-orange)] ml-auto" />}
-                              </div>
-                            </button>
-                          </div>
-                        </div>
+                        <StripeWrapper
+                          amount={(pricing.serviceFee || 0) + (pricing.salesTax || 0)}
+                          metadata={{
+                            filingType: filingType,
+                            userId: user.uid,
+                            filingId: filingId,
+                            businessId: selectedBusinessId
+                          }}
 
-                        {/* Payment Form */}
-                        {serviceFeePaymentMethod && (
-                          <div className="bg-white rounded-lg p-4 sm:p-6 border border-slate-200 space-y-4 animate-in fade-in slide-in-from-top-2 w-full">
-                            <h4 className="font-semibold text-[var(--color-text)]">Payment Details</h4>
-                            
-                            <div>
-                              <label className="block text-sm font-medium mb-1 text-[var(--color-text)]">
-                                Cardholder Name <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={serviceFeePaymentDetails.cardHolderName}
-                                onChange={(e) => setServiceFeePaymentDetails({ ...serviceFeePaymentDetails, cardHolderName: e.target.value })}
-                                placeholder="John Doe"
-                                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] ${serviceFeeErrors.cardHolderName ? 'border-red-500' : 'border-slate-300'}`}
-                              />
-                              {serviceFeeErrors.cardHolderName && (
-                                <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{serviceFeeErrors.cardHolderName}</span>
-                                </p>
-                              )}
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium mb-1 text-[var(--color-text)]">
-                                Card Number <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={serviceFeePaymentDetails.cardNumber}
-                                onChange={(e) => {
-                                  const value = e.target.value.replace(/\D/g, '').slice(0, 16);
-                                  setServiceFeePaymentDetails({ ...serviceFeePaymentDetails, cardNumber: value });
-                                  if (serviceFeeErrors.cardNumber) {
-                                    setServiceFeeErrors({ ...serviceFeeErrors, cardNumber: '' });
-                                  }
-                                }}
-                                placeholder="1234 5678 9012 3456"
-                                maxLength="19"
-                                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${serviceFeeErrors.cardNumber ? 'border-red-500' : 'border-slate-300'}`}
-                              />
-                              {serviceFeeErrors.cardNumber && (
-                                <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{serviceFeeErrors.cardNumber}</span>
-                                </p>
-                              )}
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <label className="block text-sm font-medium mb-1 text-[var(--color-text)]">
-                                  Expiry Date <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                  type="text"
-                                  value={serviceFeePaymentDetails.expiryDate}
-                                  onChange={(e) => {
-                                    let value = e.target.value.replace(/\D/g, '').slice(0, 4);
-                                    if (value.length >= 2) {
-                                      value = value.slice(0, 2) + '/' + value.slice(2);
-                                    }
-                                    setServiceFeePaymentDetails({ ...serviceFeePaymentDetails, expiryDate: value });
-                                    if (serviceFeeErrors.expiryDate) {
-                                      setServiceFeeErrors({ ...serviceFeeErrors, expiryDate: '' });
-                                    }
-                                  }}
-                                  placeholder="MM/YY"
-                                  maxLength="5"
-                                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${serviceFeeErrors.expiryDate ? 'border-red-500' : 'border-slate-300'}`}
-                                />
-                                {serviceFeeErrors.expiryDate && (
-                                  <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{serviceFeeErrors.expiryDate}</span>
-                                  </p>
-                                )}
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1 text-[var(--color-text)]">
-                                  CVV <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                  type="text"
-                                  value={serviceFeePaymentDetails.cvv}
-                                  onChange={(e) => {
-                                    const value = e.target.value.replace(/\D/g, '').slice(0, 4);
-                                    setServiceFeePaymentDetails({ ...serviceFeePaymentDetails, cvv: value });
-                                    if (serviceFeeErrors.cvv) {
-                                      setServiceFeeErrors({ ...serviceFeeErrors, cvv: '' });
-                                    }
-                                  }}
-                                  placeholder="123"
-                                  maxLength="4"
-                                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${serviceFeeErrors.cvv ? 'border-red-500' : 'border-slate-300'}`}
-                                />
-                                {serviceFeeErrors.cvv && (
-                                  <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{serviceFeeErrors.cvv}</span>
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium mb-1 text-[var(--color-text)]">
-                                Billing ZIP Code <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={serviceFeePaymentDetails.billingZipCode}
-                                onChange={(e) => {
-                                  const value = e.target.value.replace(/\D/g, '').slice(0, 5);
-                                  setServiceFeePaymentDetails({ ...serviceFeePaymentDetails, billingZipCode: value });
-                                  if (serviceFeeErrors.billingZipCode) {
-                                    setServiceFeeErrors({ ...serviceFeeErrors, billingZipCode: '' });
-                                  }
-                                }}
-                                placeholder="12345"
-                                maxLength="5"
-                                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${serviceFeeErrors.billingZipCode ? 'border-red-500' : 'border-slate-300'}`}
-                              />
-                              {serviceFeeErrors.billingZipCode && (
-                                <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{serviceFeeErrors.billingZipCode}</span>
-                                </p>
-                              )}
-                            </div>
-
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                              <div className="flex items-start gap-2">
-                                <ShieldCheck className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                                <div className="text-xs sm:text-sm text-blue-700">
-                                  <strong>Secure Payment:</strong> Your payment information is encrypted and processed securely. We do not store your full card details.
-                                </div>
-                              </div>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={handleServiceFeePayment}
-                              disabled={serviceFeeProcessing || !serviceFeePaymentDetails.cardHolderName || !serviceFeePaymentDetails.cardNumber || !serviceFeePaymentDetails.expiryDate || !serviceFeePaymentDetails.cvv || !serviceFeePaymentDetails.billingZipCode}
-                              className="w-full px-4 py-3 bg-[var(--color-orange)] text-white rounded-lg font-bold hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {serviceFeeProcessing ? (
-                                <>
-                                  <Loader2 className="w-5 h-5 animate-spin" />
-                                  <span>Processing Payment...</span>
-                                </>
-                              ) : (
-                                <>
-                                  <CreditCard className="w-5 h-5" />
-                                  <span>Pay Service Fee ${(pricing.serviceFee || 0).toFixed(2)}</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        )}
+                          onSuccess={(paymentIntent) => {
+                            console.log('Service Fee Payment Succeeded:', paymentIntent);
+                            setServiceFeePaid(true);
+                            setError('');
+                            handleSubmit(); // Finalize filing (webhook will also do it, but this provides immediate UI update)
+                          }}
+                        />
                       </div>
                     ) : (
                       <div className="ml-0 sm:ml-10 bg-green-50 border border-green-200 rounded-lg p-4">
@@ -4550,39 +4489,39 @@ function NewFilingContent() {
                         </div>
                       </div>
                     )}
-                    </div>
+                  </div>
 
-                    {/* Navigation Buttons */}
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 pt-4 border-t border-slate-200">
-                      <button
-                        onClick={() => setStep(5)}
-                        className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border border-slate-300 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-slate-50 active:bg-slate-100 transition font-medium touch-manipulation"
-                      >
-                        Previous Step
-                      </button>
-                      <button
-                        onClick={handleSubmit}
+                  {/* Navigation Buttons */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 pt-4 border-t border-slate-200">
+                    <button
+                      onClick={() => setStep(5)}
+                      className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border border-slate-300 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-slate-50 active:bg-slate-100 transition font-medium touch-manipulation"
+                    >
+                      Previous Step
+                    </button>
+                    <button
+                      onClick={handleSubmit}
                       disabled={
                         loading ||
                         !irsPaymentMethod ||
                         !serviceFeePaid ||
                         (irsPaymentMethod === 'efw' && (!bankDetails.routingNumber || !bankDetails.accountNumber || !bankDetails.confirmAccountNumber || !bankDetails.accountType || !bankDetails.phoneNumber || bankDetails.accountNumber !== bankDetails.confirmAccountNumber))
                       }
-                        className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-                      >
-                        {loading ? (
-                          <>
-                            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            <span className="hidden sm:inline">Processing...</span>
-                            <span className="sm:hidden">Processing</span>
-                          </>
-                        ) : (
-                          <>
+                      className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                    >
+                      {loading ? (
+                        <>
+                          <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span className="hidden sm:inline">Processing...</span>
+                          <span className="sm:hidden">Processing</span>
+                        </>
+                      ) : (
+                        <>
                           <span className="hidden sm:inline">Submit Filing</span>
                           <span className="sm:hidden">Submit</span>
-                          </>
-                        )}
-                      </button>
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>

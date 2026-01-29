@@ -26,6 +26,8 @@ import {
     Upload,
     X
 } from 'lucide-react';
+import StripeWrapper from '@/components/StripeWrapper';
+
 
 export default function MCS150Page() {
     const { user, userData } = useAuth();
@@ -40,6 +42,8 @@ export default function MCS150Page() {
     // 5: Submission Method (PIN)
     // 6: Checkout
     const [currentStep, setCurrentStep] = useState(0);
+    const [filingId, setFilingId] = useState(null);
+
     const [loading, setLoading] = useState(false);
     const [searchLoading, setSearchLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -308,14 +312,74 @@ export default function MCS150Page() {
                 }
             }
 
-            if (!submissionId) {
-                throw new Error('Failed to create submission record');
+            setPdfSubmissionId(submissionId);
+
+            // Definitions for initial filing record
+            const needPin = submissionMethod === 'request_pin';
+            const price = 49 + (needPin ? 20 : 0);
+
+            let bId = selectedBusiness?.id;
+            if (!bId && selectedBusiness) {
+                const newBiz = {
+                    name: selectedBusiness.name,
+                    ein: selectedBusiness.ein || '',
+                    type: selectedBusiness.type || 'Corporation',
+                    address: selectedBusiness.address ? `${selectedBusiness.address.street}, ${selectedBusiness.address.city}, ${selectedBusiness.address.state} ${selectedBusiness.address.zip}` : '',
+                    usdot: formData.usdotNumber,
+                    phone: formData.contact.phone,
+                    email: formData.contact.email
+                };
+                bId = await createBusiness(user.uid, newBiz);
             }
 
-            setPdfSubmissionId(submissionId);
+            const initialFilingId = await createFiling({
+
+
+                userId: user.uid,
+                businessId: bId,
+                filingType: 'mcs150',
+                status: 'pending_payment',
+                paymentStatus: 'pending',
+                mcs150Status: 'pending_payment',
+                mcs150Price: price,
+                mcs150Reason: filingReason,
+                mcs150HasChanges: hasChanges,
+                mcs150UsdotNumber: formData.usdotNumber,
+                mcs150Pin: submissionMethod === 'enter_pin' ? pin : null,
+                needPinService: needPin,
+                mcs150SubmissionId: submissionId,
+                companyOfficial: formData.companyOfficial,
+                contact: {
+                    email: formData.contact?.email || '',
+                    phone: formData.contact?.phone || ''
+                },
+                mcs150Data: {
+                    mileage: formData.mileage,
+                    mileageYear: formData.mileageYear,
+                    powerUnits: calculatedPowerUnits.toString(),
+                    vehicles: formData.vehicles,
+                    drivers: {
+                        ...formData.drivers,
+                        total: driversTotal.toString()
+                    },
+                    classifications: formData.classifications,
+                    companyOperations: formData.companyOperations,
+                    method: submissionMethod,
+                    selectedChanges: selectedChanges,
+                    ein: formData.ein || selectedBusiness?.ein || ''
+                },
+                compliance: {
+                    signature: formData.companyOfficial?.name,
+                    date: new Date().toISOString()
+                },
+                createdAt: new Date().toISOString()
+            });
+            setFilingId(initialFilingId);
 
             // Proceed to payment step after successful PDF generation and upload
             setCurrentStep(6);
+
+
         } catch (err) {
             console.error('Error processing PDF:', err);
             setPdfError(err.message || 'Failed to process PDF. Please try again.');
@@ -327,101 +391,14 @@ export default function MCS150Page() {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const needPin = submissionMethod === 'request_pin';
-            const price = 49 + (needPin ? 20 : 0);
-
-            // 1. Persist Business if not already saved (from API lookup)
-            let businessId = selectedBusiness?.id;
-            if (!businessId) {
-                // Check if it already exists by USDOT to avoid duplicates (optional but good)
-                // For now, simpler: Create it
-                // We need to construct the full business object expected by createBusiness
-                const newBiz = {
-                    name: selectedBusiness.name,
-                    ein: selectedBusiness.ein || '',
-                    type: selectedBusiness.type || 'Corporation',
-                    address: selectedBusiness.address ? `${selectedBusiness.address.street}, ${selectedBusiness.address.city}, ${selectedBusiness.address.state} ${selectedBusiness.address.zip}` : '',
-                    // Split address if needed or store as string
-                    usdot: formData.usdotNumber,
-                    phone: formData.contact.phone,
-                    email: formData.contact.email
-                };
-
-                // We assume createBusiness returns the ID. 
-                // Note: db.js createBusiness implementation takes (userId, businessData)
-                businessId = await createBusiness(user.uid, newBiz);
+            if (filingId) {
+                const { updateFiling } = await import('@/lib/db');
+                await updateFiling(filingId, {
+                    status: 'submitted',
+                    mcs150Status: 'submitted',
+                    updatedAt: new Date().toISOString()
+                });
             }
-
-            // Calculate total power units from granular vehicle data
-            // Power units = trucks/tractors (not trailers). Sum owned + termLeased + tripLeased for each power unit type
-            const calculatePowerUnits = (vehicleType) => {
-                if (!vehicleType || typeof vehicleType !== 'object') return 0;
-                return (parseInt(vehicleType.owned) || 0) +
-                    (parseInt(vehicleType.termLeased) || 0) +
-                    (parseInt(vehicleType.tripLeased) || 0);
-            };
-
-            const calculatedPowerUnits =
-                calculatePowerUnits(formData.vehicles.straightTrucks) +
-                calculatePowerUnits(formData.vehicles.truckTractors) +
-                calculatePowerUnits(formData.vehicles.hazmatCargoTrucks);
-            // Note: Trailers and hazmatCargoTrailers are NOT power units, they're separate
-
-            // Calculate total drivers if not provided
-            const driversTotal = formData.drivers.total ||
-                (parseInt(formData.drivers.interstate || 0) + parseInt(formData.drivers.intrastate || 0));
-
-            // For driver license upload method, PDF should already be processed
-            // Use the stored submission ID from PDF processing
-            const mcs150SubmissionId = submissionMethod === 'upload_driver_license' ? pdfSubmissionId : null;
-
-            if (submissionMethod === 'upload_driver_license' && !mcs150SubmissionId) {
-                throw new Error('PDF processing was not completed. Please go back and try again.');
-            }
-
-            await createFiling({
-                userId: user.uid, // Customer relationship - links filing to customer
-                businessId: businessId,
-                filingType: 'mcs150', // Identifies this as MCS-150 filing
-                status: 'submitted',
-                mcs150Status: 'submitted',
-                mcs150Price: price,
-                mcs150Reason: filingReason,
-                mcs150HasChanges: hasChanges,
-                mcs150UsdotNumber: formData.usdotNumber,
-                mcs150Pin: submissionMethod === 'enter_pin' ? pin : null,
-                needPinService: needPin,
-                mcs150SubmissionId: mcs150SubmissionId, // Reference to the submission document
-                companyOfficial: formData.companyOfficial,
-                contact: {
-                    email: formData.contact?.email || '',
-                    phone: formData.contact?.phone || ''
-                },
-                mcs150Data: {
-                    mileage: formData.mileage,
-                    mileageYear: formData.mileageYear,
-                    powerUnits: calculatedPowerUnits.toString(), // Use the calculated total
-                    vehicles: formData.vehicles, // Save the detailed breakdown
-                    drivers: {
-                        ...formData.drivers,
-                        total: driversTotal.toString() // Ensure total is calculated
-                    },
-                    classifications: formData.classifications,
-                    companyOperations: formData.companyOperations,
-                    method: submissionMethod,
-                    selectedChanges: selectedChanges, // Save what they changed
-                    ein: formData.ein || selectedBusiness?.ein || '' // Save EIN if updated or from business
-                },
-                compliance: {
-                    signature: formData.companyOfficial?.name,
-                    date: new Date().toISOString()
-                },
-                paymentDetails: {
-                    method: paymentMethod, // 'card' or 'google_pay'
-                    amount: price,
-                    date: new Date().toISOString()
-                }
-            });
             setCurrentStep(7); // Go to success step
         } catch (err) {
             setError(err.message || 'Submission failed. Please try again.');
@@ -429,6 +406,8 @@ export default function MCS150Page() {
             setLoading(false);
         }
     };
+
+
 
     // --- Helper Components ---
 
@@ -1492,53 +1471,23 @@ export default function MCS150Page() {
                 <div className="grid md:grid-cols-[1fr_300px] gap-8">
                     {/* Left: Payment Method */}
                     <div className="space-y-6">
-                        <label className="block text-sm font-bold">Select Payment Method <span className="text-red-500">*</span></label>
-                        <div className="grid grid-cols-2 gap-4">
-                            <label className={`border p-4 rounded flex items-center gap-2 cursor-pointer ${paymentMethod === 'card' ? 'border-[#0F766E] bg-teal-50' : 'border-slate-200'}`}>
-                                <input type="radio" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} className="w-4 h-4 text-[#0F766E]" />
-                                <CreditCard className="w-5 h-5 text-slate-700" />
-                                <span className="font-bold text-sm">Credit Card</span>
-                            </label>
-                            <label className={`border p-4 rounded flex items-center gap-2 cursor-pointer ${paymentMethod === 'google_pay' ? 'border-[#0F766E] bg-teal-50' : 'border-slate-200'}`}>
-                                <input type="radio" checked={paymentMethod === 'google_pay'} onChange={() => setPaymentMethod('google_pay')} className="w-4 h-4 text-[#0F766E]" />
-                                <span className="font-bold text-sm">Google Pay</span>
-                            </label>
-                        </div>
-
-                        {/* Mock Card Form */}
-                        <div className="border rounded-lg p-6 space-y-4 bg-white">
-                            <div className="grid md:grid-cols-2 gap-4">
-                                <div className="col-span-1">
-                                    <label className="block text-xs font-bold mb-1">Enter Card Number <span className="text-red-500">*</span></label>
-                                    <input className="w-full border rounded p-2" placeholder="0000 0000 0000 0000" />
-                                </div>
-                                <div className="col-span-1">
-                                    <label className="block text-xs font-bold mb-1">Expires On <span className="text-red-500">*</span></label>
-                                    <input className="w-full border rounded p-2" placeholder="MM/YY" />
-                                </div>
-                                <div className="col-span-1">
-                                    <label className="block text-xs font-bold mb-1">Cardholder's Name <span className="text-red-500">*</span></label>
-                                    <input className="w-full border rounded p-2" placeholder="Name on Card" />
-                                </div>
-                                <div className="col-span-1">
-                                    <label className="block text-xs font-bold mb-1">CVV Number <span className="text-red-500">*</span></label>
-                                    <input className="w-full border rounded p-2" placeholder="123" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-4 pt-6">
-                            <button className="border border-[#0F766E] text-[#0F766E] py-2 px-6 rounded-lg font-bold" onClick={() => setCurrentStep(5)}>Go Back</button>
-                            <button
-                                onClick={handleSubmit}
-                                disabled={loading}
-                                className="bg-[#0F766E] text-white py-2 px-8 rounded-lg font-bold hover:bg-[#115E59] disabled:opacity-50 flex items-center gap-2"
-                            >
-                                {loading && <Loader2 className="animate-spin w-4 h-4" />}
-                                Pay & Finish <ChevronRight className="w-4 h-4" />
-                            </button>
-                        </div>
+                        <StripeWrapper
+                            amount={price}
+                            metadata={{
+                                filingType: 'mcs150',
+                                userId: user.uid,
+                                filingId: filingId,
+                                submissionId: pdfSubmissionId,
+                                usdotNumber: formData.usdotNumber
+                            }}
+                            onSuccess={(paymentIntent) => {
+                                console.log('Payment Succeeded:', paymentIntent);
+                                setCurrentStep(7); // Go directly to success step as webhook handles status
+                            }}
+                            onCancel={() => setCurrentStep(5)}
+                        />
                     </div>
+
 
                     {/* Right: Summary */}
                     <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 h-fit">
