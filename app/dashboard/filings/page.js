@@ -174,7 +174,7 @@ export default function FilingsListPage() {
           </div>
           <Link
             href="/dashboard/new-filing"
-            className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 shadow-md"
+            className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-hover)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 shadow-md"
           >
             <Plus className="w-5 h-5" />
             New Filing
@@ -202,7 +202,7 @@ export default function FilingsListPage() {
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
                 href="/dashboard/new-filing"
-                className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
+                className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-hover)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
               >
                 Manual Entry <ArrowRight className="w-4 h-4" />
               </Link>

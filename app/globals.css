@@ -10,6 +10,8 @@
   --color-sky: #39c6ff;
   --color-cyan: #1dd6c3;
   --color-orange: #ff8b3d;
+  --color-orange-soft: #fff1e7;
+  --color-orange-hover: #f07a2d;
   --color-amber: #ffc24a;
   --color-sand: #ffe7d1;
   --color-text: #1b2838;
@@ -76,6 +78,7 @@ strong {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -139,6 +142,7 @@ section p {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -149,15 +153,19 @@ section p {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -167,15 +175,19 @@ section p {
   0% {
     background-position: -1000px 0;
   }
+
   100% {
     background-position: 1000px 0;
   }
 }
 
 @keyframes bounce-subtle {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-5px);
   }
@@ -232,39 +244,46 @@ a:focus-visible {
 .clip-path-slant-reverse {
   clip-path: polygon(0 5%, 100% 0, 100% 100%, 0 100%);
 }
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 /* Mobile touch optimizations */
 .touch-manipulation {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Improve form inputs on mobile */
 @media (max-width: 768px) {
-    input[type="text"],
-    input[type="email"],
-    input[type="tel"],
-    input[type="number"],
-    textarea,
-    select {
-        font-size: 16px !important; /* Prevents zoom on iOS */
-    }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px !important;
+    /* Prevents zoom on iOS */
+  }
 }
 
 /* Better button spacing for mobile */
 @media (max-width: 640px) {
-    button,
-    a[role="button"] {
-        min-height: 44px; /* Apple's recommended touch target size */
-    }
+
+  button,
+  a[role="button"] {
+    min-height: 44px;
+    /* Apple's recommended touch target size */
+  }
 }

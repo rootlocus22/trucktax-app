@@ -90,7 +90,7 @@ export function Header() {
                 </Link>
                 <Link
                   href="/signup"
-                  className="ml-4 px-5 py-2 bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white rounded-lg font-semibold transition shadow-md hover:shadow-lg"
+                  className="ml-4 px-5 py-2 bg-gradient-to-r from-[var(--color-orange)] to-[var(--color-orange-hover)] text-white rounded-lg font-semibold transition shadow-md hover:shadow-lg"
                 >
                   File Now
                 </Link>
@@ -220,7 +220,7 @@ export function Header() {
                       onClick={() => setUserMenuOpen(!userMenuOpen)}
                       className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition group"
                     >
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-orange)] to-[#ff7a20] flex items-center justify-center text-white font-semibold text-sm shadow-md">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-orange)] to-[var(--color-orange-hover)] flex items-center justify-center text-white font-semibold text-sm shadow-md">
                         {getUserInitials()}
                       </div>
                       <div className="hidden md:block text-left">
@@ -365,7 +365,7 @@ export function Header() {
               {!loading && !user && (
                 <Link
                   href="/signup"
-                  className="px-3 py-1.5 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[#ff7a20] active:scale-95 transition touch-manipulation"
+                  className="px-3 py-1.5 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition touch-manipulation"
                 >
                   File Now
                 </Link>
@@ -400,7 +400,7 @@ export function Header() {
                 {user && (
                   <div className="bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-navy-soft)] p-6">
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--color-orange)] to-[#ff7a20] flex items-center justify-center text-white font-semibold text-lg shadow-lg">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--color-orange)] to-[var(--color-orange-hover)] flex items-center justify-center text-white font-semibold text-lg shadow-lg">
                         {getUserInitials()}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -459,7 +459,7 @@ export function Header() {
                         <Link
                           href="/signup"
                           onClick={() => setMobileMenuOpen(false)}
-                          className="block w-full text-center bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white px-6 py-3 rounded-lg font-semibold transition shadow-md hover:shadow-lg"
+                          className="block w-full text-center bg-gradient-to-r from-[var(--color-orange)] to-[var(--color-orange-hover)] text-white px-6 py-3 rounded-lg font-semibold transition shadow-md hover:shadow-lg"
                         >
                           File Now
                         </Link>
@@ -711,7 +711,7 @@ export function Header() {
                       <Link
                         href="/signup"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block w-full px-4 py-3 text-center bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white rounded-lg font-semibold hover:shadow-lg active:scale-95 transition touch-manipulation min-h-[48px] flex items-center justify-center"
+                        className="block w-full px-4 py-3 text-center bg-gradient-to-r from-[var(--color-orange)] to-[var(--color-orange-hover)] text-white rounded-lg font-semibold hover:shadow-lg active:scale-95 transition touch-manipulation min-h-[48px] flex items-center justify-center"
                       >
                         Sign Up
                       </Link>

@@ -747,7 +747,7 @@ function UploadSchedule1Content() {
                     <button
                       onClick={handleSaveBusiness}
                       disabled={loading}
-                      className="px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg hover:bg-[var(--color-orange-soft)] transition disabled:opacity-50"
+                      className="px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg hover:bg-[var(--color-orange-hover)] transition disabled:opacity-50"
                     >
                       {businesses.find(b => b.ein === extractedBusiness.ein) ? 'Update Business' : 'Save Business'}
                     </button>
@@ -830,7 +830,7 @@ function UploadSchedule1Content() {
                   <button
                     onClick={handleSaveVehicles}
                     disabled={loading}
-                    className="px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg hover:bg-[var(--color-orange-soft)] transition disabled:opacity-50"
+                    className="px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg hover:bg-[var(--color-orange-hover)] transition disabled:opacity-50"
                   >
                     Save All Vehicles
                   </button>
@@ -925,7 +925,7 @@ function UploadSchedule1Content() {
                     setStep(3);
                   }}
                   disabled={loading}
-                  className="px-6 py-2 bg-[var(--color-orange)] text-white rounded-lg font-semibold hover:bg-[var(--color-orange-soft)] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-[var(--color-orange)] text-white rounded-lg font-semibold hover:bg-[var(--color-orange-hover)] transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Continue to Payment
                 </button>

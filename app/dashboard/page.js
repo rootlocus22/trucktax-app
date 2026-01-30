@@ -142,7 +142,7 @@ export default function DashboardPage() {
                 </Link>
                 <Link
                   href="/dashboard/new-filing"
-                  className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] active:scale-95 transition-all touch-manipulation whitespace-nowrap"
+                  className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition-all touch-manipulation whitespace-nowrap"
                 >
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">New Filing</span>
@@ -523,7 +523,7 @@ export default function DashboardPage() {
                     </Link>
                     <Link
                       href="/how-it-works"
-                      className="flex items-center justify-between px-3 py-2 bg-[var(--color-orange)] text-white rounded-lg text-xs font-semibold hover:bg-[var(--color-navy-soft)] transition-all"
+                      className="flex items-center justify-between px-3 py-2 bg-[var(--color-orange)] text-white rounded-lg text-xs font-semibold hover:bg-[var(--color-orange-hover)] transition-all"
                     >
                       <span>How It Works</span>
                       <ArrowRight className="w-3 h-3" />

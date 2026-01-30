@@ -134,7 +134,7 @@ export default function BusinessesPage() {
   };
 
   const handleEdit = (business) => {
-    setEditingBusiness({ 
+    setEditingBusiness({
       ...business,
       city: business.city || '',
       state: business.state || '',
@@ -142,12 +142,12 @@ export default function BusinessesPage() {
       country: business.country || '',
       signingAuthorityName: business.signingAuthorityName || '',
       signingAuthorityPhone: business.signingAuthorityPhone || '',
-        signingAuthorityPIN: business.signingAuthorityPIN || '',
-        hasThirdPartyDesignee: business.hasThirdPartyDesignee || false,
-        thirdPartyDesigneeName: business.thirdPartyDesigneeName || '',
-        thirdPartyDesigneePhone: business.thirdPartyDesigneePhone || '',
-        thirdPartyDesigneePIN: business.thirdPartyDesigneePIN || '',
-        country: business.country || 'United States of America'
+      signingAuthorityPIN: business.signingAuthorityPIN || '',
+      hasThirdPartyDesignee: business.hasThirdPartyDesignee || false,
+      thirdPartyDesigneeName: business.thirdPartyDesigneeName || '',
+      thirdPartyDesigneePhone: business.thirdPartyDesigneePhone || '',
+      thirdPartyDesigneePIN: business.thirdPartyDesigneePIN || '',
+      country: business.country || 'United States of America'
     });
     setBusinessErrors({});
   };
@@ -204,18 +204,18 @@ export default function BusinessesPage() {
     if (field === 'country') validation = validateCountry(formattedValue, true);
     if (field === 'phone') validation = validatePhone(formattedValue, true);
     if (field === 'signingAuthorityName') {
-      validation = formattedValue && formattedValue.trim().length >= 2 
-        ? { isValid: true, error: '' } 
+      validation = formattedValue && formattedValue.trim().length >= 2
+        ? { isValid: true, error: '' }
         : { isValid: false, error: 'Signing Authority Name is required and must be at least 2 characters' };
     }
     if (field === 'signingAuthorityPhone') validation = validatePhone(formattedValue, true);
     if (field === 'signingAuthorityPIN') validation = validatePIN(formattedValue, true);
     if (field === 'thirdPartyDesigneeName') {
       const hasThirdParty = isEdit ? editingBusiness?.hasThirdPartyDesignee : newBusiness.hasThirdPartyDesignee;
-      validation = hasThirdParty 
-        ? (formattedValue && formattedValue.trim().length >= 2 
-            ? { isValid: true, error: '' } 
-            : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
+      validation = hasThirdParty
+        ? (formattedValue && formattedValue.trim().length >= 2
+          ? { isValid: true, error: '' }
+          : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
         : { isValid: true, error: '' };
     }
     if (field === 'thirdPartyDesigneePhone') validation = validatePhone(formattedValue, isEdit ? editingBusiness?.hasThirdPartyDesignee : newBusiness.hasThirdPartyDesignee);
@@ -240,23 +240,23 @@ export default function BusinessesPage() {
     const countryVal = validateCountry(newBusiness.country, true);
     const phoneVal = validatePhone(newBusiness.phone, true);
     // Validate signing authority name (required, but simpler than business name)
-    const signingAuthorityNameVal = newBusiness.signingAuthorityName && newBusiness.signingAuthorityName.trim().length >= 2 
-      ? { isValid: true, error: '' } 
+    const signingAuthorityNameVal = newBusiness.signingAuthorityName && newBusiness.signingAuthorityName.trim().length >= 2
+      ? { isValid: true, error: '' }
       : { isValid: false, error: 'Signing Authority Name is required and must be at least 2 characters' };
     const signingAuthorityPhoneVal = validatePhone(newBusiness.signingAuthorityPhone, true);
     const signingAuthorityPINVal = validatePIN(newBusiness.signingAuthorityPIN, true);
     // Validate third party designee name (required if Third Party Designee is Yes)
-    const thirdPartyDesigneeNameVal = newBusiness.hasThirdPartyDesignee 
-      ? (newBusiness.thirdPartyDesigneeName && newBusiness.thirdPartyDesigneeName.trim().length >= 2 
-          ? { isValid: true, error: '' } 
-          : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
+    const thirdPartyDesigneeNameVal = newBusiness.hasThirdPartyDesignee
+      ? (newBusiness.thirdPartyDesigneeName && newBusiness.thirdPartyDesigneeName.trim().length >= 2
+        ? { isValid: true, error: '' }
+        : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
       : { isValid: true, error: '' };
     const thirdPartyDesigneePhoneVal = validatePhone(newBusiness.thirdPartyDesigneePhone, newBusiness.hasThirdPartyDesignee);
     const thirdPartyDesigneePINVal = validatePIN(newBusiness.thirdPartyDesigneePIN, newBusiness.hasThirdPartyDesignee);
 
     if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !cityVal.isValid || !stateVal.isValid || !zipVal.isValid || !countryVal.isValid || !phoneVal.isValid ||
-        !signingAuthorityNameVal.isValid || !signingAuthorityPhoneVal.isValid || !signingAuthorityPINVal.isValid ||
-        !thirdPartyDesigneeNameVal.isValid || !thirdPartyDesigneePhoneVal.isValid || !thirdPartyDesigneePINVal.isValid) {
+      !signingAuthorityNameVal.isValid || !signingAuthorityPhoneVal.isValid || !signingAuthorityPINVal.isValid ||
+      !thirdPartyDesigneeNameVal.isValid || !thirdPartyDesigneePhoneVal.isValid || !thirdPartyDesigneePINVal.isValid) {
       setBusinessErrors({
         businessName: nameVal.error,
         ein: einVal.error,
@@ -321,23 +321,23 @@ export default function BusinessesPage() {
     const countryVal = validateCountry(editingBusiness.country, true);
     const phoneVal = validatePhone(editingBusiness.phone, true);
     // Validate signing authority name (required, but simpler than business name)
-    const signingAuthorityNameVal = editingBusiness.signingAuthorityName && editingBusiness.signingAuthorityName.trim().length >= 2 
-      ? { isValid: true, error: '' } 
+    const signingAuthorityNameVal = editingBusiness.signingAuthorityName && editingBusiness.signingAuthorityName.trim().length >= 2
+      ? { isValid: true, error: '' }
       : { isValid: false, error: 'Signing Authority Name is required and must be at least 2 characters' };
     const signingAuthorityPhoneVal = validatePhone(editingBusiness.signingAuthorityPhone, true);
     const signingAuthorityPINVal = validatePIN(editingBusiness.signingAuthorityPIN, true);
     // Validate third party designee name (required if Third Party Designee is Yes)
-    const thirdPartyDesigneeNameVal = editingBusiness.hasThirdPartyDesignee 
-      ? (editingBusiness.thirdPartyDesigneeName && editingBusiness.thirdPartyDesigneeName.trim().length >= 2 
-          ? { isValid: true, error: '' } 
-          : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
+    const thirdPartyDesigneeNameVal = editingBusiness.hasThirdPartyDesignee
+      ? (editingBusiness.thirdPartyDesigneeName && editingBusiness.thirdPartyDesigneeName.trim().length >= 2
+        ? { isValid: true, error: '' }
+        : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
       : { isValid: true, error: '' };
     const thirdPartyDesigneePhoneVal = validatePhone(editingBusiness.thirdPartyDesigneePhone, editingBusiness.hasThirdPartyDesignee);
     const thirdPartyDesigneePINVal = validatePIN(editingBusiness.thirdPartyDesigneePIN, editingBusiness.hasThirdPartyDesignee);
 
     if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !cityVal.isValid || !stateVal.isValid || !zipVal.isValid || !countryVal.isValid || !phoneVal.isValid ||
-        !signingAuthorityNameVal.isValid || !signingAuthorityPhoneVal.isValid || !signingAuthorityPINVal.isValid ||
-        !thirdPartyDesigneeNameVal.isValid || !thirdPartyDesigneePhoneVal.isValid || !thirdPartyDesigneePINVal.isValid) {
+      !signingAuthorityNameVal.isValid || !signingAuthorityPhoneVal.isValid || !signingAuthorityPINVal.isValid ||
+      !thirdPartyDesigneeNameVal.isValid || !thirdPartyDesigneePhoneVal.isValid || !thirdPartyDesigneePINVal.isValid) {
       setBusinessErrors({
         businessName: nameVal.error,
         ein: einVal.error,
@@ -408,24 +408,24 @@ export default function BusinessesPage() {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 text-slate-500 hover:text-[var(--color-orange)] mb-4 transition-colors group"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              <span className="text-sm font-medium">Back to Dashboard</span>
-            </Link>
-          
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 text-slate-500 hover:text-[var(--color-orange)] mb-4 transition-colors group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm font-medium">Back to Dashboard</span>
+          </Link>
+
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">
                 Business Management
-            </h1>
-            <p className="text-slate-500">
-              Manage your business profiles and filing information
-            </p>
-          </div>
-            
+              </h1>
+              <p className="text-slate-500">
+                Manage your business profiles and filing information
+              </p>
+            </div>
+
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
@@ -449,11 +449,11 @@ export default function BusinessesPage() {
                   });
                   setBusinessErrors({});
                 }}
-                className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-4 sm:px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-lg active:scale-95 transition-all duration-200 shadow-md"
-          >
-            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">Add Business</span>
-            <span className="sm:hidden">Add</span>
+                className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-4 sm:px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-hover)] hover:shadow-lg active:scale-95 transition-all duration-200 shadow-md"
+              >
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Add Business</span>
+                <span className="sm:hidden">Add</span>
               </button>
             </div>
           </div>
@@ -522,10 +522,10 @@ export default function BusinessesPage() {
                   });
                   setBusinessErrors({});
                 }}
-              className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
-            >
-              Add Your First Business
-              <ArrowLeft className="w-4 h-4 rotate-180" />
+                className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-hover)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
+              >
+                Add Your First Business
+                <ArrowLeft className="w-4 h-4 rotate-180" />
               </button>
             )}
           </div>
@@ -594,10 +594,10 @@ export default function BusinessesPage() {
             {/* Modern Table Body */}
             <div className="divide-y divide-slate-100 relative" style={{ overflow: 'visible' }}>
               {filteredBusinesses.map((business, index) => (
-              <div
-                key={business.id}
+                <div
+                  key={business.id}
                   className="group grid grid-cols-1 lg:grid-cols-12 gap-4 px-4 sm:px-6 py-4 sm:py-5 hover:bg-gradient-to-r hover:from-blue-50/30 hover:via-white hover:to-white transition-all duration-300 relative cursor-pointer"
-                  style={{ 
+                  style={{
                     animationDelay: `${index * 30}ms`,
                     animation: 'fadeInUp 0.4s ease-out forwards',
                     position: 'relative',
@@ -650,8 +650,8 @@ export default function BusinessesPage() {
                         </div> */}
                         <span className="text-sm text-slate-600 font-medium hidden sm:inline font-mono">
                           {formatEIN(business.ein)}
-                      </span>
-                    </div>
+                        </span>
+                      </div>
                     ) : (
                       <span className="text-sm text-slate-400 italic">Not set</span>
                     )}
@@ -678,7 +678,7 @@ export default function BusinessesPage() {
                       <span>Use for Filing</span>
                     </Link>
                     <div className="relative actions-menu-group" style={{ zIndex: 50 }}>
-                      <button 
+                      <button
                         onClick={(e) => e.stopPropagation()}
                         className="p-2.5 hover:bg-slate-100 rounded-xl transition-all hover:scale-110 relative"
                       >
@@ -736,7 +736,7 @@ export default function BusinessesPage() {
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+                <div>
                   <div className="flex items-center gap-2 mb-2">
                     <label className="block text-sm font-semibold text-slate-700">
                       Business Name <span className="text-[var(--color-orange)]">*</span>
@@ -759,8 +759,8 @@ export default function BusinessesPage() {
                     <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
                       <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.businessName}</span>
                     </p>
-                    )}
-                  </div>
+                  )}
+                </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -797,9 +797,9 @@ export default function BusinessesPage() {
                       <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.address}</span>
                     </p>
                   )}
-                        </div>
+                </div>
 
-                        <div>
+                <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     City <span className="text-[var(--color-orange)]">*</span>
                   </label>
@@ -815,7 +815,7 @@ export default function BusinessesPage() {
                       <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.city}</span>
                     </p>
                   )}
-                        </div>
+                </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -834,7 +834,7 @@ export default function BusinessesPage() {
                       <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.state}</span>
                     </p>
                   )}
-                      </div>
+                </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -870,9 +870,9 @@ export default function BusinessesPage() {
                   <p className="mt-1 text-xs text-slate-500">
                     Only United States is allowed for Form 2290 filings
                   </p>
-                          </div>
+                </div>
 
-                          <div>
+                <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Phone <span className="text-[var(--color-orange)]">*</span>
                   </label>
@@ -888,7 +888,7 @@ export default function BusinessesPage() {
                       <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.phone}</span>
                     </p>
                   )}
-                          </div>
+                </div>
 
                 {/* Signing Authority Section */}
                 <div className="md:col-span-2 border-t border-slate-200 pt-4 mt-2">
@@ -901,7 +901,7 @@ export default function BusinessesPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -919,8 +919,8 @@ export default function BusinessesPage() {
                           <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityName}</span>
                         </p>
                       )}
-                          </div>
-                          <div>
+                    </div>
+                    <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
                         Phone <span className="text-[var(--color-orange)]">*</span>
                       </label>
@@ -936,7 +936,7 @@ export default function BusinessesPage() {
                           <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityPhone}</span>
                         </p>
                       )}
-                          </div>
+                    </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
                         PIN <span className="text-[var(--color-orange)]">*</span>
@@ -954,7 +954,7 @@ export default function BusinessesPage() {
                           <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityPIN}</span>
                         </p>
                       )}
-                        </div>
+                    </div>
                   </div>
 
                   {/* Third Party Designee */}
@@ -974,26 +974,23 @@ export default function BusinessesPage() {
                       <button
                         type="button"
                         onClick={() => setNewBusiness({ ...newBusiness, hasThirdPartyDesignee: false, thirdPartyDesigneeName: '', thirdPartyDesigneePhone: '', thirdPartyDesigneePIN: '' })}
-                        className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${
-                          newBusiness.hasThirdPartyDesignee === false
+                        className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${newBusiness.hasThirdPartyDesignee === false
                             ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
                             : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
-                        }`}
+                          }`}
                       >
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                          newBusiness.hasThirdPartyDesignee === false
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${newBusiness.hasThirdPartyDesignee === false
                             ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
                             : 'border-slate-300 bg-white'
-                        }`}>
+                          }`}>
                           {newBusiness.hasThirdPartyDesignee === false && (
                             <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                      )}
-                    </div>
-                        <span className={`text-sm font-semibold ${
-                          newBusiness.hasThirdPartyDesignee === false
+                          )}
+                        </div>
+                        <span className={`text-sm font-semibold ${newBusiness.hasThirdPartyDesignee === false
                             ? 'text-[var(--color-orange)]'
                             : 'text-slate-600'
-                        }`}>
+                          }`}>
                           No
                         </span>
                         {newBusiness.hasThirdPartyDesignee === false && (
@@ -1003,33 +1000,30 @@ export default function BusinessesPage() {
                       <button
                         type="button"
                         onClick={() => setNewBusiness({ ...newBusiness, hasThirdPartyDesignee: true })}
-                        className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${
-                          newBusiness.hasThirdPartyDesignee === true
+                        className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${newBusiness.hasThirdPartyDesignee === true
                             ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
                             : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
-                        }`}
+                          }`}
                       >
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                          newBusiness.hasThirdPartyDesignee === true
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${newBusiness.hasThirdPartyDesignee === true
                             ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
                             : 'border-slate-300 bg-white'
-                        }`}>
+                          }`}>
                           {newBusiness.hasThirdPartyDesignee === true && (
                             <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
                           )}
                         </div>
-                        <span className={`text-sm font-semibold ${
-                          newBusiness.hasThirdPartyDesignee === true
+                        <span className={`text-sm font-semibold ${newBusiness.hasThirdPartyDesignee === true
                             ? 'text-[var(--color-orange)]'
                             : 'text-slate-600'
-                        }`}>
+                          }`}>
                           Yes
                         </span>
                         {newBusiness.hasThirdPartyDesignee === true && (
                           <CheckCircle className="w-4 h-4 text-[var(--color-orange)] absolute top-2 right-2" />
                         )}
                       </button>
-                  </div>
+                    </div>
 
                     {newBusiness.hasThirdPartyDesignee && (
                       <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
@@ -1098,11 +1092,11 @@ export default function BusinessesPage() {
                   className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
                 >
                   Cancel
-                    </button>
+                </button>
                 <button
                   onClick={handleAddBusiness}
                   disabled={saving}
-                  className="flex-1 px-4 py-3 bg-[var(--color-orange)] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-soft)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 bg-[var(--color-orange)] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-hover)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {saving ? (
                     <>
@@ -1113,9 +1107,9 @@ export default function BusinessesPage() {
                     'Add Business'
                   )}
                 </button>
-                  </div>
-                </div>
               </div>
+            </div>
+          </div>
         )}
 
         {/* Edit Modal */}
@@ -1305,7 +1299,7 @@ export default function BusinessesPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -1378,26 +1372,23 @@ export default function BusinessesPage() {
                       <button
                         type="button"
                         onClick={() => setEditingBusiness({ ...editingBusiness, hasThirdPartyDesignee: false, thirdPartyDesigneeName: '', thirdPartyDesigneePhone: '', thirdPartyDesigneePIN: '' })}
-                        className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${
-                          editingBusiness.hasThirdPartyDesignee === false
+                        className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${editingBusiness.hasThirdPartyDesignee === false
                             ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
                             : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
-                        }`}
+                          }`}
                       >
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                          editingBusiness.hasThirdPartyDesignee === false
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${editingBusiness.hasThirdPartyDesignee === false
                             ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
                             : 'border-slate-300 bg-white'
-                        }`}>
+                          }`}>
                           {editingBusiness.hasThirdPartyDesignee === false && (
                             <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
                           )}
                         </div>
-                        <span className={`text-sm font-semibold ${
-                          editingBusiness.hasThirdPartyDesignee === false
+                        <span className={`text-sm font-semibold ${editingBusiness.hasThirdPartyDesignee === false
                             ? 'text-[var(--color-orange)]'
                             : 'text-slate-600'
-                        }`}>
+                          }`}>
                           No
                         </span>
                         {editingBusiness.hasThirdPartyDesignee === false && (
@@ -1407,26 +1398,23 @@ export default function BusinessesPage() {
                       <button
                         type="button"
                         onClick={() => setEditingBusiness({ ...editingBusiness, hasThirdPartyDesignee: true })}
-                        className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${
-                          editingBusiness.hasThirdPartyDesignee === true
+                        className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${editingBusiness.hasThirdPartyDesignee === true
                             ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
                             : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
-                        }`}
+                          }`}
                       >
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                          editingBusiness.hasThirdPartyDesignee === true
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${editingBusiness.hasThirdPartyDesignee === true
                             ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
                             : 'border-slate-300 bg-white'
-                        }`}>
+                          }`}>
                           {editingBusiness.hasThirdPartyDesignee === true && (
                             <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
                           )}
                         </div>
-                        <span className={`text-sm font-semibold ${
-                          editingBusiness.hasThirdPartyDesignee === true
+                        <span className={`text-sm font-semibold ${editingBusiness.hasThirdPartyDesignee === true
                             ? 'text-[var(--color-orange)]'
                             : 'text-slate-600'
-                        }`}>
+                          }`}>
                           Yes
                         </span>
                         {editingBusiness.hasThirdPartyDesignee === true && (
@@ -1506,7 +1494,7 @@ export default function BusinessesPage() {
                 <button
                   onClick={handleSaveEdit}
                   disabled={saving}
-                  className="flex-1 px-4 py-3 bg-[var(--color-orange)] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-soft)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 bg-[var(--color-orange)] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-hover)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {saving ? (
                     <>
@@ -1537,7 +1525,7 @@ export default function BusinessesPage() {
               </div>
 
               <p className="text-slate-700 mb-6">
-                Are you sure you want to delete <span className="font-bold">{deletingBusiness.businessName || 'this business'}</span>? 
+                Are you sure you want to delete <span className="font-bold">{deletingBusiness.businessName || 'this business'}</span>?
                 This will permanently remove all business information.
               </p>
 

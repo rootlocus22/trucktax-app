@@ -53,7 +53,7 @@ function MobilePricingSummary({
       // For VIN corrections and mileage exceeded, allow calculation even without vehicles
       const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
       const isMileageExceeded = filingType === 'amendment' && amendmentType === 'mileage_exceeded';
-      
+
       if (!filingType || (selectedVehicleIds.length === 0 && !isVinCorrection && !isMileageExceeded)) {
         setPricing({
           totalTax: 0,
@@ -117,14 +117,14 @@ function MobilePricingSummary({
         // For VIN corrections and mileage exceeded, vehicles array can be empty
         const sanitizedVehicles = selectedVehiclesList.length > 0
           ? selectedVehiclesList.map(v => ({
-              id: v.id,
-              vin: v.vin,
-              grossWeightCategory: v.grossWeightCategory,
-              isSuspended: v.isSuspended || false,
-              vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
-              logging: v.logging !== undefined ? v.logging : null,
-              creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
-            }))
+            id: v.id,
+            vin: v.vin,
+            grossWeightCategory: v.grossWeightCategory,
+            isSuspended: v.isSuspended || false,
+            vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
+            logging: v.logging !== undefined ? v.logging : null,
+            creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
+          }))
           : []; // Empty array for VIN corrections and mileage exceeded with no vehicles
 
         const { calculateFilingCost } = await import('@/app/actions/pricing');
@@ -197,7 +197,7 @@ function MobilePricingSummary({
               <button
                 onClick={onSubmit}
                 disabled={loading || !hasData}
-                className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-[var(--color-orange)] text-white rounded-lg text-xs sm:text-sm font-bold hover:bg-[#ff7a20] active:scale-95 transition touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-1.5 sm:gap-2"
+                className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-[var(--color-orange)] text-white rounded-lg text-xs sm:text-sm font-bold hover:bg-[var(--color-orange-hover)] active:scale-95 transition touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-1.5 sm:gap-2"
               >
                 {loading ? (
                   <>
@@ -617,7 +617,7 @@ function NewFilingContent() {
       const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
       const isMileageExceeded = filingType === 'amendment' && amendmentType === 'mileage_exceeded';
       const hasMileageExceededVehicle = isMileageExceeded && mileageExceededData?.vehicleId;
-      
+
       if (!filingType || (selectedVehicleIds.length === 0 && !isVinCorrection && !hasMileageExceededVehicle)) {
         setPricing({
           totalTax: 0,
@@ -667,11 +667,11 @@ function NewFilingContent() {
             // "the month the vehicle was first used in the tax period" (from original filing)
             // See IRS Form 2290 Instructions (Rev. July 2025), page 7
             const vehicle = vehicles.find(v => v.id === mileageExceededData.vehicleId);
-            
+
             // Use firstUsedMonth from user input (they provide it from their original filing)
             // If not provided, try to use from current filing data, otherwise default to 'July'
             const firstUsedMonth = mileageExceededData.firstUsedMonth || filingData.firstUsedMonth || 'July';
-            
+
             amendmentDataForPricing = {
               vehicleCategory: vehicle?.grossWeightCategory || '',
               firstUsedMonth: firstUsedMonth,
@@ -690,16 +690,16 @@ function NewFilingContent() {
         // Sanitize vehicles to remove complex objects (like Firestore Timestamps)
         // Include vehicleType, logging, and creditDate for proper tax calculation
         // For VIN corrections and mileage exceeded, vehicles array can be empty
-        const sanitizedVehicles = selectedVehiclesList.length > 0 
+        const sanitizedVehicles = selectedVehiclesList.length > 0
           ? selectedVehiclesList.map(v => ({
-              id: v.id,
-              vin: v.vin,
-              grossWeightCategory: v.grossWeightCategory,
-              isSuspended: v.isSuspended || false,
-              vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
-              logging: v.logging !== undefined ? v.logging : null,
-              creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
-            }))
+            id: v.id,
+            vin: v.vin,
+            grossWeightCategory: v.grossWeightCategory,
+            isSuspended: v.isSuspended || false,
+            vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
+            logging: v.logging !== undefined ? v.logging : null,
+            creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
+          }))
           : []; // Empty array for VIN corrections and mileage exceeded with no vehicles
 
         const result = await calculateFilingCost(
@@ -2053,7 +2053,7 @@ function NewFilingContent() {
                       setError('');
                       setStep(2);
                     }}
-                    className="px-6 py-3 bg-[#ff8b3d] text-white rounded-xl font-semibold hover:bg-[#e57d36] transition shadow-sm"
+                    className="px-6 py-3 bg-[#ff8b3d] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-hover)] transition shadow-sm"
                   >
                     Next Step
                   </button>
@@ -2526,7 +2526,7 @@ function NewFilingContent() {
                       // The amendment details already captured all necessary information
                       setStep(5);
                     }}
-                    className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-2 bg-[#ff8b3d] text-white rounded-xl text-sm sm:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition shadow-sm touch-manipulation"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-2 bg-[#ff8b3d] text-white rounded-xl text-sm sm:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-sm touch-manipulation"
                   >
                     Next Step
                   </button>
@@ -2980,7 +2980,7 @@ function NewFilingContent() {
                           }
                         }}
                         disabled={loading}
-                        className="w-full md:col-span-2 bg-[#ff8b3d] text-white py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition disabled:opacity-50 mt-2 sm:mt-4 shadow-sm touch-manipulation"
+                        className="w-full md:col-span-2 bg-[#ff8b3d] text-white py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition disabled:opacity-50 mt-2 sm:mt-4 shadow-sm touch-manipulation"
                       >
                         {loading ? 'Adding...' : 'Save & Add Business'}
                       </button>
@@ -3037,7 +3037,7 @@ function NewFilingContent() {
                       // All checks passed, proceed to next step
                       setStep(3);
                     }}
-                    className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-[#ff8b3d] text-white rounded-xl text-sm sm:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition shadow-sm touch-manipulation"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-[#ff8b3d] text-white rounded-xl text-sm sm:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-sm touch-manipulation"
                   >
                     Next Step
                   </button>
@@ -3718,7 +3718,7 @@ function NewFilingContent() {
                           // If failed, keep form open so user can fix errors
                         }}
                         disabled={loading}
-                        className="md:col-span-2 w-full bg-[#ff8b3d] text-white py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition disabled:opacity-50 mt-2 sm:mt-4 shadow-sm touch-manipulation"
+                        className="md:col-span-2 w-full bg-[#ff8b3d] text-white py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition disabled:opacity-50 mt-2 sm:mt-4 shadow-sm touch-manipulation"
                       >
                         {loading ? 'Adding...' : 'Add Vehicle'}
                       </button>
@@ -3746,7 +3746,7 @@ function NewFilingContent() {
                         setError(`To proceed with your ${filingTypeLabel}, please select at least one vehicle from the list above or add a new vehicle using the "Add Vehicle" button.`);
                       }
                     }}
-                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-2 bg-[#ff8b3d] text-white rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition shadow-sm touch-manipulation"
+                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-2 bg-[#ff8b3d] text-white rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-sm touch-manipulation"
                   >
                     Next Step
                   </button>
@@ -3842,7 +3842,7 @@ function NewFilingContent() {
                       }
                       setStep(5);
                     }}
-                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-2 bg-[#ff8b3d] text-white rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-semibold hover:bg-[#e57d36] active:scale-95 transition shadow-sm touch-manipulation"
+                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-2 bg-[#ff8b3d] text-white rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-sm touch-manipulation"
                   >
                     Review & Pay
                   </button>
@@ -4293,7 +4293,7 @@ function NewFilingContent() {
                   <button
                     onClick={initiatePaymentFlow}
                     disabled={loading}
-                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50"
+                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50"
                   >
                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Continue Filing'}
                   </button>
@@ -4311,16 +4311,16 @@ function NewFilingContent() {
                     <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--color-text)]">Payment Methods</h2>
                   </div>
                   <p className="text-sm sm:text-base text-[var(--color-muted)] ml-13">
-                    {(filingType === 'amendment' && amendmentType === 'vin_correction') || 
-                     (filingType === 'amendment' && amendmentType === 'mileage_exceeded' && (pricing?.totalTax || 0) === 0)
-                      ? 'Complete the service fee payment below to proceed with your filing' 
+                    {(filingType === 'amendment' && amendmentType === 'vin_correction') ||
+                      (filingType === 'amendment' && amendmentType === 'mileage_exceeded' && (pricing?.totalTax || 0) === 0)
+                      ? 'Complete the service fee payment below to proceed with your filing'
                       : 'Complete both payment sections to proceed with your filing'}
                   </p>
                 </div>
 
                 <div className="space-y-6 sm:space-y-8">
                   {/* Section 1: IRS Payment Method - Only show if tax is due */}
-                  {((filingType === 'amendment' && amendmentType === 'vin_correction') || 
+                  {((filingType === 'amendment' && amendmentType === 'vin_correction') ||
                     (filingType === 'amendment' && amendmentType === 'mileage_exceeded' && (pricing?.totalTax || 0) === 0)) ? (
                     <div className="border-2 border-blue-200 rounded-xl p-4 sm:p-6 bg-blue-50/30">
                       <div className="flex items-center gap-2 mb-4">
@@ -4335,7 +4335,7 @@ function NewFilingContent() {
                             <div>
                               <p className="text-sm font-semibold text-green-900 mb-1">No IRS Payment Required</p>
                               <p className="text-sm text-green-800">
-                                {amendmentType === 'vin_correction' 
+                                {amendmentType === 'vin_correction'
                                   ? 'VIN corrections are FREE with no additional HVUT tax due. You only need to pay the service fee below.'
                                   : 'For this mileage exceeded amendment, no additional HVUT tax is due. You only need to pay the service fee below.'}
                               </p>
@@ -4355,216 +4355,216 @@ function NewFilingContent() {
                         <p className="text-sm text-blue-800 mb-4 ml-0 sm:ml-10">Choose how you'd like to pay the IRS tax amount (${pricing.totalTax?.toFixed(2) || '0.00'})</p>
                         <div className="space-y-3 sm:space-y-4 ml-0 sm:ml-10">
                           {/* Option 1: EFW (Electronic Fund Withdrawal) */}
-                      <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'efw' ? 'border-green-500 bg-green-50' : 'border-slate-200 hover:border-green-300'}`}>
-                        <label className="flex items-start gap-3 cursor-pointer w-full">
-                          <input
-                            type="radio"
-                            name="irsPaymentMethod"
-                            value="efw"
-                            checked={irsPaymentMethod === 'efw'}
-                            onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                            className="mt-1 w-5 h-5 text-green-600"
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="font-bold text-base sm:text-lg">Option 1: EFW (Electronic Fund Withdrawal)</span>
-                              {irsPaymentMethod === 'efw' && <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />}
-                            </div>
-                            <p className="text-sm text-slate-600 mb-2">Direct bank withdrawal - Free & Fast (Recommended)</p>
-                            {irsPaymentMethod === 'efw' && (
-                              <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-2">
-                                <div>
-                                  <label className="block text-sm font-medium mb-1">
-                                    Routing Number <span className="text-red-500">*</span>
-                                    <Info className="w-4 h-4 inline ml-1 text-slate-400" />
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={bankDetails.routingNumber}
-                                    onChange={(e) => setBankDetails({ ...bankDetails, routingNumber: e.target.value.replace(/\D/g, '').slice(0, 9) })}
-                                    placeholder="Enter Routing Number*"
-                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                    maxLength="9"
-                                  />
+                          <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'efw' ? 'border-green-500 bg-green-50' : 'border-slate-200 hover:border-green-300'}`}>
+                            <label className="flex items-start gap-3 cursor-pointer w-full">
+                              <input
+                                type="radio"
+                                name="irsPaymentMethod"
+                                value="efw"
+                                checked={irsPaymentMethod === 'efw'}
+                                onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                                className="mt-1 w-5 h-5 text-green-600"
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="font-bold text-base sm:text-lg">Option 1: EFW (Electronic Fund Withdrawal)</span>
+                                  {irsPaymentMethod === 'efw' && <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />}
                                 </div>
-                                <div>
-                                  <label className="block text-sm font-medium mb-1">
-                                    Account Number <span className="text-red-500">*</span>
-                                    <Info className="w-4 h-4 inline ml-1 text-slate-400" />
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={bankDetails.accountNumber}
-                                    onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value.replace(/\D/g, '') })}
-                                    placeholder="Enter Account Number*"
-                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium mb-1">
-                                    Confirm Account Number <span className="text-red-500">*</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={bankDetails.confirmAccountNumber}
-                                    onChange={(e) => setBankDetails({ ...bankDetails, confirmAccountNumber: e.target.value.replace(/\D/g, '') })}
-                                    placeholder="Re-enter Account Number*"
-                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                  />
-                                  {bankDetails.accountNumber && bankDetails.confirmAccountNumber && bankDetails.accountNumber !== bankDetails.confirmAccountNumber && (
-                                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">Account numbers do not match</span>
-                                    </p>
-                                  )}
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium mb-1">
-                                    Account Type <span className="text-red-500">*</span>
-                                  </label>
-                                  <select
-                                    value={bankDetails.accountType}
-                                    onChange={(e) => setBankDetails({ ...bankDetails, accountType: e.target.value })}
-                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                  >
-                                    <option value="">Select the Account Type*</option>
-                                    <option value="checking">Checking</option>
-                                    <option value="savings">Savings</option>
-                                  </select>
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium mb-1">
-                                    Phone Number <span className="text-[var(--color-orange)]">*</span>
-                                  </label>
-                                  <input
-                                    type="tel"
-                                    value={bankDetails.phoneNumber}
-                                    onChange={(e) => {
-                                      const value = e.target.value.replace(/\D/g, '').slice(0, 11);
-                                      setBankDetails({ ...bankDetails, phoneNumber: value });
-                                      // Clear error when user starts typing
-                                      if (bankDetailsErrors.phoneNumber) {
-                                        setBankDetailsErrors({ ...bankDetailsErrors, phoneNumber: '' });
-                                      }
-                                    }}
-                                    placeholder="(555) 123-4567"
-                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] ${bankDetailsErrors.phoneNumber ? 'border-red-500' : 'border-slate-300'}`}
-                                  />
-                                  {bankDetailsErrors.phoneNumber && (
-                                    <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{bankDetailsErrors.phoneNumber}</span>
-                                    </p>
-                                  )}
-                                </div>
-                                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
-                                  <p className="text-xs sm:text-sm text-red-700">
-                                    <strong>Notice:</strong> The IRS will automatically deduct the tax amount payable directly from your account after your filing is accepted.
-                                  </p>
-                                  <div className="mt-2 flex items-center gap-2">
-                                    <ShieldCheck className="w-4 h-4 text-green-600" />
-                                    <span className="text-xs text-green-700 font-semibold">Ident Trust Secured</span>
+                                <p className="text-sm text-slate-600 mb-2">Direct bank withdrawal - Free & Fast (Recommended)</p>
+                                {irsPaymentMethod === 'efw' && (
+                                  <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-2">
+                                    <div>
+                                      <label className="block text-sm font-medium mb-1">
+                                        Routing Number <span className="text-red-500">*</span>
+                                        <Info className="w-4 h-4 inline ml-1 text-slate-400" />
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={bankDetails.routingNumber}
+                                        onChange={(e) => setBankDetails({ ...bankDetails, routingNumber: e.target.value.replace(/\D/g, '').slice(0, 9) })}
+                                        placeholder="Enter Routing Number*"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                        maxLength="9"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium mb-1">
+                                        Account Number <span className="text-red-500">*</span>
+                                        <Info className="w-4 h-4 inline ml-1 text-slate-400" />
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={bankDetails.accountNumber}
+                                        onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value.replace(/\D/g, '') })}
+                                        placeholder="Enter Account Number*"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium mb-1">
+                                        Confirm Account Number <span className="text-red-500">*</span>
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={bankDetails.confirmAccountNumber}
+                                        onChange={(e) => setBankDetails({ ...bankDetails, confirmAccountNumber: e.target.value.replace(/\D/g, '') })}
+                                        placeholder="Re-enter Account Number*"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                      />
+                                      {bankDetails.accountNumber && bankDetails.confirmAccountNumber && bankDetails.accountNumber !== bankDetails.confirmAccountNumber && (
+                                        <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                          <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">Account numbers do not match</span>
+                                        </p>
+                                      )}
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium mb-1">
+                                        Account Type <span className="text-red-500">*</span>
+                                      </label>
+                                      <select
+                                        value={bankDetails.accountType}
+                                        onChange={(e) => setBankDetails({ ...bankDetails, accountType: e.target.value })}
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                      >
+                                        <option value="">Select the Account Type*</option>
+                                        <option value="checking">Checking</option>
+                                        <option value="savings">Savings</option>
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium mb-1">
+                                        Phone Number <span className="text-[var(--color-orange)]">*</span>
+                                      </label>
+                                      <input
+                                        type="tel"
+                                        value={bankDetails.phoneNumber}
+                                        onChange={(e) => {
+                                          const value = e.target.value.replace(/\D/g, '').slice(0, 11);
+                                          setBankDetails({ ...bankDetails, phoneNumber: value });
+                                          // Clear error when user starts typing
+                                          if (bankDetailsErrors.phoneNumber) {
+                                            setBankDetailsErrors({ ...bankDetailsErrors, phoneNumber: '' });
+                                          }
+                                        }}
+                                        placeholder="(555) 123-4567"
+                                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] ${bankDetailsErrors.phoneNumber ? 'border-red-500' : 'border-slate-300'}`}
+                                      />
+                                      {bankDetailsErrors.phoneNumber && (
+                                        <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
+                                          <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{bankDetailsErrors.phoneNumber}</span>
+                                        </p>
+                                      )}
+                                    </div>
+                                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                                      <p className="text-xs sm:text-sm text-red-700">
+                                        <strong>Notice:</strong> The IRS will automatically deduct the tax amount payable directly from your account after your filing is accepted.
+                                      </p>
+                                      <div className="mt-2 flex items-center gap-2">
+                                        <ShieldCheck className="w-4 h-4 text-green-600" />
+                                        <span className="text-xs text-green-700 font-semibold">Ident Trust Secured</span>
+                                      </div>
+                                    </div>
                                   </div>
+                                )}
+                              </div>
+                            </label>
+                          </div>
+
+                          {/* Option 2: EFTPS */}
+                          <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'eftps' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300'}`}>
+                            <label className="flex items-start gap-3 cursor-pointer w-full">
+                              <input
+                                type="radio"
+                                name="irsPaymentMethod"
+                                value="eftps"
+                                checked={irsPaymentMethod === 'eftps'}
+                                onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                                className="mt-1 w-5 h-5 text-blue-600"
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="font-bold text-base sm:text-lg">Option 2: EFTPS</span>
+                                  {irsPaymentMethod === 'eftps' && <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />}
                                 </div>
+                                <p className="text-sm text-slate-600 mb-2">Electronic Federal Tax Payment System</p>
+                                {irsPaymentMethod === 'eftps' && (
+                                  <p className="text-sm text-slate-600 mt-2">
+                                    Once the IRS accepts your filing you will receive the payment link via email.
+                                  </p>
+                                )}
                               </div>
-                            )}
+                            </label>
                           </div>
-                        </label>
-                      </div>
 
-                      {/* Option 2: EFTPS */}
-                      <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'eftps' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300'}`}>
-                        <label className="flex items-start gap-3 cursor-pointer w-full">
-                          <input
-                            type="radio"
-                            name="irsPaymentMethod"
-                            value="eftps"
-                            checked={irsPaymentMethod === 'eftps'}
-                            onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                            className="mt-1 w-5 h-5 text-blue-600"
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="font-bold text-base sm:text-lg">Option 2: EFTPS</span>
-                              {irsPaymentMethod === 'eftps' && <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />}
-                            </div>
-                            <p className="text-sm text-slate-600 mb-2">Electronic Federal Tax Payment System</p>
-                            {irsPaymentMethod === 'eftps' && (
-                              <p className="text-sm text-slate-600 mt-2">
-                                Once the IRS accepts your filing you will receive the payment link via email.
-                              </p>
-                            )}
-                          </div>
-                        </label>
-                      </div>
-
-                      {/* Option 3: Credit or Debit Card */}
-                      <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'credit_card' ? 'border-purple-500 bg-purple-50' : 'border-slate-200 hover:border-purple-300'}`}>
-                        <label className="flex items-start gap-3 cursor-pointer w-full">
-                          <input
-                            type="radio"
-                            name="irsPaymentMethod"
-                            value="credit_card"
-                            checked={irsPaymentMethod === 'credit_card'}
-                            onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                            className="mt-1 w-5 h-5 text-purple-600"
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="font-bold text-base sm:text-lg">Option 3: Credit or Debit Card</span>
-                              {irsPaymentMethod === 'credit_card' && <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0" />}
-                            </div>
-                            <p className="text-sm text-slate-600 mb-2">Pay via credit/debit card (3rd party fee applies)</p>
-                            {irsPaymentMethod === 'credit_card' && (
-                              <div className="mt-3 space-y-2">
-                                <p className="text-sm text-slate-600">
-                                  Once the IRS accepts your filing, you will receive the payment link. The IRS uses service providers that may charge an additional service fee additional to the tax amount payable.
-                                </p>
-                                <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
-                                  <strong>Note:</strong> The IRS imposes a limit on the frequency of credit card payments for Form 2290.
-                                </p>
-                                <label className="flex items-center gap-2 mt-3">
-                                  <input type="checkbox" className="w-4 h-4" />
-                                  <span className="text-sm text-slate-600">
-                                    I understand that if I fail to pay the tax due within 10 business days, the IRS may assess penalties.
-                                  </span>
-                                </label>
-                              </div>
-                            )}
-                          </div>
-                        </label>
-                      </div>
-
-                      {/* Option 4: Check or Money Order */}
-                      <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'check' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-300'}`}>
-                        <label className="flex items-start gap-3 cursor-pointer w-full">
-                          <input
-                            type="radio"
-                            name="irsPaymentMethod"
-                            value="check"
-                            checked={irsPaymentMethod === 'check'}
-                            onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                            className="mt-1 w-5 h-5 text-orange-600"
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="font-bold text-base sm:text-lg">Option 4: Check or Money Order</span>
-                              {irsPaymentMethod === 'check' && <CheckCircle className="w-5 h-5 text-orange-600 flex-shrink-0" />}
-                            </div>
-                            <p className="text-sm text-slate-600 mb-2">Mail a check or money order with voucher</p>
-                            {irsPaymentMethod === 'check' && (
-                              <div className="mt-3 space-y-2 text-sm text-slate-600">
-                                <p>
-                                  Make the tax amount payable to the 'United States Treasury'. Please mention your EIN, phone number, and 'Form 2290' on the money order/check. Print your money order voucher, enclose it, and mail it to:
-                                </p>
-                                <div className="bg-white p-3 rounded border border-slate-200 font-mono text-sm">
-                                  Internal Revenue Service<br />
-                                  P.O. Box 932500<br />
-                                  Louisville, KY 40293-2500
+                          {/* Option 3: Credit or Debit Card */}
+                          <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'credit_card' ? 'border-purple-500 bg-purple-50' : 'border-slate-200 hover:border-purple-300'}`}>
+                            <label className="flex items-start gap-3 cursor-pointer w-full">
+                              <input
+                                type="radio"
+                                name="irsPaymentMethod"
+                                value="credit_card"
+                                checked={irsPaymentMethod === 'credit_card'}
+                                onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                                className="mt-1 w-5 h-5 text-purple-600"
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="font-bold text-base sm:text-lg">Option 3: Credit or Debit Card</span>
+                                  {irsPaymentMethod === 'credit_card' && <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0" />}
                                 </div>
+                                <p className="text-sm text-slate-600 mb-2">Pay via credit/debit card (3rd party fee applies)</p>
+                                {irsPaymentMethod === 'credit_card' && (
+                                  <div className="mt-3 space-y-2">
+                                    <p className="text-sm text-slate-600">
+                                      Once the IRS accepts your filing, you will receive the payment link. The IRS uses service providers that may charge an additional service fee additional to the tax amount payable.
+                                    </p>
+                                    <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
+                                      <strong>Note:</strong> The IRS imposes a limit on the frequency of credit card payments for Form 2290.
+                                    </p>
+                                    <label className="flex items-center gap-2 mt-3">
+                                      <input type="checkbox" className="w-4 h-4" />
+                                      <span className="text-sm text-slate-600">
+                                        I understand that if I fail to pay the tax due within 10 business days, the IRS may assess penalties.
+                                      </span>
+                                    </label>
+                                  </div>
+                                )}
                               </div>
-                            )}
+                            </label>
                           </div>
-                        </label>
-                      </div>
+
+                          {/* Option 4: Check or Money Order */}
+                          <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'check' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-300'}`}>
+                            <label className="flex items-start gap-3 cursor-pointer w-full">
+                              <input
+                                type="radio"
+                                name="irsPaymentMethod"
+                                value="check"
+                                checked={irsPaymentMethod === 'check'}
+                                onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                                className="mt-1 w-5 h-5 text-orange-600"
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="font-bold text-base sm:text-lg">Option 4: Check or Money Order</span>
+                                  {irsPaymentMethod === 'check' && <CheckCircle className="w-5 h-5 text-orange-600 flex-shrink-0" />}
+                                </div>
+                                <p className="text-sm text-slate-600 mb-2">Mail a check or money order with voucher</p>
+                                {irsPaymentMethod === 'check' && (
+                                  <div className="mt-3 space-y-2 text-sm text-slate-600">
+                                    <p>
+                                      Make the tax amount payable to the 'United States Treasury'. Please mention your EIN, phone number, and 'Form 2290' on the money order/check. Print your money order voucher, enclose it, and mail it to:
+                                    </p>
+                                    <div className="bg-white p-3 rounded border border-slate-200 font-mono text-sm">
+                                      Internal Revenue Service<br />
+                                      P.O. Box 932500<br />
+                                      Louisville, KY 40293-2500
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </label>
+                          </div>
                         </div>
                       </>
                     </div>
@@ -4660,7 +4660,7 @@ function NewFilingContent() {
                         !serviceFeePaid ||
                         (irsPaymentMethod === 'efw' && (!bankDetails.routingNumber || !bankDetails.accountNumber || !bankDetails.confirmAccountNumber || !bankDetails.accountType || !bankDetails.phoneNumber || bankDetails.accountNumber !== bankDetails.confirmAccountNumber))
                       }
-                      className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[#ff7a20] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                      className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
                     >
                       {loading ? (
                         <>
