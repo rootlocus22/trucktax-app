@@ -276,7 +276,7 @@ function MobilePricingSummary({
                 )}
                 {filingType === 'amendment' && amendmentType === 'vin_correction' && (
                   <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded text-emerald-700">
-                    <span className="font-medium">VIN corrections are FREE</span>
+                    <span className="font-medium">VIN corrections: $10 service fee (No IRS tax)</span>
                   </div>
                 )}
               </>
@@ -589,7 +589,9 @@ function NewFilingContent() {
   useEffect(() => {
     const fetchPricing = async () => {
       // Calculate pricing when we have minimum data (filing type and at least one vehicle selected)
-      if (!filingType || selectedVehicleIds.length === 0) {
+      // Exception: VIN corrections don't require vehicles, so allow pricing calculation
+      const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
+      if (!filingType || (selectedVehicleIds.length === 0 && !isVinCorrection)) {
         setPricing({
           totalTax: 0,
           serviceFee: 0,
@@ -652,15 +654,18 @@ function NewFilingContent() {
 
         // Sanitize vehicles to remove complex objects (like Firestore Timestamps)
         // Include vehicleType, logging, and creditDate for proper tax calculation
-        const sanitizedVehicles = selectedVehiclesList.map(v => ({
-          id: v.id,
-          vin: v.vin,
-          grossWeightCategory: v.grossWeightCategory,
-          isSuspended: v.isSuspended || false,
-          vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
-          logging: v.logging !== undefined ? v.logging : null,
-          creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
-        }));
+        // For VIN corrections, vehicles array can be empty
+        const sanitizedVehicles = selectedVehiclesList.length > 0 
+          ? selectedVehiclesList.map(v => ({
+              id: v.id,
+              vin: v.vin,
+              grossWeightCategory: v.grossWeightCategory,
+              isSuspended: v.isSuspended || false,
+              vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
+              logging: v.logging !== undefined ? v.logging : null,
+              creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
+            }))
+          : []; // Empty array for VIN corrections with no vehicles
 
         const result = await calculateFilingCost(
           filingDataForPricing,
@@ -1375,8 +1380,9 @@ function NewFilingContent() {
         return;
       }
 
-      // Validate IRS payment method selection (Step 6)
-      if (!irsPaymentMethod) {
+      // Validate IRS payment method selection (Step 6) - only required if there's tax due
+      const totalTaxDue = pricing?.totalTax || 0;
+      if (!irsPaymentMethod && totalTaxDue > 0) {
         setError('Please select an IRS payment method for the tax amount. This is required to submit your filing to the IRS.');
         setLoading(false);
         return;
@@ -1389,8 +1395,8 @@ function NewFilingContent() {
         return;
       }
 
-      // Validate bank details if EFW is selected
-      if (irsPaymentMethod === 'efw') {
+      // Validate bank details if EFW is selected (only if there's tax due)
+      if (irsPaymentMethod === 'efw' && totalTaxDue > 0) {
         if (!bankDetails.routingNumber || !bankDetails.accountNumber || !bankDetails.confirmAccountNumber || !bankDetails.accountType || !bankDetails.phoneNumber) {
           const missingFields = [];
           if (!bankDetails.routingNumber) missingFields.push('Routing Number');
@@ -4217,7 +4223,11 @@ function NewFilingContent() {
                     <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-orange)] text-white font-bold text-lg">6</div>
                     <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--color-text)]">Payment Methods</h2>
                   </div>
-                  <p className="text-sm sm:text-base text-[var(--color-muted)] ml-13">Complete both payment sections to proceed with your filing</p>
+                  <p className="text-sm sm:text-base text-[var(--color-muted)] ml-13">
+                    {filingType === 'amendment' && amendmentType === 'vin_correction' 
+                      ? 'Complete the service fee payment below to proceed with your filing' 
+                      : 'Complete both payment sections to proceed with your filing'}
+                  </p>
                 </div>
 
                 <div className="space-y-6 sm:space-y-8">
@@ -4226,12 +4236,31 @@ function NewFilingContent() {
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">1</div>
                       <h3 className="text-lg sm:text-xl font-bold text-blue-900">IRS Tax Payment</h3>
-                      <span className="text-xs sm:text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded">Required</span>
+                      {filingType === 'amendment' && amendmentType === 'vin_correction' ? (
+                        <span className="text-xs sm:text-sm text-green-700 bg-green-100 px-2 py-1 rounded">Not Required</span>
+                      ) : (
+                        <span className="text-xs sm:text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded">Required</span>
+                      )}
                     </div>
-                    <p className="text-sm text-blue-800 mb-4 ml-0 sm:ml-10">Choose how you'd like to pay the IRS tax amount (${pricing.totalTax?.toFixed(2) || '0.00'})</p>
-
-                    <div className="space-y-3 sm:space-y-4 ml-0 sm:ml-10">
-                      {/* Option 1: EFW (Electronic Fund Withdrawal) */}
+                    {filingType === 'amendment' && amendmentType === 'vin_correction' ? (
+                      <div className="ml-0 sm:ml-10">
+                        <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 mb-4">
+                          <div className="flex items-start gap-3">
+                            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-semibold text-green-900 mb-1">No IRS Payment Required</p>
+                              <p className="text-sm text-green-800">
+                                VIN corrections are FREE with no additional HVUT tax due. You only need to pay the service fee below.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm text-blue-800 mb-4 ml-0 sm:ml-10">Choose how you'd like to pay the IRS tax amount (${pricing.totalTax?.toFixed(2) || '0.00'})</p>
+                        <div className="space-y-3 sm:space-y-4 ml-0 sm:ml-10">
+                          {/* Option 1: EFW (Electronic Fund Withdrawal) */}
                       <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'efw' ? 'border-green-500 bg-green-50' : 'border-slate-200 hover:border-green-300'}`}>
                         <label className="flex items-start gap-3 cursor-pointer w-full">
                           <input
@@ -4442,7 +4471,9 @@ function NewFilingContent() {
                           </div>
                         </label>
                       </div>
-                    </div>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Section 2: Service Fee Payment */}
@@ -4503,7 +4534,7 @@ function NewFilingContent() {
                       onClick={handleSubmit}
                       disabled={
                         loading ||
-                        !irsPaymentMethod ||
+                        (!irsPaymentMethod && (pricing?.totalTax || 0) > 0) ||
                         !serviceFeePaid ||
                         (irsPaymentMethod === 'efw' && (!bankDetails.routingNumber || !bankDetails.accountNumber || !bankDetails.confirmAccountNumber || !bankDetails.accountType || !bankDetails.phoneNumber || bankDetails.accountNumber !== bankDetails.confirmAccountNumber))
                       }

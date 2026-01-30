@@ -139,9 +139,13 @@ function calculateCreditAmount(category, creditMonth, isLogging = false) {
  * - Multi (2-9): $29.99 (36.6% margin)
  * - Fleet (10-24): $25.99 (27.0% margin) - Raised from $24.99
  * - Enterprise (25+): $21.99 (13.6% margin) - Raised from $19.99 to protect against payment processing fees
+ * - VIN Correction Amendment: $10.00 (special pricing)
  */
-function calculateServiceFee(filingType, vehicleCount) {
-    if (filingType === 'amendment') return 0.00; // Amendments are free per IRS guidelines
+function calculateServiceFee(filingType, vehicleCount, amendmentType = null) {
+    // VIN corrections have a special $10 service fee
+    if (filingType === 'amendment' && amendmentType === 'vin_correction') return 10.00;
+    // Other amendments are free per IRS guidelines
+    if (filingType === 'amendment') return 0.00;
     if (filingType === 'refund') return 34.99;
 
     // Standard Filing - Tiered pricing structure
@@ -340,7 +344,8 @@ export async function calculateFilingCost(filingData, vehicles, businessAddress)
 
         // 2. Calculate Service Fee
         // Service fee is always charged based on total number of vehicles (all types)
-        const serviceFee = calculateServiceFee(filingData.filingType, vehicles.length);
+        // For VIN corrections, charge $10 regardless of vehicle count
+        const serviceFee = calculateServiceFee(filingData.filingType, vehicles.length, filingData.amendmentType);
         
         // Calculate bulk savings/discount for display purposes
         // Standard rate is single vehicle price ($34.99)

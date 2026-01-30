@@ -48,8 +48,21 @@ export function PricingSidebar({
 
   useEffect(() => {
     const fetchPricing = async () => {
+      // On step 6 (payment step), always use pricing prop if provided - skip internal calculation
+      if (step === 6 && pricing && pricing.totalTax !== undefined) {
+        return;
+      }
+      
+      // If pricing prop is provided and has been calculated (not just initial zeros), skip internal calculation
+      // For VIN corrections, always allow calculation since they might not have vehicles
+      const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
+      if (pricing && pricing.totalTax !== undefined && !isVinCorrection && (pricing.serviceFee > 0 || pricing.totalTax > 0 || pricing.totalRefund > 0)) {
+        return;
+      }
+
       // Don't calculate if we don't have minimum required data
-      if (!filingType || selectedVehicleIds.length === 0) {
+      // Exception: VIN corrections don't require vehicles, so allow pricing calculation
+      if (!filingType || (selectedVehicleIds.length === 0 && !isVinCorrection)) {
         setInternalPricing({
           totalTax: 0,
           serviceFee: 0,
@@ -109,15 +122,18 @@ export function PricingSidebar({
 
         // Sanitize vehicles to remove complex objects (like Firestore Timestamps)
         // Include vehicleType, logging, and creditDate for proper tax calculation
-        const sanitizedVehicles = selectedVehiclesList.map(v => ({
-          id: v.id,
-          vin: v.vin,
-          grossWeightCategory: v.grossWeightCategory,
-          isSuspended: v.isSuspended || false,
-          vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
-          logging: v.logging !== undefined ? v.logging : null,
-          creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
-        }));
+        // For VIN corrections, vehicles array can be empty
+        const sanitizedVehicles = selectedVehiclesList.length > 0
+          ? selectedVehiclesList.map(v => ({
+              id: v.id,
+              vin: v.vin,
+              grossWeightCategory: v.grossWeightCategory,
+              isSuspended: v.isSuspended || false,
+              vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
+              logging: v.logging !== undefined ? v.logging : null,
+              creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
+            }))
+          : []; // Empty array for VIN corrections with no vehicles
 
         const result = await calculateFilingCost(
           filingDataForPricing,
@@ -211,9 +227,11 @@ export function PricingSidebar({
     // Debounce pricing calculation
     const timeoutId = setTimeout(fetchPricing, 300);
     return () => clearTimeout(timeoutId);
-  }, [filingType, filingData, selectedVehicleIds, vehicles, selectedBusinessId, businesses, amendmentType, weightIncreaseData, mileageExceededData]);
+  }, [filingType, filingData, selectedVehicleIds, vehicles, selectedBusinessId, businesses, amendmentType, weightIncreaseData, mileageExceededData, pricing]);
 
-  const hasData = filingType && selectedVehicleIds.length > 0;
+  // For VIN corrections, hasData should be true even without vehicles
+  const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
+  const hasData = filingType && (selectedVehicleIds.length > 0 || isVinCorrection);
 
   return (
     <div className="sticky top-24 h-fit max-h-[calc(100vh-8rem)] flex flex-col">
@@ -511,7 +529,7 @@ export function PricingSidebar({
                   <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
                     <p className="text-xs text-emerald-700 font-medium flex items-center gap-1.5">
                       <CheckCircle className="w-3.5 h-3.5" />
-                      VIN corrections are FREE - No tax or service fee
+                      VIN corrections: $10 service fee (No IRS tax required)
                     </p>
                   </div>
                 </div>
