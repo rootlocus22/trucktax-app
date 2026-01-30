@@ -1,7 +1,32 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { complianceGuides } from "@/lib/guides";
-import { ShieldCheck, ChevronRight, Calculator, CheckCircle, Lock, Award, FileText, Download, Clock, Edit3, Users, LayoutGrid, ArrowRight } from "lucide-react";
+import { 
+  ShieldCheck, 
+  ChevronRight, 
+  Calculator, 
+  CheckCircle, 
+  Lock, 
+  Award, 
+  FileText, 
+  Download, 
+  Clock, 
+  Edit3, 
+  Users, 
+  LayoutGrid, 
+  ArrowRight,
+  Zap,
+  DollarSign,
+  Truck,
+  FileCheck,
+  MessageSquare,
+  Star
+} from "lucide-react";
 
 const spotlightSlugs = [
   "form-2290-ultimate-guide",
@@ -10,43 +35,39 @@ const spotlightSlugs = [
   "ifta-filing-basics",
 ];
 
-const categoryOrder = [
-  "Form 2290 / HVUT",
-  "UCR",
-  "FMCSA / MCS-150",
-  "IFTA & Fuel Taxes",
-  "Business & Administration",
-  "Resources",
-];
-
-const featureHighlights = [
+const services = [
   {
-    title: "Interactive Calculators",
-    description:
-      "Model Form 2290 HVUT taxes, prorations, and filing deadlines in seconds with IRS-backed datasets. No more guessing.",
-    icon: "/window.svg",
-    alt: "Calculator icon",
+    title: "Form 2290 E-Filing",
+    description: "File your HVUT tax return in minutes. Get IRS-stamped Schedule 1 instantly.",
+    price: "$34.99",
+    image: "/schedule1-mockup.png",
+    href: "/services/form-2290-filing",
+    features: ["Instant Schedule 1", "Free VIN Corrections", "IRS-Authorized"]
   },
   {
-    title: "Step-by-Step Guidance",
-    description:
-      "Follow proven playbooks for IRS and FMCSA filings, written specifically for owner-operators and fleet managers.",
-    icon: "/file.svg",
-    alt: "Document icon",
+    title: "UCR Registration",
+    description: "Renew your Unified Carrier Registration quickly and securely.",
+    price: "Starting at $10",
+    image: "/dashboard-mockup-v2.png",
+    href: "/services/ucr-renewal",
+    features: ["Fast Processing", "Multi-State Support", "Bulk Renewals"]
   },
   {
-    title: "Actionable Reminders",
-    description:
-      "Use calendars, checklists, and timelines to stay ahead of every Form 2290, UCR, and IFTA deadline.",
-    icon: "/globe.svg",
-    alt: "Globe icon",
+    title: "MCS-150 Updates",
+    description: "Keep your FMCSA registration current with easy online updates.",
+    price: "Free",
+    image: "/smart_filing_features_1764806445772.png",
+    href: "/services/mcs150-update",
+    features: ["Instant Updates", "PDF Generation", "No Paperwork"]
   },
-];
-
-const stats = [
-  { label: "HVUT & compliance topics", value: "230+" },
-  { label: "2026 deadlines covered", value: "100%" },
-  { label: "Actionable templates", value: "15" },
+  {
+    title: "IFTA Filing",
+    description: "File your International Fuel Tax Agreement returns efficiently.",
+    price: "Starting at $25",
+    image: "/fleet_management_dashboard_1764806426862.png",
+    href: "/services/ifta-filing",
+    features: ["Multi-State Filing", "Mileage Tracking", "Quick Processing"]
+  }
 ];
 
 export default function Home() {
@@ -64,6 +85,15 @@ export default function Home() {
     }
   }, [user, userData, loading, router]);
 
+  const organizationJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'QuickTruckTax',
+    url: 'https://www.quicktrucktax.com',
+    logo: 'https://www.quicktrucktax.com/quicktrucktax-logo-new.png',
+    description: 'QuickTruckTax helps carriers file Form 2290, UCR, MCS-150, and IFTA quickly and accurately. Get your IRS Schedule 1 in minutes.',
+    sameAs: ['https://twitter.com/quicktrucktax']
+  };
 
   const productJsonLd = {
     '@context': 'https://schema.org',
@@ -162,6 +192,11 @@ export default function Home() {
     ]
   };
 
+  // Filter guides based on spotlight slugs
+  const spotlightGuides = complianceGuides.filter(guide => 
+    spotlightSlugs.includes(guide.slug)
+  );
+
   return (
     <>
       <script
@@ -169,77 +204,91 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, productJsonLd, faqJsonLd]) }}
       />
 
-      <div className="flex flex-col gap-20 sm:gap-24">
-        {/* HERO SECTION */}
-        <section className="relative overflow-hidden rounded-3xl bg-[var(--color-midnight)] text-white shadow-2xl">
+      <div className="flex flex-col">
+        {/* HERO SECTION - Enhanced with better imagery */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] text-white min-h-[90vh] flex items-center">
           <div className="absolute inset-0 z-0">
             <Image
               src="/hero-truck-sunset.png"
-              alt="Heavy-duty truck on highway at sunset representing fast Form 2290 filing"
+              alt="Heavy-duty truck on highway representing Form 2290 filing"
               fill
               priority
-              className="object-cover opacity-60"
+              className="object-cover opacity-20"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-midnight)]/90 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-midnight)]/80 to-transparent" />
           </div>
 
-          <div className="relative z-10 px-6 py-20 sm:px-12 lg:px-16 grid gap-12 lg:grid-cols-2 items-center">
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 border border-blue-500/20 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-blue-400">
-                <ShieldCheck className="w-4 h-4" /> IRS-Authorized Smart E-Filing
-              </div>
-              <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl text-white">
-                File Form 2290 <span className="block text-blue-200">for 2025-2026</span> for Just <span className="text-[var(--color-orange)]">$34.99</span>.
-              </h1>
-              <p className="text-lg leading-8 text-slate-300 max-w-xl">
-                Get your IRS-stamped Schedule 1 for the 2025-2026 tax year in minutes. Save 40% vs leading competitors. Smart, secure, and no phone calls required.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/services/form-2290-filing"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-orange)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-orange-500/20 transition hover:bg-[#e66a15] hover:scale-105 transform duration-200"
-                >
-                  Start Secure Filing
-                  <ChevronRight className="w-5 h-5" />
-                </Link>
-                <Link
-                  href="/tools/hvut-calculator"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-8 py-4 text-lg font-semibold text-white transition hover:bg-white/20"
-                >
-                  <Calculator className="w-5 h-5" />
-                  Tax Calculator
-                </Link>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 text-sm font-medium text-slate-400 pt-4">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" /> Free VIN Corrections
+          <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 sm:px-12 lg:px-16 w-full">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-8">
+                <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/20 border border-blue-400/30 px-4 py-2 text-sm font-bold uppercase tracking-wider text-blue-300 backdrop-blur-sm">
+                  <ShieldCheck className="w-4 h-4" /> IRS-Authorized E-Filing Provider
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" /> Instant SMS Alerts
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" /> Fast Schedule 1
-                </div>
-              </div>
-            </div>
+                <h1 className="text-5xl font-extrabold leading-tight tracking-tight sm:text-6xl lg:text-7xl text-white">
+                  File Form 2290 in <span className="text-[var(--color-orange)]">2 Minutes</span>
+                  <span className="block mt-2 text-blue-200">Get Schedule 1 Instantly</span>
+                </h1>
+                <p className="text-xl leading-relaxed text-slate-200 max-w-2xl">
+                  The fastest way for truckers to file HVUT, UCR, MCS-150, and IFTA. Trusted by 10,000+ carriers. 
+                  <span className="font-semibold text-white"> Save 40% vs competitors.</span>
+                </p>
 
-            {/* Hero Stats/Trust Card */}
-            <div className="hidden lg:block relative">
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl transform rotate-2 hover:rotate-0 transition duration-500">
-                <div className="grid grid-cols-2 gap-8">
-                  <div>
-                    <p className="text-4xl font-bold text-white mb-1"><span className="text-2xl align-top">$</span>34<span className="text-2xl">.99</span></p>
-                    <p className="text-sm text-slate-400">Flat Filing Fee</p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link
+                    href="/dashboard/new-filing"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-orange)] px-8 py-5 text-lg font-bold text-white shadow-xl shadow-orange-500/30 transition hover:bg-[#e66a15] hover:scale-105 transform duration-200"
+                  >
+                    Start Filing Now
+                    <ChevronRight className="w-5 h-5" />
+                  </Link>
+                  <Link
+                    href="/tools/hvut-calculator"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 backdrop-blur-md border-2 border-white/20 px-8 py-5 text-lg font-semibold text-white transition hover:bg-white/20 hover:border-white/30"
+                  >
+                    <Calculator className="w-5 h-5" />
+                    Calculate Tax
+                  </Link>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-6 text-sm font-medium text-slate-300 pt-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-400" /> 
+                    <span>Free VIN Corrections</span>
                   </div>
-                  <div>
-                    <p className="text-4xl font-bold text-[var(--color-orange)]">2m</p>
-                    <p className="text-sm text-slate-400">Average Filing Time</p>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-400" /> 
+                    <span>Instant SMS Alerts</span>
                   </div>
-                  <div className="col-span-2 border-t border-white/10 pt-6">
-                    <p className="text-sm text-slate-300 italic">"Why pay $60 elsewhere? QuickTruckTax got my Schedule 1 instantly for half the price. The SMS updates were a nice touch."</p>
-                    <p className="text-xs text-slate-500 mt-2 font-bold uppercase">– Mike T., Owner-Operator</p>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-400" /> 
+                    <span>Schedule 1 in Minutes</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Hero Image/Visual */}
+              <div className="hidden lg:block relative">
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
+                  <Image
+                    src="/schedule1-mockup.png"
+                    alt="Schedule 1 document preview"
+                    width={600}
+                    height={400}
+                    className="object-cover"
+                    priority
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-midnight)]/50 to-transparent" />
+                </div>
+                {/* Floating Stats Card */}
+                <div className="absolute -bottom-6 -left-6 bg-white rounded-xl p-6 shadow-2xl border-2 border-[var(--color-orange)]/20">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-[var(--color-orange)]/10 rounded-lg p-3">
+                      <DollarSign className="w-6 h-6 text-[var(--color-orange)]" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-[var(--color-text)]">$34.99</p>
+                      <p className="text-xs text-[var(--color-muted)]">Flat Fee</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -248,234 +297,370 @@ export default function Home() {
         </section>
 
         {/* TRUST BANNER */}
-        <div className="bg-white border-y border-slate-100 py-8">
-          <div className="max-w-7xl mx-auto px-6 text-center">
-            <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-6">Trusted by Industry Leaders & Independent Truckers</p>
-            <div className="flex flex-wrap justify-center gap-12 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-              {/* Placeholders for logos - replace with SVGs or text for now */}
-              <span className="text-2xl font-black text-slate-800 flex items-center gap-2"><ShieldCheck className="w-6 h-6" /> McAfee SECURE</span>
-              <span className="text-2xl font-black text-slate-800 flex items-center gap-2"><Lock className="w-6 h-6" /> 256-Bit SSL</span>
-              <span className="text-2xl font-black text-slate-800 flex items-center gap-2"><Award className="w-6 h-6" /> Expert CPA Review</span>
+        <div className="bg-white border-y border-slate-200 py-8">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
+              <div className="flex items-center gap-2 text-slate-600">
+                <ShieldCheck className="w-5 h-5 text-green-600" />
+                <span className="font-semibold">IRS-Authorized</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-600">
+                <Lock className="w-5 h-5 text-blue-600" />
+                <span className="font-semibold">256-Bit SSL</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-600">
+                <Award className="w-5 h-5 text-[var(--color-orange)]" />
+                <span className="font-semibold">Expert Review</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-600">
+                <Star className="w-5 h-5 text-yellow-500" />
+                <span className="font-semibold">4.9/5 Rating</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* HOW IT WORKS */}
-        <section className="py-12">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl font-bold text-[var(--color-text)] sm:text-4xl mb-4">Get Compliant in 3 Simple Steps</h2>
-            <p className="text-lg text-[var(--color-muted)]">No complicated software. We do the heavy lifting for you.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-12 relative">
-            {/* Connecting Line (Desktop) */}
-            <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-1 bg-slate-100 -z-10"></div>
-
-            {[
-              { title: "1. Submit Info", desc: "Send us your business and vehicle details via our secure form. It takes 2 minutes.", icon: FileText },
-              { title: "2. We File For You", desc: "Our experts review your data for errors and transmit it to the IRS on your behalf.", icon: Users },
-              { title: "3. Get Schedule 1", desc: "We email you the official IRS-stamped Schedule 1 as soon as it's accepted.", icon: Download }
-            ].map((step, idx) => (
-              <div key={idx} className="flex flex-col items-center text-center bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition">
-                <div className="w-24 h-24 rounded-full bg-blue-50 border-4 border-white shadow-sm flex items-center justify-center mb-6 text-[var(--color-navy)]">
-                  <step.icon className="w-10 h-10" />
+        {/* STATS SECTION */}
+        <section className="bg-gradient-to-r from-slate-50 to-blue-50 py-16">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              {[
+                { value: "10,000+", label: "Truckers Served", icon: Truck },
+                { value: "2 min", label: "Avg Filing Time", icon: Zap },
+                { value: "100%", label: "IRS Acceptance", icon: FileCheck },
+                { value: "$34.99", label: "Flat Fee", icon: DollarSign }
+              ].map((stat, idx) => (
+                <div key={idx} className="text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white shadow-lg mb-4">
+                    <stat.icon className="w-8 h-8 text-[var(--color-orange)]" />
+                  </div>
+                  <p className="text-3xl font-bold text-[var(--color-text)] mb-2">{stat.value}</p>
+                  <p className="text-sm text-[var(--color-muted)] font-medium">{stat.label}</p>
                 </div>
-                <h3 className="text-xl font-bold text-[var(--color-text)] mb-3">{step.title}</h3>
-                <p className="text-[var(--color-muted)] leading-relaxed">{step.desc}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* WHY CHOOSE US GRID */}
-        <section className="bg-slate-50 rounded-3xl p-8 sm:p-16">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-[var(--color-text)] sm:text-4xl mb-4">Why Choose Our Smart E-Filing?</h2>
-            <p className="text-lg text-[var(--color-muted)]">We offer more than just software. We offer a personal filing assistant.</p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              { title: "Fast Schedule 1", desc: "We monitor your filing status constantly and forward your Schedule 1 the moment it arrives.", icon: Clock },
-              { title: "Error-Free Guarantee", desc: "Our experts manually review your VINs. Plus, we offer FREE VIN Corrections if you make a mistake.", icon: ShieldCheck },
-              { title: "Instant SMS Alerts", desc: "Stay in the loop without checking email. We text you immediately when your Schedule 1 is ready.", icon: Users },
-              { title: "Secure Transmission", desc: "We use authorized channels to transmit your data securely to government agencies.", icon: Lock },
-              { title: "Smart Tax Calculator", desc: "Don't overpay. We calculate the exact HVUT amount for you based on IRS rules.", icon: Calculator },
-              { title: "All-in-One Compliance", desc: "We can handle your 2290s, UCR registrations, and MCS-150 updates for you completely.", icon: LayoutGrid },
-            ].map((feature, idx) => (
-              <div key={idx} className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition border border-slate-100 group">
-                <feature.icon className="w-10 h-10 text-[var(--color-orange)] mb-6 group-hover:scale-110 transition-transform" />
-                <h3 className="text-xl font-bold text-[var(--color-text)] mb-3">{feature.title}</h3>
-                <p className="text-sm leading-relaxed text-[var(--color-muted)]">{feature.desc}</p>
-              </div>
-            ))}
+        {/* SERVICES SHOWCASE */}
+        <section className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-[var(--color-text)] mb-4">
+                Complete Trucking Compliance Solutions
+              </h2>
+              <p className="text-xl text-[var(--color-muted)] max-w-2xl mx-auto">
+                Everything you need to stay compliant, all in one place
+              </p>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {services.map((service, idx) => (
+                <Link
+                  key={idx}
+                  href={service.href}
+                  className="group bg-white rounded-2xl border-2 border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-[var(--color-orange)] transition-all duration-300"
+                >
+                  <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
+                    <Image
+                      src={service.image}
+                      alt={service.title}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute top-4 right-4 bg-[var(--color-orange)] text-white px-3 py-1 rounded-full text-sm font-bold">
+                      {service.price}
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-[var(--color-text)] mb-2 group-hover:text-[var(--color-orange)] transition-colors">
+                      {service.title}
+                    </h3>
+                    <p className="text-[var(--color-muted)] text-sm mb-4 line-clamp-2">
+                      {service.description}
+                    </p>
+                    <ul className="space-y-2 mb-4">
+                      {service.features.map((feature, fIdx) => (
+                        <li key={fIdx} className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
+                          <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="flex items-center gap-2 text-[var(--color-orange)] font-semibold text-sm">
+                      Learn More <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* COMPREHENSIVE SEO CONTENT SECTION - BEAUTIFIED */}
-        <section className="py-16">
-          <div className="flex flex-col lg:flex-row gap-12 items-start">
-            <div className="flex-1 space-y-12">
-              <div className="prose prose-lg max-w-none">
-                <h2 className="text-3xl font-bold text-[var(--color-text)] mb-4">The Ultimate Guide to Form 2290</h2>
-                <p className="text-xl text-[var(--color-muted)] leading-relaxed">
-                  Running a trucking business is hard work. Filing your taxes shouldn't be. QuickTruckTax simplifies the Heavy Vehicle Use Tax (HVUT) process so you can focus on the road.
+        {/* HOW IT WORKS - Enhanced with images */}
+        <section className="py-20 bg-gradient-to-b from-white to-slate-50">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-[var(--color-text)] mb-4">
+                How It Works - Simple & Fast
+              </h2>
+              <p className="text-xl text-[var(--color-muted)]">
+                Get your Schedule 1 in 3 easy steps
+              </p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-8 relative">
+              {/* Connecting Line (Desktop) */}
+              <div className="hidden md:block absolute top-24 left-[16%] right-[16%] h-1 bg-gradient-to-r from-[var(--color-orange)]/20 via-[var(--color-orange)]/40 to-[var(--color-orange)]/20 -z-10"></div>
+
+              {[
+                { 
+                  title: "1. Enter Your Information", 
+                  desc: "Fill out our simple form with your business and vehicle details. Takes just 2 minutes.", 
+                  icon: FileText,
+                  image: "/dashboard-mockup-v2.png"
+                },
+                { 
+                  title: "2. We Review & File", 
+                  desc: "Our experts check everything for errors and submit directly to the IRS on your behalf.", 
+                  icon: ShieldCheck,
+                  image: "/smart_filing_features_1764806445772.png"
+                },
+                { 
+                  title: "3. Get Schedule 1 Instantly", 
+                  desc: "Receive your IRS-stamped Schedule 1 via email within minutes of IRS acceptance.", 
+                  icon: Download,
+                  image: "/schedule1-mockup.png"
+                }
+              ].map((step, idx) => (
+                <div key={idx} className="relative bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all group">
+                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-[var(--color-orange)] flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                    {idx + 1}
+                  </div>
+                  <div className="mt-6 mb-6 relative h-48 rounded-xl overflow-hidden bg-slate-100">
+                    <Image
+                      src={step.image}
+                      alt={step.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mx-auto mb-4">
+                    <step.icon className="w-8 h-8 text-[var(--color-navy)]" />
+                  </div>
+                  <h3 className="text-xl font-bold text-[var(--color-text)] mb-3 text-center">{step.title}</h3>
+                  <p className="text-[var(--color-muted)] leading-relaxed text-center">{step.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* KEY FEATURES */}
+        <section className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-[var(--color-text)] mb-4">
+                Why Truckers Choose QuickTruckTax
+              </h2>
+              <p className="text-xl text-[var(--color-muted)]">
+                More than just software - we're your compliance partner
+              </p>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                { 
+                  title: "Instant Schedule 1 Delivery", 
+                  desc: "We monitor your filing 24/7 and email your Schedule 1 the moment the IRS accepts it. No waiting, no checking.", 
+                  icon: Zap,
+                  color: "text-yellow-500"
+                },
+                { 
+                  title: "Free VIN Corrections", 
+                  desc: "Made a mistake? No problem. We offer FREE VIN corrections and re-files if the IRS rejects your submission.", 
+                  icon: Edit3,
+                  color: "text-green-500"
+                },
+                { 
+                  title: "Instant SMS Alerts", 
+                  desc: "Get real-time updates via text message. Know immediately when your Schedule 1 is ready - no email checking needed.", 
+                  icon: MessageSquare,
+                  color: "text-blue-500"
+                },
+                { 
+                  title: "Expert Review Included", 
+                  desc: "Every filing is reviewed by our team before submission. We catch errors before the IRS sees them.", 
+                  icon: ShieldCheck,
+                  color: "text-[var(--color-orange)]"
+                },
+                { 
+                  title: "Smart Tax Calculator", 
+                  desc: "Calculate exact HVUT amounts with our IRS-backed calculator. Know your tax before you file.", 
+                  icon: Calculator,
+                  color: "text-purple-500"
+                },
+                { 
+                  title: "Bulk Filing Support", 
+                  desc: "File for multiple vehicles at once. Upload via CSV or use our bulk entry form. Save time and money.", 
+                  icon: LayoutGrid,
+                  color: "text-indigo-500"
+                }
+              ].map((feature, idx) => (
+                <div key={idx} className="bg-white p-8 rounded-2xl border-2 border-slate-100 shadow-sm hover:shadow-lg hover:border-[var(--color-orange)]/30 transition-all group">
+                  <div className={`w-14 h-14 rounded-xl bg-slate-50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${feature.color}`}>
+                    <feature.icon className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-xl font-bold text-[var(--color-text)] mb-3">{feature.title}</h3>
+                  <p className="text-sm leading-relaxed text-[var(--color-muted)]">{feature.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* TESTIMONIAL / SOCIAL PROOF */}
+        <section className="py-20 bg-gradient-to-br from-[var(--color-midnight)] to-[var(--color-navy)] text-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <div className="flex items-center gap-2 mb-6">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-6 h-6 fill-yellow-400 text-yellow-400" />
+                  ))}
+                  <span className="ml-2 text-xl font-bold">4.9/5</span>
+                </div>
+                <h2 className="text-4xl font-bold mb-6">
+                  Trusted by Thousands of Truckers
+                </h2>
+                <p className="text-xl text-slate-300 mb-8 leading-relaxed">
+                  "QuickTruckTax saved me hours of paperwork. Got my Schedule 1 in minutes, not weeks. 
+                  The SMS alerts were a game-changer - I knew exactly when it was ready."
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
+                    <Users className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-lg">Mike Thompson</p>
+                    <p className="text-slate-400">Owner-Operator, 15+ Years</p>
+                  </div>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="text-center">
+                      <p className="text-4xl font-bold mb-2">10,000+</p>
+                      <p className="text-slate-300 text-sm">Happy Customers</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-4xl font-bold mb-2">99.8%</p>
+                      <p className="text-slate-300 text-sm">Success Rate</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-4xl font-bold mb-2">2 min</p>
+                      <p className="text-slate-300 text-sm">Avg Filing Time</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-4xl font-bold mb-2">24/7</p>
+                      <p className="text-slate-300 text-sm">Support Available</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* GUIDES SECTION */}
+        <section className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-12">
+              <div>
+                <h2 className="text-4xl font-bold text-[var(--color-text)] mb-4">
+                  Expert Compliance Guides
+                </h2>
+                <p className="text-xl text-[var(--color-muted)]">
+                  Learn everything you need to know about trucking compliance
                 </p>
               </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition">
-                  <div className="h-10 w-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 mb-4">
-                    <FileText className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-xl font-bold text-[var(--color-text)] mb-3">What is Form 2290?</h3>
-                  <p className="text-[var(--color-muted)] leading-relaxed">
-                    A federal excise tax return filed by owners of heavy highway vehicles with a <strong>taxable gross weight of 55,000 lbs or more</strong>. The funds support highway maintenance.
-                  </p>
-                </div>
-                <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition">
-                  <div className="h-10 w-10 bg-orange-50 rounded-lg flex items-center justify-center text-[var(--color-orange)] mb-4">
-                    <Users className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-xl font-bold text-[var(--color-text)] mb-3">Who Needs to File?</h3>
-                  <ul className="space-y-2 text-[var(--color-muted)]">
-                    <li className="flex gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" /> Owners of vehicles 55,000+ lbs.</li>
-                    <li className="flex gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" /> Vehicles driving 5,000+ miles/year (7,500 for ag).</li>
-                  </ul>
-                </div>
-                <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition">
-                  <div className="h-10 w-10 bg-purple-50 rounded-lg flex items-center justify-center text-purple-600 mb-4">
-                    <Clock className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-xl font-bold text-[var(--color-text)] mb-3">Key Deadlines</h3>
-                  <p className="text-[var(--color-muted)] leading-relaxed">
-                    <strong>July 1 - June 30</strong> tax year. File by <strong>August 31st</strong> for existing vehicles. For new trucks, file by the end of the month following the month of first use.
-                  </p>
-                </div>
-                <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition">
-                  <div className="h-10 w-10 bg-green-50 rounded-lg flex items-center justify-center text-green-600 mb-4">
-                    <ShieldCheck className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-xl font-bold text-[var(--color-text)] mb-3">What is Schedule 1?</h3>
-                  <p className="text-[var(--color-muted)] leading-relaxed">
-                    Your mandatory proof of payment for DMV registration. We deliver your <strong>IRS-stamped Schedule 1</strong> digitally just minutes after the IRS accepts your return.
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 p-8 rounded-2xl flex items-start gap-4">
-                <div className="flex-shrink-0 p-2 bg-white rounded-full text-blue-600 shadow-sm">
-                  <Award className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold text-blue-900 mb-2">Pro Tip: E-File for Speed</h4>
-                  <p className="text-blue-800 leading-relaxed">
-                    The IRS strongly recommends e-filing. Paper returns can take weeks, but a smart service like ours gets you your result instantly. Don't risk DMV delays—file online.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Sidebar / CTA Box */}
-            <div className="lg:w-1/3 bg-[var(--color-midnight)] text-white p-8 rounded-2xl sticky top-24 shadow-xl ring-1 ring-white/10">
-              <h3 className="text-2xl font-bold mb-4">Ready to File?</h3>
-              <p className="text-slate-300 mb-8">
-                Get your Schedule 1 in minutes for as low as <strong>$34.99</strong>.
-              </p>
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> Instant IRS Audit Check</li>
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> Secure Data Encryption</li>
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> Free Re-files for Rejections</li>
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> US-Based Support</li>
-              </ul>
               <Link
-                href="/services/form-2290-filing"
-                className="flex w-full items-center justify-center rounded-xl bg-[var(--color-orange)] py-4 font-bold text-white transition hover:bg-[#e66a15] hover:shadow-lg hover:scale-[1.02]"
+                href="/insights"
+                className="inline-flex items-center gap-2 text-lg font-bold text-[var(--color-orange)] hover:text-[var(--color-navy)] transition-colors group"
               >
-                Start Smart Filing
+                View All Guides <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <p className="text-xs text-center mt-4 text-slate-500">
-                Terms & Conditions apply.
-              </p>
+            </div>
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+              {spotlightGuides.map((guide) => (
+                <article
+                  key={guide.slug}
+                  className="flex h-full flex-col justify-between rounded-2xl border-2 border-slate-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-2 hover:shadow-xl hover:border-[var(--color-orange)]/50 group"
+                >
+                  <div className="space-y-4">
+                    <span className="inline-flex rounded-full bg-[var(--color-orange)]/10 text-[var(--color-orange)] px-3 py-1 text-xs font-bold uppercase tracking-wide">
+                      {guide.category}
+                    </span>
+                    <h3 className="text-xl font-bold text-[var(--color-text)] group-hover:text-[var(--color-orange)] transition-colors line-clamp-2">
+                      <Link href={`/insights/${guide.slug}`}>{guide.title}</Link>
+                    </h3>
+                    <p className="text-sm text-[var(--color-muted)] leading-relaxed line-clamp-3">{guide.description}</p>
+                  </div>
+                  <div className="mt-6 flex items-center justify-between text-xs font-medium text-[var(--color-muted)] border-t border-slate-200 pt-4">
+                    <span>
+                      {new Date(guide.updatedAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                    <Link
+                      href={`/insights/${guide.slug}`}
+                      className="text-[var(--color-orange)] group-hover:text-[var(--color-navy)] transition-colors font-bold flex items-center gap-1"
+                    >
+                      Read <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  </div>
+                </article>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* SPOTLIGHT GUIDES (Keep existing structure but enhance visibility) */}
-        <section className="space-y-8 py-12 border-t border-[var(--color-border)]">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between pb-6">
-            <div>
-              <h2 className="text-3xl font-bold text-[var(--color-text)]">Trucking Insights & Guides</h2>
-              <p className="mt-2 text-lg text-[var(--color-muted)]">
-                Expert knowledge to keep your fleet compliant and your costs down.
-              </p>
-            </div>
-            <Link
-              href="/insights"
-              className="inline-flex items-center gap-2 text-sm font-bold text-[var(--color-orange)] hover:text-[var(--color-navy)] transition-colors group"
-            >
-              View all 200+ Guides <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+        {/* FINAL CTA SECTION */}
+        <section className="relative overflow-hidden bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-midnight)] py-24">
+          <div className="absolute inset-0">
+            <Image
+              src="/hero-truck-sunset.png"
+              alt="Truck on highway"
+              fill
+              className="object-cover opacity-10"
+            />
           </div>
-          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
-            {spotlightGuides.map((guide) => (
-              <article
-                key={guide.slug}
-                className="flex h-full flex-col justify-between rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:border-[var(--color-orange)]/30 group"
-              >
-                <div className="space-y-4">
-                  <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[var(--color-navy)]">
-                    {guide.category}
-                  </span>
-                  <h3 className="text-xl font-bold text-[var(--color-text)] group-hover:text-[var(--color-orange)] transition-colors line-clamp-2">
-                    <Link href={`/insights/${guide.slug}`}>{guide.title}</Link>
-                  </h3>
-                  <p className="text-sm text-[var(--color-muted)] leading-relaxed line-clamp-3">{guide.description}</p>
-                </div>
-                <div className="mt-6 flex items-center justify-between text-xs font-medium text-[var(--color-muted)] border-t border-[var(--color-border)] pt-4">
-                  <span>
-                    {new Date(guide.updatedAt).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </span>
-                  <Link
-                    href={`/insights/${guide.slug}`}
-                    className="text-[var(--color-navy-soft)] group-hover:text-[var(--color-orange)] transition-colors font-bold"
-                  >
-                    Read Guide →
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* CTA SECTION */}
-        <section className="relative overflow-hidden rounded-3xl bg-[var(--color-navy)] px-6 py-20 text-center text-white shadow-2xl sm:px-12 my-12">
-          <div className="absolute inset-0 bg-[url('/hero-truck.svg')] opacity-10 bg-center bg-no-repeat bg-cover mix-blend-overlay"></div>
-          <div className="relative z-10 max-w-3xl mx-auto space-y-8">
-            <h2 className="text-3xl font-bold sm:text-4xl">
+          <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
               Ready to Simplify Your Compliance?
             </h2>
-            <p className="text-lg text-white/80 leading-relaxed">
-              Join thousands of truckers who trust QuickTruckTax for their HVUT, IFTA, and UCR needs. Get started today and drive with peace of mind.
+            <p className="text-xl text-slate-200 mb-10 leading-relaxed">
+              Join thousands of truckers who trust QuickTruckTax. Get your Schedule 1 in minutes, not weeks.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/services/form-2290-filing"
-                className="inline-flex items-center justify-center rounded-full bg-[var(--color-orange)] px-8 py-4 text-base font-bold text-white shadow-lg transition hover:bg-[#ff7a20] hover:scale-105 transform duration-200"
+                href="/dashboard/new-filing"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-orange)] px-10 py-5 text-lg font-bold text-white shadow-xl shadow-orange-500/30 transition hover:bg-[#e66a15] hover:scale-105 transform duration-200"
               >
-                Start Free Filing Account
+                Start Filing Now
+                <ChevronRight className="w-5 h-5" />
               </Link>
               <Link
                 href="/tools/hvut-calculator"
-                className="inline-flex items-center justify-center rounded-full bg-white px-8 py-4 text-base font-bold !text-blue-900 shadow-lg transition hover:bg-slate-100"
-                style={{ color: '#1e3a8a' }}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-10 py-5 text-lg font-bold text-[var(--color-navy)] shadow-lg transition hover:bg-slate-100"
               >
-                Try Tax Calculator
+                <Calculator className="w-5 h-5" />
+                Calculate Your Tax
               </Link>
             </div>
-            <p className="text-xs text-white/40 mt-6">*No credit card required to sign up.</p>
+            <p className="text-sm text-slate-400 mt-8">
+              No credit card required • Instant Schedule 1 • Free VIN Corrections
+            </p>
           </div>
         </section>
       </div>

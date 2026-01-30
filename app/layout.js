@@ -1,4 +1,5 @@
 import { Golos_Text } from "next/font/google";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import "./error-handler";
@@ -85,6 +86,18 @@ export const metadata = {
       "File Form 2290 in 2 minutes. Get IRS Schedule 1 instantly. $34.99 flat fee. Free VIN corrections. Trusted by 10,000+ truckers.",
     images: ["https://www.quicktrucktax.com/quicktrucktax-logo-new.png"],
   },
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "QuickTruckTax",
+  "url": "https://www.quicktrucktax.com",
+  "description": "File Form 2290 in 2 minutes. Get IRS Schedule 1 instantly. $34.99 flat fee. Free VIN corrections. Trusted by 10,000+ truckers.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "QuickTruckTax"
+  }
 };
 
 export default function RootLayout({ children }) {
