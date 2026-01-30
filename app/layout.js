@@ -17,11 +17,11 @@ const golosText = Golos_Text({
 export const metadata = {
   metadataBase: new URL("https://www.quicktrucktax.com"),
   title: {
-    default: "QuickTruckTax | Trucking Compliance Guides & Form 2290 Filing",
+    default: "File Form 2290 Online - $34.99 | Get Schedule 1 in Minutes | QuickTruckTax",
     template: "%s | QuickTruckTax",
   },
   description:
-    "QuickTruckTax helps carriers stay compliant with HVUT, UCR, MCS-150, and IFTA. Expert Form 2290, 8849 guides and trucking compliance tools.",
+    "File Form 2290 in 2 minutes. Get IRS Schedule 1 instantly. $34.99 flat fee. Free VIN corrections. Trusted by 10,000+ truckers. E-file Form 2290 for 2025-2026 tax year. Start now →",
   keywords: [
     "form 2290", "HVUT", "UCR", "MCS-150", "IFTA",
     "trucking compliance", "heavy vehicle use tax",
@@ -80,9 +80,9 @@ export const metadata = {
     card: "summary_large_image",
     site: "@quicktrucktax",
     creator: "@quicktrucktax",
-    title: "QuickTruckTax | Trucking Compliance Guides",
+    title: "File Form 2290 Online - $34.99 | Get Schedule 1 in Minutes",
     description:
-      "Stay ahead of trucking compliance deadlines with detailed Form 2290 and HVUT guides.",
+      "File Form 2290 in 2 minutes. Get IRS Schedule 1 instantly. $34.99 flat fee. Free VIN corrections. Trusted by 10,000+ truckers.",
     images: ["https://www.quicktrucktax.com/quicktrucktax-logo-new.png"],
   },
 };
@@ -90,6 +90,23 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        {/* Resource Hints for Performance */}
+        <link rel="preconnect" href="https://firestore.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+
+        <Script id="structured-data-website" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
+        <Script id="microsoft-clarity" strategy="afterInteractive">
+          {`
+            (function(c,l,a,r,i,t,y){
+              c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+              t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+              y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "ukqsfhcozl");
+          `}
+        </Script>
+      </head>
       <body
         className={`${golosText.variable} min-h-screen bg-[var(--color-page)] text-[var(--color-text)] antialiased`}
       >
@@ -101,6 +118,6 @@ export default function RootLayout({ children }) {
           </NotificationProvider>
         </AuthProvider>
       </body>
-    </html>
+    </html >
   );
 }

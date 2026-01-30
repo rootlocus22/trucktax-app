@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { blogPosts } from '../blogData';
+import StickyFileCTA from '@/app/components/StickyFileCTA';
 
 export async function generateStaticParams() {
   return blogPosts.map((post) => ({
@@ -273,6 +274,9 @@ export default async function BlogPost({ params }) {
             </section>
           )}
         </main>
+
+        {/* Sticky CTA - appears on scroll */}
+        <StickyFileCTA />
       </article>
     </>
   );

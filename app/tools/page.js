@@ -70,6 +70,20 @@ const tools = [
       "Track HVUT, UCR, IFTA, and estimated tax deadlines with a ready-to-import calendar for your safety team.",
     href: "/insights/trucking-compliance-calendar",
   },
+  {
+    name: "IFTA Fuel Tax Calculator",
+    description:
+      "Calculate your quarterly IFTA fuel tax liability automatically. Supports mixed-state mileage and AI receipt scanning.",
+    href: "/tools/ifta-calculator",
+    badge: "AI Powered",
+  },
+  {
+    name: "Form 2290 Status Check",
+    description:
+      "Check the status of your Form 2290 filing instantly. Track pending, accepted, or rejected returns with your EIN.",
+    href: "/tools/check-2290-status",
+    badge: "Free",
+  },
 ];
 
 export default function ToolsIndex() {

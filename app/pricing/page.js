@@ -1,300 +1,198 @@
+
 import Link from 'next/link';
-import { CheckCircle, ArrowRight, TrendingDown, Users, Truck, ShieldCheck } from 'lucide-react';
+import { CheckCircle, HelpCircle, ArrowRight, ShieldCheck, CreditCard, Award, Truck } from 'lucide-react';
+import SchemaMarkup from '@/components/seo/SchemaMarkup';
 
 export const metadata = {
-  title: 'Pricing | QuickTruckTax',
-  description: 'Simple, transparent pricing for Form 2290 filing. One flat rate, no hidden fees.',
+    title: 'Simple, Transparent Pricing | QuickTruckTax',
+    description: 'File IRS Form 2290 for just $34.99. No hidden fees. Includes free VIN corrections, instant Schedule 1, and SMS alerts.',
+    keywords: '2290 filing price, hvut cost, quicktrucktax pricing, form 2290 fee',
+    alternates: {
+        canonical: 'https://www.quicktrucktax.com/pricing',
+    },
 };
 
 export default function PricingPage() {
-  const tiers = [
-    {
-      title: 'Suspended / Low Miles',
-      subtitle: 'Category W',
-      price: '$29.99', // Increased from $24.99 to cover basic ad spend
-      priceSubtext: '/ filing',
-      description: 'For trucks driving less than 5,000 miles (No Tax Due)',
-      buttonText: 'File Suspended Now',
-      buttonHref: '/signup',
-      popular: false,
-      features: [
-        'Guaranteed "Category W" Selection',
-        'We Ensure You Pay $0 Road Tax',
-        'Valid Schedule 1 for Tags/DMV',
-        'Standard Processing Speed',
-      ],
-      icon: TrendingDown,
-    },
-    {
-      title: 'Standard Filing',
-      subtitle: 'Most Popular',
-      price: '$39.99', // Increased from $34.99 to break even on Ad Spend
-      priceSubtext: '/ filing',
-      description: 'Full Service Concierge Filing',
-      buttonText: 'File Standard Now',
-      buttonHref: '/signup',
-      popular: true,
-      features: [
-        'Full Concierge Service (We type it)',
-        'Schedule 1 sent via WhatsApp & Email',
-        'FREE VIN Corrections',
-        'Instant Text Alerts',
-        'Support in Hindi, Punjabi, English',
-      ],
-      icon: Truck,
-    },
-    {
-      title: 'VIP + Audit Defense',
-      subtitle: 'Maximum Protection',
-      price: '$49.99', // The "Profit Maker" Tier
-      priceSubtext: '/ filing',
-      description: 'Priority handling & audit protection peace of mind',
-      buttonText: 'File VIP Now',
-      buttonHref: '/signup',
-      popular: false,
-      features: [
-        'Everything in Standard',
-        '🚀 Priority "Skip the Line" Processing',
-        '🛡️ IRS Audit Defense Support',
-        'Dedicated Senior Agent Review',
-        '5-Year Secure Document Vault',
-      ],
-      icon: ShieldCheck, // Changed icon to Shield
-    },
-  ];
+    const faqData = [
+        {
+            question: "Are there any hidden fees?",
+            answer: "None. The price you see is the price you pay for our service. The only other cost is the actual tax amount due to the IRS, which we calculate for you."
+        },
+        {
+            question: "Do you charge for VIN corrections?",
+            answer: "No. Unlike other providers, VIN corrections (Form 2290 Amendments) are 100% FREE for our customers."
+        },
+        {
+            question: "Is there a subscription fee?",
+            answer: "No. You pay per filing. There are no monthly subscriptions or recurring charges."
+        },
+        {
+            question: "What if my return is rejected?",
+            answer: "If the IRS rejects your return for any reason, you can resubmit it through us for FREE until it's accepted."
+        }
+    ];
 
-  const comparisonData = [
-    {
-      feature: 'Filing Fee',
-      quicktrucktax: '$39.99',
-      bigSoftware: '$9.95',
-      localCPA: '$75 - $150',
-      highlight: 'quicktrucktax',
-    },
-    {
-      feature: 'VIN Corrections',
-      quicktrucktax: 'FREE',
-      bigSoftware: '$20 - $30',
-      localCPA: 'Billable Hours',
-      highlight: 'quicktrucktax',
-    },
-    {
-      feature: 'Audit Defense',
-      quicktrucktax: 'Available (VIP)',
-      bigSoftware: '$49.99 Extra',
-      localCPA: '$150/hr',
-      highlight: 'quicktrucktax',
-    },
-    {
-      feature: 'Do I have to type?',
-      quicktrucktax: 'NO (Send photo)',
-      bigSoftware: 'YES (Complex forms)',
-      localCPA: 'NO',
-      highlight: 'quicktrucktax',
-    },
-    {
-      feature: 'Total Real Cost',
-      quicktrucktax: '$39.99',
-      bigSoftware: '$50+ (w/ hidden fees)',
-      localCPA: '$100+',
-      highlight: 'quicktrucktax',
-    },
-  ];
+    return (
+        <div className="bg-slate-50 min-h-screen">
+            <SchemaMarkup
+                type="Service"
+                data={{
+                    name: "QuickTruckTax Filing Service",
+                    description: "Electronic filing service for IRS Form 2290.",
+                    offers: {
+                        "@type": "Offer",
+                        price: "34.99",
+                        priceCurrency: "USD"
+                    }
+                }}
+            />
+            <SchemaMarkup type="FAQPage" data={faqData} />
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Headline Section */}
-      <div className="text-center mb-12">
-        <h1 className="text-3xl sm:text-4xl font-bold text-[var(--color-text)] mb-4">
-          Simple Pricing. <span className="text-[var(--color-orange)]">Profitable Results.</span>
-        </h1>
-        <p className="text-base text-[var(--color-muted)] max-w-2xl mx-auto">
-          Don't risk IRS penalties with cheap software. Get a certified professional to handle your 2290 filing for less than half the cost of a CPA.
-        </p>
-      </div>
-
-      {/* 3-Tier Pricing Grid */}
-      <div className="grid md:grid-cols-3 gap-8 mb-16">
-        {tiers.map((tier, index) => {
-          const Icon = tier.icon;
-          return (
-            <div
-              key={index}
-              className={`bg-[var(--color-card)] rounded-2xl border transition-all duration-300 hover:-translate-y-1 ${tier.popular
-                ? 'border-[var(--color-orange)] shadow-xl ring-1 ring-[var(--color-orange)]/20 relative z-10'
-                : 'border-[var(--color-border)] shadow-sm hover:shadow-md'
-                } p-6 flex flex-col`}
-            >
-              {tier.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide shadow-sm">
-                    {tier.subtitle}
-                  </span>
+            {/* Hero */}
+            <div className="bg-[var(--color-navy)] text-white pt-24 pb-20 px-6 text-center">
+                <div className="max-w-3xl mx-auto">
+                    <h1 className="text-4xl md:text-5xl font-bold mb-6">Simple, Transparent Pricing</h1>
+                    <p className="text-xl text-blue-100 leading-relaxed">
+                        Stop overpaying. Get the industry's most advanced e-filing service for nearly half the price of the "old guys".
+                    </p>
                 </div>
-              )}
-
-              <div className="text-center mb-8 pt-2">
-                <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${tier.popular ? 'bg-[var(--color-orange)]/10' : 'bg-[var(--color-page-alt)]'
-                  }`}>
-                  <Icon className={`w-7 h-7 ${tier.popular ? 'text-[var(--color-orange)]' : 'text-[var(--color-text)]'}`} />
-                </div>
-                <h3 className="text-xl font-bold text-[var(--color-text)] mb-1">
-                  {tier.title}
-                </h3>
-                {!tier.popular && (
-                  <p className="text-xs text-[var(--color-muted)] font-medium">{tier.subtitle}</p>
-                )}
-                <div className="mt-4 mb-2 flex items-baseline justify-center">
-                  <span className="text-4xl font-extrabold text-[var(--color-text)] tracking-tight">
-                    {tier.price}
-                  </span>
-                  <span className="text-sm text-[var(--color-muted)] ml-1 font-medium">
-                    {tier.priceSubtext}
-                  </span>
-                </div>
-                <p className="text-sm text-[var(--color-muted)] px-4">{tier.description}</p>
-              </div>
-
-              <ul className="space-y-4 mb-8 flex-grow">
-                {tier.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-3">
-                    <CheckCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${tier.popular ? 'text-[var(--color-orange)]' : 'text-green-500'
-                      }`} />
-                    <span className="text-sm text-[var(--color-text)]/90">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Link
-                href={tier.buttonHref}
-                className={`block w-full text-center py-3.5 rounded-xl font-bold text-sm transition-all duration-200 ${tier.popular
-                  ? 'bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white shadow-lg hover:shadow-orange-500/25 hover:scale-[1.02]'
-                  : 'bg-[var(--color-page-alt)] text-[var(--color-text)] hover:bg-[var(--color-border)] hover:text-black border border-transparent'
-                  }`}
-              >
-                {tier.buttonText}
-              </Link>
             </div>
-          );
-        })}
-      </div>
 
-      {/* Comparison Table */}
-      <div className="mb-20">
-        <h2 className="text-2xl font-bold text-center text-[var(--color-text)] mb-8">
-          The "True Cost" Comparison
-        </h2>
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-[var(--color-page-alt)] border-b border-[var(--color-border)]">
-                  <th className="text-left px-6 py-4 text-sm font-bold text-[var(--color-text)]">
-                    Feature
-                  </th>
-                  <th className="text-center px-6 py-4 text-sm font-bold text-[var(--color-orange)] bg-[var(--color-orange)]/5">
-                    QuickTruckTax
-                  </th>
-                  <th className="text-center px-6 py-4 text-sm font-semibold text-[var(--color-muted)]">
-                    Competitor Software
-                  </th>
-                  <th className="text-center px-6 py-4 text-sm font-semibold text-[var(--color-muted)]">
-                    Typical CPA
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparisonData.map((row, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-[var(--color-border)] last:border-b-0 hover:bg-[var(--color-page-alt)]/50 transition"
-                  >
-                    <td className="px-6 py-4 text-sm font-medium text-[var(--color-text)]">
-                      {row.feature}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-center font-bold text-[var(--color-text)] bg-[var(--color-orange)]/5 border-x border-[var(--color-orange)]/10">
-                      {row.quicktrucktax}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-center text-[var(--color-muted)]">
-                      {row.bigSoftware}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-center text-[var(--color-muted)]">
-                      {row.localCPA}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+            {/* Pricing Card Section */}
+            <div className="py-16 px-6 -mt-16">
+                <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 items-start">
 
-      {/* Optional Add-Ons Section */}
-      <div className="mb-20">
-        <h2 className="text-2xl font-bold text-center text-[var(--color-text)] mb-8">
-          Optional Add-Ons
-        </h2>
-        <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-8 shadow-sm flex flex-col md:flex-row items-center gap-8">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-            <ShieldCheck className="w-8 h-8 text-blue-600" />
-          </div>
-          <div className="flex-1 text-center md:text-left">
-            <h3 className="text-xl font-bold text-[var(--color-text)] mb-2">
-              DOT Compliance Update (MCS-150)
-            </h3>
-            <p className="text-[var(--color-muted)] mb-2">
-              Mandatory biennial update for all USDOT numbers. Avoid deactivation and keep your trucks on the road.
-              We handle the complex FMCSA portal coordination for you.
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center md:justify-start mt-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                <CheckCircle className="w-3 h-3" />
-                Prevents Deactivation
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
-                <CheckCircle className="w-3 h-3" />
-                Concierge Filing
-              </span>
+                    {/* The "Other Guys" Card */}
+                    <div className="bg-slate-200 rounded-3xl p-8 opacity-75 grayscale hover:grayscale-0 transition duration-500 relative order-2 md:order-1">
+                        <div className="absolute top-0 right-0 bg-slate-400 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl uppercase tracking-widest">Competitors</div>
+                        <h3 className="text-2xl font-bold text-slate-600 mb-2">The "Old Guard"</h3>
+                        <div className="flex items-baseline gap-1 mb-6">
+                            <span className="text-4xl font-bold text-slate-500">$60.00+</span>
+                            <span className="text-slate-500">/ filing</span>
+                        </div>
+                        <ul className="space-y-4 mb-8 text-slate-600">
+                            <li className="flex gap-3"><span className="text-red-500">✕</span> Clunky, outdated interface</li>
+                            <li className="flex gap-3"><span className="text-red-500">✕</span> Charge extra for VIN corrections</li>
+                            <li className="flex gap-3"><span className="text-red-500">✕</span> No SMS alerts</li>
+                            <li className="flex gap-3"><span className="text-red-500">✕</span> Slow email support</li>
+                        </ul>
+                    </div>
+
+                    {/* QuickTruckTax Card */}
+                    <div className="bg-white rounded-3xl p-8 shadow-2xl border-2 border-[var(--color-orange)] relative transform md:-translate-y-8 order-1 md:order-2">
+                        <div className="absolute top-0 right-0 bg-[var(--color-orange)] text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl uppercase tracking-widest">Best Value</div>
+                        <h3 className="text-2xl font-bold text-[var(--color-navy)] mb-2">Form 2290 & Suspended</h3>
+                        <div className="flex items-baseline gap-1 mb-2">
+                            <span className="text-5xl font-black text-[var(--color-navy)]">$34.99</span>
+                            <span className="text-slate-500">/ filing</span>
+                        </div>
+                        <p className="text-green-600 font-bold text-sm mb-6 bg-green-50 inline-block px-3 py-1 rounded-full">Save 40% instantly</p>
+
+                        <div className="border-t border-slate-100 py-6 space-y-4">
+                            {[
+                                "Valid for Standard & Suspended (Cat W)",
+                                "Instant IRS Schedule 1",
+                                "Free VIN Corrections",
+                                "Instant SMS Status Alerts",
+                                "Free Resubmissions",
+                                "5-Year Record Storage",
+                                "US-Based Support"
+                            ].map((feature, i) => (
+                                <li key={i} className="flex gap-3 text-[var(--color-text)] font-medium">
+                                    <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
+                                    {feature}
+                                </li>
+                            ))}
+                        </div>
+
+                        <Link
+                            href="/early-access"
+                            className="block w-full text-center bg-[var(--color-orange)] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#ff7a20] transition shadow-lg shadow-orange-900/20"
+                        >
+                            Start Filing Now
+                        </Link>
+                        <p className="text-center text-xs text-slate-400 mt-4">No credit card required to start.</p>
+                    </div>
+                </div>
+
+                {/* MCS-150 Section */}
+                <div className="max-w-5xl mx-auto mt-16 bg-white rounded-3xl p-8 shadow-lg border border-slate-200">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div>
+                            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold mb-4">
+                                <Truck className="w-4 h-4" /> USDOT Compliance
+                            </div>
+                            <h3 className="text-2xl font-bold text-[var(--color-navy)] mb-2">MCS-150 Biennial Update</h3>
+                            <p className="text-slate-600 max-w-xl">
+                                Mandatory every two years. Update your mileage and company details to stay compliant and avoid deactivation.
+                            </p>
+                        </div>
+                        <div className="flex flex-col items-center md:items-end gap-3 shrink-0">
+                            <div className="flex items-baseline gap-2">
+                                <span className="text-sm text-slate-400 line-through font-medium">Others $149+</span>
+                                <span className="text-4xl font-black text-[var(--color-navy)]">$99.99</span>
+                            </div>
+                            <Link
+                                href="/services/mcs-150-update"
+                                className="inline-flex items-center gap-2 bg-blue-900 !text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-800 transition"
+                            >
+                                Update DOT Number <ArrowRight className="w-4 h-4" />
+                            </Link>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-          <div className="text-center flex-shrink-0">
-            <span className="text-3xl font-bold text-[var(--color-text)] block">
-              $49.00
-            </span>
-            <span className="text-sm text-[var(--color-muted)]">
-              / update
-            </span>
-          </div>
-        </div>
-      </div>
 
-      {/* CTA Section */}
-      <div className="relative overflow-hidden bg-[var(--color-midnight)] rounded-3xl p-8 sm:p-12 text-center text-white shadow-2xl">
-        {/* Background Gradient Effect */}
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[var(--color-navy)]/50 to-transparent pointer-events-none" />
+            {/* Feature Table */}
+            <div className="py-16 px-6 max-w-4xl mx-auto">
+                <h2 className="text-3xl font-bold text-[var(--color-navy)] text-center mb-12">Everything Included</h2>
+                <div className="grid sm:grid-cols-2 gap-8">
+                    <div className="flex gap-4">
+                        <div className="bg-blue-100 p-3 rounded-xl h-fit"><ShieldCheck className="w-6 h-6 text-blue-600" /></div>
+                        <div>
+                            <h3 className="font-bold text-lg text-[var(--color-navy)]">Audit Protection</h3>
+                            <p className="text-slate-600 text-sm mt-1">We securely store your Schedule 1s for 5 years. Access them anytime if you get audited.</p>
+                        </div>
+                    </div>
+                    <div className="flex gap-4">
+                        <div className="bg-green-100 p-3 rounded-xl h-fit"><Award className="w-6 h-6 text-green-600" /></div>
+                        <div>
+                            <h3 className="font-bold text-lg text-[var(--color-navy)]">Satisfaction Guarantee</h3>
+                            <p className="text-slate-600 text-sm mt-1">If you're not happy with our service, we'll make it right. Our support team is here to help.</p>
+                        </div>
+                    </div>
+                    <div className="flex gap-4">
+                        <div className="bg-purple-100 p-3 rounded-xl h-fit"><CreditCard className="w-6 h-6 text-purple-600" /></div>
+                        <div>
+                            <h3 className="font-bold text-lg text-[var(--color-navy)]">Secure Payments</h3>
+                            <p className="text-slate-600 text-sm mt-1">We use bank-level 256-bit encryption to process payments. Your data is never stored on our servers.</p>
+                        </div>
+                    </div>
+                    <div className="flex gap-4">
+                        <div className="bg-orange-100 p-3 rounded-xl h-fit"><HelpCircle className="w-6 h-6 text-orange-600" /></div>
+                        <div>
+                            <h3 className="font-bold text-lg text-[var(--color-navy)]">Live Support</h3>
+                            <p className="text-slate-600 text-sm mt-1">Stuck on a question? Our US-based experts are ready to guide you through the process.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <div className="relative z-10">
-          <h2 className="text-3xl font-bold mb-4">
-            Ready to File?
-          </h2>
-          <p className="text-white/80 mb-8 max-w-xl mx-auto text-lg">
-            Join thousands of owner-operators who save time and money with QuickTruckTax.
-            Get your stamped Schedule 1 in minutes.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/signup"
-              className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold text-base transition hover:bg-[#ff7a20] shadow-lg hover:shadow-orange-500/20"
-            >
-              Start Filing Now
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-          <p className="mt-6 text-xs text-white/40">
-            Secure 256-bit SSL Encryption • IRS Authorized Provider via Partner Network
-          </p>
+            {/* FAQ */}
+            <div className="py-20 px-6 bg-white border-t border-slate-100">
+                <div className="max-w-3xl mx-auto">
+                    <h2 className="text-3xl font-bold text-[var(--color-navy)] mb-12 text-center">Common Questions</h2>
+                    <div className="space-y-6">
+                        {faqData.map((faq, i) => (
+                            <div key={i} className="bg-slate-50 p-6 rounded-2xl">
+                                <h3 className="text-lg font-bold text-[var(--color-navy)] mb-2">{faq.question}</h3>
+                                <p className="text-slate-600 leading-relaxed">{faq.answer}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
         </div>
-      </div>
-    </div>
-  );
+    );
 }
