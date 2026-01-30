@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { subscribeToUserFilings } from '@/lib/db';
+import { subscribeToDraftFilings } from '@/lib/draftHelpers';
+import { getIncompleteFilings, formatIncompleteFiling } from '@/lib/filingIntelligence';
 import {
   FileText,
   CheckCircle,
@@ -18,7 +20,9 @@ import {
   Calendar,
   Truck,
   FileCheck,
-  ChevronDown
+  ChevronDown,
+  RotateCcw,
+  Upload
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -26,6 +30,7 @@ export default function FilingsListPage() {
   const { user, userData, loading: authLoading } = useAuth();
   const router = useRouter();
   const [filings, setFilings] = useState([]);
+  const [draftFilings, setDraftFilings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -38,11 +43,20 @@ export default function FilingsListPage() {
 
     if (!authLoading && user) {
       setLoading(true);
-      const unsubscribe = subscribeToUserFilings(user.uid, (userFilings) => {
+
+      const unsubscribeFilings = subscribeToUserFilings(user.uid, (userFilings) => {
         setFilings(userFilings);
         setLoading(false);
       });
-      return () => unsubscribe();
+
+      const unsubscribeDrafts = subscribeToDraftFilings(user.uid, (drafts) => {
+        setDraftFilings(drafts);
+      });
+
+      return () => {
+        unsubscribeFilings();
+        unsubscribeDrafts();
+      };
     } else if (!authLoading && !user) {
       setLoading(false);
     }
@@ -94,7 +108,16 @@ export default function FilingsListPage() {
     completed: filings.filter(f => f.status === 'completed').length,
     processing: filings.filter(f => f.status === 'processing' || f.status === 'submitted').length,
     actionRequired: filings.filter(f => f.status === 'action_required').length,
+    totalVehicles: filings.reduce((sum, f) => sum + (f.vehicleIds?.length || 0), 0),
   };
+
+  const incomplete = getIncompleteFilings(filings);
+  const activeDrafts = draftFilings.filter(d => d.status === 'draft');
+  const allIncompleteFilings = [
+    ...activeDrafts.map(d => ({ ...d, isDraft: true })),
+    ...incomplete.all.filter(f => f.status !== 'action_required')
+  ];
+  const hasIncomplete = allIncompleteFilings.length > 0;
 
   /* Grouping Logic */
   const groupedFilings = filteredFilings.reduce((acc, filing) => {
@@ -163,7 +186,7 @@ export default function FilingsListPage() {
             <div className="w-12 h-12 border-4 border-[var(--color-orange)]/30 border-t-[var(--color-orange)] rounded-full animate-spin mb-4"></div>
             <p className="text-slate-500 font-medium">Loading your filings...</p>
           </div>
-        ) : filings.length === 0 ? (
+        ) : filings.length === 0 && !hasIncomplete ? (
           /* Empty State */
           <div className="flex flex-col items-center justify-center py-20 px-4 bg-white border border-dashed border-slate-200 rounded-3xl">
             <div className="relative mb-8 group">
@@ -176,15 +199,68 @@ export default function FilingsListPage() {
             <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">
               Start your first Form 2290 filing today. It only takes a few minutes and we'll guide you through every step.
             </p>
-            <Link
-              href="/dashboard/new-filing"
-              className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
-            >
-              Start Your First Filing <ArrowRight className="w-4 h-4" />
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/dashboard/new-filing"
+                className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
+              >
+                Manual Entry <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/dashboard/upload-schedule1"
+                className="inline-flex items-center justify-center gap-2 bg-white border-2 border-blue-200 text-blue-600 px-8 py-3 rounded-xl font-bold text-sm hover:bg-blue-50 hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
+              >
+                Upload Schedule 1 <Upload className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="space-y-8">
+            {/* Incomplete Filings Banner */}
+            {hasIncomplete && (
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 sm:p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
+                    <RotateCcw className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-slate-900">Continue Filing</h3>
+                    <p className="text-xs text-slate-600">{allIncompleteFilings.length} {allIncompleteFilings.length === 1 ? 'filing' : 'filings'} in progress</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {allIncompleteFilings.slice(0, 3).map(filing => {
+                    const formatted = formatIncompleteFiling(filing) || {
+                      id: filing.id || filing.draftId,
+                      description: filing.workflowType === 'upload' ? 'Schedule 1 Upload' : (filing.filingType || 'Standard Filing'),
+                      taxYear: filing.taxYear || filing.filingData?.taxYear || 'Unknown',
+                      progress: filing.step === 3 ? 75 : filing.step === 2 ? 50 : 25,
+                    };
+                    const resumeUrl = filing.isDraft || filing.status === 'draft'
+                      ? filing.workflowType === 'upload'
+                        ? `/dashboard/upload-schedule1?draft=${filing.id || filing.draftId}`
+                        : `/dashboard/new-filing?draft=${filing.id || filing.draftId}`
+                      : `/dashboard/filings/${filing.id}`;
+                    return (
+                      <Link
+                        key={filing.id || filing.draftId}
+                        href={resumeUrl}
+                        className="bg-white border border-blue-200 rounded-lg p-3 hover:border-blue-300 hover:shadow-sm transition-all"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-medium text-slate-900 truncate">{formatted.description}</span>
+                          <span className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-medium flex-shrink-0 ml-2">{formatted.taxYear}</span>
+                        </div>
+                        <div className="h-1 bg-blue-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${formatted.progress}%` }} />
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Statistics Row - Mobile Responsive */}
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {[
@@ -209,12 +285,12 @@ export default function FilingsListPage() {
             </div>
 
             {/* Filters Row - Mobile Optimized */}
-            <div className="bg-white p-2 sm:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-2 sticky top-0 z-30">
+            <div className="bg-white p-2 sm:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-2 sticky top-0 z-30 backdrop-blur-sm bg-white/95">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+                <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="Search filings..."
+                  placeholder="Search by tax year, business name, or filing ID..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-transparent border-none focus:ring-0 text-sm sm:text-base text-slate-900 placeholder-slate-400 font-medium touch-manipulation"

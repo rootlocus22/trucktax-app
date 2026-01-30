@@ -54,15 +54,17 @@ export function PricingSidebar({
       }
       
       // If pricing prop is provided and has been calculated (not just initial zeros), skip internal calculation
-      // For VIN corrections, always allow calculation since they might not have vehicles
+      // For VIN corrections and mileage exceeded, always allow calculation since they might not have vehicles
       const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
-      if (pricing && pricing.totalTax !== undefined && !isVinCorrection && (pricing.serviceFee > 0 || pricing.totalTax > 0 || pricing.totalRefund > 0)) {
+      const isMileageExceeded = filingType === 'amendment' && amendmentType === 'mileage_exceeded';
+      if (pricing && pricing.totalTax !== undefined && !isVinCorrection && !isMileageExceeded && (pricing.serviceFee > 0 || pricing.totalTax > 0 || pricing.totalRefund > 0)) {
         return;
       }
 
       // Don't calculate if we don't have minimum required data
-      // Exception: VIN corrections don't require vehicles, so allow pricing calculation
-      if (!filingType || (selectedVehicleIds.length === 0 && !isVinCorrection)) {
+      // Exception: VIN corrections and mileage exceeded don't require vehicles, so allow pricing calculation
+      const hasMileageExceededVehicle = isMileageExceeded && mileageExceededData?.vehicleId;
+      if (!filingType || (selectedVehicleIds.length === 0 && !isVinCorrection && !hasMileageExceededVehicle)) {
         setInternalPricing({
           totalTax: 0,
           serviceFee: 0,
@@ -122,7 +124,7 @@ export function PricingSidebar({
 
         // Sanitize vehicles to remove complex objects (like Firestore Timestamps)
         // Include vehicleType, logging, and creditDate for proper tax calculation
-        // For VIN corrections, vehicles array can be empty
+        // For VIN corrections and mileage exceeded, vehicles array can be empty
         const sanitizedVehicles = selectedVehiclesList.length > 0
           ? selectedVehiclesList.map(v => ({
               id: v.id,
@@ -133,7 +135,7 @@ export function PricingSidebar({
               logging: v.logging !== undefined ? v.logging : null,
               creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
             }))
-          : []; // Empty array for VIN corrections with no vehicles
+          : []; // Empty array for VIN corrections and mileage exceeded with no vehicles
 
         const result = await calculateFilingCost(
           filingDataForPricing,
@@ -174,7 +176,12 @@ export function PricingSidebar({
           let tierName = '';
           let pricePerVehicle = 0;
           
-          if (selectedVehiclesList.length >= 25) {
+          // Special handling for amendment types with fixed service fees
+          if (filingType === 'amendment' && amendmentType === 'vin_correction') {
+            serviceFeeDescription = 'VIN correction service fee';
+          } else if (filingType === 'amendment' && amendmentType === 'mileage_exceeded') {
+            serviceFeeDescription = 'Mileage exceeded service fee';
+          } else if (selectedVehiclesList.length >= 25) {
             tierName = 'Enterprise';
             pricePerVehicle = 21.99;
             serviceFeeDescription = `Enterprise pricing: $${pricePerVehicle.toFixed(2)} × ${selectedVehiclesList.length}`;
@@ -229,9 +236,10 @@ export function PricingSidebar({
     return () => clearTimeout(timeoutId);
   }, [filingType, filingData, selectedVehicleIds, vehicles, selectedBusinessId, businesses, amendmentType, weightIncreaseData, mileageExceededData, pricing]);
 
-  // For VIN corrections, hasData should be true even without vehicles
+  // For VIN corrections and mileage exceeded, hasData should be true even without vehicles
   const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
-  const hasData = filingType && (selectedVehicleIds.length > 0 || isVinCorrection);
+  const isMileageExceeded = filingType === 'amendment' && amendmentType === 'mileage_exceeded';
+  const hasData = filingType && (selectedVehicleIds.length > 0 || isVinCorrection || isMileageExceeded);
 
   return (
     <div className="sticky top-24 h-fit max-h-[calc(100vh-8rem)] flex flex-col">
@@ -293,7 +301,7 @@ export function PricingSidebar({
                       <span className="text-[var(--color-muted)]">Vehicles:</span>
                       <span className="font-semibold">
                         {filingType === 'amendment' 
-                          ? (amendmentType === 'vin_correction' ? 'N/A' : '1')
+                          ? (amendmentType === 'vin_correction' ? 'N/A' : amendmentType === 'mileage_exceeded' ? '1' : '1')
                           : selectedVehicleIds.length
                         }
                       </span>
@@ -530,6 +538,18 @@ export function PricingSidebar({
                     <p className="text-xs text-emerald-700 font-medium flex items-center gap-1.5">
                       <CheckCircle className="w-3.5 h-3.5" />
                       VIN corrections: $10 service fee (No IRS tax required)
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Amendment Mileage Exceeded Notice */}
+              {hasData && filingType === 'amendment' && amendmentType === 'mileage_exceeded' && (
+                <div className="pt-4 border-t-2 border-slate-200">
+                  <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                    <p className="text-xs text-purple-700 font-medium flex items-center gap-1.5">
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      Mileage exceeded: $10 service fee {finalPricing.totalTax > 0 ? `+ IRS tax (${finalPricing.totalTax.toFixed(2)})` : '(No IRS tax required)'}
                     </p>
                   </div>
                 </div>

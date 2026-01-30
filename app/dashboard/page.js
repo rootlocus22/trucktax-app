@@ -28,6 +28,8 @@ import {
   MoreVertical
 } from 'lucide-react';
 
+
+
 export default function DashboardPage() {
   const { user, userData, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -72,6 +74,19 @@ export default function DashboardPage() {
     return configs[status] || configs.submitted;
   };
 
+  const getFilingTypeInfo = (filing) => {
+    if (filing.filingType === 'amendment') {
+      const type = filing.amendmentType === 'vin_correction' ? 'VIN Correction' :
+        filing.amendmentType === 'weight_increase' ? 'Weight Increase' :
+          filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded' : 'Amendment';
+      return { label: type, image: '/assets/icons/amendment.png', color: 'text-purple-600', bg: 'bg-purple-50' };
+    }
+    if (filing.filingType === 'refund') {
+      return { label: 'Refund (8849)', image: '/assets/icons/refund.png', color: 'text-green-600', bg: 'bg-green-50' };
+    }
+    return { label: 'Form 2290', image: '/assets/icons/form2290.png', color: 'text-blue-600', bg: 'bg-blue-50' };
+  };
+
   const stats = {
     total: filings.length,
     completed: filings.filter(f => f.status === 'completed').length,
@@ -111,12 +126,20 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
             {hasFilings && (
               <>
-                <button className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 active:bg-slate-100 flex items-center justify-center transition-colors touch-manipulation">
+                <Link
+                  href="/dashboard/filings"
+                  className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 active:bg-slate-100 flex items-center justify-center transition-colors touch-manipulation"
+                  title="Search all filings"
+                >
                   <Search className="w-4 h-4 text-slate-600" />
-                </button>
-                <button className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 active:bg-slate-100 flex items-center justify-center transition-colors touch-manipulation">
+                </Link>
+                <Link
+                  href="/dashboard/filings"
+                  className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 active:bg-slate-100 flex items-center justify-center transition-colors touch-manipulation"
+                  title="Filter filings"
+                >
                   <Filter className="w-4 h-4 text-slate-600" />
-                </button>
+                </Link>
                 <Link
                   href="/dashboard/new-filing"
                   className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] active:scale-95 transition-all touch-manipulation whitespace-nowrap"
@@ -221,51 +244,33 @@ export default function DashboardPage() {
 
                 {/* Empty State - Beautiful & Engaging */}
                 {!hasFilings && !hasIncomplete && (
-                  <div className="flex items-start justify-center py-4">
+                  <div className="flex items-start justify-center py-8">
                     <div className="text-center max-w-4xl px-6 w-full">
-                      {/* Hero Illustration - Smaller */}
-                      <div className="relative mb-6">
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-indigo-500/10 blur-3xl rounded-full"></div>
-                        <img
-                          src="/dashboard-empty-state.png"
-                          alt="Welcome to Dashboard"
-                          className="w-40 h-40 mx-auto relative z-10 object-contain animate-[fadeIn_0.6s_ease-out]"
-                          style={{ animation: 'fadeIn 0.6s ease-out, float 3s ease-in-out infinite' }}
-                        />
-                      </div>
-
-                      {/* Welcome Message - More Compact */}
-                      <div className="mb-6">
-                        <h2 className="text-3xl font-bold text-[var(--color-text)] mb-3 bg-gradient-to-r from-[var(--color-orangeß)] via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                      {/* Welcome Message */}
+                      <div className="mb-8">
+                        <h2 className="text-3xl sm:text-4xl font-bold text-[var(--color-text)] mb-4 bg-gradient-to-r from-[var(--color-orange)] via-blue-600 to-indigo-600 bg-clip-text text-transparent">
                           Welcome to Your Dashboard
                         </h2>
-                        <p className="text-base text-[var(--color-muted)] max-w-2xl mx-auto leading-relaxed">
+                        <p className="text-base sm:text-lg text-[var(--color-muted)] max-w-2xl mx-auto leading-relaxed">
                           Get started with your first Form 2290 filing in minutes. Choose the method that works best for you.
                         </p>
                       </div>
 
-                      {/* Filing Method Cards - More Compact - Mobile Optimized */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 max-w-3xl mx-auto">
+                      {/* Filing Method Cards - Mobile Optimized */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8 max-w-3xl mx-auto">
                         <Link
                           href="/dashboard/upload-schedule1"
-                          className="group relative bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-blue-400 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                          className="group relative bg-white border-2 border-slate-200 rounded-2xl p-6 sm:p-8 hover:border-blue-400 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
                         >
-                          {/* Gradient Background on Hover */}
                           <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
                           <div className="relative z-10">
-                            {/* Icon */}
                             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
                               <Upload className="w-8 h-8 text-white" />
                             </div>
-
-                            {/* Content */}
                             <h3 className="text-lg font-bold text-[var(--color-text)] mb-2">Upload Schedule 1 PDF</h3>
-                            <p className="text-sm text-[var(--color-muted)] mb-3 leading-relaxed">
+                            <p className="text-sm text-[var(--color-muted)] mb-4 leading-relaxed">
                               Let our AI extract vehicle information from your existing Schedule 1 PDF automatically
                             </p>
-
-                            {/* Features */}
                             <div className="space-y-1.5 mb-4">
                               <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
                                 <CheckCircle className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
@@ -280,39 +285,26 @@ export default function DashboardPage() {
                                 <span>Instant verification</span>
                               </div>
                             </div>
-
-                            {/* CTA */}
                             <div className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 group-hover:gap-3 transition-all">
                               <span>Get Started</span>
                               <ArrowRight className="w-4 h-4" />
                             </div>
                           </div>
-
-                          {/* Decorative Elements */}
-                          <div className="absolute top-4 right-4 w-12 h-12 bg-blue-100 rounded-full opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                          <div className="absolute bottom-4 left-4 w-10 h-10 bg-indigo-100 rounded-full opacity-20 group-hover:opacity-30 transition-opacity"></div>
                         </Link>
 
                         <Link
                           href="/dashboard/new-filing"
-                          className="group relative bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-[var(--color-orangeß)] hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                          className="group relative bg-white border-2 border-slate-200 rounded-2xl p-6 sm:p-8 hover:border-[var(--color-orange)] hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
                         >
-                          {/* Gradient Background on Hover */}
                           <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
                           <div className="relative z-10">
-                            {/* Icon */}
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--color-orangeß)] to-slate-700 flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--color-orange)] to-slate-700 flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
                               <Edit className="w-8 h-8 text-white" />
                             </div>
-
-                            {/* Content */}
                             <h3 className="text-lg font-bold text-[var(--color-text)] mb-2">Manual Entry</h3>
-                            <p className="text-sm text-[var(--color-muted)] mb-3 leading-relaxed">
+                            <p className="text-sm text-[var(--color-muted)] mb-4 leading-relaxed">
                               Fill out your Form 2290 step-by-step with our guided filing process
                             </p>
-
-                            {/* Features */}
                             <div className="space-y-1.5 mb-4">
                               <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
                                 <CheckCircle className="w-3.5 h-3.5 text-[var(--color-orange)] flex-shrink-0" />
@@ -327,22 +319,16 @@ export default function DashboardPage() {
                                 <span>Save progress anytime</span>
                               </div>
                             </div>
-
-                            {/* CTA */}
                             <div className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-orange)] group-hover:gap-3 transition-all">
                               <span>Get Started</span>
                               <ArrowRight className="w-4 h-4" />
                             </div>
                           </div>
-
-                          {/* Decorative Elements */}
-                          <div className="absolute top-4 right-4 w-12 h-12 bg-slate-200 rounded-full opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                          <div className="absolute bottom-4 left-4 w-10 h-10 bg-blue-200 rounded-full opacity-20 group-hover:opacity-30 transition-opacity"></div>
                         </Link>
                       </div>
 
-                      {/* Trust Indicators & Features - More Compact */}
-                      <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto mb-5">
+                      {/* Trust Indicators */}
+                      <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto">
                         <div className="text-center p-3">
                           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center mx-auto mb-2">
                             <CheckCircle className="w-5 h-5 text-emerald-600" />
@@ -365,59 +351,107 @@ export default function DashboardPage() {
                           <p className="text-xs text-[var(--color-muted)]">No tax expertise needed</p>
                         </div>
                       </div>
-
-
                     </div>
                   </div>
                 )}
 
-                {/* Filings Table - Scrollable */}
+                {/* Quick Overview - Action Items & Recent Activity */}
                 {hasFilings && (
-                  <div className="flex-1 flex flex-col min-h-0 bg-white border border-slate-200 rounded-xl overflow-hidden">
-                    <div className="flex items-center justify-between p-4 border-b border-slate-100 flex-shrink-0">
-                      <h3 className="text-sm font-semibold text-[var(--color-text)]">Recent Filings</h3>
-                      <Link href="/dashboard/filings" className="text-xs font-medium text-[var(--color-muted)] hover:text-[var(--color-text)]">
-                        View all →
-                      </Link>
-                    </div>
-                    <div className="flex-1 overflow-y-auto">
+                  <div className="space-y-4">
+                    {/* Action Required Section */}
+                    {stats.actionRequired > 0 && (
+                      <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4 sm:p-5">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0">
+                            <AlertCircle className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-base font-bold text-orange-900">Action Required</h3>
+                            <p className="text-sm text-orange-800">{stats.actionRequired} {stats.actionRequired === 1 ? 'filing needs' : 'filings need'} your attention</p>
+                          </div>
+                          <Link
+                            href="/dashboard/filings?status=action_required"
+                            className="text-sm font-semibold text-orange-700 hover:text-orange-900 hover:underline"
+                          >
+                            Review →
+                          </Link>
+                        </div>
+                        <div className="space-y-2">
+                          {filings.filter(f => f.status === 'action_required').slice(0, 2).map(filing => {
+                            const typeInfo = getFilingTypeInfo(filing);
+                            return (
+                              <Link
+                                key={filing.id}
+                                href={`/dashboard/filings/${filing.id}`}
+                                className="block bg-white border border-orange-200 rounded-lg p-3 hover:border-orange-300 hover:shadow-sm transition-all"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="text-sm font-semibold text-slate-900 truncate">{filing.business?.businessName || 'Unnamed Business'}</span>
+                                      <span className="text-xs px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded font-medium">{filing.taxYear}</span>
+                                    </div>
+                                    <div className="text-xs text-slate-600">{typeInfo.label}</div>
+                                  </div>
+                                  <ChevronRight className="w-4 h-4 text-orange-600 flex-shrink-0 ml-2" />
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Recent Activity Summary */}
+                    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                      <div className="flex items-center justify-between p-4 border-b border-slate-100">
+                        <h3 className="text-sm font-semibold text-[var(--color-text)]">Recent Activity</h3>
+                        <Link href="/dashboard/filings" className="text-xs font-medium text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors">
+                          View all filings →
+                        </Link>
+                      </div>
                       <div className="divide-y divide-slate-100">
-                        {filings.slice(0, 10).map((filing) => {
-                          const statusConfig = getStatusConfig(filing.status);
-                          const StatusIcon = statusConfig.icon;
-                          return (
-                            <Link
-                              key={filing.id}
-                              href={`/dashboard/filings/${filing.id}`}
-                              className="group flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors"
-                            >
-                              <div className={`w-10 h-10 rounded-lg ${statusConfig.bg} border ${statusConfig.border} flex items-center justify-center flex-shrink-0`}>
-                                <StatusIcon className={`w-4 h-4 ${statusConfig.color}`} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-sm font-semibold text-[var(--color-text)]">Tax Year {filing.taxYear}</span>
-                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${statusConfig.bg} ${statusConfig.color} border ${statusConfig.border}`}>
-                                    <span className={`w-1 h-1 rounded-full ${statusConfig.dot}`}></span>
-                                    {statusConfig.label}
-                                  </span>
+                        {filings
+                          .sort((a, b) => {
+                            const dateA = a.updatedAt || a.createdAt;
+                            const dateB = b.updatedAt || b.createdAt;
+                            return new Date(dateB) - new Date(dateA);
+                          })
+                          .slice(0, 5)
+                          .map((filing) => {
+                            const statusConfig = getStatusConfig(filing.status);
+                            const typeInfo = getFilingTypeInfo(filing);
+                            const StatusIcon = statusConfig.icon;
+                            const date = filing.updatedAt || filing.createdAt;
+                            const dateStr = date ? (date instanceof Date ? date : new Date(date)).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A';
+                            return (
+                              <Link
+                                key={filing.id}
+                                href={`/dashboard/filings/${filing.id}`}
+                                className="group flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors"
+                              >
+                                <div className={`w-8 h-8 rounded-lg ${statusConfig.bg} border ${statusConfig.border} flex items-center justify-center flex-shrink-0`}>
+                                  <StatusIcon className={`w-4 h-4 ${statusConfig.color}`} />
                                 </div>
-                                <div className="flex items-center gap-3 text-xs text-[var(--color-muted)]">
-                                  <span className="flex items-center gap-1">
-                                    <Truck className="w-3 h-3" />
-                                    {filing.vehicleIds?.length || 0}
-                                  </span>
-                                  <span>·</span>
-                                  <span className="flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" />
-                                    {filing.createdAt?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) || 'N/A'}
-                                  </span>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-sm font-medium text-[var(--color-text)] truncate">{filing.business?.businessName || 'Unnamed Business'}</span>
+                                    <span className={`text-xs px-1.5 py-0.5 rounded ${statusConfig.bg} ${statusConfig.color} border ${statusConfig.border}`}>
+                                      {statusConfig.label}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
+                                    <span>{typeInfo.label}</span>
+                                    <span>·</span>
+                                    <span>Tax Year {filing.taxYear}</span>
+                                    <span>·</span>
+                                    <span>{dateStr}</span>
+                                  </div>
                                 </div>
-                              </div>
-                              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[var(--color-text)] transition-colors flex-shrink-0" />
-                            </Link>
-                          );
-                        })}
+                                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[var(--color-text)] transition-colors flex-shrink-0" />
+                              </Link>
+                            );
+                          })}
                       </div>
                     </div>
                   </div>
@@ -427,40 +461,14 @@ export default function DashboardPage() {
 
             {/* Right Sidebar - Fixed, Scrollable */}
             <div className="hidden xl:block w-80 border-l border-[var(--color-border)] bg-white overflow-y-auto flex-shrink-0">
-              <div className="p-4 space-y-4">
-                {/* Action Required - Compact */}
-                {stats.actionRequired > 0 && (
-                  <div className="flex-shrink-0 bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
-                        <AlertCircle className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-orange-900">Action Required</h3>
-                        <p className="text-xs text-orange-800">{stats.actionRequired} filing{stats.actionRequired !== 1 ? 's' : ''}</p>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      {filings.filter(f => f.status === 'action_required').slice(0, 2).map(filing => (
-                        <Link
-                          key={filing.id}
-                          href={`/dashboard/filings/${filing.id}`}
-                          className="block px-3 py-2 bg-white border border-orange-200 text-orange-700 rounded-lg text-xs font-medium hover:bg-orange-50 transition-colors"
-                        >
-                          Review {filing.taxYear} →
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
+              <div className="p-4 sm:p-6 space-y-4">
                 {/* Quick Actions - Compact Grid */}
-                <div className="flex-shrink-0 bg-white border border-slate-200 rounded-xl p-4">
+                <div className="flex-shrink-0 bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
                   <h3 className="text-xs font-semibold text-[var(--color-text)] mb-3 uppercase tracking-wide">Quick Actions</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {[
-                      { href: '/dashboard/new-filing', icon: Plus, label: 'New', color: 'blue' },
-                      { href: '/dashboard/upload-schedule1', icon: Upload, label: 'Upload', color: 'purple' },
+                      { href: '/dashboard/new-filing', icon: Plus, label: 'New Filing', color: 'blue' },
+                      { href: '/dashboard/upload-schedule1', icon: Upload, label: 'Upload PDF', color: 'purple' },
                       { href: '/dashboard/new-filing?type=refund', icon: CreditCard, label: 'Refund', color: 'emerald' },
                       { href: '/dashboard/new-filing?type=amendment', icon: Edit, label: 'Amend', color: 'amber' },
                     ].map((action, idx) => {
@@ -486,6 +494,20 @@ export default function DashboardPage() {
                     })}
                   </div>
                 </div>
+
+                {/* View All Filings Link */}
+                {hasFilings && (
+                  <Link
+                    href="/dashboard/filings"
+                    className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl hover:shadow-md transition-all group"
+                  >
+                    <div>
+                      <h3 className="text-sm font-semibold text-blue-900 mb-1">View All Filings</h3>
+                      <p className="text-xs text-blue-700">Search, filter, and manage all your filings</p>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-blue-600 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                )}
 
                 {/* Help Section - Compact */}
                 <div className="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-xl p-4">

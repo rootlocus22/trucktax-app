@@ -50,7 +50,11 @@ function MobilePricingSummary({
 
   useEffect(() => {
     const fetchPricing = async () => {
-      if (!filingType || selectedVehicleIds.length === 0) {
+      // For VIN corrections and mileage exceeded, allow calculation even without vehicles
+      const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
+      const isMileageExceeded = filingType === 'amendment' && amendmentType === 'mileage_exceeded';
+      
+      if (!filingType || (selectedVehicleIds.length === 0 && !isVinCorrection && !isMileageExceeded)) {
         setPricing({
           totalTax: 0,
           serviceFee: 0,
@@ -92,9 +96,12 @@ function MobilePricingSummary({
             };
           } else if (amendmentType === 'mileage_exceeded') {
             const vehicle = vehicles.find(v => v.id === mileageExceededData?.vehicleId);
+            // Use firstUsedMonth from user input (from their original filing)
+            const firstUsedMonth = mileageExceededData?.firstUsedMonth || filingData?.firstUsedMonth || 'July';
             amendmentDataForPricing = {
               vehicleCategory: vehicle?.grossWeightCategory || '',
-              firstUsedMonth: filingData?.firstUsedMonth || 'July'
+              firstUsedMonth: firstUsedMonth,
+              isLogging: vehicle?.logging === true
             };
           } else if (amendmentType === 'vin_correction') {
             amendmentDataForPricing = {};
@@ -107,15 +114,18 @@ function MobilePricingSummary({
 
         // Sanitize vehicles to remove complex objects (like Firestore Timestamps)
         // Include vehicleType, logging, and creditDate for proper tax calculation
-        const sanitizedVehicles = selectedVehiclesList.map(v => ({
-          id: v.id,
-          vin: v.vin,
-          grossWeightCategory: v.grossWeightCategory,
-          isSuspended: v.isSuspended || false,
-          vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
-          logging: v.logging !== undefined ? v.logging : null,
-          creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
-        }));
+        // For VIN corrections and mileage exceeded, vehicles array can be empty
+        const sanitizedVehicles = selectedVehiclesList.length > 0
+          ? selectedVehiclesList.map(v => ({
+              id: v.id,
+              vin: v.vin,
+              grossWeightCategory: v.grossWeightCategory,
+              isSuspended: v.isSuspended || false,
+              vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
+              logging: v.logging !== undefined ? v.logging : null,
+              creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
+            }))
+          : []; // Empty array for VIN corrections and mileage exceeded with no vehicles
 
         const { calculateFilingCost } = await import('@/app/actions/pricing');
         const result = await calculateFilingCost(
@@ -138,7 +148,10 @@ function MobilePricingSummary({
     return () => clearTimeout(timeoutId);
   }, [filingType, filingData, selectedVehicleIds, vehicles, selectedBusinessId, businesses, amendmentType, weightIncreaseData, mileageExceededData]);
 
-  const hasData = filingType && selectedVehicleIds.length > 0;
+  // For VIN corrections and mileage exceeded, hasData should be true even without vehicles
+  const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
+  const isMileageExceeded = filingType === 'amendment' && amendmentType === 'mileage_exceeded';
+  const hasData = filingType && (selectedVehicleIds.length > 0 || isVinCorrection || isMileageExceeded);
   const vehicleCount = selectedVehicleIds.length;
   // For collapsed view, show what's due now (service fee + sales tax), not grand total
   // IRS tax is paid separately, so we only show platform fees in the collapsed summary
@@ -172,6 +185,9 @@ function MobilePricingSummary({
                 </span>
                 {hasData && filingType === 'amendment' && amendmentType === 'vin_correction' && (
                   <span className="text-xs text-emerald-600 font-medium">FREE</span>
+                )}
+                {hasData && filingType === 'amendment' && amendmentType === 'mileage_exceeded' && (
+                  <span className="text-xs text-purple-600 font-medium">$10 fee</span>
                 )}
               </div>
             )}
@@ -277,6 +293,13 @@ function MobilePricingSummary({
                 {filingType === 'amendment' && amendmentType === 'vin_correction' && (
                   <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded text-emerald-700">
                     <span className="font-medium">VIN corrections: $10 service fee (No IRS tax)</span>
+                  </div>
+                )}
+                {filingType === 'amendment' && amendmentType === 'mileage_exceeded' && (
+                  <div className="mt-2 p-2 bg-purple-50 border border-purple-200 rounded text-purple-700">
+                    <span className="font-medium">
+                      Mileage exceeded: $10 service fee {pricing.totalTax > 0 ? `+ IRS tax ($${pricing.totalTax.toFixed(2)})` : '(No IRS tax required)'}
+                    </span>
                   </div>
                 )}
               </>
@@ -440,6 +463,7 @@ function NewFilingContent() {
     originalMileageLimit: 5000,
     actualMileageUsed: 0,
     exceededMonth: '',
+    firstUsedMonth: '', // Month vehicle was first used in tax period (required for tax calculation per IRS)
     isAgriculturalVehicle: false
   });
 
@@ -589,9 +613,12 @@ function NewFilingContent() {
   useEffect(() => {
     const fetchPricing = async () => {
       // Calculate pricing when we have minimum data (filing type and at least one vehicle selected)
-      // Exception: VIN corrections don't require vehicles, so allow pricing calculation
+      // Exception: VIN corrections and mileage exceeded don't require vehicles in selectedVehicleIds, so allow pricing calculation
       const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
-      if (!filingType || (selectedVehicleIds.length === 0 && !isVinCorrection)) {
+      const isMileageExceeded = filingType === 'amendment' && amendmentType === 'mileage_exceeded';
+      const hasMileageExceededVehicle = isMileageExceeded && mileageExceededData?.vehicleId;
+      
+      if (!filingType || (selectedVehicleIds.length === 0 && !isVinCorrection && !hasMileageExceededVehicle)) {
         setPricing({
           totalTax: 0,
           serviceFee: 0,
@@ -636,11 +663,19 @@ function NewFilingContent() {
               increaseMonth: weightIncreaseData.increaseMonth
             };
           } else if (amendmentType === 'mileage_exceeded') {
-            // For mileage exceeded, we need the vehicle's weight category and first-used month
+            // For mileage exceeded amendments, IRS requires tax calculation based on:
+            // "the month the vehicle was first used in the tax period" (from original filing)
+            // See IRS Form 2290 Instructions (Rev. July 2025), page 7
             const vehicle = vehicles.find(v => v.id === mileageExceededData.vehicleId);
+            
+            // Use firstUsedMonth from user input (they provide it from their original filing)
+            // If not provided, try to use from current filing data, otherwise default to 'July'
+            const firstUsedMonth = mileageExceededData.firstUsedMonth || filingData.firstUsedMonth || 'July';
+            
             amendmentDataForPricing = {
               vehicleCategory: vehicle?.grossWeightCategory || '',
-              firstUsedMonth: filingData.firstUsedMonth // Use the tax period's first-used month
+              firstUsedMonth: firstUsedMonth,
+              isLogging: vehicle?.logging === true
             };
           } else if (amendmentType === 'vin_correction') {
             // VIN corrections have no tax
@@ -654,7 +689,7 @@ function NewFilingContent() {
 
         // Sanitize vehicles to remove complex objects (like Firestore Timestamps)
         // Include vehicleType, logging, and creditDate for proper tax calculation
-        // For VIN corrections, vehicles array can be empty
+        // For VIN corrections and mileage exceeded, vehicles array can be empty
         const sanitizedVehicles = selectedVehiclesList.length > 0 
           ? selectedVehiclesList.map(v => ({
               id: v.id,
@@ -665,7 +700,7 @@ function NewFilingContent() {
               logging: v.logging !== undefined ? v.logging : null,
               creditDate: v.creditDate || null // Include creditDate for credit vehicle proration
             }))
-          : []; // Empty array for VIN corrections with no vehicles
+          : []; // Empty array for VIN corrections and mileage exceeded with no vehicles
 
         const result = await calculateFilingCost(
           filingDataForPricing,
@@ -674,7 +709,25 @@ function NewFilingContent() {
         );
 
         if (result.success) {
+          console.log('Pricing calculation result for mileage exceeded:', {
+            amendmentType,
+            serviceFee: result.breakdown.serviceFee,
+            totalTax: result.breakdown.totalTax,
+            salesTax: result.breakdown.salesTax
+          });
           setPricing(result.breakdown);
+        } else {
+          console.error('Pricing calculation failed:', result.error);
+          // For mileage exceeded amendments, set default $10 service fee
+          if (filingType === 'amendment' && amendmentType === 'mileage_exceeded') {
+            setPricing({
+              totalTax: 0,
+              serviceFee: 10.00,
+              salesTax: 0,
+              grandTotal: 10.00,
+              totalRefund: 0
+            });
+          }
         }
       } catch (err) {
         console.error('Pricing fetch error:', err);
@@ -684,7 +737,7 @@ function NewFilingContent() {
     };
 
     fetchPricing();
-  }, [step, selectedVehicleIds, filingType, filingData.firstUsedMonth, vehicles, selectedBusinessId, businesses, amendmentType, weightIncreaseData, mileageExceededData]);
+  }, [step, selectedVehicleIds, filingType, filingData.firstUsedMonth, filingData, vehicles, selectedBusinessId, businesses, amendmentType, weightIncreaseData, mileageExceededData]);
 
   // Duplicate Detection: Check for existing incomplete filings with same data
   useEffect(() => {
@@ -1286,6 +1339,7 @@ function NewFilingContent() {
               originalMileageLimit: mileageExceededData.originalMileageLimit,
               actualMileageUsed: mileageExceededData.actualMileageUsed,
               exceededMonth: mileageExceededData.exceededMonth,
+              firstUsedMonth: mileageExceededData.firstUsedMonth,
               isAgriculturalVehicle: mileageExceededData.isAgriculturalVehicle
             }
           };
@@ -1471,6 +1525,7 @@ function NewFilingContent() {
               originalMileageLimit: mileageExceededData.originalMileageLimit,
               actualMileageUsed: mileageExceededData.actualMileageUsed,
               exceededMonth: mileageExceededData.exceededMonth,
+              firstUsedMonth: mileageExceededData.firstUsedMonth,
               isAgriculturalVehicle: mileageExceededData.isAgriculturalVehicle
             }
           };
@@ -2293,11 +2348,16 @@ function NewFilingContent() {
                         className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
                       >
                         <option value="">Select a vehicle...</option>
-                        {vehicles.filter(v => v.isSuspended).map(v => (
+                        {vehicles.filter(v => v.vehicleType === 'suspended' || (v.vehicleType === undefined && v.isSuspended === true)).map(v => (
                           <option key={v.id} value={v.id}>{v.vin} (Suspended)</option>
                         ))}
                       </select>
-                      <p className="mt-1 text-xs text-[var(--color-muted)]">Only suspended vehicles are shown</p>
+                      {vehicles.filter(v => v.vehicleType === 'suspended' || (v.vehicleType === undefined && v.isSuspended === true)).length === 0 && (
+                        <p className="mt-1 text-xs text-amber-600">No suspended vehicles found. Please add a suspended vehicle first.</p>
+                      )}
+                      {vehicles.filter(v => v.vehicleType === 'suspended' || (v.vehicleType === undefined && v.isSuspended === true)).length > 0 && (
+                        <p className="mt-1 text-xs text-[var(--color-muted)]">Only suspended vehicles are shown</p>
+                      )}
                     </div>
 
                     <div>
@@ -2378,13 +2438,35 @@ function NewFilingContent() {
                       </div>
                     </div>
 
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                        Month Vehicle Was First Used in Tax Period *
+                        <span className="text-xs text-[var(--color-muted)] ml-2">(Required for tax calculation per IRS)</span>
+                      </label>
+                      <select
+                        value={mileageExceededData.firstUsedMonth}
+                        onChange={(e) => setMileageExceededData({ ...mileageExceededData, firstUsedMonth: e.target.value })}
+                        className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white"
+                      >
+                        <option value="">Select month...</option>
+                        {['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June'].map(m => (
+                          <option key={m} value={m}>{m} {m === 'January' || m === 'February' || m === 'March' || m === 'April' || m === 'May' || m === 'June' ? '2026' : '2025'}</option>
+                        ))}
+                      </select>
+                      <p className="mt-1 text-xs text-[var(--color-muted)]">
+                        This is the month from your original Form 2290 filing where the vehicle was suspended. If you didn't file with us, enter the month from your original filing.
+                      </p>
+                    </div>
+
                     <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 sm:p-5 flex gap-2 sm:gap-3">
                       <div className="flex-shrink-0 mt-0.5">
                         <Info className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                       </div>
-                      <p className="text-xs sm:text-sm text-purple-700 leading-relaxed">
-                        <strong>Note:</strong> Once a suspended vehicle exceeds the mileage limit, you must pay the full HVUT tax based on when the vehicle was first used in the tax period.
-                      </p>
+                      <div className="text-xs sm:text-sm text-purple-700 leading-relaxed">
+                        <p className="font-semibold mb-1">IRS Tax Calculation:</p>
+                        <p className="mb-2">Per IRS Form 2290 Instructions, the tax is calculated based on the <strong>month the vehicle was first used in the tax period</strong> (from your original filing), not the month the mileage limit was exceeded.</p>
+                        <p className="text-xs mt-2 opacity-90">Example: If first used in July → full year tax. If first used in December → 7 months tax (Dec through June).</p>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -2424,12 +2506,13 @@ function NewFilingContent() {
                           return;
                         }
                       } else if (amendmentType === 'mileage_exceeded') {
-                        if (!mileageExceededData.vehicleId || !mileageExceededData.actualMileageUsed || !mileageExceededData.exceededMonth) {
+                        if (!mileageExceededData.vehicleId || !mileageExceededData.actualMileageUsed || !mileageExceededData.exceededMonth || !mileageExceededData.firstUsedMonth) {
                           const missingFields = [];
                           if (!mileageExceededData.vehicleId) missingFields.push('Vehicle');
                           if (!mileageExceededData.actualMileageUsed) missingFields.push('Actual Mileage Used');
-                          if (!mileageExceededData.exceededMonth) missingFields.push('Exceeded Month');
-                          setError(`Please complete all required fields for mileage exceeded amendment: ${missingFields.join(', ')}. All fields are required to calculate the full tax due.`);
+                          if (!mileageExceededData.exceededMonth) missingFields.push('Month Limit Was Exceeded');
+                          if (!mileageExceededData.firstUsedMonth) missingFields.push('Month Vehicle Was First Used');
+                          setError(`Please complete all required fields for mileage exceeded amendment: ${missingFields.join(', ')}. All fields are required to calculate the tax due per IRS requirements.`);
                           return;
                         }
                         const validation = validateMileageExceeded(mileageExceededData.actualMileageUsed, mileageExceededData.isAgriculturalVehicle);
@@ -3869,6 +3952,10 @@ function NewFilingContent() {
                                 <p className="font-semibold text-sm sm:text-base break-words">{mileageExceededData.exceededMonth}</p>
                               </div>
                               <div>
+                                <p className="text-xs text-[var(--color-muted)] mb-1">First Used Month</p>
+                                <p className="font-semibold text-sm sm:text-base break-words">{mileageExceededData.firstUsedMonth || 'Not specified'}</p>
+                              </div>
+                              <div>
                                 <p className="text-xs text-purple-700 mb-1">Actual Mileage</p>
                                 <p className="font-bold text-sm sm:text-base text-purple-700">{mileageExceededData.actualMileageUsed?.toLocaleString()} miles</p>
                               </div>
@@ -4224,25 +4311,23 @@ function NewFilingContent() {
                     <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--color-text)]">Payment Methods</h2>
                   </div>
                   <p className="text-sm sm:text-base text-[var(--color-muted)] ml-13">
-                    {filingType === 'amendment' && amendmentType === 'vin_correction' 
+                    {(filingType === 'amendment' && amendmentType === 'vin_correction') || 
+                     (filingType === 'amendment' && amendmentType === 'mileage_exceeded' && (pricing?.totalTax || 0) === 0)
                       ? 'Complete the service fee payment below to proceed with your filing' 
                       : 'Complete both payment sections to proceed with your filing'}
                   </p>
                 </div>
 
                 <div className="space-y-6 sm:space-y-8">
-                  {/* Section 1: IRS Payment Method */}
-                  <div className="border-2 border-blue-200 rounded-xl p-4 sm:p-6 bg-blue-50/30">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">1</div>
-                      <h3 className="text-lg sm:text-xl font-bold text-blue-900">IRS Tax Payment</h3>
-                      {filingType === 'amendment' && amendmentType === 'vin_correction' ? (
+                  {/* Section 1: IRS Payment Method - Only show if tax is due */}
+                  {((filingType === 'amendment' && amendmentType === 'vin_correction') || 
+                    (filingType === 'amendment' && amendmentType === 'mileage_exceeded' && (pricing?.totalTax || 0) === 0)) ? (
+                    <div className="border-2 border-blue-200 rounded-xl p-4 sm:p-6 bg-blue-50/30">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">1</div>
+                        <h3 className="text-lg sm:text-xl font-bold text-blue-900">IRS Tax Payment</h3>
                         <span className="text-xs sm:text-sm text-green-700 bg-green-100 px-2 py-1 rounded">Not Required</span>
-                      ) : (
-                        <span className="text-xs sm:text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded">Required</span>
-                      )}
-                    </div>
-                    {filingType === 'amendment' && amendmentType === 'vin_correction' ? (
+                      </div>
                       <div className="ml-0 sm:ml-10">
                         <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 mb-4">
                           <div className="flex items-start gap-3">
@@ -4250,13 +4335,22 @@ function NewFilingContent() {
                             <div>
                               <p className="text-sm font-semibold text-green-900 mb-1">No IRS Payment Required</p>
                               <p className="text-sm text-green-800">
-                                VIN corrections are FREE with no additional HVUT tax due. You only need to pay the service fee below.
+                                {amendmentType === 'vin_correction' 
+                                  ? 'VIN corrections are FREE with no additional HVUT tax due. You only need to pay the service fee below.'
+                                  : 'For this mileage exceeded amendment, no additional HVUT tax is due. You only need to pay the service fee below.'}
                               </p>
                             </div>
                           </div>
                         </div>
                       </div>
-                    ) : (
+                    </div>
+                  ) : (pricing?.totalTax || 0) > 0 ? (
+                    <div className="border-2 border-blue-200 rounded-xl p-4 sm:p-6 bg-blue-50/30">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">1</div>
+                        <h3 className="text-lg sm:text-xl font-bold text-blue-900">IRS Tax Payment</h3>
+                        <span className="text-xs sm:text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded">Required</span>
+                      </div>
                       <>
                         <p className="text-sm text-blue-800 mb-4 ml-0 sm:ml-10">Choose how you'd like to pay the IRS tax amount (${pricing.totalTax?.toFixed(2) || '0.00'})</p>
                         <div className="space-y-3 sm:space-y-4 ml-0 sm:ml-10">
@@ -4473,8 +4567,8 @@ function NewFilingContent() {
                       </div>
                         </div>
                       </>
-                    )}
-                  </div>
+                    </div>
+                  ) : null}
 
                   {/* Section 2: Service Fee Payment */}
                   <div className={`border-2 rounded-xl p-4 sm:p-6 transition-all ${serviceFeePaid ? 'border-green-500 bg-green-50' : 'border-orange-200 bg-orange-50/30'}`}>
@@ -4490,13 +4584,41 @@ function NewFilingContent() {
                       )}
                     </div>
                     <p className="text-sm text-orange-800 mb-4 ml-0 sm:ml-10">
-                      Pay the platform service fee (${((pricing.serviceFee || 0) + (pricing.salesTax || 0)).toFixed(2)}) using a US payment method. This payment must be completed before your filing can be submitted.
+                      {filingType === 'amendment' && (amendmentType === 'vin_correction' || amendmentType === 'mileage_exceeded') ? (
+                        <>
+                          Pay the platform service fee (${(() => {
+                            // For amendments with fixed $10 fee, calculate with sales tax
+                            const baseFee = 10.00;
+                            // Estimate sales tax (typically 7-10%, we'll use 7% as conservative estimate)
+                            const estimatedSalesTax = baseFee * 0.07;
+                            return (pricing.serviceFee > 0 ? pricing.serviceFee : baseFee) + (pricing.salesTax > 0 ? pricing.salesTax : estimatedSalesTax);
+                          })().toFixed(2)}) using a US payment method. This payment must be completed before your filing can be submitted.
+                          {amendmentType === 'mileage_exceeded' && (pricing?.totalTax || 0) > 0 && (
+                            <span className="block mt-2 text-xs text-orange-700">
+                              Note: You will also need to pay the IRS tax amount shown above.
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          Pay the platform service fee (${((pricing.serviceFee || 0) + (pricing.salesTax || 0)).toFixed(2)}) using a US payment method. This payment must be completed before your filing can be submitted.
+                        </>
+                      )}
                     </p>
 
                     {!serviceFeePaid ? (
                       <div className="ml-0 sm:ml-10 space-y-4">
                         <StripeWrapper
-                          amount={(pricing.serviceFee || 0) + (pricing.salesTax || 0)}
+                          amount={(() => {
+                            // For amendments with fixed $10 fee, ensure we use at least $10
+                            if (filingType === 'amendment' && (amendmentType === 'vin_correction' || amendmentType === 'mileage_exceeded')) {
+                              const baseFee = 10.00;
+                              const fee = pricing.serviceFee > 0 ? pricing.serviceFee : baseFee;
+                              const tax = pricing.salesTax > 0 ? pricing.salesTax : (fee * 0.07); // Estimate 7% sales tax if not calculated
+                              return fee + tax;
+                            }
+                            return (pricing.serviceFee || 0) + (pricing.salesTax || 0);
+                          })()}
                           metadata={{
                             filingType: filingType,
                             userId: user.uid,
