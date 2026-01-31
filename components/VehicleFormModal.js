@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Plus, Loader2, AlertCircle } from 'lucide-react';
 import { validateVIN } from '@/lib/validation';
 
@@ -153,6 +153,39 @@ export default function VehicleFormModal({
     businessId: ''
   });
   const [errors, setErrors] = useState({});
+  const errorRef = useRef(null);
+
+  // Scroll to top when error occurs
+  useEffect(() => {
+    const hasError = Object.keys(errors).length > 0;
+    if (hasError && errorRef.current && isOpen) {
+      // Small delay to ensure error is rendered
+      setTimeout(() => {
+        const element = errorRef.current;
+        if (element) {
+          // Find the modal's scrollable container
+          const modalContainer = element.closest('.overflow-y-auto');
+          if (modalContainer) {
+            // Scroll within the modal container
+            const elementTop = element.getBoundingClientRect().top;
+            const containerTop = modalContainer.getBoundingClientRect().top;
+            const offset = 20;
+            modalContainer.scrollTo({
+              top: modalContainer.scrollTop + (elementTop - containerTop) - offset,
+              behavior: 'smooth'
+            });
+          } else {
+            // Fallback to scrollIntoView
+            element.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'start',
+              inline: 'nearest'
+            });
+          }
+        }
+      }, 150);
+    }
+  }, [errors, isOpen]);
 
   // Initialize form when modal opens or initialVehicle changes
   useEffect(() => {
@@ -335,12 +368,14 @@ export default function VehicleFormModal({
           </button>
         </div>
 
-        {errors.general && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-            <span>{errors.general}</span>
-          </div>
-        )}
+        <div ref={errorRef}>
+          {errors.general && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <span>{errors.general}</span>
+            </div>
+          )}
+        </div>
 
         <div className="space-y-4">
           {/* VIN */}

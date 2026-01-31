@@ -436,6 +436,7 @@ function NewFilingContent() {
   const draftSavingRef = useRef(false);
   const [showDraftWarningModal, setShowDraftWarningModal] = useState(false);
   const [existingDraft, setExistingDraft] = useState(null);
+  const errorRef = useRef(null);
 
   // Step 1: Filing Type
   const [filingType, setFilingType] = useState('standard'); // standard, amendment, refund
@@ -847,6 +848,41 @@ function NewFilingContent() {
       reloadVehicles();
     }
   }, [selectedBusinessId, user]);
+
+  // Scroll to top when error occurs
+  useEffect(() => {
+    // Check if any error exists
+    const hasError = error || 
+                     vehicleTypeError || 
+                     Object.keys(businessErrors).length > 0 || 
+                     Object.keys(vehicleErrors).length > 0 || 
+                     Object.keys(bankDetailsErrors).length > 0;
+    
+    if (hasError && errorRef.current) {
+      // Small delay to ensure error is rendered
+      setTimeout(() => {
+        const element = errorRef.current;
+        if (element) {
+          // Get the error message element (the actual visible error div)
+          const errorMessage = element.querySelector('.bg-red-50, .text-red-700');
+          const targetElement = errorMessage || element;
+          
+          // Calculate position accounting for current scroll position
+          const elementTop = targetElement.getBoundingClientRect().top;
+          const currentScrollY = window.scrollY || window.pageYOffset;
+          const offset = 100; // Offset from top of viewport to account for any sticky headers
+          
+          // Scroll to position that puts error message near top of viewport
+          const scrollPosition = currentScrollY + elementTop - offset;
+          
+          window.scrollTo({
+            top: Math.max(0, scrollPosition), // Ensure we don't scroll to negative position
+            behavior: 'smooth'
+          });
+        }
+      }, 200);
+    }
+  }, [error, vehicleTypeError, businessErrors, vehicleErrors, bankDetailsErrors]);
 
   // Clear all errors when step changes and reset business form visibility
   useEffect(() => {
@@ -2041,7 +2077,7 @@ function NewFilingContent() {
         </div>
 
         {/* Error and Warnings */}
-        <div className="mb-3 sm:mb-4 md:mb-6 space-y-2 sm:space-y-3 md:space-y-4 w-full">
+        <div ref={errorRef} className="mb-3 sm:mb-4 md:mb-6 space-y-2 sm:space-y-3 md:space-y-4 w-full">
           {error && (
             <div className="p-2.5 sm:p-3 md:p-4 bg-red-50 border border-red-200 rounded-lg sm:rounded-xl text-red-700 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
@@ -3392,7 +3428,7 @@ function NewFilingContent() {
                           )}
                         </div>
                       </div>
-                      <div className="md:col-span-2 pt-4 border-t-2 border-slate-200 mt-4">
+                      <div className="md:col-span-2 pt-4 border-t-2 border-slate-200 mt-4 -mx-4 sm:-mx-6 md:-mx-8 px-4 sm:px-6 md:px-8">
                         <button
                           onClick={async () => {
                             // Run validations first
