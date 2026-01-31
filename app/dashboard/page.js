@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -99,76 +99,81 @@ export default function DashboardPage() {
     return { label: 'Form 2290', image: '/assets/icons/form2290.png', color: 'text-blue-600', bg: 'bg-blue-50' };
   };
 
-  const stats = {
+  const stats = useMemo(() => ({
     total: filings.length,
     completed: filings.filter(f => f.status === 'completed').length,
     processing: filings.filter(f => f.status === 'processing' || f.status === 'submitted').length,
     actionRequired: filings.filter(f => f.status === 'action_required').length,
     totalVehicles: filings.reduce((sum, f) => sum + (f.vehicleIds?.length || 0), 0),
-  };
+  }), [filings]);
 
-  const incomplete = getIncompleteFilings(filings);
+  const incomplete = useMemo(() => getIncompleteFilings(filings), [filings]);
   // Filter drafts to only show those with selectedBusinessId (business selected)
-  const activeDrafts = draftFilings.filter(d => d.status === 'draft' && (d.selectedBusinessId || d.businessId));
-  const allIncompleteFilings = [
+  const activeDrafts = useMemo(() => draftFilings.filter(d => d.status === 'draft' && (d.selectedBusinessId || d.businessId)), [draftFilings]);
+  const allIncompleteFilings = useMemo(() => [
     ...activeDrafts.map(d => ({ ...d, isDraft: true })),
     ...incomplete.all.filter(f => f.status !== 'action_required')
-  ];
+  ], [activeDrafts, incomplete]);
 
   // Filter out drafts that have been converted to actual filings
   // A draft is considered "converted" if there's a filing with:
   // 1. The same draftId reference, OR
   // 2. Same tax year, business, and vehicles (likely the same filing)
-  const convertedDraftIds = new Set();
-  filings.forEach(filing => {
-    if (filing.draftId) {
-      convertedDraftIds.add(filing.draftId);
-    }
-  });
+  const convertedDraftIds = useMemo(() => {
+    const ids = new Set();
+    filings.forEach(filing => {
+      if (filing.draftId) {
+        ids.add(filing.draftId);
+      }
+    });
+    return ids;
+  }, [filings]);
 
   // Only include drafts that haven't been converted to filings AND have a business selected
-  const unconvertedDrafts = activeDrafts.filter(draft => {
-    // Only show drafts with selectedBusinessId (business must be selected)
-    if (!draft.selectedBusinessId && !draft.businessId) {
-      return false;
-    }
-    
-    // Skip if this draft was converted to a filing
-    if (convertedDraftIds.has(draft.id || draft.draftId)) {
-      return false;
-    }
-    
-    // Also check for duplicates based on tax year and business
-    // If there's a filing with same tax year and business, likely the same filing
-    const hasMatchingFiling = filings.some(filing => {
-      const sameTaxYear = filing.taxYear === draft.taxYear;
-      const sameBusiness = filing.businessId === draft.selectedBusinessId || 
-                          filing.businessId === draft.businessId;
-      // If both match and filing exists (even without status), skip the draft
-      // A filing in the filings collection means it was submitted
-      return sameTaxYear && sameBusiness;
+  const unconvertedDrafts = useMemo(() => {
+    return activeDrafts.filter(draft => {
+      // Only show drafts with selectedBusinessId (business must be selected)
+      if (!draft.selectedBusinessId && !draft.businessId) {
+        return false;
+      }
+      
+      // Skip if this draft was converted to a filing
+      if (convertedDraftIds.has(draft.id || draft.draftId)) {
+        return false;
+      }
+      
+      // Also check for duplicates based on tax year and business
+      // If there's a filing with same tax year and business, likely the same filing
+      const hasMatchingFiling = filings.some(filing => {
+        const sameTaxYear = filing.taxYear === draft.taxYear;
+        const sameBusiness = filing.businessId === draft.selectedBusinessId || 
+                            filing.businessId === draft.businessId;
+        // If both match and filing exists (even without status), skip the draft
+        // A filing in the filings collection means it was submitted
+        return sameTaxYear && sameBusiness;
+      });
+      
+      return !hasMatchingFiling;
     });
-    
-    return !hasMatchingFiling;
-  });
+  }, [activeDrafts, convertedDraftIds, filings]);
 
   // Combine all filings (completed, incomplete, drafts) for the table
-  const allFilingsForTable = [
+  const allFilingsForTable = useMemo(() => [
     ...filings,
     ...unconvertedDrafts.map(d => ({ ...d, isDraft: true }))
   ].sort((a, b) => {
     const dateA = a.updatedAt || a.createdAt;
     const dateB = b.updatedAt || b.createdAt;
     return new Date(dateB) - new Date(dateA);
-  });
+  }), [filings, unconvertedDrafts]);
 
-  const hasFilings = filings.length > 0;
-  const hasIncomplete = allIncompleteFilings.length > 0;
+  const hasFilings = useMemo(() => filings.length > 0, [filings]);
+  const hasIncomplete = useMemo(() => allIncompleteFilings.length > 0, [allIncompleteFilings]);
 
   // Get primary business (first business or business from first filing)
-  const primaryBusiness = businesses.length > 0 
+  const primaryBusiness = useMemo(() => businesses.length > 0 
     ? businesses[0] 
-    : (filings.length > 0 && filings[0].business ? filings[0].business : null);
+    : (filings.length > 0 && filings[0].business ? filings[0].business : null), [businesses, filings]);
 
   // Helper function to get return number display
   const getReturnNumber = (filing) => {
@@ -266,47 +271,65 @@ export default function DashboardPage() {
     return vehicleIds.map(id => vehiclesMap[id] || { id, vin: 'Loading...', vehicleType: null }).filter(v => v);
   };
 
-  // Load vehicles when filings change
+  // Load vehicles when filings change - DEFER to prevent blocking UI
   useEffect(() => {
     if (!user || (filings.length === 0 && unconvertedDrafts.length === 0)) return;
 
-    const loadVehicles = async () => {
-      const vehicleIdsSet = new Set();
-      
-      // Collect all vehicle IDs from filings and drafts
-      [...filings, ...unconvertedDrafts].forEach(filing => {
-        const vehicleIds = filing.vehicleIds || filing.selectedVehicleIds || [];
-        vehicleIds.forEach(id => vehicleIdsSet.add(id));
+    // Defer vehicle loading to next tick to allow UI to render first
+    const timeoutId = setTimeout(() => {
+      const loadVehicles = async () => {
+        const vehicleIdsSet = new Set();
         
-        // For amendments, also check amendment details
-        if (filing.filingType === 'amendment' && filing.amendmentDetails) {
-          if (filing.amendmentType === 'weight_increase' && filing.amendmentDetails.weightIncrease?.vehicleId) {
-            vehicleIdsSet.add(filing.amendmentDetails.weightIncrease.vehicleId);
-          } else if (filing.amendmentType === 'mileage_exceeded' && filing.amendmentDetails.mileageExceeded?.vehicleId) {
-            vehicleIdsSet.add(filing.amendmentDetails.mileageExceeded.vehicleId);
+        // Collect all vehicle IDs from filings and drafts
+        [...filings, ...unconvertedDrafts].forEach(filing => {
+          const vehicleIds = filing.vehicleIds || filing.selectedVehicleIds || [];
+          vehicleIds.forEach(id => vehicleIdsSet.add(id));
+          
+          // For amendments, also check amendment details
+          if (filing.filingType === 'amendment' && filing.amendmentDetails) {
+            if (filing.amendmentType === 'weight_increase' && filing.amendmentDetails.weightIncrease?.vehicleId) {
+              vehicleIdsSet.add(filing.amendmentDetails.weightIncrease.vehicleId);
+            } else if (filing.amendmentType === 'mileage_exceeded' && filing.amendmentDetails.mileageExceeded?.vehicleId) {
+              vehicleIdsSet.add(filing.amendmentDetails.mileageExceeded.vehicleId);
+            }
+          }
+        });
+
+        // Limit to prevent blocking - only load first 50 vehicles
+        const vehicleIdsArray = Array.from(vehicleIdsSet).slice(0, 50);
+        
+        // Load vehicles in batches to prevent blocking
+        const vehiclesData = {};
+        const batchSize = 10;
+        for (let i = 0; i < vehicleIdsArray.length; i += batchSize) {
+          const batch = vehicleIdsArray.slice(i, i + batchSize);
+          await Promise.all(
+            batch.map(async (vehicleId) => {
+              try {
+                const vehicle = await getVehicle(vehicleId);
+                if (vehicle) {
+                  vehiclesData[vehicleId] = vehicle;
+                }
+              } catch (error) {
+                console.error(`Error loading vehicle ${vehicleId}:`, error);
+              }
+            })
+          );
+          
+          // Update state after each batch to show progress
+          setVehiclesMap(prev => ({ ...prev, ...vehiclesData }));
+          
+          // Small delay between batches to prevent blocking
+          if (i + batchSize < vehicleIdsArray.length) {
+            await new Promise(resolve => setTimeout(resolve, 50));
           }
         }
-      });
+      };
 
-      // Load vehicles
-      const vehiclesData = {};
-      await Promise.all(
-        Array.from(vehicleIdsSet).map(async (vehicleId) => {
-          try {
-            const vehicle = await getVehicle(vehicleId);
-            if (vehicle) {
-              vehiclesData[vehicleId] = vehicle;
-            }
-          } catch (error) {
-            console.error(`Error loading vehicle ${vehicleId}:`, error);
-          }
-        })
-      );
-      
-      setVehiclesMap(prev => ({ ...prev, ...vehiclesData }));
-    };
+      loadVehicles();
+    }, 0);
 
-    loadVehicles();
+    return () => clearTimeout(timeoutId);
   }, [user, filings, unconvertedDrafts]);
 
   return (
@@ -549,6 +572,10 @@ export default function DashboardPage() {
                                   {isIncomplete ? (
                                     <Link
                                       href={resumeUrl}
+                                      onClick={(e) => {
+                                        console.log('[CLICK] Continue where you left off clicked', { resumeUrl });
+                                        // Don't prevent default - let navigation happen
+                                      }}
                                       className="inline-flex items-center px-3 py-1.5 bg-[var(--color-orange)] text-white text-xs font-semibold rounded-lg hover:bg-[var(--color-orange-hover)] transition-colors"
                                     >
                                       Continue where you left off

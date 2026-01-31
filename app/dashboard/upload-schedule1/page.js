@@ -114,18 +114,42 @@ function UploadSchedule1Content() {
     const saveDraft = async () => {
       if (!user || draftSavingRef.current) return; // Don't save if already saving
 
-      // Save from step 2 onwards (when PDF is uploaded)
-      if (step < 2) return;
-
-      // Only save if we have meaningful data
-      const hasData = pdfUrl || extractedBusiness || selectedBusinessId || selectedVehicleIds.length > 0;
-      if (!hasData) {
-        console.log('Skipping draft save - no meaningful data yet');
+      // Only save draft once we have a business and at least one vehicle
+      // This ensures we only draft filings that have significant progress (2290 only)
+      const hasBusiness = selectedBusinessId || extractedBusiness;
+      const hasMinimumData = hasBusiness && selectedVehicleIds.length > 0;
+      
+      if (step < 2 || !hasMinimumData) {
         return;
       }
 
       draftSavingRef.current = true;
       try {
+        // If we don't have a draftId, check if an identical draft already exists
+        // to prevent creating redundant draft documents (same business + same vehicles)
+        if (!draftId && selectedBusinessId) {
+          try {
+            const existingDrafts = await getDraftFilingsByUser(user.uid);
+            const sortedCurrentVehicles = [...selectedVehicleIds].sort().join(',');
+            
+            const duplicateDraft = existingDrafts.find(d => {
+              if (d.selectedBusinessId !== selectedBusinessId) return false;
+              if (!d.selectedVehicleIds) return false;
+              const sortedDraftVehicles = [...d.selectedVehicleIds].sort().join(',');
+              return sortedCurrentVehicles === sortedDraftVehicles;
+            });
+
+            if (duplicateDraft) {
+              console.log('[DRAFT] Found matching existing draft for upload, linking to ID:', duplicateDraft.id);
+              setDraftId(duplicateDraft.id);
+              draftSavingRef.current = false;
+              return; // Skip this save, let the next cycle update it if needed
+            }
+          } catch (err) {
+            console.error('[DRAFT] Error checking for duplicates:', err);
+          }
+        }
+
         const draftData = {
           draftId,
           workflowType: 'upload',

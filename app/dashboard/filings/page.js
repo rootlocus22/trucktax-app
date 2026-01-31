@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -102,98 +102,108 @@ export default function FilingsListPage() {
     return { label: 'Form 2290', image: '/assets/icons/form2290.png', color: 'text-blue-600', bg: 'bg-blue-50' };
   };
 
-  const filteredFilings = filings.filter((filing) => {
-    if (statusFilter !== 'all' && filing.status !== statusFilter) return false;
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      const matchesTaxYear = filing.taxYear?.toLowerCase().includes(searchLower);
-      const matchesStatus = filing.status?.toLowerCase().includes(searchLower);
-      const matchesBusiness = filing.business?.businessName?.toLowerCase().includes(searchLower);
-      const matchesId = filing.id?.toLowerCase().includes(searchLower);
-      return matchesTaxYear || matchesStatus || matchesBusiness || matchesId;
-    }
-    return true;
-  });
+  const filteredFilings = useMemo(() => {
+    return filings.filter((filing) => {
+      if (statusFilter !== 'all' && filing.status !== statusFilter) return false;
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const matchesTaxYear = filing.taxYear?.toLowerCase().includes(searchLower);
+        const matchesStatus = filing.status?.toLowerCase().includes(searchLower);
+        const matchesBusiness = filing.business?.businessName?.toLowerCase().includes(searchLower);
+        const matchesId = filing.id?.toLowerCase().includes(searchLower);
+        return matchesTaxYear || matchesStatus || matchesBusiness || matchesId;
+      }
+      return true;
+    });
+  }, [filings, statusFilter, searchTerm]);
 
-  const stats = {
+  const stats = useMemo(() => ({
     total: filings.length,
     completed: filings.filter(f => f.status === 'completed').length,
     processing: filings.filter(f => f.status === 'processing' || f.status === 'submitted').length,
     actionRequired: filings.filter(f => f.status === 'action_required').length,
     totalVehicles: filings.reduce((sum, f) => sum + (f.vehicleIds?.length || 0), 0),
-  };
+  }), [filings]);
 
-  const incomplete = getIncompleteFilings(filings);
+  const incomplete = useMemo(() => getIncompleteFilings(filings), [filings]);
+  
   // Filter drafts to only show those with selectedBusinessId (business selected)
-  const activeDrafts = draftFilings.filter(d => d.status === 'draft' && (d.selectedBusinessId || d.businessId));
-  const allIncompleteFilings = [
+  const activeDrafts = useMemo(() => draftFilings.filter(d => d.status === 'draft' && (d.selectedBusinessId || d.businessId)), [draftFilings]);
+  
+  const allIncompleteFilings = useMemo(() => [
     ...activeDrafts.map(d => ({ ...d, isDraft: true })),
     ...incomplete.all.filter(f => f.status !== 'action_required')
-  ];
+  ], [activeDrafts, incomplete]);
+  
   const hasIncomplete = allIncompleteFilings.length > 0;
 
   // Filter out drafts that have been converted to actual filings
   // A draft is considered "converted" if there's a filing with:
   // 1. The same draftId reference, OR
   // 2. Same tax year, business, and vehicles (likely the same filing)
-  const convertedDraftIds = new Set();
-  filings.forEach(filing => {
-    if (filing.draftId) {
-      convertedDraftIds.add(filing.draftId);
-    }
-  });
+  const convertedDraftIds = useMemo(() => {
+    const ids = new Set();
+    filings.forEach(filing => {
+      if (filing.draftId) {
+        ids.add(filing.draftId);
+      }
+    });
+    return ids;
+  }, [filings]);
 
   // Only include drafts that haven't been converted to filings AND have a business selected
-  const unconvertedDrafts = activeDrafts.filter(draft => {
-    // Only show drafts with selectedBusinessId (business must be selected)
-    if (!draft.selectedBusinessId && !draft.businessId) {
-      return false;
-    }
-    
-    // Skip if this draft was converted to a filing
-    if (convertedDraftIds.has(draft.id || draft.draftId)) {
-      return false;
-    }
-    
-    // Also check for duplicates based on tax year and business
-    // If there's a filing with same tax year and business, likely the same filing
-    const hasMatchingFiling = filings.some(filing => {
-      const sameTaxYear = filing.taxYear === draft.taxYear;
-      const sameBusiness = filing.businessId === draft.selectedBusinessId || 
-                          filing.businessId === draft.businessId;
-      // If both match and filing is submitted/completed, skip the draft
-      return sameTaxYear && sameBusiness && 
-             (filing.status === 'submitted' || filing.status === 'processing' || 
-              filing.status === 'completed' || filing.status === 'action_required');
+  const unconvertedDrafts = useMemo(() => {
+    return activeDrafts.filter(draft => {
+      // Only show drafts with selectedBusinessId (business must be selected)
+      if (!draft.selectedBusinessId && !draft.businessId) {
+        return false;
+      }
+      
+      // Skip if this draft was converted to a filing
+      if (convertedDraftIds.has(draft.id || draft.draftId)) {
+        return false;
+      }
+      
+      // Also check for duplicates based on tax year and business
+      // If there's a filing with same tax year and business, likely the same filing
+      const hasMatchingFiling = filings.some(filing => {
+        const sameTaxYear = filing.taxYear === draft.taxYear;
+        const sameBusiness = filing.businessId === draft.selectedBusinessId || 
+                            filing.businessId === draft.businessId;
+        // If both match and filing is submitted/completed, skip the draft
+        return sameTaxYear && sameBusiness && 
+               (filing.status === 'submitted' || filing.status === 'processing' || 
+                filing.status === 'completed' || filing.status === 'action_required');
+      });
+      
+      return !hasMatchingFiling;
+    }).filter(d => {
+      // Only include drafts that match search/filter
+      if (statusFilter !== 'all' && d.status !== statusFilter) return false;
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const matchesTaxYear = d.taxYear?.toLowerCase().includes(searchLower);
+        const matchesId = d.id?.toLowerCase().includes(searchLower);
+        return matchesTaxYear || matchesId;
+      }
+      return true;
     });
-    
-    return !hasMatchingFiling;
-  }).filter(d => {
-    // Only include drafts that match search/filter
-    if (statusFilter !== 'all' && d.status !== statusFilter) return false;
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      const matchesTaxYear = d.taxYear?.toLowerCase().includes(searchLower);
-      const matchesId = d.id?.toLowerCase().includes(searchLower);
-      return matchesTaxYear || matchesId;
-    }
-    return true;
-  });
+  }, [activeDrafts, convertedDraftIds, filings, statusFilter, searchTerm]);
 
   // Combine all filings (completed, incomplete, drafts) for the table
-  const allFilingsForTable = [
+  const allFilingsForTable = useMemo(() => [
     ...filteredFilings,
     ...unconvertedDrafts.map(d => ({ ...d, isDraft: true }))
   ].sort((a, b) => {
     const dateA = a.updatedAt || a.createdAt;
     const dateB = b.updatedAt || b.createdAt;
     return new Date(dateB) - new Date(dateA);
-  });
+  }), [filteredFilings, unconvertedDrafts]);
 
   // Get primary business (first business or business from first filing)
-  const primaryBusiness = businesses.length > 0 
+  const primaryBusiness = useMemo(() => businesses.length > 0 
     ? businesses[0] 
-    : (filings.length > 0 && filings[0].business ? filings[0].business : null);
+    : (filings.length > 0 && filings[0].business ? filings[0].business : null), [businesses, filings]);
 
   // Helper function to get return number display
   const getReturnNumber = (filing) => {
@@ -600,12 +610,22 @@ export default function FilingsListPage() {
                             </td>
                             <td className="px-4 py-4">
                               {isIncomplete ? (
-                                <Link
-                                  href={resumeUrl}
-                                  className="inline-flex items-center px-3 py-1.5 bg-[var(--color-orange)] text-white text-xs font-semibold rounded-lg hover:bg-[var(--color-orange-hover)] transition-colors"
-                                >
-                                  Continue where you left off
-                                </Link>
+                                <>
+                                  <Link
+                                    href={resumeUrl}
+                                    onClick={(e) => {
+                                      console.log('[FILINGS CLICK] Continue where you left off clicked', { resumeUrl, filingId: filing.id || filing.draftId });
+                                    }}
+                                    className="inline-flex items-center px-3 py-1.5 bg-[var(--color-orange)] text-white text-xs font-semibold rounded-lg hover:bg-[var(--color-orange-hover)] transition-colors"
+                                  >
+                                    Continue where you left off
+                                  </Link>
+                                  {/* Debug: Log when link is clicked */}
+                                  {(() => {
+                                    console.log('[FILINGS PAGE] Rendering Continue link', { resumeUrl });
+                                    return null;
+                                  })()}
+                                </>
                               ) : (
                                 <Link
                                   href={resumeUrl}

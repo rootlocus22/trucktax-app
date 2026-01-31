@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, Suspense, useMemo } from 'react';
+import { useState, useEffect, useRef, Suspense, useMemo, startTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -424,12 +424,23 @@ const getWeightCategoryOptionsWithPricing = (isLogging = false, includeW = false
 };
 
 function NewFilingContent() {
+  console.log('[COMPONENT INIT] NewFilingContent function called');
+  
   const { user } = useAuth();
+  console.log('[COMPONENT INIT] useAuth completed', { hasUser: !!user });
+  
   const router = useRouter();
+  console.log('[COMPONENT INIT] useRouter completed');
+  
   const searchParams = useSearchParams();
+  const draftParam = searchParams.get('draft');
+  const lastLoadedDraftIdRef = useRef(null);
+  
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [filingId, setFilingId] = useState(null);
+  
+  console.log('[COMPONENT INIT] State initialized');
 
   const [error, setError] = useState('');
   const [draftId, setDraftId] = useState(null);
@@ -437,6 +448,29 @@ function NewFilingContent() {
   const [showDraftWarningModal, setShowDraftWarningModal] = useState(false);
   const [existingDraft, setExistingDraft] = useState(null);
   const errorRef = useRef(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const loadingRef = useRef(false);
+  const loadingDraftRef = useRef(false);
+  const effectRunCounts = useRef({ draftLoad: 0, vehicleReload: 0, pricing: 0, loadData: 0 });
+  const renderCount = useRef(0);
+  
+  // RESET logic when draftParam changes
+  useEffect(() => {
+    if (draftParam !== lastLoadedDraftIdRef.current) {
+      console.log('[COMPONENT INIT] Draft param changed from', lastLoadedDraftIdRef.current, 'to', draftParam);
+      setDataLoaded(false);
+      setDraftId(null);
+      setStep(1); 
+    }
+  }, [draftParam]);
+  
+  // Track render count - defer to avoid blocking
+  useEffect(() => {
+    renderCount.current++;
+    if (renderCount.current > 50) {
+      console.warn('[RENDER] Component has rendered', renderCount.current, 'times! This might indicate an infinite loop.');
+    }
+  }, []); // Only run once on mount
 
   // Step 1: Filing Type
   const [filingType, setFilingType] = useState('standard'); // standard, amendment, refund
@@ -744,38 +778,178 @@ function NewFilingContent() {
 
   // Load draft if resuming
   useEffect(() => {
+    effectRunCounts.current.draftLoad++;
+    
     const loadDraft = async () => {
-      if (!searchParams || !user) return;
-      const draftParam = searchParams.get('draft');
-      if (draftParam) {
-        try {
-          const draft = await getDraftFiling(draftParam);
-          if (draft && draft.userId === user.uid) {
-            // Restore draft state
+      // If no user or no draftParam, nothing to load from database
+      if (!user || !draftParam) {
+        if (!draftParam) setDataLoaded(true);
+        return;
+      }
+
+      // If we've already loaded this specific draft, don't load it again
+      if (lastLoadedDraftIdRef.current === draftParam && dataLoaded) {
+        return;
+      }
+
+      console.log('[DRAFT LOAD] Proceeding with draft load for:', draftParam);
+      loadingRef.current = true;
+      loadingDraftRef.current = true;
+      
+      const startTime = performance.now();
+      
+      try {
+        console.log('[DRAFT LOAD] Step 1: Loading businesses...');
+        const businessesStart = performance.now();
+        const userBusinesses = await getBusinessesByUser(user.uid);
+        console.log('[DRAFT LOAD] Businesses loaded in', performance.now() - businessesStart, 'ms', { count: userBusinesses.length });
+        setBusinesses(userBusinesses);
+        
+        console.log('[DRAFT LOAD] Step 2: Loading draft...');
+        const draftStart = performance.now();
+        const draft = await getDraftFiling(draftParam);
+        console.log('[DRAFT LOAD] Draft loaded in', performance.now() - draftStart, 'ms', { 
+          found: !!draft, 
+          userIdMatch: draft?.userId === user.uid 
+        });
+        
+        if (draft && draft.userId === user.uid) {
+          console.log('[DRAFT LOAD] Step 3: Restoring draft state...');
+          const restoreStart = performance.now();
+          
+          // RESET all form state before restoring to prevent bleeding from previous attempts
+          setFilingType('standard');
+          setAmendmentType('');
+          setSelectedBusinessId('');
+          setSelectedVehicleIds([]);
+          setFilingData({ taxYear: '2025-2026', firstUsedMonth: 'July' });
+          setVinCorrectionData({ originalVIN: '', correctedVIN: '', originalFilingId: '' });
+          setWeightIncreaseData({ vehicleId: '', vin: '', originalWeightCategory: '', newWeightCategory: '', firstUsedMonth: '', amendedMonth: '', additionalTaxDue: 0, originalIsLogging: false, newIsLogging: false });
+          setMileageExceededData({ vehicleId: '', originalMileageLimit: 5000, actualMileageUsed: 0, exceededMonth: '', firstUsedMonth: '', isAgriculturalVehicle: false });
+          setRefundDetails({});
+          setPricing({ totalTax: 0, serviceFee: 0, salesTax: 0, couponDiscount: 0, grandTotal: 0 });
+
+          // Restore draft state (non-UI critical first)
+          if (draft.id) {
+            console.log('[DRAFT LOAD] Setting draftId:', draft.id);
             setDraftId(draft.id);
-            // Skip step 4 (Documents) - redirect to step 5 if draft was on step 4
-            if (draft.step) {
-              setStep(draft.step === 4 ? 5 : draft.step);
-            }
-            if (draft.filingType) setFilingType(draft.filingType);
-            if (draft.selectedBusinessId) setSelectedBusinessId(draft.selectedBusinessId);
-            if (draft.selectedVehicleIds) setSelectedVehicleIds(draft.selectedVehicleIds);
-            if (draft.filingData) setFilingData(draft.filingData);
-            if (draft.amendmentType) setAmendmentType(draft.amendmentType);
-            if (draft.vinCorrectionData) setVinCorrectionData(draft.vinCorrectionData);
-            if (draft.weightIncreaseData) setWeightIncreaseData(draft.weightIncreaseData);
-            if (draft.mileageExceededData) setMileageExceededData(draft.mileageExceededData);
-            if (draft.refundDetails) setRefundDetails(draft.refundDetails);
-            if (draft.pricing) setPricing(draft.pricing);
-            if (draft.filingId) setFilingId(draft.filingId);
           }
-        } catch (error) {
-          console.error('Error loading draft:', error);
+          if (draft.filingType) {
+            console.log('[DRAFT LOAD] Setting filingType:', draft.filingType);
+            setFilingType(draft.filingType);
+          }
+          if (draft.amendmentType) {
+            console.log('[DRAFT LOAD] Setting amendmentType:', draft.amendmentType);
+            setAmendmentType(draft.amendmentType);
+          }
+          if (draft.filingData) {
+            console.log('[DRAFT LOAD] Setting filingData');
+            setFilingData(draft.filingData);
+          }
+          if (draft.vinCorrectionData) {
+            console.log('[DRAFT LOAD] Setting vinCorrectionData');
+            setVinCorrectionData(draft.vinCorrectionData);
+          }
+          if (draft.weightIncreaseData) {
+            console.log('[DRAFT LOAD] Setting weightIncreaseData');
+            setWeightIncreaseData(draft.weightIncreaseData);
+          }
+          if (draft.mileageExceededData) {
+            console.log('[DRAFT LOAD] Setting mileageExceededData');
+            setMileageExceededData(draft.mileageExceededData);
+          }
+          if (draft.refundDetails) {
+            console.log('[DRAFT LOAD] Setting refundDetails');
+            setRefundDetails(draft.refundDetails);
+          }
+          if (draft.pricing) {
+            console.log('[DRAFT LOAD] Setting pricing');
+            setPricing(draft.pricing);
+          }
+          if (draft.filingId) {
+            console.log('[DRAFT LOAD] Setting filingId:', draft.filingId);
+            setFilingId(draft.filingId);
+          }
+          
+          // Load vehicles BEFORE setting step to ensure UI has data
+          if (draft.selectedBusinessId) {
+            console.log('[DRAFT LOAD] Step 4: Loading vehicles for business:', draft.selectedBusinessId);
+            const vehiclesStart = performance.now();
+            try {
+              const filteredVehicles = await getVehiclesByUser(user.uid, draft.selectedBusinessId);
+              console.log('[DRAFT LOAD] Vehicles loaded in', performance.now() - vehiclesStart, 'ms', { count: filteredVehicles.length });
+              setVehicles(filteredVehicles);
+              
+              // Set business and vehicle IDs AFTER vehicles are loaded into state
+              console.log('[DRAFT LOAD] Setting selectedBusinessId:', draft.selectedBusinessId);
+              setSelectedBusinessId(draft.selectedBusinessId);
+              if (draft.selectedVehicleIds) {
+                console.log('[DRAFT LOAD] Setting selectedVehicleIds:', draft.selectedVehicleIds.length, 'vehicles');
+                setSelectedVehicleIds(draft.selectedVehicleIds);
+              }
+            } catch (error) {
+              console.error('[DRAFT LOAD] Error loading vehicles for draft:', error);
+              setSelectedBusinessId(draft.selectedBusinessId);
+              if (draft.selectedVehicleIds) setSelectedVehicleIds(draft.selectedVehicleIds);
+            }
+          } else {
+            console.log('[DRAFT LOAD] Step 4: Loading all vehicles (no business selected)');
+            const vehiclesStart = performance.now();
+            try {
+              const allVehicles = await getVehiclesByUser(user.uid);
+              console.log('[DRAFT LOAD] All vehicles loaded in', performance.now() - vehiclesStart, 'ms', { count: allVehicles.length });
+              setVehicles(allVehicles);
+              if (draft.selectedVehicleIds) {
+                console.log('[DRAFT LOAD] Setting selectedVehicleIds:', draft.selectedVehicleIds.length, 'vehicles');
+                setSelectedVehicleIds(draft.selectedVehicleIds);
+              }
+            } catch (error) {
+              console.error('[DRAFT LOAD] Error loading vehicles for draft:', error);
+              if (draft.selectedVehicleIds) setSelectedVehicleIds(draft.selectedVehicleIds);
+            }
+          }
+
+          // FINALLY set the step after all dependencies are loaded
+          if (draft.step) {
+            const targetStep = draft.step === 4 ? 5 : draft.step;
+            console.log('[DRAFT LOAD] Step 5: Setting step to', targetStep);
+            setStep(targetStep);
+          } else if (draft.selectedVehicleIds && draft.selectedVehicleIds.length > 0) {
+            console.log('[DRAFT LOAD] Step 5: No step found in draft, but vehicles exist. Defaulting to Step 3.');
+            setStep(3);
+          } else if (draft.selectedBusinessId) {
+            console.log('[DRAFT LOAD] Step 5: No step found in draft, but business exists. Defaulting to Step 2.');
+            setStep(2);
+          }
+          
+          console.log('[DRAFT LOAD] State restoration complete in', performance.now() - restoreStart, 'ms');
+          
+          // Mark data as loaded AFTER all state is restored to prevent cascading effects
+          console.log('[DRAFT LOAD] Step 6: Setting dataLoaded = true');
+          setDataLoaded(true);
+          lastLoadedDraftIdRef.current = draftParam;
+          console.log('[DRAFT LOAD] Total time:', performance.now() - startTime, 'ms');
+        } else {
+          console.log('[DRAFT LOAD] No draft found or userId mismatch');
+          setDataLoaded(true);
+          lastLoadedDraftIdRef.current = draftParam;
         }
+      } catch (error) {
+        console.error('[DRAFT LOAD] Error loading draft:', error);
+        setDataLoaded(true); // Mark as loaded even on error to prevent retries
+      } finally {
+        console.log('[DRAFT LOAD] Clearing loadingRef');
+        loadingRef.current = false;
+        // Use setTimeout to clear loadingDraftRef after React has finished batching state updates
+        setTimeout(() => {
+          console.log('[DRAFT LOAD] Clearing loadingDraftRef');
+          loadingDraftRef.current = false;
+        }, 100);
       }
     };
+    
     loadDraft();
-  }, [user, searchParams]);
+  }, [user, draftParam]);
 
   // Auto-redirect from step 4 (Documents) to step 5 (Review) since step 4 is hidden
   useEffect(() => {
@@ -783,18 +957,49 @@ function NewFilingContent() {
       setStep(5);
     }
   }, [step]);
-
+  
   useEffect(() => {
-    if (user) {
-      loadData();
+    effectRunCounts.current.loadData++;
+    console.log('[LOAD DATA] useEffect RUN #' + effectRunCounts.current.loadData, {
+      hasUser: !!user,
+      dataLoaded,
+      loadingRef: loadingRef.current,
+      draftParam
+    });
+    
+    if (!user || dataLoaded || loadingRef.current) {
+      console.log('[LOAD DATA] Early return');
+      return;
     }
-  }, [user]);
+    
+    // Don't load data if we're resuming a draft - draft loading will handle it
+    if (draftParam) {
+      console.log('[LOAD DATA] Skipping - draft param exists');
+      // Don't mark as loaded yet - let draft loading handle it
+      return;
+    }
+    
+    console.log('[LOAD DATA] Starting loadData()');
+    loadingRef.current = true;
+    
+    // Defer loadData to next tick to allow component to render first
+    setTimeout(() => {
+      loadData().then(() => {
+        console.log('[LOAD DATA] loadData() completed');
+        setDataLoaded(true);
+        loadingRef.current = false;
+      }).catch((error) => {
+        console.error('[LOAD DATA] Error in loadData:', error);
+        setDataLoaded(true);
+        loadingRef.current = false;
+      });
+    }, 0);
+  }, [user, dataLoaded, draftParam]);
 
   // Check for existing drafts after data is loaded (only if no draft param in URL)
   useEffect(() => {
     const checkForExistingDrafts = async () => {
-      if (!user || !searchParams) return;
-      const draftParam = searchParams.get('draft');
+      if (!user) return;
       if (draftParam) return; // Don't check if already resuming a draft
       
       // Only check if we have businesses loaded (data is ready)
@@ -818,11 +1023,34 @@ function NewFilingContent() {
     // Small delay to ensure data is loaded
     const timer = setTimeout(checkForExistingDrafts, 500);
     return () => clearTimeout(timer);
-  }, [user, businesses.length, vehicles.length, searchParams, showDraftWarningModal]);
+  }, [user, businesses.length, vehicles.length, draftParam, showDraftWarningModal]);
 
-  // Reload vehicles when business selection changes
+  // Reload vehicles when business selection changes (but skip if we're loading a draft)
   useEffect(() => {
-    if (user && selectedBusinessId) {
+    effectRunCounts.current.vehicleReload++;
+    console.log('[VEHICLE RELOAD] useEffect RUN #' + effectRunCounts.current.vehicleReload, {
+      hasUser: !!user,
+      dataLoaded,
+      loadingRef: loadingRef.current,
+      loadingDraftRef: loadingDraftRef.current,
+      selectedBusinessId
+    });
+    
+    // Skip if we're currently loading a draft to prevent conflicts
+    if (!user || !dataLoaded || loadingRef.current || loadingDraftRef.current) {
+      console.log('[VEHICLE RELOAD] Early return - conditions not met');
+      return;
+    }
+    
+    // Skip if we're resuming a draft (draft loading handles vehicles)
+    if (draftParam) {
+      console.log('[VEHICLE RELOAD] Skipping - draft param exists');
+      return;
+    }
+    
+    console.log('[VEHICLE RELOAD] Proceeding with vehicle reload');
+    
+    if (selectedBusinessId) {
       const reloadVehicles = async () => {
         try {
           const filteredVehicles = await getVehiclesByUser(user.uid, selectedBusinessId);
@@ -835,7 +1063,7 @@ function NewFilingContent() {
         }
       };
       reloadVehicles();
-    } else if (user && !selectedBusinessId) {
+    } else {
       // If no business selected, load all vehicles
       const reloadVehicles = async () => {
         try {
@@ -847,7 +1075,7 @@ function NewFilingContent() {
       };
       reloadVehicles();
     }
-  }, [selectedBusinessId, user]);
+  }, [selectedBusinessId, user, dataLoaded, draftParam]);
 
   // Scroll to top when error occurs
   useEffect(() => {
@@ -901,6 +1129,24 @@ function NewFilingContent() {
 
   // Fetch Pricing from Server - Now runs on all steps for real-time pricing
   useEffect(() => {
+    effectRunCounts.current.pricing++;
+    console.log('[PRICING] useEffect RUN #' + effectRunCounts.current.pricing, {
+      loadingRef: loadingRef.current,
+      loadingDraftRef: loadingDraftRef.current,
+      dataLoaded,
+      filingType,
+      selectedVehicleIds: selectedVehicleIds.length,
+      step
+    });
+    
+    // Skip pricing calculation if we're loading a draft or data isn't loaded yet
+    if (loadingRef.current || loadingDraftRef.current || !dataLoaded) {
+      console.log('[PRICING] Early return - conditions not met');
+      return;
+    }
+    
+    console.log('[PRICING] Proceeding with pricing calculation');
+    
     const fetchPricing = async () => {
       // Calculate pricing when we have minimum data (filing type and at least one vehicle selected)
       // Exception: VIN corrections and mileage exceeded don't require vehicles in selectedVehicleIds, so allow pricing calculation
@@ -1030,7 +1276,7 @@ function NewFilingContent() {
     };
 
     fetchPricing();
-  }, [step, selectedVehicleIds, filingType, filingData.firstUsedMonth, filingData, vehicles, selectedBusinessId, businesses, amendmentType, weightIncreaseData, mileageExceededData]);
+  }, [step, selectedVehicleIds, filingType, filingData.firstUsedMonth, filingData, vehicles, selectedBusinessId, businesses, amendmentType, weightIncreaseData, mileageExceededData, dataLoaded]);
 
   // Validate vehicle type combinations whenever vehicles or selectedVehicleIds change
   useEffect(() => {
@@ -1059,21 +1305,49 @@ function NewFilingContent() {
   // Auto-save draft as user progresses
   useEffect(() => {
     const saveDraft = async () => {
-      if (!user || draftSavingRef.current) return; // Don't save if already saving
+      // Don't save if no user, already saving, or currently loading a draft
+      if (!user || draftSavingRef.current || loadingDraftRef.current) {
+        return; 
+      }
 
-      // Save from step 2 onwards (when filing type is selected)
-      if (step < 2) return;
+      // Drafts are ONLY for Standard 2290 filings
+      // Amendments and Refunds do not need drafting/resuming per user request
+      if (filingType !== 'standard') return;
 
-      // Always save if we're past step 1 (user has made some progress)
-      // This ensures we capture the filing type selection
-      const hasData = filingType || selectedBusinessId || selectedVehicleIds.length > 0 || step > 2;
-      if (!hasData) {
-        console.log('Skipping draft save - no meaningful data yet');
+      // Only save draft once we have a business, at least one vehicle, and are on Step 3 or later
+      // This ensures we only draft filings that have significant progress (2290 only)
+      const hasMinimumData = selectedBusinessId && selectedVehicleIds.length > 0;
+      if (step < 3 || !hasMinimumData) {
         return;
       }
 
       draftSavingRef.current = true;
       try {
+        // If we don't have a draftId, check if an identical draft already exists
+        // to prevent creating redundant draft documents (same business + same vehicles)
+        if (!draftId) {
+          try {
+            const existingDrafts = await getDraftFilingsByUser(user.uid);
+            const sortedCurrentVehicles = [...selectedVehicleIds].sort().join(',');
+            
+            const duplicateDraft = existingDrafts.find(d => {
+              if (d.selectedBusinessId !== selectedBusinessId) return false;
+              if (!d.selectedVehicleIds) return false;
+              const sortedDraftVehicles = [...d.selectedVehicleIds].sort().join(',');
+              return sortedCurrentVehicles === sortedDraftVehicles;
+            });
+
+            if (duplicateDraft) {
+              console.log('[DRAFT] Found matching existing draft, linking to ID:', duplicateDraft.id);
+              setDraftId(duplicateDraft.id);
+              draftSavingRef.current = false;
+              return; // Skip this save, let the next cycle update it if needed
+            }
+          } catch (err) {
+            console.error('[DRAFT] Error checking for duplicates:', err);
+          }
+        }
+
         const draftData = {
           draftId,
           workflowType: 'manual',
@@ -1090,11 +1364,13 @@ function NewFilingContent() {
           pricing: pricing.grandTotal > 0 ? pricing : null
         };
 
-        console.log('Saving draft filing for manual workflow, step:', step, 'filingType:', filingType);
+        console.log('Saving draft filing for manual workflow, step:', step, 'filingType:', filingType, 'id:', draftId);
         const savedDraftId = await saveDraftFiling(user.uid, draftData);
-        console.log('Draft saved with ID:', savedDraftId);
         if (!draftId) {
+          console.log('[DRAFT] Created new draft with ID:', savedDraftId);
           setDraftId(savedDraftId);
+        } else {
+          console.log('[DRAFT] Updated existing draft:', draftId);
         }
       } catch (error) {
         console.error('Error saving draft:', error);
@@ -1118,45 +1394,80 @@ function NewFilingContent() {
       setBusinesses(userBusinesses);
       setVehicles(userVehicles);
 
-      // Load previous filings for VIN correction dropdown
-      const filings = await getFilingsByUser(user.uid);
-      setPreviousFilings(filings);
+      // Load previous filings for VIN correction dropdown - defer to prevent blocking
+      setTimeout(async () => {
+        try {
+          const filings = await getFilingsByUser(user.uid);
+          setPreviousFilings(filings);
 
-      // Store all filings for duplicate detection
-      setPreviousFilings(filings);
-
-      // Extract unique VINs from previous filings (completed filings only)
-      const completedFilings = filings.filter(f => f.status === 'completed');
-      const vinMap = new Map(); // Map VIN -> { filingId, vehicleId }
-
-      for (const filing of completedFilings) {
-        if (filing.vehicleIds && filing.vehicleIds.length > 0) {
-          for (const vehicleId of filing.vehicleIds) {
+          // Extract unique VINs from previous filings (completed filings only)
+          // Defer this heavy operation to prevent blocking - load VINs asynchronously
+          const completedFilings = filings.filter(f => f.status === 'completed');
+          
+          // Load VINs asynchronously in the background to prevent blocking
+          setTimeout(async () => {
             try {
-              const vehicle = await getVehicle(vehicleId);
-              if (vehicle && vehicle.vin) {
-                if (!vinMap.has(vehicle.vin)) {
-                  vinMap.set(vehicle.vin, {
-                    vin: vehicle.vin,
-                    filingId: filing.id,
-                    vehicleId: vehicleId,
-                    taxYear: filing.taxYear,
-                    filingDate: filing.createdAt
-                  });
+              const vinMap = new Map(); // Map VIN -> { filingId, vehicleId }
+
+              // Collect all unique vehicle IDs first
+              const vehicleIdsSet = new Set();
+              for (const filing of completedFilings) {
+                if (filing.vehicleIds && filing.vehicleIds.length > 0) {
+                  filing.vehicleIds.forEach(id => vehicleIdsSet.add(id));
                 }
               }
-            } catch (err) {
-              console.error(`Error loading vehicle ${vehicleId}:`, err);
-            }
-          }
-        }
-      }
 
-      setPreviousFilingsVINs(Array.from(vinMap.values()).sort((a, b) => {
-        // Sort by most recent filing date first
-        if (!a.filingDate || !b.filingDate) return 0;
-        return new Date(b.filingDate) - new Date(a.filingDate);
-      }));
+              // Load vehicles in parallel (limit to prevent blocking)
+              const vehicleIdsArray = Array.from(vehicleIdsSet).slice(0, 50); // Limit to 50 vehicles max
+              const vehiclePromises = vehicleIdsArray.map(async (vehicleId) => {
+                try {
+                  const vehicle = await getVehicle(vehicleId);
+                  return { vehicleId, vehicle };
+                } catch (err) {
+                  console.error(`Error loading vehicle ${vehicleId}:`, err);
+                  return { vehicleId, vehicle: null };
+                }
+              });
+
+              // Wait for all vehicle loads to complete in parallel
+              const vehicleResults = await Promise.all(vehiclePromises);
+              
+              // Map vehicles back to their filings
+              const vehicleMap = new Map(vehicleResults.map(r => [r.vehicleId, r.vehicle]));
+
+              // Build VIN map
+              for (const filing of completedFilings) {
+                if (filing.vehicleIds && filing.vehicleIds.length > 0) {
+                  for (const vehicleId of filing.vehicleIds) {
+                    const vehicle = vehicleMap.get(vehicleId);
+                    if (vehicle && vehicle.vin) {
+                      if (!vinMap.has(vehicle.vin)) {
+                        vinMap.set(vehicle.vin, {
+                          vin: vehicle.vin,
+                          filingId: filing.id,
+                          vehicleId: vehicleId,
+                          taxYear: filing.taxYear,
+                          filingDate: filing.createdAt
+                        });
+                      }
+                    }
+                  }
+                }
+              }
+
+              setPreviousFilingsVINs(Array.from(vinMap.values()).sort((a, b) => {
+                // Sort by most recent filing date first
+                if (!a.filingDate || !b.filingDate) return 0;
+                return new Date(b.filingDate) - new Date(a.filingDate);
+              }));
+            } catch (error) {
+              console.error('Error loading VINs:', error);
+            }
+          }, 200); // Additional delay for VIN loading
+        } catch (error) {
+          console.error('Error loading filings:', error);
+        }
+      }, 100); // Small delay to let the page render first
     } catch (error) {
       console.error('Error loading data:', error);
     }
@@ -1304,7 +1615,13 @@ function NewFilingContent() {
     setLoading(true);
     try {
       const businessId = await createBusiness(user.uid, newBusiness);
-      await loadData();
+      // Only reload businesses and vehicles, skip heavy VIN loading
+      const userBusinesses = await getBusinessesByUser(user.uid);
+      const userVehicles = selectedBusinessId
+        ? await getVehiclesByUser(user.uid, selectedBusinessId)
+        : await getVehiclesByUser(user.uid);
+      setBusinesses(userBusinesses);
+      setVehicles(userVehicles);
       setSelectedBusinessId(businessId);
       setNewBusiness({
         businessName: '',
@@ -1360,8 +1677,11 @@ function NewFilingContent() {
 
       console.log('Vehicle created with ID:', vehicleId);
 
-      // Reload vehicles from database to get the new vehicle
-      await loadData();
+      // Reload vehicles from database to get the new vehicle (skip heavy VIN loading)
+      const userVehicles = selectedBusinessId
+        ? await getVehiclesByUser(user.uid, selectedBusinessId)
+        : await getVehiclesByUser(user.uid);
+      setVehicles(userVehicles);
 
       // Add the new vehicle to selected vehicles (validation will happen in useEffect)
       setSelectedVehicleIds(prev => {
@@ -2019,6 +2339,35 @@ function NewFilingContent() {
       console.error('Error recalculating pricing:', err);
     }
   };
+
+  // Defer console.log to avoid blocking render
+  useEffect(() => {
+    console.log('[COMPONENT] Rendering NewFilingPage', {
+      renderCount: renderCount.current,
+      user: !!user,
+      draftParam,
+      dataLoaded,
+      loadingRef: loadingRef.current,
+      loadingDraftRef: loadingDraftRef.current
+    });
+  });
+
+  // Show full-page loader while resuming draft to prevent Step 1 flash
+  if (draftParam && !dataLoaded) {
+    return (
+      <ProtectedRoute>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-slate-200 border-t-[var(--color-orange)] rounded-full animate-spin"></div>
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-slate-900 mb-1">Resuming your filing...</h2>
+              <p className="text-slate-500">We're loading your saved progress, please wait a moment.</p>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute>
@@ -3581,6 +3930,35 @@ function NewFilingContent() {
                     </select>
                   </div>
                 </div>
+
+                {/* No Vehicles - Show Add Vehicle Button */}
+                {vehicles.length === 0 && (
+                  <div className="mb-4 sm:mb-6 md:mb-8">
+                    <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-6 sm:p-8 md:p-10 text-center">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center">
+                          <Truck className="w-8 h-8 text-slate-500" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">No Vehicles Added Yet</h3>
+                          <p className="text-sm sm:text-base text-slate-600 mb-4">
+                            Add your first vehicle to continue with your filing
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setNewVehicle(prev => ({ ...prev, businessId: selectedBusinessId || '' }));
+                            setShowAddModal(true);
+                          }}
+                          className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-[var(--color-orange)] to-orange-600 text-white rounded-xl text-sm sm:text-base font-bold hover:from-orange-600 hover:to-[var(--color-orange)] active:scale-95 transition-all shadow-lg hover:shadow-xl touch-manipulation"
+                        >
+                          <Plus className="w-5 h-5" />
+                          <span>Add Vehicle</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Existing Vehicles List - Categorized Dropdowns */}
                 {vehicles.length > 0 && (
@@ -5364,20 +5742,17 @@ function NewFilingContent() {
 }
 
 export default function NewFilingPage() {
+  console.log('[PAGE] NewFilingPage component rendering');
+  
   return (
-    <Suspense fallback={
-      <ProtectedRoute>
-        <div className="max-w-7xl mx-auto p-6">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--color-orange)] mx-auto mb-4"></div>
-              <p className="text-sm text-[var(--color-muted)]">Loading...</p>
-            </div>
-          </div>
+    <ProtectedRoute>
+      <Suspense fallback={
+        <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-[var(--color-orange)] rounded-full animate-spin"></div>
         </div>
-      </ProtectedRoute>
-    }>
-      <NewFilingContent />
-    </Suspense>
+      }>
+        <NewFilingContent />
+      </Suspense>
+    </ProtectedRoute>
   );
 }
