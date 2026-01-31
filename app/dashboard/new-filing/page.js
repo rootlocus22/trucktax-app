@@ -805,10 +805,33 @@ function NewFilingContent() {
         console.log('[DRAFT LOAD] Businesses loaded in', performance.now() - businessesStart, 'ms', { count: userBusinesses.length });
         setBusinesses(userBusinesses);
         
-        console.log('[DRAFT LOAD] Step 2: Loading draft...');
+        console.log('[DRAFT LOAD] Step 2: Loading draft or filing...');
         const draftStart = performance.now();
-        const draft = await getDraftFiling(draftParam);
-        console.log('[DRAFT LOAD] Draft loaded in', performance.now() - draftStart, 'ms', { 
+        let draft = await getDraftFiling(draftParam);
+        
+        // If not found in draftFilings, check filings collection (for resumed payments)
+        if (!draft) {
+          console.log('[DRAFT LOAD] Not found in drafts, checking filings...');
+          const { getFiling } = await import('@/lib/db');
+          const filing = await getFiling(draftParam);
+          if (filing && filing.userId === user.uid) {
+            console.log('[DRAFT LOAD] Found in filings collection, converting to draft format');
+            draft = {
+              ...filing,
+              draftId: draftParam, // Keep track of the original ID
+              filingId: filing.id, // Explicitly set filingId
+              selectedBusinessId: filing.businessId,
+              selectedVehicleIds: filing.vehicleIds,
+              filingData: {
+                taxYear: filing.taxYear,
+                firstUsedMonth: filing.firstUsedMonth
+              },
+              step: filing.status === 'pending_payment' ? 6 : 5 // Resume at payment or review
+            };
+          }
+        }
+        
+        console.log('[DRAFT LOAD] Data loaded in', performance.now() - draftStart, 'ms', { 
           found: !!draft, 
           userIdMatch: draft?.userId === user.uid 
         });
@@ -996,35 +1019,6 @@ function NewFilingContent() {
     }, 0);
   }, [user, dataLoaded, draftParam]);
 
-  // Check for existing drafts after data is loaded (only if no draft param in URL)
-  useEffect(() => {
-    const checkForExistingDrafts = async () => {
-      if (!user) return;
-      if (draftParam) return; // Don't check if already resuming a draft
-      
-      // Only check if we have businesses loaded (data is ready)
-      if (businesses.length === 0 && vehicles.length === 0) return;
-      
-      try {
-        const drafts = await getDraftFilingsByUser(user.uid);
-        // Filter to only drafts with selectedBusinessId (business selected)
-        const draftsWithBusiness = drafts.filter(d => d.selectedBusinessId || d.businessId);
-        if (draftsWithBusiness.length > 0 && !showDraftWarningModal) {
-          // Show the most recent draft
-          const mostRecentDraft = draftsWithBusiness[0];
-          setExistingDraft(mostRecentDraft);
-          setShowDraftWarningModal(true);
-        }
-      } catch (error) {
-        console.error('Error checking for existing drafts:', error);
-      }
-    };
-    
-    // Small delay to ensure data is loaded
-    const timer = setTimeout(checkForExistingDrafts, 500);
-    return () => clearTimeout(timer);
-  }, [user, businesses.length, vehicles.length, draftParam, showDraftWarningModal]);
-
   // Reload vehicles when business selection changes (but skip if we're loading a draft)
   useEffect(() => {
     effectRunCounts.current.vehicleReload++;
@@ -1126,6 +1120,61 @@ function NewFilingContent() {
       setShowBusinessForm(false);
     }
   }, [step, filingType]);
+
+  // Check for existing drafts (only for Standard 2290)
+  const handleNextFromStep1 = async () => {
+    if (filingType === 'amendment' && !amendmentType) {
+      setError('Please select the type of amendment you need: VIN Correction, Weight Increase, or Mileage Exceeded. Each amendment type has different requirements.');
+      return;
+    }
+    
+    setError('');
+    
+    // Only check for drafts/submitted filings if it's a Standard 2290 filing and no draft is currently active
+    if (filingType === 'standard' && !draftParam) {
+      try {
+        setLoading(true);
+        
+        // 1. Check for submitted/processing filings first (higher priority warning)
+        const recentFilings = await getFilingsByUser(user.uid);
+        const processingFiling = recentFilings.find(f => 
+          f.filingType === 'standard' && 
+          (f.status === 'processing' || f.status === 'awaiting_schedule_1' || f.status === 'submitted')
+        );
+
+        if (processingFiling) {
+          console.log('[DRAFT CHECK] Found active processing filing:', processingFiling.id);
+          setExistingDraft({
+            ...processingFiling,
+            isSubmitted: true // Flag to distinguish from a true draft
+          });
+          setShowDraftWarningModal(true);
+          setLoading(false);
+          return;
+        }
+
+        // 2. Check for drafts if no processing filing found
+        const drafts = await getDraftFilingsByUser(user.uid);
+        // Filter to only drafts with selectedBusinessId (significant progress)
+        const draftsWithBusiness = drafts.filter(d => d.selectedBusinessId || d.businessId);
+        
+        if (draftsWithBusiness.length > 0) {
+          const mostRecentDraft = draftsWithBusiness[0];
+          setExistingDraft(mostRecentDraft);
+          setShowDraftWarningModal(true);
+          setLoading(false);
+          return; // Stop here, show modal
+        }
+      } catch (error) {
+        console.error('Error checking for existing drafts/filings:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    // If not standard, or no drafts/filings found, proceed to step 2
+    setStep(2);
+  };
 
   // Fetch Pricing from Server - Now runs on all steps for real-time pricing
   useEffect(() => {
@@ -1356,6 +1405,7 @@ function NewFilingContent() {
           selectedBusinessId,
           selectedVehicleIds,
           filingData,
+          taxYear: filingData.taxYear, // Explicitly save taxYear for dashboard display
           amendmentType: filingType === 'amendment' ? amendmentType : null,
           vinCorrectionData: filingType === 'amendment' && amendmentType === 'vin_correction' ? vinCorrectionData : null,
           weightIncreaseData: filingType === 'amendment' && amendmentType === 'weight_increase' ? weightIncreaseData : null,
@@ -1890,6 +1940,7 @@ function NewFilingContent() {
         pricing: pricing,
         status: 'pending_payment',
         paymentStatus: 'pending',
+        draftId: draftId, // Link to the draft to prevent duplicates on dashboard
         updatedAt: new Date().toISOString()
       };
 
@@ -2135,7 +2186,7 @@ function NewFilingContent() {
         inputDocuments: [],
         pricing: pricing,
         paymentDetails: paymentDetails,
-        status: 'processing', // Start as 'processing' since eform is in progress
+        status: 'awaiting_schedule_1', // Update status to reflect payment is done and awaiting agent action
         paymentStatus: 'paid',
         updatedAt: new Date().toISOString()
       };
@@ -2588,16 +2639,11 @@ function NewFilingContent() {
                 )}
                 <div className="mt-8 flex justify-end">
                   <button
-                    onClick={() => {
-                      if (filingType === 'amendment' && !amendmentType) {
-                        setError('Please select the type of amendment you need: VIN Correction, Weight Increase, or Mileage Exceeded. Each amendment type has different requirements.');
-                        return;
-                      }
-                      setError('');
-                      setStep(2);
-                    }}
-                    className="px-6 py-3 bg-[#ff8b3d] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-hover)] transition shadow-sm"
+                    onClick={handleNextFromStep1}
+                    disabled={loading}
+                    className="px-6 py-3 bg-[#ff8b3d] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-hover)] transition shadow-sm disabled:opacity-50 flex items-center gap-2"
                   >
+                    {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                     Next Step
                   </button>
                 </div>
@@ -5585,8 +5631,14 @@ function NewFilingContent() {
                       <AlertCircle className="w-6 h-6 text-amber-600" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-slate-900">Draft Filing Found</h2>
-                      <p className="text-sm text-slate-600">You have an incomplete filing in progress</p>
+                      <h2 className="text-xl font-bold text-slate-900">
+                        {existingDraft.isSubmitted ? 'Filing Already Submitted' : 'Draft Filing Found'}
+                      </h2>
+                      <p className="text-sm text-slate-600">
+                        {existingDraft.isSubmitted 
+                          ? 'You have a return that is currently being processed' 
+                          : 'You have an incomplete filing in progress'}
+                      </p>
                     </div>
                   </div>
                   <button
@@ -5603,7 +5655,7 @@ function NewFilingContent() {
                 <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
                   <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
                     <FileText className="w-4 h-4" />
-                    Draft Filing Details
+                    {existingDraft.isSubmitted ? 'Submitted Filing Details' : 'Draft Filing Details'}
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -5619,43 +5671,81 @@ function NewFilingContent() {
                           : 'Form 2290'}
                       </span>
                     </div>
-                    
-                    {existingDraft.filingData?.taxYear && (
+
+                    {existingDraft.isSubmitted && (
                       <div>
-                        <span className="text-slate-500">Tax Year:</span>
-                        <span className="ml-2 font-medium text-slate-900">{existingDraft.filingData.taxYear}</span>
-                      </div>
-                    )}
-                    
-                    {existingDraft.selectedBusinessId && (
-                      <div className="md:col-span-2">
-                        <span className="text-slate-500">Business:</span>
-                        <span className="ml-2 font-medium text-slate-900">
-                          {businesses.find(b => b.id === existingDraft.selectedBusinessId)?.businessName || 'Loading...'}
+                        <span className="text-slate-500">Status:</span>
+                        <span className="ml-2 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase">
+                          {existingDraft.status === 'awaiting_schedule_1' ? 'Awaiting Schedule 1' : existingDraft.status}
                         </span>
                       </div>
                     )}
                     
-                    {existingDraft.selectedVehicleIds && existingDraft.selectedVehicleIds.length > 0 && (
+                    {(existingDraft.filingData?.taxYear || existingDraft.taxYear) && (
+                      <div>
+                        <span className="text-slate-500">Tax Year:</span>
+                        <span className="ml-2 font-medium text-slate-900">
+                          {existingDraft.filingData?.taxYear || existingDraft.taxYear}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {(existingDraft.selectedBusinessId || existingDraft.businessId) && (
+                      <div className="md:col-span-2">
+                        <span className="text-slate-500">Business:</span>
+                        <span className="ml-2 font-medium text-slate-900">
+                          {businesses.find(b => b.id === (existingDraft.selectedBusinessId || existingDraft.businessId))?.businessName || 'Loading...'}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {(existingDraft.selectedVehicleIds || existingDraft.vehicleIds) && (existingDraft.selectedVehicleIds || existingDraft.vehicleIds).length > 0 && (
                       <div className="md:col-span-2">
                         <span className="text-slate-500">Vehicles:</span>
-                        <div className="mt-1 flex flex-wrap gap-2">
-                          {existingDraft.selectedVehicleIds.slice(0, 5).map((vehicleId, idx) => {
+                        <div className="mt-2 flex flex-wrap gap-3">
+                          {(existingDraft.selectedVehicleIds || existingDraft.vehicleIds).slice(0, 5).map((vehicleId, idx) => {
                             const vehicle = vehicles.find(v => v.id === vehicleId);
+                            const typeLabel = vehicle ? (
+                              vehicle.vehicleType === 'suspended' ? 'Suspended' : 
+                              vehicle.vehicleType === 'credit' ? 'Credit' : 
+                              vehicle.vehicleType === 'priorYearSold' ? 'Prior Year Sold' : 'Taxable'
+                            ) : '';
+                            
                             return (
-                              <span key={idx} className="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-mono border border-blue-200">
-                                {vehicle?.vin || vehicleId?.slice(-8) || 'Loading...'}
-                              </span>
+                              <div key={idx} className="flex flex-col p-2.5 rounded-xl bg-blue-50/50 border border-blue-100 shadow-sm min-w-[160px]">
+                                <span className="text-blue-800 text-xs font-mono font-bold mb-1.5 break-all">
+                                  {vehicle?.vin || vehicleId?.slice(-8) || 'Loading...'}
+                                </span>
+                                {vehicle ? (
+                                  <div className="flex flex-wrap gap-1.5">
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                      vehicle.vehicleType === 'suspended' ? 'bg-amber-100 text-amber-700' :
+                                      vehicle.vehicleType === 'credit' ? 'bg-blue-100 text-blue-700' :
+                                      vehicle.vehicleType === 'priorYearSold' ? 'bg-purple-100 text-purple-700' :
+                                      'bg-emerald-100 text-emerald-700'
+                                    }`}>
+                                      {typeLabel}
+                                    </span>
+                                    <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px] font-bold">
+                                      Cat: {vehicle.grossWeightCategory || 'N/A'}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-[10px] text-slate-400 italic">Details loading...</span>
+                                )}
+                              </div>
                             );
                           })}
-                          {existingDraft.selectedVehicleIds.length > 5 && (
-                            <span className="text-xs text-slate-500">+{existingDraft.selectedVehicleIds.length - 5} more</span>
+                          {(existingDraft.selectedVehicleIds || existingDraft.vehicleIds).length > 5 && (
+                            <div className="flex items-center justify-center p-2 rounded-xl bg-slate-50 border border-slate-100 text-slate-500 text-xs font-medium">
+                              +{(existingDraft.selectedVehicleIds || existingDraft.vehicleIds).length - 5} more
+                            </div>
                           )}
                         </div>
                       </div>
                     )}
                     
-                    {existingDraft.step && (
+                    {!existingDraft.isSubmitted && existingDraft.step && (
                       <div>
                         <span className="text-slate-500">Current Step:</span>
                         <span className="ml-2 font-medium text-slate-900">
@@ -5666,7 +5756,7 @@ function NewFilingContent() {
                     
                     {existingDraft.updatedAt && (
                       <div>
-                        <span className="text-slate-500">Last Updated:</span>
+                        <span className="text-slate-500">{existingDraft.isSubmitted ? 'Submitted On:' : 'Last Updated:'}</span>
                         <span className="ml-2 font-medium text-slate-900">
                           {existingDraft.updatedAt instanceof Date 
                             ? existingDraft.updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -5677,7 +5767,7 @@ function NewFilingContent() {
                     
                     {existingDraft.pricing?.grandTotal > 0 && (
                       <div className="md:col-span-2">
-                        <span className="text-slate-500">Estimated Total:</span>
+                        <span className="text-slate-500">Total Amount:</span>
                         <span className="ml-2 font-bold text-lg text-slate-900">
                           ${existingDraft.pricing.grandTotal.toFixed(2)}
                         </span>
@@ -5687,12 +5777,14 @@ function NewFilingContent() {
                 </div>
 
                 {/* Warning Message */}
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <div className={`${existingDraft.isSubmitted ? 'bg-blue-50 border-blue-200' : 'bg-amber-50 border-amber-200'} border rounded-xl p-4`}>
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <AlertCircle className={`w-5 h-5 ${existingDraft.isSubmitted ? 'text-blue-600' : 'text-amber-600'} flex-shrink-0 mt-0.5`} />
                     <div className="flex-1">
-                      <p className="text-sm text-amber-800 font-medium">
-                        If you start a new filing, this draft will be deleted. You can continue with this draft or start fresh.
+                      <p className={`text-sm ${existingDraft.isSubmitted ? 'text-blue-800' : 'text-amber-800'} font-medium`}>
+                        {existingDraft.isSubmitted 
+                          ? 'You have already submitted a filing for this period. Are you sure you want to start a completely new filing? Your existing filing will not be affected.'
+                          : 'If you start a new filing, this draft will be deleted. You can continue with this draft or start fresh.'}
                       </p>
                     </div>
                   </div>
@@ -5702,21 +5794,25 @@ function NewFilingContent() {
               <div className="p-6 border-t border-slate-200 flex flex-col sm:flex-row gap-3 justify-end">
                 <button
                   onClick={async () => {
-                    // Delete draft and start new
+                    // Delete draft and start new (only for true drafts)
                     try {
-                      await deleteDraftFiling(existingDraft.id);
+                      if (!existingDraft.isSubmitted) {
+                        await deleteDraftFiling(existingDraft.id);
+                      }
+                      
                       setShowDraftWarningModal(false);
                       setExistingDraft(null);
-                      // Reset form state
+                      // Reset form state and proceed to Step 2
                       setDraftId(null);
-                      setStep(1);
+                      setFilingId(null);
+                      setStep(2); 
                       setFilingType('standard');
                       setSelectedBusinessId('');
                       setSelectedVehicleIds([]);
                       setAmendmentType('');
                     } catch (error) {
-                      console.error('Error deleting draft:', error);
-                      setError('Failed to delete draft. Please try again.');
+                      console.error('Error handling start new:', error);
+                      setError('Failed to process request. Please try again.');
                     }
                   }}
                   className="px-6 py-3 bg-white border-2 border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 hover:border-slate-400 transition-colors"
@@ -5725,12 +5821,18 @@ function NewFilingContent() {
                 </button>
                 <button
                   onClick={() => {
-                    // Continue with draft
-                    router.push(`/dashboard/new-filing?draft=${existingDraft.id}`);
+                    setShowDraftWarningModal(false);
+                    if (existingDraft.isSubmitted) {
+                      // Navigate to details if submitted
+                      router.push(`/dashboard/filings/${existingDraft.id}`);
+                    } else {
+                      // Continue with draft
+                      router.push(`/dashboard/new-filing?draft=${existingDraft.id}`);
+                    }
                   }}
                   className="px-6 py-3 bg-gradient-to-r from-[var(--color-orange)] to-orange-600 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-[var(--color-orange)] transition-all shadow-lg hover:shadow-xl"
                 >
-                  Continue Draft
+                  {existingDraft.isSubmitted ? 'View Existing Filing' : 'Continue Draft'}
                 </button>
               </div>
             </div>

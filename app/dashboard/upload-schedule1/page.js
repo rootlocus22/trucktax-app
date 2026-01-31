@@ -155,6 +155,7 @@ function UploadSchedule1Content() {
           workflowType: 'upload',
           step,
           filingData,
+          taxYear: filingData.taxYear, // Explicitly save taxYear for dashboard display
           extractedBusiness,
           extractedVehicles,
           selectedBusinessId,

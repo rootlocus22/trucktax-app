@@ -12,6 +12,7 @@ import {
   Upload,
   Edit,
   FileText,
+  CreditCard,
   CheckCircle,
   Clock,
   AlertCircle,
@@ -22,7 +23,6 @@ import {
   TrendingUp,
   Calendar,
   ChevronRight,
-  CreditCard,
   Search,
   Filter,
   MoreVertical,
@@ -80,6 +80,8 @@ export default function DashboardPage() {
     const configs = {
       submitted: { color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', icon: Clock, label: 'Submitted', dot: 'bg-blue-500' },
       processing: { color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', icon: Clock, label: 'Processing', dot: 'bg-amber-500' },
+      pending_payment: { color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', icon: CreditCard, label: 'Awaiting Payment', dot: 'bg-orange-500' },
+      awaiting_schedule_1: { color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', icon: Clock, label: 'Awaiting Schedule 1', dot: 'bg-blue-500' },
       action_required: { color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', icon: AlertCircle, label: 'Action Required', dot: 'bg-orange-500' },
       completed: { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', icon: CheckCircle, label: 'Completed', dot: 'bg-emerald-500' }
     };
@@ -118,7 +120,8 @@ export default function DashboardPage() {
   // Filter out drafts that have been converted to actual filings
   // A draft is considered "converted" if there's a filing with:
   // 1. The same draftId reference, OR
-  // 2. Same tax year, business, and vehicles (likely the same filing)
+  // 2. The draft has a filingId reference, OR
+  // 3. Same tax year, business, and vehicles (likely the same filing)
   const convertedDraftIds = useMemo(() => {
     const ids = new Set();
     filings.forEach(filing => {
@@ -126,8 +129,16 @@ export default function DashboardPage() {
         ids.add(filing.draftId);
       }
     });
+    
+    // Also add drafts that have an explicit filingId reference
+    draftFilings.forEach(draft => {
+      if (draft.filingId && filings.some(f => f.id === draft.filingId)) {
+        ids.add(draft.id || draft.draftId);
+      }
+    });
+    
     return ids;
-  }, [filings]);
+  }, [filings, draftFilings]);
 
   // Only include drafts that haven't been converted to filings AND have a business selected
   const unconvertedDrafts = useMemo(() => {
@@ -149,7 +160,7 @@ export default function DashboardPage() {
         const sameBusiness = filing.businessId === draft.selectedBusinessId || 
                             filing.businessId === draft.businessId;
         // If both match and filing exists (even without status), skip the draft
-        // A filing in the filings collection means it was submitted
+        // A filing in the filings collection means it was submitted or is in payment flow
         return sameTaxYear && sameBusiness;
       });
       
@@ -500,15 +511,14 @@ export default function DashboardPage() {
                               : (filing.status || 'submitted'); // Default to 'submitted' for actual filings without status
                             const statusConfig = getStatusConfig(filingStatus);
                             const StatusIcon = statusConfig.icon;
-                            // A filing is incomplete only if it's a draft or has incomplete status
-                            // Submitted/processing/completed/action_required are NOT incomplete
-                            const isIncomplete = filingStatus === 'draft' || filing.isDraft || 
-                              (filingStatus !== 'completed' && filingStatus !== 'action_required' && 
-                               filingStatus !== 'submitted' && filingStatus !== 'processing');
-                            const resumeUrl = filing.isDraft || filingStatus === 'draft'
+                            // A filing is incomplete only if it's a draft
+                            // Submitted/processing/completed/action_required/pending_payment/awaiting_schedule_1 are NOT incomplete drafts
+                            const isIncomplete = filingStatus === 'draft' || filing.isDraft;
+                            
+                            const resumeUrl = filing.isDraft || filingStatus === 'draft' || filingStatus === 'pending_payment'
                               ? filing.workflowType === 'upload'
-                                ? `/dashboard/upload-schedule1?draft=${filing.id || filing.draftId}`
-                                : `/dashboard/new-filing?draft=${filing.id || filing.draftId}`
+                                ? `/dashboard/upload-schedule1?draft=${filing.draftId || filing.id}`
+                                : `/dashboard/new-filing?draft=${filing.draftId || filing.id}`
                               : `/dashboard/filings/${filing.id}`;
                             
                             const vehiclesInfo = getVehiclesInfo(filing);
