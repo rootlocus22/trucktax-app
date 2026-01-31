@@ -26,6 +26,7 @@ import {
   Shield,
   Loader2
 } from 'lucide-react';
+import VehicleFormModal from '@/components/VehicleFormModal';
 
 export default function VehiclesPage() {
   const { user } = useAuth();
@@ -485,70 +486,11 @@ export default function VehiclesPage() {
     }
   };
 
-  const handleAddVehicle = async () => {
-    const errors = {};
-
-    // Validate VIN
-    const vinVal = validateVIN(newVehicle.vin);
-    if (!vinVal.isValid) {
-      errors.vin = vinVal.error;
-    }
-
+  const handleAddVehicle = async (vehicleData) => {
     // Check for duplicate VIN
-    const duplicateVehicle = vehicles.find(v => v.vin === newVehicle.vin.toUpperCase());
+    const duplicateVehicle = vehicles.find(v => v.vin === vehicleData.vin.toUpperCase());
     if (duplicateVehicle) {
-      errors.vin = 'This VIN already exists in your vehicle list';
-    }
-
-    // Validate business selection
-    if (!newVehicle.businessId || newVehicle.businessId.trim() === '') {
-      errors.businessId = 'Business selection is required';
-    }
-
-    // Validate based on vehicle type
-    if (newVehicle.vehicleType === 'taxable' || newVehicle.vehicleType === 'credit') {
-      if (!newVehicle.grossWeightCategory || newVehicle.grossWeightCategory === 'W') {
-        errors.grossWeightCategory = 'Weight category (A-V) is required';
-      }
-      if (newVehicle.logging === null) {
-        errors.logging = 'Logging option is required';
-      }
-      if (newVehicle.vehicleType === 'credit') {
-        if (!newVehicle.creditReason) {
-          errors.creditReason = 'Credit reason is required';
-        }
-        if (!newVehicle.creditDate) {
-          errors.creditDate = 'Credit date is required';
-        } else {
-          // Validate that credit date is not in June (last month of tax period - no credit available)
-          const creditDateObj = new Date(newVehicle.creditDate);
-          const creditMonth = creditDateObj.getMonth(); // 0-indexed: 0=January, 5=June
-          if (creditMonth === 5) { // June is month index 5
-            errors.creditDate = 'You cannot claim credit for the June month for any reason. June is the last month of the tax period, so there are no remaining months to claim credit.';
-          }
-        }
-      }
-    } else if (newVehicle.vehicleType === 'suspended') {
-      if (newVehicle.grossWeightCategory !== 'W') {
-        errors.grossWeightCategory = 'Weight category must be W for suspended vehicles';
-      }
-      if (newVehicle.logging === null) {
-        errors.logging = 'Logging option is required';
-      }
-      if (newVehicle.agricultural === null) {
-        errors.agricultural = 'Agricultural option is required';
-      }
-    } else if (newVehicle.vehicleType === 'priorYearSold') {
-      if (!newVehicle.soldTo || newVehicle.soldTo.trim() === '') {
-        errors.soldTo = 'Sold To field is required';
-      }
-      if (!newVehicle.soldDate) {
-        errors.soldDate = 'Sold date is required';
-      }
-    }
-
-    if (Object.keys(errors).length > 0) {
-      setVehicleErrors(errors);
+      setVehicleErrors({ vin: 'This VIN already exists in your vehicle list' });
       return;
     }
 
@@ -556,35 +498,24 @@ export default function VehiclesPage() {
     setVehicleErrors({});
 
     try {
-      const vehicleData = {
-        vin: newVehicle.vin.toUpperCase().trim(),
-        vehicleType: newVehicle.vehicleType,
-        grossWeightCategory: newVehicle.grossWeightCategory,
-        logging: newVehicle.logging,
-        agricultural: newVehicle.agricultural ?? null,
-        creditReason: newVehicle.creditReason || null,
-        creditDate: newVehicle.creditDate || null,
-        soldTo: newVehicle.soldTo || null,
-        soldDate: newVehicle.soldDate || null,
-        businessId: newVehicle.businessId
+      const dataToSave = {
+        vin: vehicleData.vin.toUpperCase().trim(),
+        vehicleType: vehicleData.vehicleType,
+        grossWeightCategory: vehicleData.grossWeightCategory,
+        logging: vehicleData.logging,
+        agricultural: vehicleData.agricultural ?? null,
+        creditReason: vehicleData.creditReason || null,
+        creditDate: vehicleData.creditDate || null,
+        soldTo: vehicleData.soldTo || null,
+        soldDate: vehicleData.soldDate || null,
+        businessId: vehicleData.businessId
       };
 
-      await createVehicle(user.uid, vehicleData);
+      await createVehicle(user.uid, dataToSave);
 
       await loadVehicles();
       setShowAddModal(false);
-      setNewVehicle({
-        vin: '',
-        vehicleType: 'taxable',
-        grossWeightCategory: '',
-        logging: null,
-        agricultural: null,
-        creditReason: '',
-        creditDate: '',
-        soldTo: '',
-        soldDate: '',
-        businessId: ''
-      });
+      setVehicleErrors({});
     } catch (error) {
       console.error('Error creating vehicle:', error);
       setVehicleErrors({ general: 'Failed to create vehicle. Please try again.' });
@@ -1314,356 +1245,19 @@ export default function VehiclesPage() {
         )}
 
         {/* Add Vehicle Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto" onClick={() => !saving && setShowAddModal(false)}>
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 my-8 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-slate-900">Add New Vehicle</h2>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  disabled={saving}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {vehicleErrors.general && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                  {vehicleErrors.general}
-                </div>
-              )}
-
-              <div className="space-y-4">
-                {/* VIN - Always visible */}
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    VIN <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={newVehicle.vin}
-                    onChange={(e) => {
-                      const val = e.target.value.toUpperCase();
-                      setNewVehicle({ ...newVehicle, vin: val });
-                      if (val.length === 17) {
-                        const vinVal = validateVIN(val);
-                        setVehicleErrors({ ...vehicleErrors, vin: vinVal.isValid ? '' : vinVal.error });
-                      } else {
-                        setVehicleErrors({ ...vehicleErrors, vin: '' });
-                      }
-                    }}
-                    maxLength={17}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all font-mono"
-                    placeholder="17-character VIN"
-                  />
-                  {vehicleErrors.vin && (
-                    <p className="mt-1 text-sm text-red-600">{vehicleErrors.vin}</p>
-                  )}
-                </div>
-
-                {/* Business Selection */}
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Business <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={newVehicle.businessId || ''}
-                    onChange={(e) => setNewVehicle({ ...newVehicle, businessId: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
-                  >
-                    <option value="">Select a business</option>
-                    {businesses.map(business => (
-                      <option key={business.id} value={business.id}>
-                        {business.businessName || business.name || 'Unnamed Business'}
-                      </option>
-                    ))}
-                  </select>
-                  {vehicleErrors.businessId && (
-                    <p className="mt-1 text-sm text-red-600">{vehicleErrors.businessId}</p>
-                  )}
-                  {businesses.length === 0 && (
-                    <p className="mt-1 text-sm text-amber-600">
-                      No businesses found. Please create a business first.
-                    </p>
-                  )}
-                </div>
-
-                {/* Vehicle Type */}
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Vehicle Type <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={newVehicle.vehicleType || 'taxable'}
-                    onChange={(e) => {
-                      const newType = e.target.value;
-                      setNewVehicle({
-                        ...newVehicle,
-                        vehicleType: newType,
-                        // Reset type-specific fields when changing type
-                        grossWeightCategory: newType === 'suspended' ? 'W' : '',
-                        logging: null,
-                        agricultural: null,
-                        creditReason: '',
-                        creditDate: '',
-                        soldTo: '',
-                        soldDate: ''
-                      });
-                    }}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
-                  >
-                    {vehicleTypes.map(type => (
-                      <option key={type.value} value={type.value}>{type.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Gross Weight Category - Show for taxable, suspended, credit */}
-                {(newVehicle.vehicleType === 'taxable' || newVehicle.vehicleType === 'credit' || newVehicle.vehicleType === 'suspended') && (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Gross Weight Category <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={newVehicle.grossWeightCategory || ''}
-                      onChange={(e) => setNewVehicle({ ...newVehicle, grossWeightCategory: e.target.value })}
-                      disabled={newVehicle.vehicleType === 'suspended'}
-                      className={`w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all ${newVehicle.vehicleType === 'suspended' ? 'bg-slate-100 cursor-not-allowed' : ''
-                        }`}
-                    >
-                      {newVehicle.vehicleType === 'suspended' ? (
-                        <option value="W">W</option>
-                      ) : (
-                        <>
-                          <option value="">Select weight category</option>
-                          {getWeightCategoryOptions(newVehicle.logging).map(cat => (
-                            <option key={cat.value} value={cat.value}>{cat.label}</option>
-                          ))}
-                        </>
-                      )}
-                    </select>
-                    {vehicleErrors.grossWeightCategory && (
-                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.grossWeightCategory}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Logging - Show for taxable, suspended, credit */}
-                {(newVehicle.vehicleType === 'taxable' || newVehicle.vehicleType === 'credit' || newVehicle.vehicleType === 'suspended') && (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Logging <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setNewVehicle({ ...newVehicle, logging: true })}
-                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${newVehicle.logging === true
-                          ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                          }`}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setNewVehicle({ ...newVehicle, logging: false })}
-                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${newVehicle.logging === false
-                          ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                          }`}
-                      >
-                        No
-                      </button>
-                    </div>
-                    {vehicleErrors.logging && (
-                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.logging}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Agricultural - Show for suspended */}
-                {newVehicle.vehicleType === 'suspended' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Agricultural <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setNewVehicle({ ...newVehicle, agricultural: true })}
-                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${newVehicle.agricultural === true
-                          ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                          }`}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setNewVehicle({ ...newVehicle, agricultural: false })}
-                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${newVehicle.agricultural === false
-                          ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                          }`}
-                      >
-                        No
-                      </button>
-                    </div>
-                    {vehicleErrors.agricultural && (
-                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.agricultural}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Credit Reason - Show for credit */}
-                {newVehicle.vehicleType === 'credit' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Reason <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={newVehicle.creditReason || ''}
-                      onChange={(e) => setNewVehicle({ ...newVehicle, creditReason: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
-                    >
-                      <option value="">Select reason</option>
-                      {creditReasons.map(reason => (
-                        <option key={reason.value} value={reason.value}>{reason.label}</option>
-                      ))}
-                    </select>
-                    {vehicleErrors.creditReason && (
-                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.creditReason}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Credit Date - Show for credit */}
-                {newVehicle.vehicleType === 'credit' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Date <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={newVehicle.creditDate || ''}
-                      onChange={(e) => {
-                        const selectedDate = e.target.value;
-                        setNewVehicle({ ...newVehicle, creditDate: selectedDate });
-
-                        // Real-time validation for June
-                        if (selectedDate) {
-                          const dateObj = new Date(selectedDate);
-                          const month = dateObj.getMonth(); // 0-indexed: 0=January, 5=June
-                          if (month === 5) {
-                            setVehicleErrors({
-                              ...vehicleErrors,
-                              creditDate: 'You cannot claim credit for the June month for any reason. June is the last month of the tax period, so there are no remaining months to claim credit.'
-                            });
-                          } else {
-                            // Clear error if not June
-                            const newErrors = { ...vehicleErrors };
-                            delete newErrors.creditDate;
-                            setVehicleErrors(newErrors);
-                          }
-                        }
-                      }}
-                      min={getMinDate('credit')}
-                      max={getMaxDate('credit')}
-                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all ${vehicleErrors.creditDate ? 'border-red-500' : 'border-slate-200'
-                        }`}
-                    />
-                    {vehicleErrors.creditDate && (
-                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.creditDate}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Sold To - Show for priorYearSold */}
-                {newVehicle.vehicleType === 'priorYearSold' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Sold To <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newVehicle.soldTo || ''}
-                      onChange={(e) => setNewVehicle({ ...newVehicle, soldTo: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
-                      placeholder="Buyer name or company"
-                    />
-                    {vehicleErrors.soldTo && (
-                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.soldTo}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Sold Date - Show for priorYearSold */}
-                {newVehicle.vehicleType === 'priorYearSold' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Sold Date <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={newVehicle.soldDate || ''}
-                      onChange={(e) => setNewVehicle({ ...newVehicle, soldDate: e.target.value })}
-                      min={getMinDate('priorYearSold')}
-                      max={getMaxDate()}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
-                    />
-                    {vehicleErrors.soldDate && (
-                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.soldDate}</p>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={() => {
-                      setShowAddModal(false);
-                      setNewVehicle({
-                        vin: '',
-                        vehicleType: 'taxable',
-                        grossWeightCategory: '',
-                        logging: null,
-                        agricultural: null,
-                        creditReason: '',
-                        creditDate: '',
-                        soldTo: '',
-                        soldDate: '',
-                        businessId: ''
-                      });
-                      setVehicleErrors({});
-                    }}
-                    disabled={saving}
-                    className="flex-1 px-4 py-3 border-2 border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAddVehicle}
-                    disabled={saving}
-                    className="flex-1 px-4 py-3 bg-[var(--color-orange)] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-hover)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {saving ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Adding...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4" />
-                        Add Vehicle
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <VehicleFormModal
+          isOpen={showAddModal}
+          onClose={() => {
+            setShowAddModal(false);
+            setVehicleErrors({});
+          }}
+          onSubmit={handleAddVehicle}
+          businesses={businesses}
+          loading={saving}
+          submitButtonText="Add Vehicle"
+          title="Add New Vehicle"
+          externalErrors={vehicleErrors}
+        />
 
         {/* CSV Business Selection Modal */}
         {showCsvBusinessModal && (

@@ -13,9 +13,10 @@ import { calculateFilingCost } from '@/app/actions/pricing'; // Server Action
 import { calculateTax, calculateRefundAmount, calculateWeightIncreaseAdditionalTax, calculateMileageExceededTax } from '@/lib/pricing'; // Keep for client-side estimation only
 import { validateBusinessName, validateEIN, formatEIN, validateVIN, validateAddress, validatePhone, validateState, validateZip, validateCity, validateCountry, validatePIN } from '@/lib/validation';
 import { validateVINCorrection, validateWeightIncrease, validateMileageExceeded, calculateWeightIncreaseDueDate, getAmendmentTypeConfig } from '@/lib/amendmentHelpers';
-import { FileText, AlertTriangle, RefreshCw, Truck, Info, CreditCard, CheckCircle, ShieldCheck, AlertCircle, RotateCcw, Clock, Building2, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
+import { FileText, AlertTriangle, RefreshCw, Truck, Info, CreditCard, CheckCircle, ShieldCheck, AlertCircle, RotateCcw, Clock, Building2, ChevronUp, ChevronDown, Loader2, X, Plus } from 'lucide-react';
 import { PricingSidebar } from '@/components/PricingSidebar';
 import StripeWrapper from '@/components/StripeWrapper';
+import VehicleFormModal from '@/components/VehicleFormModal';
 
 
 // Mobile Pricing Summary Component - Sticky Bottom
@@ -356,7 +357,6 @@ function NewFilingContent() {
   // Step 3: Vehicles
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicleIds, setSelectedVehicleIds] = useState([]);
-  const [showVehicleForm, setShowVehicleForm] = useState(false);
   const [taxableDropdownOpen, setTaxableDropdownOpen] = useState(false);
   const [suspendedDropdownOpen, setSuspendedDropdownOpen] = useState(false);
   const [creditDropdownOpen, setCreditDropdownOpen] = useState(false);
@@ -431,10 +431,120 @@ function NewFilingContent() {
   };
   const [newVehicle, setNewVehicle] = useState({
     vin: '',
+    vehicleType: 'taxable',
+    logging: false,
+    agricultural: false,
     grossWeightCategory: '',
-    isSuspended: false
+    creditReason: '',
+    creditDate: '',
+    soldTo: '',
+    soldDate: '',
+    businessId: selectedBusinessId || ''
   });
+  const [showAddModal, setShowAddModal] = useState(false);
   const [vehicleErrors, setVehicleErrors] = useState({});
+
+  // Tax rate mappings (from vehicles page)
+  const TAX_RATES_NON_LOGGING = {
+    'A': 100.00, 'B': 122.00, 'C': 144.00, 'D': 166.00, 'E': 188.00,
+    'F': 210.00, 'G': 232.00, 'H': 254.00, 'I': 276.00, 'J': 298.00,
+    'K': 320.00, 'L': 342.00, 'M': 364.00, 'N': 386.00, 'O': 408.00,
+    'P': 430.00, 'Q': 452.00, 'R': 474.00, 'S': 496.00, 'T': 518.00,
+    'U': 540.00, 'V': 550.00, 'W': 550.00
+  };
+
+  const TAX_RATES_LOGGING = {
+    'A': 75.00, 'B': 91.50, 'C': 108.00, 'D': 124.50, 'E': 141.00,
+    'F': 157.50, 'G': 174.00, 'H': 190.50, 'I': 207.00, 'J': 223.50,
+    'K': 240.00, 'L': 256.50, 'M': 273.00, 'N': 289.50, 'O': 306.00,
+    'P': 322.50, 'Q': 339.00, 'R': 355.50, 'S': 372.00, 'T': 388.50,
+    'U': 405.00, 'V': 412.50, 'W': 412.50
+  };
+
+  const formatCurrencyLocal = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  const getWeightCategoryOptions = (isLogging) => {
+    const taxRates = isLogging === true ? TAX_RATES_LOGGING : TAX_RATES_NON_LOGGING;
+    const loggingText = isLogging === true ? ' (Logging)' : isLogging === false ? ' (Non-Logging)' : '';
+
+    return [
+      { value: 'A', label: `A - 55,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['A'])}` },
+      { value: 'B', label: `B - 55,001 - 56,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['B'])}` },
+      { value: 'C', label: `C - 56,001 - 57,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['C'])}` },
+      { value: 'D', label: `D - 57,001 - 58,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['D'])}` },
+      { value: 'E', label: `E - 58,001 - 59,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['E'])}` },
+      { value: 'F', label: `F - 59,001 - 60,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['F'])}` },
+      { value: 'G', label: `G - 60,001 - 61,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['G'])}` },
+      { value: 'H', label: `H - 61,001 - 62,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['H'])}` },
+      { value: 'I', label: `I - 62,001 - 63,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['I'])}` },
+      { value: 'J', label: `J - 63,001 - 64,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['J'])}` },
+      { value: 'K', label: `K - 64,001 - 65,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['K'])}` },
+      { value: 'L', label: `L - 65,001 - 66,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['L'])}` },
+      { value: 'M', label: `M - 66,001 - 67,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['M'])}` },
+      { value: 'N', label: `N - 67,001 - 68,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['N'])}` },
+      { value: 'O', label: `O - 68,001 - 69,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['O'])}` },
+      { value: 'P', label: `P - 69,001 - 70,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['P'])}` },
+      { value: 'Q', label: `Q - 70,001 - 71,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['Q'])}` },
+      { value: 'R', label: `R - 71,001 - 72,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['R'])}` },
+      { value: 'S', label: `S - 72,001 - 73,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['S'])}` },
+      { value: 'T', label: `T - 73,001 - 74,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['T'])}` },
+      { value: 'U', label: `U - 74,001 - 75,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['U'])}` },
+      { value: 'V', label: `V - More than 75,000 lbs${loggingText} - ${formatCurrencyLocal(taxRates['V'])}` }
+    ];
+  };
+
+  const weightCategoriesAToV = [
+    { value: 'A', label: 'A - 55,000 lbs' },
+    { value: 'B', label: 'B - 55,001 - 56,000 lbs' },
+    { value: 'C', label: 'C - 56,001 - 57,000 lbs' },
+    { value: 'D', label: 'D - 57,001 - 58,000 lbs' },
+    { value: 'E', label: 'E - 58,001 - 59,000 lbs' },
+    { value: 'F', label: 'F - 59,001 - 60,000 lbs' },
+    { value: 'G', label: 'G - 60,001 - 61,000 lbs' },
+    { value: 'H', label: 'H - 61,001 - 62,000 lbs' },
+    { value: 'I', label: 'I - 62,001 - 63,000 lbs' },
+    { value: 'J', label: 'J - 63,001 - 64,000 lbs' },
+    { value: 'K', label: 'K - 64,001 - 65,000 lbs' },
+    { value: 'L', label: 'L - 65,001 - 66,000 lbs' },
+    { value: 'M', label: 'M - 66,001 - 67,000 lbs' },
+    { value: 'N', label: 'N - 67,001 - 68,000 lbs' },
+    { value: 'O', label: 'O - 68,001 - 69,000 lbs' },
+    { value: 'P', label: 'P - 69,001 - 70,000 lbs' },
+    { value: 'Q', label: 'Q - 70,001 - 71,000 lbs' },
+    { value: 'R', label: 'R - 71,001 - 72,000 lbs' },
+    { value: 'S', label: 'S - 72,001 - 73,000 lbs' },
+    { value: 'T', label: 'T - 73,001 - 74,000 lbs' },
+    { value: 'U', label: 'U - 74,001 - 75,000 lbs' },
+    { value: 'V', label: 'V - More than 75,000 lbs' }
+  ];
+
+  const getWeightCategoryWLabel = (isLogging) => {
+    const taxRates = isLogging === true ? TAX_RATES_LOGGING : TAX_RATES_NON_LOGGING;
+    const loggingText = isLogging === true ? ' (Logging)' : isLogging === false ? ' (Non-Logging)' : '';
+    return `W - Over 75,000 lbs (Maximum)${loggingText} - ${formatCurrencyLocal(taxRates['W'])}`;
+  };
+
+  const getMinDateLocal = (type) => {
+    if (type === 'credit') {
+      return '2024-07-01';
+    } else if (type === 'priorYearSold') {
+      const lastYear = new Date();
+      lastYear.setFullYear(lastYear.getFullYear() - 1);
+      return lastYear.toISOString().split('T')[0];
+    }
+    return '';
+  };
+
+  const getMaxDateLocal = () => {
+    return new Date().toISOString().split('T')[0];
+  };
 
   // Refund Details (for 8849)
   const [refundDetails, setRefundDetails] = useState({}); // { vehicleId: { reason: '', date: '' } }
@@ -543,6 +653,7 @@ function NewFilingContent() {
             if (draft.mileageExceededData) setMileageExceededData(draft.mileageExceededData);
             if (draft.refundDetails) setRefundDetails(draft.refundDetails);
             if (draft.pricing) setPricing(draft.pricing);
+            if (draft.filingId) setFilingId(draft.filingId);
           }
         } catch (error) {
           console.error('Error loading draft:', error);
@@ -738,6 +849,27 @@ function NewFilingContent() {
 
     fetchPricing();
   }, [step, selectedVehicleIds, filingType, filingData.firstUsedMonth, filingData, vehicles, selectedBusinessId, businesses, amendmentType, weightIncreaseData, mileageExceededData]);
+
+  // Validate vehicle type combinations whenever vehicles or selectedVehicleIds change
+  useEffect(() => {
+    if (selectedVehicleIds.length === 0) {
+      setVehicleTypeError('');
+      return;
+    }
+
+    // Only validate if all selected vehicle IDs exist in the vehicles array (to avoid race conditions)
+    const allVehiclesExist = selectedVehicleIds.every(id => vehicles.some(v => v.id === id));
+    if (!allVehiclesExist) {
+      return; // Wait for all vehicles to be loaded
+    }
+
+    const validation = validateVehicleTypeCombination(selectedVehicleIds);
+    if (!validation.isValid) {
+      setVehicleTypeError(validation.error);
+    } else {
+      setVehicleTypeError('');
+    }
+  }, [vehicles, selectedVehicleIds]);
 
   // Duplicate Detection: Check for existing incomplete filings with same data
   useEffect(() => {
@@ -1076,57 +1208,28 @@ function NewFilingContent() {
     }
   };
 
-  const handleVehicleChange = (field, value) => {
-    let formattedValue = value;
-    if (field === 'vin') {
-      formattedValue = value.toUpperCase();
-    }
 
-    setNewVehicle(prev => ({ ...prev, [field]: formattedValue }));
-
-    if (field === 'vin') {
-      const validation = validateVIN(formattedValue);
-      setVehicleErrors(prev => ({
-        ...prev,
-        vin: validation.isValid ? '' : validation.error
-      }));
-    }
-  };
-
-  const handleAddVehicle = async () => {
-    if (!newVehicle.grossWeightCategory) {
-      setError('Please select a gross weight category for this vehicle. The weight category determines the tax amount.');
-      setVehicleErrors({ grossWeightCategory: 'Weight category is required to calculate the correct tax amount' });
-      return;
-    }
-
-    const vinVal = validateVIN(newVehicle.vin);
-    if (!vinVal.isValid) {
-      setVehicleErrors({ vin: vinVal.error });
-      setError(`Invalid VIN: ${vinVal.error}. Please enter a valid 17-character Vehicle Identification Number.`);
-      return;
-    }
-
-    // Check for duplicate VIN in existing vehicles
-    const duplicateVehicle = vehicles.find(v => v.vin === newVehicle.vin.toUpperCase());
-    if (duplicateVehicle) {
-      setError(`Vehicle with VIN ${newVehicle.vin.toUpperCase()} is already in your vehicle list. Please select it from the list above instead of adding a duplicate.`);
-      setVehicleErrors({ vin: `VIN ${newVehicle.vin.toUpperCase()} already exists in your vehicle list` });
-      return;
-    }
-
+  const handleAddVehicle = async (vehicleData) => {
     setLoading(true);
     setError('');
     setVehicleErrors({});
 
     try {
-      const vinToSave = newVehicle.vin.toUpperCase().trim();
+      const vinToSave = vehicleData.vin.toUpperCase().trim();
 
       // Create vehicle in database
       const vehicleId = await createVehicle(user.uid, {
         vin: vinToSave,
-        grossWeightCategory: newVehicle.grossWeightCategory,
-        isSuspended: newVehicle.isSuspended || false
+        businessId: vehicleData.businessId,
+        vehicleType: vehicleData.vehicleType,
+        logging: vehicleData.vehicleType === 'taxable' || vehicleData.vehicleType === 'credit' || vehicleData.vehicleType === 'suspended' ? vehicleData.logging : null,
+        agricultural: vehicleData.vehicleType === 'suspended' ? vehicleData.agricultural : null,
+        grossWeightCategory: vehicleData.vehicleType === 'suspended' ? 'W' : vehicleData.grossWeightCategory,
+        isSuspended: vehicleData.vehicleType === 'suspended',
+        creditReason: vehicleData.vehicleType === 'credit' ? vehicleData.creditReason : null,
+        creditDate: vehicleData.vehicleType === 'credit' ? vehicleData.creditDate : null,
+        soldTo: vehicleData.vehicleType === 'priorYearSold' ? vehicleData.soldTo : null,
+        soldDate: vehicleData.vehicleType === 'priorYearSold' ? vehicleData.soldDate : null
       });
 
       console.log('Vehicle created with ID:', vehicleId);
@@ -1134,44 +1237,19 @@ function NewFilingContent() {
       // Reload vehicles from database to get the new vehicle
       await loadData();
 
-      // Verify the vehicle was added by checking the vehicles list
-      // Use a small delay to ensure state has updated
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Add the new vehicle to selected vehicles with validation
+      // Add the new vehicle to selected vehicles (validation will happen in useEffect)
       setSelectedVehicleIds(prev => {
-        if (prev.includes(vehicleId)) {
-          return prev; // Already selected
-        }
-        const newSelectedIds = [...prev, vehicleId];
-        const validation = validateVehicleTypeCombination(newSelectedIds);
-        if (!validation.isValid) {
-          setVehicleTypeError(validation.error);
-        } else {
-          setVehicleTypeError('');
-        }
-        return newSelectedIds;
+        if (prev.includes(vehicleId)) return prev;
         return [...prev, vehicleId];
       });
 
-      // Reset form
-      setNewVehicle({
-        vin: '',
-        grossWeightCategory: '',
-        isSuspended: false
-      });
-      setVehicleErrors({});
-      setError('');
-
-      console.log('Vehicle successfully added and selected');
-
-      // Return success indicator
+      setShowAddModal(false);
       return true;
     } catch (error) {
       console.error('Error creating vehicle:', error);
       const errorMessage = error.message || 'Unknown error';
       setError(`Unable to save vehicle information: ${errorMessage}. Please verify the VIN is correct and try again.`);
-      setVehicleErrors({ vin: `Save failed: ${errorMessage}` });
+      setVehicleErrors({ general: `Save failed: ${errorMessage}` });
       return false;
     } finally {
       setLoading(false);
@@ -1347,7 +1425,7 @@ function NewFilingContent() {
       }
 
 
-      const fId = await createFiling({
+      const filingPayload = {
         userId: user.uid,
         businessId: businessIdToUse,
         vehicleIds: vehicleIdsToUse,
@@ -1362,11 +1440,45 @@ function NewFilingContent() {
         pricing: pricing,
         status: 'pending_payment',
         paymentStatus: 'pending',
-        createdAt: new Date().toISOString()
-      });
+        updatedAt: new Date().toISOString()
+      };
 
-      setFilingId(fId);
+      // Always use existing filingId if available to prevent duplicates
+      let finalFId = filingId;
+      if (finalFId) {
+        const { updateFiling } = await import('@/lib/db');
+        await updateFiling(finalFId, filingPayload);
+      } else {
+        // Only create new filing if one doesn't exist
+        filingPayload.createdAt = new Date().toISOString();
+        finalFId = await createFiling(filingPayload);
+        setFilingId(finalFId); // Save to state immediately
+      }
+
       setStep(6);
+
+      // Save draft with the filing ID Link to prevent duplicates on reload
+      if (user) {
+        try {
+          await saveDraftFiling(user.uid, {
+            draftId: draftId,
+            step: 6,
+            filingType: filingType,
+            selectedBusinessId: selectedBusinessId,
+            selectedVehicleIds: selectedVehicleIds,
+            filingData: filingData,
+            amendmentType: amendmentType,
+            vinCorrectionData: vinCorrectionData,
+            weightIncreaseData: weightIncreaseData,
+            mileageExceededData: mileageExceededData,
+            refundDetails: refundDetails,
+            pricing: pricing,
+            filingId: finalFId
+          });
+        } catch (error) {
+          console.error('Error saving draft with filing ID:', error);
+        }
+      }
     } catch (error) {
       console.error('Error initiating payment flow:', error);
       setError('Failed to prepare your filing. Please try again.');
@@ -1569,16 +1681,45 @@ function NewFilingContent() {
         inputDocuments: [],
         pricing: pricing,
         paymentDetails: paymentDetails,
-        status: 'submitted',
+        status: 'processing', // Start as 'processing' since eform is in progress
         paymentStatus: 'paid',
         updatedAt: new Date().toISOString()
       };
 
+      // Always use existing filingId if available (from draft or previous step)
+      // This prevents duplicate filings if user refreshes or navigates back
       if (finalFilingId) {
         const { updateFiling } = await import('@/lib/db');
         await updateFiling(finalFilingId, filingPayload);
+      } else if (filingId) {
+        // Use filingId from state if finalFilingId is not set
+        const { updateFiling } = await import('@/lib/db');
+        await updateFiling(filingId, filingPayload);
+        finalFilingId = filingId;
       } else {
-        finalFilingId = await createFiling(filingPayload);
+        // Check for duplicate filing before creating new one
+        const existingFilings = await getFilingsByUser(user.uid);
+        const duplicate = detectDuplicateFiling({
+          filingType,
+          taxYear: filingData.taxYear,
+          businessId: businessIdToUse,
+          vehicleIds: vehicleIdsToUse,
+          amendmentType: filingType === 'amendment' ? amendmentType : null,
+          amendmentDetails: filingType === 'amendment' ? amendmentDetails : {}
+        }, existingFilings);
+
+        if (duplicate && duplicate.status !== 'completed') {
+          // Use existing filing instead of creating duplicate
+          console.log('Found existing filing, updating instead of creating duplicate:', duplicate.id);
+          const { updateFiling } = await import('@/lib/db');
+          await updateFiling(duplicate.id, filingPayload);
+          finalFilingId = duplicate.id;
+          setFilingId(duplicate.id);
+        } else {
+          // Only create new filing if no duplicate exists
+          finalFilingId = await createFiling(filingPayload);
+          setFilingId(finalFilingId); // Save to state for future updates
+        }
       }
 
 
@@ -3088,7 +3229,7 @@ function NewFilingContent() {
                 </div>
 
                 {/* Existing Vehicles List - Categorized Dropdowns */}
-                {vehicles.length > 0 && !showVehicleForm && (
+                {vehicles.length > 0 && (
                   <div className="mb-4 sm:mb-6 md:mb-8 space-y-4">
                     <label className="block text-sm font-bold text-[var(--color-text)] mb-3 sm:mb-4">
                       Select Vehicles to File
@@ -3599,7 +3740,10 @@ function NewFilingContent() {
 
                     {/* Add Another Vehicle Button */}
                     <button
-                      onClick={() => setShowVehicleForm(true)}
+                      onClick={() => {
+                        setNewVehicle(prev => ({ ...prev, businessId: selectedBusinessId || '' }));
+                        setShowAddModal(true);
+                      }}
                       className="w-full mt-4 p-3 sm:p-4 rounded-xl border-2 border-dashed border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] hover:bg-[var(--color-page-alt)] active:scale-95 transition flex items-center justify-center gap-2 touch-manipulation"
                     >
                       <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-100 flex items-center justify-center">
@@ -3610,121 +3754,6 @@ function NewFilingContent() {
                   </div>
                 )}
 
-                {/* Add New Vehicle Form */}
-                {(showVehicleForm || vehicles.length === 0) && (
-                  <div className="mb-4 sm:mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="flex items-center justify-between mb-3 sm:mb-4">
-                      <h3 className="text-base sm:text-lg font-semibold text-[var(--color-text)]">
-                        {vehicles.length > 0 ? 'Add New Vehicle' : 'Add Vehicle'}
-                      </h3>
-                      {vehicles.length > 0 && (
-                        <button
-                          onClick={() => setShowVehicleForm(false)}
-                          className="text-xs sm:text-sm text-[var(--color-muted)] hover:text-[var(--color-text)] underline touch-manipulation"
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 p-3 sm:p-4 md:p-6 bg-[var(--color-page-alt)] rounded-xl border border-[var(--color-border)]">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <label className="block text-sm font-medium text-[var(--color-text)]">
-                            VIN (17 characters) *
-                          </label>
-                          <div className="group relative">
-                            <Info className="w-4 h-4 text-[var(--color-muted)] cursor-help" />
-                            <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
-                              <strong>IRS Rule:</strong> VIN must be exactly 17 characters. Letters I, O, and Q are NOT allowed.
-                            </div>
-                          </div>
-                        </div>
-                        <input
-                          type="text"
-                          value={newVehicle.vin}
-                          onChange={(e) => handleVehicleChange('vin', e.target.value)}
-                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono uppercase ${vehicleErrors.vin ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                          placeholder="1HGBH41JXMN109186"
-                          maxLength="17"
-                        />
-                        <div className="flex justify-between items-start mt-1 w-full">
-                          {vehicleErrors.vin ? (
-                            <p className="text-xs text-red-600 flex items-center gap-1 flex-1">
-                              <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{vehicleErrors.vin}</span>
-                            </p>
-                          ) : (
-                            <p className="text-xs text-[var(--color-muted)]">
-                              {newVehicle.vin.length}/17 characters
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <label className="block text-sm font-medium text-[var(--color-text)]">
-                            Gross Weight Category *
-                          </label>
-                          <div className="group relative">
-                            <Info className="w-4 h-4 text-[var(--color-muted)] cursor-help" />
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
-                              The maximum loaded weight of the vehicle (truck + trailer + max load).
-                            </div>
-                          </div>
-                        </div>
-                        <select
-                          value={newVehicle.grossWeightCategory}
-                          onChange={(e) => setNewVehicle({ ...newVehicle, grossWeightCategory: e.target.value })}
-                          className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] bg-white appearance-none"
-                        >
-                          <option value="">Select weight category...</option>
-                          <option value="A">A: 55,000 - 55,999 lbs ($100)</option>
-                          <option value="B">B: 56,000 - 57,999 lbs ($122)</option>
-                          <option value="C">C: 58,000 - 59,999 lbs ($144)</option>
-                          <option value="D">D: 60,000 - 61,999 lbs ($166)</option>
-                          <option value="E">E: 62,000 - 63,999 lbs ($188)</option>
-                          <option value="F">F: 64,000 - 65,999 lbs ($210)</option>
-                          <option value="G">G: 66,000 - 67,999 lbs ($232)</option>
-                          <option value="H">H: 68,000 - 69,999 lbs ($254)</option>
-                          <option value="I">I: 70,000 - 71,999 lbs ($276)</option>
-                          <option value="J">J: 72,000 - 73,999 lbs ($298)</option>
-                          <option value="K">K: 74,000 - 75,000 lbs ($320)</option>
-                          <option value="W">W: Over 75,000 lbs ($550 - Max)</option>
-                        </select>
-                      </div>
-                      <div className="md:col-span-2 flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-amber-50 rounded-xl border border-amber-100 transition-colors hover:border-amber-200 touch-manipulation">
-                        <input
-                          type="checkbox"
-                          id="suspended"
-                          checked={newVehicle.isSuspended}
-                          onChange={(e) => setNewVehicle({ ...newVehicle, isSuspended: e.target.checked })}
-                          className="w-5 h-5 mt-0.5 text-amber-600 focus:ring-amber-500 rounded cursor-pointer flex-shrink-0 touch-manipulation"
-                        />
-                        <div className="cursor-pointer flex-1" onClick={() => setNewVehicle({ ...newVehicle, isSuspended: !newVehicle.isSuspended })}>
-                          <label htmlFor="suspended" className="text-sm font-bold text-amber-900 block cursor-pointer">
-                            Suspended Vehicle (Low Mileage)
-                          </label>
-                          <p className="text-xs text-amber-800 mt-1 leading-relaxed">
-                            Check this if you expect to drive less than 5,000 miles (7,500 for agriculture) on public highways. Tax will be $0.
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={async () => {
-                          const success = await handleAddVehicle();
-                          if (success) {
-                            setShowVehicleForm(false);
-                          }
-                          // If failed, keep form open so user can fix errors
-                        }}
-                        disabled={loading}
-                        className="md:col-span-2 w-full bg-[#ff8b3d] text-white py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition disabled:opacity-50 mt-2 sm:mt-4 shadow-sm touch-manipulation"
-                      >
-                        {loading ? 'Adding...' : 'Add Vehicle'}
-                      </button>
-                    </div>
-                  </div>
-                )}
 
                 <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-[var(--color-border)]">
                   <button
@@ -3735,11 +3764,6 @@ function NewFilingContent() {
                   </button>
                   <button
                     onClick={() => {
-                      if (showVehicleForm && newVehicle.vin) {
-                        const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund' : 'filing';
-                        setError(`Please complete the vehicle form and click "Save & Add Vehicle" to add it to your ${filingTypeLabel}, or click "Cancel" to select from existing vehicles.`);
-                        return;
-                      }
                       if (selectedVehicleIds.length > 0) setStep(4);
                       else {
                         const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund claim' : 'filing';
@@ -4626,11 +4650,24 @@ function NewFilingContent() {
                             businessId: selectedBusinessId
                           }}
 
-                          onSuccess={(paymentIntent) => {
+                          onSuccess={async (paymentIntent) => {
                             console.log('Service Fee Payment Succeeded:', paymentIntent);
                             setServiceFeePaid(true);
                             setError('');
-                            handleSubmit(); // Finalize filing (webhook will also do it, but this provides immediate UI update)
+                            // Only call handleSubmit if filingId is not already set (to prevent duplicate)
+                            // The webhook will handle the final update, but we need to ensure filingId exists
+                            if (!filingId) {
+                              await handleSubmit();
+                            } else {
+                              // Update existing filing with payment status
+                              const { updateFiling } = await import('@/lib/db');
+                              await updateFiling(filingId, {
+                                paymentStatus: 'paid',
+                                status: 'processing',
+                                updatedAt: new Date().toISOString()
+                              });
+                              router.push(`/dashboard/filings/${filingId}`);
+                            }
                           }}
                         />
                       </div>
@@ -4740,6 +4777,27 @@ function NewFilingContent() {
             />
           </div>
         )}
+
+        {/* Add Vehicle Modal */}
+        <VehicleFormModal
+          isOpen={showAddModal}
+          onClose={() => {
+            setShowAddModal(false);
+            setVehicleErrors({});
+          }}
+          onSubmit={async (vehicleData) => {
+            const success = await handleAddVehicle(vehicleData);
+            if (success) {
+              setShowAddModal(false);
+            }
+          }}
+          businesses={businesses}
+          initialBusinessId={selectedBusinessId || ''}
+          loading={loading}
+          submitButtonText="Add Vehicle"
+          title="Add New Vehicle"
+          externalErrors={vehicleErrors}
+        />
       </div>
     </ProtectedRoute>
   );

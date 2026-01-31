@@ -337,6 +337,17 @@ export default function FilingDetailPage() {
                     return 'Filing Accepted';
                   })()
                   : (() => {
+                    if (filing.status === 'processing') {
+                      if (filing.filingType === 'amendment') {
+                        if (filing.amendmentType === 'vin_correction') return 'E-Form in Progress - VIN Correction';
+                        if (filing.amendmentType === 'weight_increase') return 'E-Form in Progress - Weight Increase';
+                        if (filing.amendmentType === 'mileage_exceeded') return 'E-Form in Progress - Mileage Amendment';
+                        return 'E-Form in Progress - Amendment';
+                      }
+                      if (filing.filingType === 'refund') return 'E-Form in Progress - Refund Claim';
+                      return 'E-Form in Progress';
+                    }
+                    // For 'submitted' status (shouldn't happen after payment, but handle it)
                     if (filing.filingType === 'amendment') {
                       if (filing.amendmentType === 'vin_correction') return 'Processing VIN Correction';
                       if (filing.amendmentType === 'weight_increase') return 'Processing Weight Increase Amendment';
@@ -359,13 +370,21 @@ export default function FilingDetailPage() {
                       : filing.filingType === 'refund'
                         ? 'Refund claim submitted. You will receive updates.'
                         : 'Your Form 2290 has been accepted. Schedule 1 is ready.')
-                  : (filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction'
-                    ? 'Processing your VIN correction. No additional tax due.'
-                    : filing.filingType === 'amendment'
-                      ? 'Processing your amendment filing.'
-                      : filing.filingType === 'refund'
-                        ? 'Processing your refund claim.'
-                        : 'Preparing your return for IRS submission.')}
+                  : filing.status === 'processing'
+                    ? (filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction'
+                      ? 'E-Form is in progress. Your VIN correction is being processed.'
+                      : filing.filingType === 'amendment'
+                        ? 'E-Form is in progress. Your amendment is being processed.'
+                        : filing.filingType === 'refund'
+                          ? 'E-Form is in progress. Your refund claim is being processed.'
+                          : 'E-Form is in progress. Your filing is being processed by our team.')
+                    : (filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction'
+                      ? 'Processing your VIN correction. No additional tax due.'
+                      : filing.filingType === 'amendment'
+                        ? 'Processing your amendment filing.'
+                        : filing.filingType === 'refund'
+                          ? 'Processing your refund claim.'
+                          : 'Preparing your return for IRS submission.')}
             </p>
             {filing.status === 'completed' && filing.finalSchedule1Url && (
               <a
