@@ -146,6 +146,8 @@ function calculateServiceFee(filingType, vehicleCount, amendmentType = null) {
     if (filingType === 'amendment' && amendmentType === 'vin_correction') return 10.00;
     // Mileage exceeded amendments also have a $10 service fee
     if (filingType === 'amendment' && amendmentType === 'mileage_exceeded') return 10.00;
+    // Weight increase amendments also have a $10 service fee
+    if (filingType === 'amendment' && amendmentType === 'weight_increase') return 10.00;
     // Other amendments are free per IRS guidelines
     if (filingType === 'amendment') return 0.00;
     if (filingType === 'refund') return 34.99;

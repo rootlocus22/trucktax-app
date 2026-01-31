@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { getBusinessesByUser, createBusiness, getVehiclesByUser, createVehicle, createFiling, getFilingsByUser, getVehicle } from '@/lib/db';
 import { saveDraftFiling, getDraftFiling, deleteDraftFiling } from '@/lib/draftHelpers';
-import { detectDuplicateFiling, formatIncompleteFiling } from '@/lib/filingIntelligence';
+// Duplicate filing detection imports removed - functionality disabled
 import { uploadInputDocument } from '@/lib/storage';
 import { calculateFilingCost } from '@/app/actions/pricing'; // Server Action
 import { calculateTax, calculateRefundAmount, calculateWeightIncreaseAdditionalTax, calculateMileageExceededTax } from '@/lib/pricing'; // Keep for client-side estimation only
@@ -51,11 +51,12 @@ function MobilePricingSummary({
 
   useEffect(() => {
     const fetchPricing = async () => {
-      // For VIN corrections and mileage exceeded, allow calculation even without vehicles
+      // For VIN corrections, mileage exceeded, and weight increase, allow calculation even without vehicles
       const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
       const isMileageExceeded = filingType === 'amendment' && amendmentType === 'mileage_exceeded';
+      const isWeightIncrease = filingType === 'amendment' && amendmentType === 'weight_increase';
 
-      if (!filingType || (selectedVehicleIds.length === 0 && !isVinCorrection && !isMileageExceeded)) {
+      if (!filingType || (selectedVehicleIds.length === 0 && !isVinCorrection && !isMileageExceeded && !isWeightIncrease)) {
         setPricing({
           totalTax: 0,
           serviceFee: 0,
@@ -93,7 +94,10 @@ function MobilePricingSummary({
             amendmentDataForPricing = {
               originalWeightCategory: weightIncreaseData?.originalWeightCategory,
               newWeightCategory: weightIncreaseData?.newWeightCategory,
-              increaseMonth: weightIncreaseData?.increaseMonth
+              amendedMonth: weightIncreaseData?.amendedMonth,
+              firstUsedMonth: weightIncreaseData?.firstUsedMonth,
+              originalIsLogging: weightIncreaseData?.originalIsLogging || false,
+              newIsLogging: weightIncreaseData?.newIsLogging || false
             };
           } else if (amendmentType === 'mileage_exceeded') {
             const vehicle = vehicles.find(v => v.id === mileageExceededData?.vehicleId);
@@ -149,16 +153,25 @@ function MobilePricingSummary({
     return () => clearTimeout(timeoutId);
   }, [filingType, filingData, selectedVehicleIds, vehicles, selectedBusinessId, businesses, amendmentType, weightIncreaseData, mileageExceededData]);
 
-  // For VIN corrections and mileage exceeded, hasData should be true even without vehicles
+  // For VIN corrections, mileage exceeded, and weight increase, hasData should be true even without vehicles
   const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
   const isMileageExceeded = filingType === 'amendment' && amendmentType === 'mileage_exceeded';
-  const hasData = filingType && (selectedVehicleIds.length > 0 || isVinCorrection || isMileageExceeded);
+  const isWeightIncrease = filingType === 'amendment' && amendmentType === 'weight_increase';
+  const hasData = filingType && (selectedVehicleIds.length > 0 || isVinCorrection || isMileageExceeded || isWeightIncrease);
   const vehicleCount = selectedVehicleIds.length;
   // For collapsed view, show what's due now (service fee + sales tax), not grand total
   // IRS tax is paid separately, so we only show platform fees in the collapsed summary
   const totalAmount = filingType === 'refund'
     ? pricing.totalRefund
-    : (pricing.serviceFee || 0) + (pricing.salesTax || 0) - (pricing.couponDiscount || 0);
+    : (() => {
+        // For weight increase amendments, ensure $10 service fee is included if pricing hasn't been calculated
+        if (isWeightIncrease && (pricing.serviceFee || 0) === 0) {
+          const baseFee = 10.00;
+          const estimatedSalesTax = baseFee * 0.07;
+          return baseFee + estimatedSalesTax;
+        }
+        return (pricing.serviceFee || 0) + (pricing.salesTax || 0) - (pricing.couponDiscount || 0);
+      })();
 
   return (
     <div className="w-full">
@@ -187,7 +200,7 @@ function MobilePricingSummary({
                 {hasData && filingType === 'amendment' && amendmentType === 'vin_correction' && (
                   <span className="text-xs text-emerald-600 font-medium">FREE</span>
                 )}
-                {hasData && filingType === 'amendment' && amendmentType === 'mileage_exceeded' && (
+                {hasData && filingType === 'amendment' && (amendmentType === 'mileage_exceeded' || amendmentType === 'weight_increase') && (
                   <span className="text-xs text-purple-600 font-medium">$10 fee</span>
                 )}
               </div>
@@ -244,7 +257,15 @@ function MobilePricingSummary({
                           <span className="text-xs font-semibold text-blue-700">Payment to IRS</span>
                           <p className="text-xs text-slate-500 mt-0.5">IRS Tax Amount</p>
                         </div>
-                        <span className="text-sm font-bold text-blue-700">${pricing.totalTax?.toFixed(2) || '0.00'}</span>
+                        <span className="text-sm font-bold text-blue-700">
+                          ${(() => {
+                            // For weight increase amendments, use additionalTaxDue if available
+                            if (isWeightIncrease && weightIncreaseData?.additionalTaxDue) {
+                              return weightIncreaseData.additionalTaxDue.toFixed(2);
+                            }
+                            return pricing.totalTax?.toFixed(2) || '0.00';
+                          })()}
+                        </span>
                       </div>
                     </div>
                     <div className="pb-2 border-b border-slate-200">
@@ -253,7 +274,15 @@ function MobilePricingSummary({
                           <span className="text-xs font-semibold text-orange-700">Service Fee</span>
                           <p className="text-xs text-slate-500 mt-0.5">Platform service fee</p>
                         </div>
-                        <span className="text-sm font-bold text-orange-700">${pricing.serviceFee?.toFixed(2) || '0.00'}</span>
+                        <span className="text-sm font-bold text-orange-700">
+                          ${(() => {
+                            // For weight increase amendments, ensure $10 is shown if pricing hasn't been calculated
+                            if (isWeightIncrease && (pricing.serviceFee || 0) === 0) {
+                              return '10.00';
+                            }
+                            return pricing.serviceFee?.toFixed(2) || '0.00';
+                          })()}
+                        </span>
                       </div>
                       {/* Show standard rate and bulk savings for multi-vehicle filings */}
                       {vehicleCount > 1 && filingType !== 'amendment' && filingType !== 'refund' && (
@@ -285,7 +314,16 @@ function MobilePricingSummary({
                       <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-200">
                         <span className="text-xs font-bold text-orange-700">Total Due Now</span>
                         <span className="text-sm font-bold text-orange-700">
-                          ${((pricing.serviceFee || 0) + (pricing.salesTax || 0) - (pricing.couponDiscount || 0)).toFixed(2)}
+                          ${(() => {
+                            // For weight increase amendments, ensure $10 service fee is included if pricing hasn't been calculated
+                            let serviceFee = pricing.serviceFee || 0;
+                            if (isWeightIncrease && serviceFee === 0) {
+                              serviceFee = 10.00;
+                            }
+                            // Estimate sales tax if not calculated (7% of service fee)
+                            const salesTax = pricing.salesTax || (serviceFee > 0 ? serviceFee * 0.07 : 0);
+                            return (serviceFee + salesTax - (pricing.couponDiscount || 0)).toFixed(2);
+                          })()}
                         </span>
                       </div>
                     </div>
@@ -294,6 +332,13 @@ function MobilePricingSummary({
                 {filingType === 'amendment' && amendmentType === 'vin_correction' && (
                   <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded text-emerald-700">
                     <span className="font-medium">VIN corrections: $10 service fee (No IRS tax)</span>
+                  </div>
+                )}
+                {filingType === 'amendment' && amendmentType === 'weight_increase' && (
+                  <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-orange-700">
+                    <span className="font-medium">
+                      Weight increase: $10 service fee {weightIncreaseData?.additionalTaxDue > 0 ? `+ IRS tax ($${weightIncreaseData.additionalTaxDue.toFixed(2)})` : '(No IRS tax required)'}
+                    </span>
                   </div>
                 )}
                 {filingType === 'amendment' && amendmentType === 'mileage_exceeded' && (
@@ -315,6 +360,68 @@ function MobilePricingSummary({
     </div>
   );
 }
+
+// Helper functions for weight category formatting (used in weight increase amendment)
+const TAX_RATES_NON_LOGGING_WEIGHT = {
+  'A': 100.00, 'B': 122.00, 'C': 144.00, 'D': 166.00, 'E': 188.00,
+  'F': 210.00, 'G': 232.00, 'H': 254.00, 'I': 276.00, 'J': 298.00,
+  'K': 320.00, 'L': 342.00, 'M': 364.00, 'N': 386.00, 'O': 408.00,
+  'P': 430.00, 'Q': 452.00, 'R': 474.00, 'S': 496.00, 'T': 518.00,
+  'U': 540.00, 'V': 550.00, 'W': 550.00
+};
+
+const TAX_RATES_LOGGING_WEIGHT = {
+  'A': 75.00, 'B': 91.50, 'C': 108.00, 'D': 124.50, 'E': 141.00,
+  'F': 157.50, 'G': 174.00, 'H': 190.50, 'I': 207.00, 'J': 223.50,
+  'K': 240.00, 'L': 256.50, 'M': 273.00, 'N': 289.50, 'O': 306.00,
+  'P': 322.50, 'Q': 339.00, 'R': 355.50, 'S': 372.00, 'T': 388.50,
+  'U': 405.00, 'V': 412.50, 'W': 412.50
+};
+
+const formatCurrencyWeight = (amount) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+};
+
+const getWeightCategoryOptionsWithPricing = (isLogging = false, includeW = false) => {
+  const taxRates = isLogging ? TAX_RATES_LOGGING_WEIGHT : TAX_RATES_NON_LOGGING_WEIGHT;
+  const loggingText = isLogging ? ' (Logging)' : '';
+
+  const categories = [
+    { value: 'A', label: `A - 55,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['A'])}` },
+    { value: 'B', label: `B - 55,001 - 56,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['B'])}` },
+    { value: 'C', label: `C - 56,001 - 57,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['C'])}` },
+    { value: 'D', label: `D - 57,001 - 58,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['D'])}` },
+    { value: 'E', label: `E - 58,001 - 59,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['E'])}` },
+    { value: 'F', label: `F - 59,001 - 60,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['F'])}` },
+    { value: 'G', label: `G - 60,001 - 61,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['G'])}` },
+    { value: 'H', label: `H - 61,001 - 62,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['H'])}` },
+    { value: 'I', label: `I - 62,001 - 63,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['I'])}` },
+    { value: 'J', label: `J - 63,001 - 64,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['J'])}` },
+    { value: 'K', label: `K - 64,001 - 65,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['K'])}` },
+    { value: 'L', label: `L - 65,001 - 66,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['L'])}` },
+    { value: 'M', label: `M - 66,001 - 67,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['M'])}` },
+    { value: 'N', label: `N - 67,001 - 68,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['N'])}` },
+    { value: 'O', label: `O - 68,001 - 69,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['O'])}` },
+    { value: 'P', label: `P - 69,001 - 70,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['P'])}` },
+    { value: 'Q', label: `Q - 70,001 - 71,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['Q'])}` },
+    { value: 'R', label: `R - 71,001 - 72,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['R'])}` },
+    { value: 'S', label: `S - 72,001 - 73,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['S'])}` },
+    { value: 'T', label: `T - 73,001 - 74,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['T'])}` },
+    { value: 'U', label: `U - 74,001 - 75,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['U'])}` },
+    { value: 'V', label: `V - More than 75,000 lbs${loggingText} - ${formatCurrencyWeight(taxRates['V'])}` }
+  ];
+
+  if (includeW) {
+    categories.push({ value: 'W', label: `W - Over 75,000 lbs (Maximum)${loggingText} - ${formatCurrencyWeight(taxRates['W'])}` });
+  }
+
+  return categories;
+};
 
 function NewFilingContent() {
   const { user } = useAuth();
@@ -559,15 +666,19 @@ function NewFilingContent() {
   const [previousFilings, setPreviousFilings] = useState([]); // For VIN correction dropdown
   const [previousFilingsVINs, setPreviousFilingsVINs] = useState([]); // List of VINs from previous filings
   const [vinInputMode, setVinInputMode] = useState('select'); // 'select' or 'manual'
-  const [duplicateFiling, setDuplicateFiling] = useState(null); // Detected duplicate filing
-  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  // Duplicate filing detection removed - no longer used
   const [weightIncreaseData, setWeightIncreaseData] = useState({
     vehicleId: '',
+    vin: '', // For manual VIN entry when vehicle doesn't exist
     originalWeightCategory: '',
     newWeightCategory: '',
-    increaseMonth: '',
-    additionalTaxDue: 0
+    firstUsedMonth: '', // Month vehicle was first used in tax period (from original filing)
+    amendedMonth: '', // Month when gross weight increased (renamed from increaseMonth)
+    additionalTaxDue: 0,
+    originalIsLogging: false, // Logging status for original weight category
+    newIsLogging: false // Logging status for new weight category
   });
+  const [weightIncreaseInputMode, setWeightIncreaseInputMode] = useState('select'); // 'select' or 'manual'
   const [mileageExceededData, setMileageExceededData] = useState({
     vehicleId: '',
     originalMileageLimit: 5000,
@@ -771,7 +882,10 @@ function NewFilingContent() {
             amendmentDataForPricing = {
               originalWeightCategory: weightIncreaseData.originalWeightCategory,
               newWeightCategory: weightIncreaseData.newWeightCategory,
-              increaseMonth: weightIncreaseData.increaseMonth
+              amendedMonth: weightIncreaseData.amendedMonth,
+              firstUsedMonth: weightIncreaseData.firstUsedMonth,
+              originalIsLogging: weightIncreaseData.originalIsLogging || false,
+              newIsLogging: weightIncreaseData.newIsLogging || false
             };
           } else if (amendmentType === 'mileage_exceeded') {
             // For mileage exceeded amendments, IRS requires tax calculation based on:
@@ -871,64 +985,8 @@ function NewFilingContent() {
     }
   }, [vehicles, selectedVehicleIds]);
 
-  // Duplicate Detection: Check for existing incomplete filings with same data
-  useEffect(() => {
-    const checkForDuplicate = async () => {
-      // Only check on steps 2-4 when we have some data
-      if (step < 2 || step > 4 || !user || previousFilings.length === 0) {
-        setDuplicateFiling(null);
-        setShowDuplicateWarning(false);
-        return;
-      }
-
-      // Build filing data to check
-      const filingDataToCheck = {
-        filingType,
-        taxYear: filingData.taxYear,
-        businessId: selectedBusinessId,
-        vehicleIds: selectedVehicleIds,
-        amendmentType: filingType === 'amendment' ? amendmentType : null,
-        amendmentDetails: {}
-      };
-
-      // Add amendment details if applicable
-      if (filingType === 'amendment') {
-        if (amendmentType === 'vin_correction') {
-          filingDataToCheck.amendmentDetails = {
-            vinCorrection: {
-              originalVIN: vinCorrectionData.originalVIN
-            }
-          };
-        } else if (amendmentType === 'weight_increase' && weightIncreaseData.vehicleId) {
-          filingDataToCheck.amendmentDetails = {
-            weightIncrease: {
-              vehicleId: weightIncreaseData.vehicleId
-            }
-          };
-        } else if (amendmentType === 'mileage_exceeded' && mileageExceededData.vehicleId) {
-          filingDataToCheck.amendmentDetails = {
-            mileageExceeded: {
-              vehicleId: mileageExceededData.vehicleId
-            }
-          };
-        }
-      }
-
-      // Check for duplicates
-      const duplicate = detectDuplicateFiling(filingDataToCheck, previousFilings);
-
-      if (duplicate && !showDuplicateWarning) {
-        setDuplicateFiling(duplicate);
-        // Show warning after a small delay to avoid flashing
-        setTimeout(() => setShowDuplicateWarning(true), 500);
-      } else if (!duplicate) {
-        setDuplicateFiling(null);
-        setShowDuplicateWarning(false);
-      }
-    };
-
-    checkForDuplicate();
-  }, [step, filingType, filingData.taxYear, selectedBusinessId, selectedVehicleIds, amendmentType, vinCorrectionData.originalVIN, weightIncreaseData.vehicleId, mileageExceededData.vehicleId, previousFilings, showDuplicateWarning, user]);
+  // Duplicate Detection: DISABLED - No longer checking for duplicate filings
+  // Removed duplicate filing detection functionality as requested
 
   // Auto-save draft as user progresses
   useEffect(() => {
@@ -1401,15 +1459,19 @@ function NewFilingContent() {
         } else if (amendmentType === 'weight_increase') {
           amendmentDetails = {
             weightIncrease: {
-              vehicleId: weightIncreaseData.vehicleId,
+              vehicleId: weightIncreaseData.vehicleId || null,
+              vin: weightIncreaseData.vin || null, // VIN if manually entered
               originalWeightCategory: weightIncreaseData.originalWeightCategory,
               newWeightCategory: weightIncreaseData.newWeightCategory,
-              increaseMonth: weightIncreaseData.increaseMonth,
-              additionalTaxDue: weightIncreaseData.additionalTaxDue
+              amendedMonth: weightIncreaseData.amendedMonth,
+              firstUsedMonth: weightIncreaseData.firstUsedMonth,
+              additionalTaxDue: weightIncreaseData.additionalTaxDue,
+              originalIsLogging: weightIncreaseData.originalIsLogging || false,
+              newIsLogging: weightIncreaseData.newIsLogging || false
             }
           };
           // Calculate due date (last day of following month)
-          amendmentDueDate = calculateWeightIncreaseDueDate(weightIncreaseData.increaseMonth);
+          amendmentDueDate = calculateWeightIncreaseDueDate(weightIncreaseData.amendedMonth);
         } else if (amendmentType === 'mileage_exceeded') {
           amendmentDetails = {
             mileageExceeded: {
@@ -1621,15 +1683,19 @@ function NewFilingContent() {
         } else if (amendmentType === 'weight_increase') {
           amendmentDetails = {
             weightIncrease: {
-              vehicleId: weightIncreaseData.vehicleId,
+              vehicleId: weightIncreaseData.vehicleId || null,
+              vin: weightIncreaseData.vin || null, // VIN if manually entered
               originalWeightCategory: weightIncreaseData.originalWeightCategory,
               newWeightCategory: weightIncreaseData.newWeightCategory,
-              increaseMonth: weightIncreaseData.increaseMonth,
-              additionalTaxDue: weightIncreaseData.additionalTaxDue
+              amendedMonth: weightIncreaseData.amendedMonth,
+              firstUsedMonth: weightIncreaseData.firstUsedMonth,
+              additionalTaxDue: weightIncreaseData.additionalTaxDue,
+              originalIsLogging: weightIncreaseData.originalIsLogging || false,
+              newIsLogging: weightIncreaseData.newIsLogging || false
             }
           };
           // Calculate due date (last day of following month)
-          amendmentDueDate = calculateWeightIncreaseDueDate(weightIncreaseData.increaseMonth);
+          amendmentDueDate = calculateWeightIncreaseDueDate(weightIncreaseData.amendedMonth);
         } else if (amendmentType === 'mileage_exceeded') {
           amendmentDetails = {
             mileageExceeded: {
@@ -1697,29 +1763,9 @@ function NewFilingContent() {
         await updateFiling(filingId, filingPayload);
         finalFilingId = filingId;
       } else {
-        // Check for duplicate filing before creating new one
-        const existingFilings = await getFilingsByUser(user.uid);
-        const duplicate = detectDuplicateFiling({
-          filingType,
-          taxYear: filingData.taxYear,
-          businessId: businessIdToUse,
-          vehicleIds: vehicleIdsToUse,
-          amendmentType: filingType === 'amendment' ? amendmentType : null,
-          amendmentDetails: filingType === 'amendment' ? amendmentDetails : {}
-        }, existingFilings);
-
-        if (duplicate && duplicate.status !== 'completed') {
-          // Use existing filing instead of creating duplicate
-          console.log('Found existing filing, updating instead of creating duplicate:', duplicate.id);
-          const { updateFiling } = await import('@/lib/db');
-          await updateFiling(duplicate.id, filingPayload);
-          finalFilingId = duplicate.id;
-          setFilingId(duplicate.id);
-        } else {
-          // Only create new filing if no duplicate exists
-          finalFilingId = await createFiling(filingPayload);
-          setFilingId(finalFilingId); // Save to state for future updates
-        }
+        // Create new filing (duplicate detection disabled)
+        finalFilingId = await createFiling(filingPayload);
+        setFilingId(finalFilingId); // Save to state for future updates
       }
 
 
@@ -1971,67 +2017,6 @@ function NewFilingContent() {
             </div>
           )}
 
-          {showDuplicateWarning && duplicateFiling && (
-            <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 sm:p-6">
-              <div className="flex items-start gap-3 sm:gap-4">
-                <div className="flex-shrink-0">
-                  <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-sm sm:text-base text-amber-900 mb-2">Similar Filing Found</h3>
-                  <p className="text-xs sm:text-sm text-amber-800 mb-3 sm:mb-4">
-                    You already have an incomplete filing with similar details. Would you like to resume that filing or continue with a new one?
-                  </p>
-                  <div className="bg-white rounded-lg border border-amber-200 p-3 sm:p-4 mb-3 sm:mb-4">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
-                      <span className="font-medium text-xs sm:text-sm text-amber-900 break-words">
-                        {formatIncompleteFiling(duplicateFiling)?.description || 'Existing Filing'}
-                      </span>
-                      <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full whitespace-nowrap">
-                        {duplicateFiling.status === 'submitted' ? 'In Progress' :
-                          duplicateFiling.status === 'processing' ? 'Processing' :
-                            'Action Required'}
-                      </span>
-                    </div>
-                    <div className="text-xs text-amber-700 space-y-1">
-                      <p>Tax Year: {duplicateFiling.taxYear}</p>
-                      {duplicateFiling.vehicleIds && duplicateFiling.vehicleIds.length > 0 && (
-                        <p>{duplicateFiling.vehicleIds.length} vehicle{duplicateFiling.vehicleIds.length !== 1 ? 's' : ''}</p>
-                      )}
-                      {formatIncompleteFiling(duplicateFiling)?.lastUpdated && (
-                        <p>
-                          Last updated: {(() => {
-                            const date = formatIncompleteFiling(duplicateFiling).lastUpdated;
-                            return date instanceof Date
-                              ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                              : new Date(date.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                          })()}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                    <Link
-                      href={`/dashboard/filings/${duplicateFiling.id}`}
-                      className="px-3 sm:px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 active:scale-95 transition text-xs sm:text-sm flex items-center justify-center gap-2 touch-manipulation"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      Resume Existing Filing
-                    </Link>
-                    <button
-                      onClick={() => {
-                        setShowDuplicateWarning(false);
-                        setDuplicateFiling(null);
-                      }}
-                      className="px-3 sm:px-4 py-2 bg-white border border-amber-300 text-amber-700 rounded-lg font-semibold hover:bg-amber-50 active:scale-95 transition text-xs sm:text-sm touch-manipulation"
-                    >
-                      Continue New Filing
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Main Content - Full width for steps 1-5, Grid for step 6 */}
@@ -2341,53 +2326,140 @@ function NewFilingContent() {
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                        Select Vehicle *
-                      </label>
-                      <select
-                        value={weightIncreaseData.vehicleId}
-                        onChange={(e) => {
-                          const selectedVehicleId = e.target.value;
-                          const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
-
-                          // Auto-populate original weight category from selected vehicle
-                          if (selectedVehicle) {
-                            setWeightIncreaseData({
-                              ...weightIncreaseData,
-                              vehicleId: selectedVehicleId,
-                              originalWeightCategory: selectedVehicle.grossWeightCategory || ''
-                            });
-                          } else {
-                            setWeightIncreaseData({ ...weightIncreaseData, vehicleId: selectedVehicleId });
-                          }
+                    {/* Input Mode Toggle */}
+                    <div className="flex gap-2 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setWeightIncreaseInputMode('select');
+                          setWeightIncreaseData({ ...weightIncreaseData, vehicleId: '', vin: '' });
                         }}
-                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
+                        className={`px-2 sm:px-3 py-1.5 text-xs rounded-lg transition touch-manipulation ${weightIncreaseInputMode === 'select'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-200'
+                          }`}
                       >
-                        <option value="">Select a vehicle...</option>
-                        {vehicles.map(v => (
-                          <option key={v.id} value={v.id}>{v.vin}</option>
-                        ))}
-                      </select>
+                        <span className="hidden sm:inline">Select Existing Vehicle</span>
+                        <span className="sm:hidden">Select</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setWeightIncreaseInputMode('manual');
+                          setWeightIncreaseData({ ...weightIncreaseData, vehicleId: '', vin: '' });
+                        }}
+                        className={`px-2 sm:px-3 py-1.5 text-xs rounded-lg transition touch-manipulation ${weightIncreaseInputMode === 'manual'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-200'
+                          }`}
+                      >
+                        <span className="hidden sm:inline">Enter VIN Manually</span>
+                        <span className="sm:hidden">Manual</span>
+                      </button>
                     </div>
+
+                    {/* Vehicle Selection or Manual VIN Entry */}
+                    {weightIncreaseInputMode === 'select' ? (
+                      <div>
+                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                          Select Vehicle *
+                        </label>
+                        <select
+                          value={weightIncreaseData.vehicleId}
+                          onChange={(e) => {
+                            const selectedVehicleId = e.target.value;
+                            const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
+
+                            // Auto-populate original weight category and logging status from selected vehicle (read-only)
+                            if (selectedVehicle) {
+                              setWeightIncreaseData({
+                                ...weightIncreaseData,
+                                vehicleId: selectedVehicleId,
+                                vin: selectedVehicle.vin || '',
+                                originalWeightCategory: selectedVehicle.grossWeightCategory || '',
+                                originalIsLogging: selectedVehicle.logging === true,
+                                // Keep newIsLogging as is (user can change it)
+                              });
+                              // Recalculate tax if other fields are set
+                              if (selectedVehicle.grossWeightCategory && weightIncreaseData.newWeightCategory && weightIncreaseData.amendedMonth && weightIncreaseData.firstUsedMonth) {
+                                const additionalTax = calculateWeightIncreaseAdditionalTax(
+                                  selectedVehicle.grossWeightCategory,
+                                  weightIncreaseData.newWeightCategory,
+                                  weightIncreaseData.amendedMonth,
+                                  weightIncreaseData.firstUsedMonth,
+                                  selectedVehicle.logging === true,
+                                  weightIncreaseData.newIsLogging || false
+                                );
+                                setWeightIncreaseData(prev => ({ ...prev, additionalTaxDue: additionalTax }));
+                              }
+                            } else {
+                              setWeightIncreaseData({ ...weightIncreaseData, vehicleId: '', vin: '', originalWeightCategory: '', originalIsLogging: false });
+                            }
+                          }}
+                          className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
+                        >
+                          <option value="">Select a vehicle...</option>
+                          {vehicles.filter(v => v.vehicleType === 'taxable' || !v.vehicleType).map(v => (
+                            <option key={v.id} value={v.id}>{v.vin} {v.grossWeightCategory ? `(Category ${v.grossWeightCategory})` : ''}</option>
+                          ))}
+                        </select>
+                        {vehicles.filter(v => v.vehicleType === 'taxable' || !v.vehicleType).length === 0 && (
+                          <p className="mt-1 text-xs text-amber-600">No taxable vehicles found. You can enter the VIN manually using the "Manual" option above.</p>
+                        )}
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                          Vehicle Identification Number (VIN) *
+                        </label>
+                        <input
+                          type="text"
+                          value={weightIncreaseData.vin}
+                          onChange={(e) => setWeightIncreaseData({ ...weightIncreaseData, vin: e.target.value.toUpperCase() })}
+                          className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono touch-manipulation"
+                          placeholder="1HGBH41JXMN109186"
+                          maxLength="17"
+                        />
+                        <p className="mt-1 text-xs text-[var(--color-muted)]">Enter the VIN of the vehicle that increased in weight (17 characters)</p>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                       <div>
                         <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
                           Original Weight Category *
+                          {weightIncreaseData.vehicleId && (
+                            <span className="text-xs text-[var(--color-muted)] ml-2">(From selected vehicle)</span>
+                          )}
                         </label>
                         <select
                           value={weightIncreaseData.originalWeightCategory}
                           onChange={(e) => {
                             setWeightIncreaseData({ ...weightIncreaseData, originalWeightCategory: e.target.value });
+                            // Recalculate tax if other fields are set
+                            if (e.target.value && weightIncreaseData.newWeightCategory && weightIncreaseData.amendedMonth && weightIncreaseData.firstUsedMonth) {
+                              const additionalTax = calculateWeightIncreaseAdditionalTax(
+                                e.target.value,
+                                weightIncreaseData.newWeightCategory,
+                                weightIncreaseData.amendedMonth,
+                                weightIncreaseData.firstUsedMonth,
+                                weightIncreaseData.originalIsLogging,
+                                weightIncreaseData.newIsLogging
+                              );
+                              setWeightIncreaseData(prev => ({ ...prev, additionalTaxDue: additionalTax }));
+                            }
                           }}
-                          className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
+                          disabled={!!weightIncreaseData.vehicleId}
+                          className={`w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation ${weightIncreaseData.vehicleId ? 'bg-gray-50 cursor-not-allowed opacity-75' : ''}`}
                         >
                           <option value="">Select...</option>
-                          {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V'].map(cat => (
-                            <option key={cat} value={cat}>Category {cat}</option>
+                          {getWeightCategoryOptionsWithPricing(weightIncreaseData.originalIsLogging, false).map(option => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
                           ))}
                         </select>
+                        {weightIncreaseData.vehicleId && (
+                          <p className="mt-1 text-xs text-blue-600">✓ Original category is pre-populated from the selected vehicle and cannot be changed</p>
+                        )}
                       </div>
 
                       <div>
@@ -2400,11 +2472,14 @@ function NewFilingContent() {
                             const newCat = e.target.value;
                             setWeightIncreaseData({ ...weightIncreaseData, newWeightCategory: newCat });
                             // Calculate additional tax if both categories and month are set
-                            if (weightIncreaseData.originalWeightCategory && newCat && weightIncreaseData.increaseMonth) {
+                            if (weightIncreaseData.originalWeightCategory && newCat && weightIncreaseData.amendedMonth && weightIncreaseData.firstUsedMonth) {
                               const additionalTax = calculateWeightIncreaseAdditionalTax(
                                 weightIncreaseData.originalWeightCategory,
                                 newCat,
-                                weightIncreaseData.increaseMonth
+                                weightIncreaseData.amendedMonth,
+                                weightIncreaseData.firstUsedMonth,
+                                weightIncreaseData.originalIsLogging,
+                                weightIncreaseData.newIsLogging
                               );
                               setWeightIncreaseData(prev => ({ ...prev, newWeightCategory: newCat, additionalTaxDue: additionalTax }));
                             }
@@ -2412,41 +2487,171 @@ function NewFilingContent() {
                           className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
                         >
                           <option value="">Select...</option>
-                          {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'].map(cat => (
-                            <option key={cat} value={cat}>Category {cat}</option>
+                          {getWeightCategoryOptionsWithPricing(weightIncreaseData.newIsLogging, true).map(option => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
                           ))}
                         </select>
+                        <p className="mt-1 text-xs text-[var(--color-muted)]">Select the new (higher) weight category</p>
                       </div>
                     </div>
 
+                    {/* Tax Year Info */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                        <h4 className="text-sm font-semibold text-blue-900">Current Year</h4>
+                      </div>
+                      <p className="text-xs text-blue-800 mb-3">
+                        Tax Year 2025 - July 2025 to June 2026
+                      </p>
+                    </div>
+
+                    {/* First Used Month */}
                     <div>
                       <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                        Month Weight Increased *
+                        First Used Month *
+                        <span className="text-xs text-[var(--color-muted)] ml-2">(From original filing)</span>
                       </label>
                       <select
-                        value={weightIncreaseData.increaseMonth}
+                        value={weightIncreaseData.firstUsedMonth}
                         onChange={(e) => {
                           const month = e.target.value;
-                          setWeightIncreaseData({ ...weightIncreaseData, increaseMonth: month });
-                          // Calculate additional tax if all fields are set
-                          if (weightIncreaseData.originalWeightCategory && weightIncreaseData.newWeightCategory && month) {
+                          setWeightIncreaseData({ ...weightIncreaseData, firstUsedMonth: month });
+                          // Recalculate tax if all fields are set
+                          if (weightIncreaseData.originalWeightCategory && weightIncreaseData.newWeightCategory && weightIncreaseData.amendedMonth && month) {
                             const additionalTax = calculateWeightIncreaseAdditionalTax(
                               weightIncreaseData.originalWeightCategory,
                               weightIncreaseData.newWeightCategory,
-                              month
+                              weightIncreaseData.amendedMonth,
+                              month, // Use the month being set as firstUsedMonth
+                              weightIncreaseData.originalIsLogging,
+                              weightIncreaseData.newIsLogging
                             );
-                            setWeightIncreaseData(prev => ({ ...prev, increaseMonth: month, additionalTaxDue: additionalTax }));
+                            setWeightIncreaseData(prev => ({ ...prev, additionalTaxDue: additionalTax }));
                           }
                         }}
                         className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
                       >
-                        <option value="">Select month...</option>
+                        <option value="">Select the month of first use...</option>
                         {['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June'].map(m => {
                           const year = (m === 'January' || m === 'February' || m === 'March' || m === 'April' || m === 'May' || m === 'June') ? '2026' : '2025';
                           const fullValue = `${m} ${year}`;
                           return <option key={m} value={fullValue}>{m} {year}</option>;
                         })}
                       </select>
+                      <p className="mt-1 text-xs text-[var(--color-muted)]">
+                        Select the month of first use to indicate when the vehicle was first used during the tax period
+                      </p>
+                    </div>
+
+                    {/* Amended Month */}
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                        Amended Month *
+                        <span className="text-xs text-[var(--color-muted)] ml-2">(When weight increased)</span>
+                      </label>
+                      <select
+                        value={weightIncreaseData.amendedMonth}
+                        onChange={(e) => {
+                          const month = e.target.value;
+                          setWeightIncreaseData({ ...weightIncreaseData, amendedMonth: month });
+                          // Calculate additional tax if all fields are set
+                          if (weightIncreaseData.originalWeightCategory && weightIncreaseData.newWeightCategory && month && weightIncreaseData.firstUsedMonth) {
+                            const additionalTax = calculateWeightIncreaseAdditionalTax(
+                              weightIncreaseData.originalWeightCategory,
+                              weightIncreaseData.newWeightCategory,
+                              month,
+                              weightIncreaseData.firstUsedMonth,
+                              weightIncreaseData.originalIsLogging,
+                              weightIncreaseData.newIsLogging
+                            );
+                            setWeightIncreaseData(prev => ({ ...prev, amendedMonth: month, additionalTaxDue: additionalTax }));
+                          }
+                        }}
+                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
+                      >
+                        <option value="">Select the month when gross weight increased...</option>
+                        {['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June'].map(m => {
+                          const year = (m === 'January' || m === 'February' || m === 'March' || m === 'April' || m === 'May' || m === 'June') ? '2026' : '2025';
+                          const fullValue = `${m} ${year}`;
+                          return <option key={m} value={fullValue}>{m} {year}</option>;
+                        })}
+                      </select>
+                      <p className="mt-1 text-xs text-[var(--color-muted)]">
+                        Select the month when the gross weight of the vehicle increased
+                      </p>
+                    </div>
+
+                    {/* Logging Status - Original Weight Category */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                      <label className="block text-sm font-semibold text-[var(--color-text)] mb-3">
+                        Logging Status for Original Weight Category
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="weightIncreaseOriginalLogging"
+                          checked={weightIncreaseData.originalIsLogging}
+                          onChange={(e) => {
+                            const isLogging = e.target.checked;
+                            setWeightIncreaseData({ ...weightIncreaseData, originalIsLogging: isLogging });
+                            // Recalculate tax if all fields are set
+                            if (weightIncreaseData.originalWeightCategory && weightIncreaseData.newWeightCategory && weightIncreaseData.amendedMonth && weightIncreaseData.firstUsedMonth) {
+                              const additionalTax = calculateWeightIncreaseAdditionalTax(
+                                weightIncreaseData.originalWeightCategory,
+                                weightIncreaseData.newWeightCategory,
+                                weightIncreaseData.amendedMonth,
+                                weightIncreaseData.firstUsedMonth,
+                                isLogging,
+                                weightIncreaseData.newIsLogging
+                              );
+                              setWeightIncreaseData(prev => ({ ...prev, additionalTaxDue: additionalTax }));
+                            }
+                          }}
+                          disabled={!!weightIncreaseData.vehicleId}
+                          className={`w-4 h-4 text-[var(--color-orange)] border-gray-300 rounded focus:ring-[var(--color-orange)] ${weightIncreaseData.vehicleId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        />
+                        <label htmlFor="weightIncreaseOriginalLogging" className={`text-sm text-[var(--color-text)] ${weightIncreaseData.vehicleId ? 'opacity-75' : ''}`}>
+                          Original weight category was used for logging (75% tax rate)
+                        </label>
+                      </div>
+                      {weightIncreaseData.vehicleId && (
+                        <p className="mt-1 text-xs text-blue-600">✓ Pre-populated from selected vehicle</p>
+                      )}
+                    </div>
+
+                    {/* Logging Status - New Weight Category */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                      <label className="block text-sm font-semibold text-[var(--color-text)] mb-3">
+                        Logging Status for New Weight Category
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="weightIncreaseNewLogging"
+                          checked={weightIncreaseData.newIsLogging}
+                          onChange={(e) => {
+                            const isLogging = e.target.checked;
+                            setWeightIncreaseData({ ...weightIncreaseData, newIsLogging: isLogging });
+                            // Recalculate tax if all fields are set
+                            if (weightIncreaseData.originalWeightCategory && weightIncreaseData.newWeightCategory && weightIncreaseData.amendedMonth && weightIncreaseData.firstUsedMonth) {
+                              const additionalTax = calculateWeightIncreaseAdditionalTax(
+                                weightIncreaseData.originalWeightCategory,
+                                weightIncreaseData.newWeightCategory,
+                                weightIncreaseData.amendedMonth,
+                                weightIncreaseData.firstUsedMonth,
+                                weightIncreaseData.originalIsLogging,
+                                isLogging
+                              );
+                              setWeightIncreaseData(prev => ({ ...prev, additionalTaxDue: additionalTax }));
+                            }
+                          }}
+                          className="w-4 h-4 text-[var(--color-orange)] border-gray-300 rounded focus:ring-[var(--color-orange)]"
+                        />
+                        <label htmlFor="weightIncreaseNewLogging" className="text-sm text-[var(--color-text)]">
+                          New weight category is used for logging (75% tax rate)
+                        </label>
+                      </div>
                     </div>
 
                     {weightIncreaseData.additionalTaxDue > 0 && (
@@ -2455,10 +2660,10 @@ function NewFilingContent() {
                           <span className="text-sm font-bold text-slate-700">Additional Tax Due:</span>
                           <span className="text-xl sm:text-2xl font-extrabold text-orange-600">${weightIncreaseData.additionalTaxDue.toFixed(2)}</span>
                         </div>
-                        {weightIncreaseData.increaseMonth && (
+                        {weightIncreaseData.amendedMonth && (
                           <div className="mt-3 pt-3 border-t border-orange-100 flex items-center gap-2 text-xs text-orange-800 font-medium">
                             <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                            <span className="break-words">Due Date: {calculateWeightIncreaseDueDate(weightIncreaseData.increaseMonth).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                            <span className="break-words">Due Date: {calculateWeightIncreaseDueDate(weightIncreaseData.amendedMonth).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                           </div>
                         )}
                       </div>
@@ -2632,14 +2837,25 @@ function NewFilingContent() {
                           return;
                         }
                       } else if (amendmentType === 'weight_increase') {
-                        if (!weightIncreaseData.vehicleId || !weightIncreaseData.originalWeightCategory || !weightIncreaseData.newWeightCategory || !weightIncreaseData.increaseMonth) {
+                        // Validate: either vehicleId (select mode) or vin (manual mode) must be provided
+                        const hasVehicle = weightIncreaseInputMode === 'select' ? weightIncreaseData.vehicleId : weightIncreaseData.vin;
+                        if (!hasVehicle || !weightIncreaseData.originalWeightCategory || !weightIncreaseData.newWeightCategory || !weightIncreaseData.firstUsedMonth || !weightIncreaseData.amendedMonth) {
                           const missingFields = [];
-                          if (!weightIncreaseData.vehicleId) missingFields.push('Vehicle');
+                          if (!hasVehicle) missingFields.push(weightIncreaseInputMode === 'select' ? 'Vehicle' : 'VIN');
                           if (!weightIncreaseData.originalWeightCategory) missingFields.push('Original Weight Category');
                           if (!weightIncreaseData.newWeightCategory) missingFields.push('New Weight Category');
-                          if (!weightIncreaseData.increaseMonth) missingFields.push('Increase Month');
+                          if (!weightIncreaseData.firstUsedMonth) missingFields.push('First Used Month');
+                          if (!weightIncreaseData.amendedMonth) missingFields.push('Amended Month');
                           setError(`Please complete all required fields for weight increase amendment: ${missingFields.join(', ')}. All fields are required to calculate the additional tax.`);
                           return;
+                        }
+                        // Validate VIN format if manual entry
+                        if (weightIncreaseInputMode === 'manual' && weightIncreaseData.vin) {
+                          const vinValidation = validateVIN(weightIncreaseData.vin);
+                          if (!vinValidation.isValid) {
+                            setError(`Invalid VIN: ${vinValidation.error}`);
+                            return;
+                          }
                         }
                         const validation = validateWeightIncrease(weightIncreaseData.originalWeightCategory, weightIncreaseData.newWeightCategory);
                         if (!validation.isValid) {
@@ -3942,13 +4158,17 @@ function NewFilingContent() {
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200">
-                              <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Month of Increase</p>
-                              <p className="text-base sm:text-lg font-semibold break-words">{weightIncreaseData.increaseMonth}</p>
+                              <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">First Used Month</p>
+                              <p className="text-base sm:text-lg font-semibold break-words">{weightIncreaseData.firstUsedMonth || 'Not set'}</p>
                             </div>
-                            <div className="bg-white p-3 sm:p-4 rounded-xl border border-orange-200">
-                              <p className="text-xs text-orange-700 uppercase tracking-wider mb-1">Additional Tax Due</p>
-                              <p className="text-xl sm:text-2xl font-bold text-orange-600">${weightIncreaseData.additionalTaxDue?.toFixed(2) || '0.00'}</p>
+                            <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200">
+                              <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Amended Month</p>
+                              <p className="text-base sm:text-lg font-semibold break-words">{weightIncreaseData.amendedMonth || 'Not set'}</p>
                             </div>
+                          </div>
+                          <div className="bg-white p-3 sm:p-4 rounded-xl border border-orange-200">
+                            <p className="text-xs text-orange-700 uppercase tracking-wider mb-1">Additional Tax Due</p>
+                            <p className="text-xl sm:text-2xl font-bold text-orange-600">${weightIncreaseData.additionalTaxDue?.toFixed(2) || '0.00'}</p>
                           </div>
                         </div>
                       )}
@@ -4344,31 +4564,49 @@ function NewFilingContent() {
 
                 <div className="space-y-6 sm:space-y-8">
                   {/* Section 1: IRS Payment Method - Only show if tax is due */}
-                  {((filingType === 'amendment' && amendmentType === 'vin_correction') ||
-                    (filingType === 'amendment' && amendmentType === 'mileage_exceeded' && (pricing?.totalTax || 0) === 0)) ? (
-                    <div className="border-2 border-blue-200 rounded-xl p-4 sm:p-6 bg-blue-50/30">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">1</div>
-                        <h3 className="text-lg sm:text-xl font-bold text-blue-900">IRS Tax Payment</h3>
-                        <span className="text-xs sm:text-sm text-green-700 bg-green-100 px-2 py-1 rounded">Not Required</span>
-                      </div>
-                      <div className="ml-0 sm:ml-10">
-                        <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 mb-4">
-                          <div className="flex items-start gap-3">
-                            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="text-sm font-semibold text-green-900 mb-1">No IRS Payment Required</p>
-                              <p className="text-sm text-green-800">
-                                {amendmentType === 'vin_correction'
-                                  ? 'VIN corrections are FREE with no additional HVUT tax due. You only need to pay the service fee below.'
-                                  : 'For this mileage exceeded amendment, no additional HVUT tax is due. You only need to pay the service fee below.'}
-                              </p>
+                  {(() => {
+                    // Calculate IRS tax due for weight increase amendments
+                    const weightIncreaseTax = (filingType === 'amendment' && amendmentType === 'weight_increase') 
+                      ? (weightIncreaseData?.additionalTaxDue || 0) 
+                      : 0;
+                    
+                    // Get total tax from pricing or weight increase data
+                    const totalTaxDue = weightIncreaseTax > 0 
+                      ? weightIncreaseTax 
+                      : (pricing?.totalTax || 0);
+                    
+                    // Check if IRS payment is required
+                    const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
+                    const isMileageExceededNoTax = filingType === 'amendment' && amendmentType === 'mileage_exceeded' && totalTaxDue === 0;
+                    const isIRSRequired = totalTaxDue > 0;
+                    
+                    if (isVinCorrection || isMileageExceededNoTax) {
+                      return (
+                        <div className="border-2 border-blue-200 rounded-xl p-4 sm:p-6 bg-blue-50/30">
+                          <div className="flex items-center gap-2 mb-4">
+                            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">1</div>
+                            <h3 className="text-lg sm:text-xl font-bold text-blue-900">IRS Tax Payment</h3>
+                            <span className="text-xs sm:text-sm text-green-700 bg-green-100 px-2 py-1 rounded">Not Required</span>
+                          </div>
+                          <div className="ml-0 sm:ml-10">
+                            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 mb-4">
+                              <div className="flex items-start gap-3">
+                                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                                <div>
+                                  <p className="text-sm font-semibold text-green-900 mb-1">No IRS Payment Required</p>
+                                  <p className="text-sm text-green-800">
+                                    {amendmentType === 'vin_correction'
+                                      ? 'VIN corrections are FREE with no additional HVUT tax due. You only need to pay the service fee below.'
+                                      : 'For this mileage exceeded amendment, no additional HVUT tax is due. You only need to pay the service fee below.'}
+                                  </p>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  ) : (pricing?.totalTax || 0) > 0 ? (
+                      );
+                    } else if (isIRSRequired) {
+                      return (
                     <div className="border-2 border-blue-200 rounded-xl p-4 sm:p-6 bg-blue-50/30">
                       <div className="flex items-center gap-2 mb-4">
                         <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">1</div>
@@ -4376,7 +4614,7 @@ function NewFilingContent() {
                         <span className="text-xs sm:text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded">Required</span>
                       </div>
                       <>
-                        <p className="text-sm text-blue-800 mb-4 ml-0 sm:ml-10">Choose how you'd like to pay the IRS tax amount (${pricing.totalTax?.toFixed(2) || '0.00'})</p>
+                        <p className="text-sm text-blue-800 mb-4 ml-0 sm:ml-10">Choose how you'd like to pay the IRS tax amount (${totalTaxDue.toFixed(2)})</p>
                         <div className="space-y-3 sm:space-y-4 ml-0 sm:ml-10">
                           {/* Option 1: EFW (Electronic Fund Withdrawal) */}
                           <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'efw' ? 'border-green-500 bg-green-50' : 'border-slate-200 hover:border-green-300'}`}>
@@ -4592,7 +4830,10 @@ function NewFilingContent() {
                         </div>
                       </>
                     </div>
-                  ) : null}
+                      );
+                    }
+                    return null;
+                  })()}
 
                   {/* Section 2: Service Fee Payment */}
                   <div className={`border-2 rounded-xl p-4 sm:p-6 transition-all ${serviceFeePaid ? 'border-green-500 bg-green-50' : 'border-orange-200 bg-orange-50/30'}`}>
@@ -4608,19 +4849,28 @@ function NewFilingContent() {
                       )}
                     </div>
                     <p className="text-sm text-orange-800 mb-4 ml-0 sm:ml-10">
-                      {filingType === 'amendment' && (amendmentType === 'vin_correction' || amendmentType === 'mileage_exceeded') ? (
+                      {filingType === 'amendment' && (amendmentType === 'vin_correction' || amendmentType === 'mileage_exceeded' || amendmentType === 'weight_increase') ? (
                         <>
                           Pay the platform service fee (${(() => {
                             // For amendments with fixed $10 fee, calculate with sales tax
                             const baseFee = 10.00;
                             // Estimate sales tax (typically 7-10%, we'll use 7% as conservative estimate)
                             const estimatedSalesTax = baseFee * 0.07;
-                            return (pricing.serviceFee > 0 ? pricing.serviceFee : baseFee) + (pricing.salesTax > 0 ? pricing.salesTax : estimatedSalesTax);
+                            const fee = pricing.serviceFee > 0 ? pricing.serviceFee : baseFee;
+                            const tax = pricing.salesTax > 0 ? pricing.salesTax : estimatedSalesTax;
+                            return fee + tax;
                           })().toFixed(2)}) using a US payment method. This payment must be completed before your filing can be submitted.
-                          {amendmentType === 'mileage_exceeded' && (pricing?.totalTax || 0) > 0 && (
-                            <span className="block mt-2 text-xs text-orange-700">
-                              Note: You will also need to pay the IRS tax amount shown above.
-                            </span>
+                          {(amendmentType === 'mileage_exceeded' || amendmentType === 'weight_increase') && (
+                            (() => {
+                              const weightIncreaseTax = amendmentType === 'weight_increase' ? (weightIncreaseData?.additionalTaxDue || 0) : 0;
+                              const mileageTax = amendmentType === 'mileage_exceeded' ? (pricing?.totalTax || 0) : 0;
+                              const taxDue = weightIncreaseTax || mileageTax;
+                              return taxDue > 0 ? (
+                                <span className="block mt-2 text-xs text-orange-700">
+                                  Note: You will also need to pay the IRS tax amount (${taxDue.toFixed(2)}) shown above.
+                                </span>
+                              ) : null;
+                            })()
                           )}
                         </>
                       ) : (
@@ -4635,7 +4885,7 @@ function NewFilingContent() {
                         <StripeWrapper
                           amount={(() => {
                             // For amendments with fixed $10 fee, ensure we use at least $10
-                            if (filingType === 'amendment' && (amendmentType === 'vin_correction' || amendmentType === 'mileage_exceeded')) {
+                            if (filingType === 'amendment' && (amendmentType === 'vin_correction' || amendmentType === 'mileage_exceeded' || amendmentType === 'weight_increase')) {
                               const baseFee = 10.00;
                               const fee = pricing.serviceFee > 0 ? pricing.serviceFee : baseFee;
                               const tax = pricing.salesTax > 0 ? pricing.salesTax : (fee * 0.07); // Estimate 7% sales tax if not calculated
@@ -4693,7 +4943,16 @@ function NewFilingContent() {
                       onClick={handleSubmit}
                       disabled={
                         loading ||
-                        (!irsPaymentMethod && (pricing?.totalTax || 0) > 0) ||
+                        (!irsPaymentMethod && (() => {
+                          // Check IRS tax due for weight increase amendments
+                          const weightIncreaseTax = (filingType === 'amendment' && amendmentType === 'weight_increase') 
+                            ? (weightIncreaseData?.additionalTaxDue || 0) 
+                            : 0;
+                          const totalTaxDue = weightIncreaseTax > 0 
+                            ? weightIncreaseTax 
+                            : (pricing?.totalTax || 0);
+                          return totalTaxDue > 0;
+                        })()) ||
                         !serviceFeePaid ||
                         (irsPaymentMethod === 'efw' && (!bankDetails.routingNumber || !bankDetails.accountNumber || !bankDetails.confirmAccountNumber || !bankDetails.accountType || !bankDetails.phoneNumber || bankDetails.accountNumber !== bankDetails.confirmAccountNumber))
                       }

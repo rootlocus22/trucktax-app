@@ -54,17 +54,19 @@ export function PricingSidebar({
       }
       
       // If pricing prop is provided and has been calculated (not just initial zeros), skip internal calculation
-      // For VIN corrections and mileage exceeded, always allow calculation since they might not have vehicles
+      // For VIN corrections, mileage exceeded, and weight increase, always allow calculation since they might not have vehicles
       const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
       const isMileageExceeded = filingType === 'amendment' && amendmentType === 'mileage_exceeded';
-      if (pricing && pricing.totalTax !== undefined && !isVinCorrection && !isMileageExceeded && (pricing.serviceFee > 0 || pricing.totalTax > 0 || pricing.totalRefund > 0)) {
+      const isWeightIncrease = filingType === 'amendment' && amendmentType === 'weight_increase';
+      if (pricing && pricing.totalTax !== undefined && !isVinCorrection && !isMileageExceeded && !isWeightIncrease && (pricing.serviceFee > 0 || pricing.totalTax > 0 || pricing.totalRefund > 0)) {
         return;
       }
 
       // Don't calculate if we don't have minimum required data
-      // Exception: VIN corrections and mileage exceeded don't require vehicles, so allow pricing calculation
+      // Exception: VIN corrections, mileage exceeded, and weight increase don't require vehicles, so allow pricing calculation
       const hasMileageExceededVehicle = isMileageExceeded && mileageExceededData?.vehicleId;
-      if (!filingType || (selectedVehicleIds.length === 0 && !isVinCorrection && !hasMileageExceededVehicle)) {
+      const hasWeightIncreaseData = isWeightIncrease && weightIncreaseData?.originalWeightCategory && weightIncreaseData?.newWeightCategory && weightIncreaseData?.amendedMonth;
+      if (!filingType || (selectedVehicleIds.length === 0 && !isVinCorrection && !hasMileageExceededVehicle && !hasWeightIncreaseData)) {
         setInternalPricing({
           totalTax: 0,
           serviceFee: 0,
@@ -105,7 +107,10 @@ export function PricingSidebar({
             amendmentDataForPricing = {
               originalWeightCategory: weightIncreaseData?.originalWeightCategory,
               newWeightCategory: weightIncreaseData?.newWeightCategory,
-              increaseMonth: weightIncreaseData?.increaseMonth
+              amendedMonth: weightIncreaseData?.amendedMonth,
+              firstUsedMonth: weightIncreaseData?.firstUsedMonth,
+              originalIsLogging: weightIncreaseData?.originalIsLogging || false,
+              newIsLogging: weightIncreaseData?.newIsLogging || false
             };
           } else if (amendmentType === 'mileage_exceeded') {
             const vehicle = vehicles.find(v => v.id === mileageExceededData?.vehicleId);
@@ -236,10 +241,11 @@ export function PricingSidebar({
     return () => clearTimeout(timeoutId);
   }, [filingType, filingData, selectedVehicleIds, vehicles, selectedBusinessId, businesses, amendmentType, weightIncreaseData, mileageExceededData, pricing]);
 
-  // For VIN corrections and mileage exceeded, hasData should be true even without vehicles
+  // For VIN corrections, mileage exceeded, and weight increase, hasData should be true even without vehicles
   const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
   const isMileageExceeded = filingType === 'amendment' && amendmentType === 'mileage_exceeded';
-  const hasData = filingType && (selectedVehicleIds.length > 0 || isVinCorrection || isMileageExceeded);
+  const isWeightIncrease = filingType === 'amendment' && amendmentType === 'weight_increase';
+  const hasData = filingType && (selectedVehicleIds.length > 0 || isVinCorrection || isMileageExceeded || isWeightIncrease);
 
   return (
     <div className="sticky top-24 h-fit max-h-[calc(100vh-8rem)] flex flex-col">
@@ -401,11 +407,42 @@ export function PricingSidebar({
                               <p className="text-sm font-semibold text-blue-900">IRS Tax Amount</p>
                               <p className="text-xs text-blue-700 mt-0.5">Paid directly to IRS via selected payment method</p>
                             </div>
-                            <p className="text-lg font-bold text-blue-900">${(finalPricing.totalTax || 0).toFixed(2)}</p>
+                            <p className="text-lg font-bold text-blue-900">
+                              ${(() => {
+                                // For weight increase amendments, use additionalTaxDue if available
+                                if (isWeightIncrease && weightIncreaseData?.additionalTaxDue) {
+                                  return weightIncreaseData.additionalTaxDue.toFixed(2);
+                                }
+                                return (finalPricing.totalTax || 0).toFixed(2);
+                              })()}
+                            </p>
                           </div>
                           
+                          {/* Weight Increase Amendment Breakdown */}
+                          {isWeightIncrease && weightIncreaseData?.additionalTaxDue && (
+                            <div className="mt-3 pt-3 border-t border-blue-200">
+                              <p className="text-xs font-semibold text-blue-800 mb-2">Tax Calculation Breakdown:</p>
+                              <div className="space-y-1.5 text-xs">
+                                <div className="flex items-center justify-between py-1">
+                                  <div className="flex-1 min-w-0">
+                                    <span className="text-blue-600">
+                                      Weight Increase: {weightIncreaseData.originalWeightCategory} → {weightIncreaseData.newWeightCategory}
+                                    </span>
+                                  </div>
+                                  <span className="font-semibold text-blue-700">
+                                    +${weightIncreaseData.additionalTaxDue.toFixed(2)}
+                                  </span>
+                                </div>
+                                <div className="pt-1.5 mt-1.5 border-t border-blue-200 flex items-center justify-between">
+                                  <span className="text-xs font-bold text-blue-900">Total IRS Tax:</span>
+                                  <span className="text-sm font-bold text-blue-900">${weightIncreaseData.additionalTaxDue.toFixed(2)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
                           {/* Detailed Vehicle Tax Breakdown */}
-                          {vehicleBreakdown && vehicleBreakdown.length > 0 && (
+                          {vehicleBreakdown && vehicleBreakdown.length > 0 && !isWeightIncrease && (
                             <div className="mt-3 pt-3 border-t border-blue-200">
                               <p className="text-xs font-semibold text-blue-800 mb-2">Tax Calculation Breakdown:</p>
                               <div className="space-y-1.5 text-xs">
@@ -479,10 +516,22 @@ export function PricingSidebar({
                               </p>
                             )}
                             {!breakdown.find(item => item.type === 'fee')?.description && (
-                              <p className="text-xs text-orange-700 mt-0.5">Paid to QuickTruckTax</p>
+                              <p className="text-xs text-orange-700 mt-0.5">
+                                {isWeightIncrease || isVinCorrection || isMileageExceeded 
+                                  ? 'Amendment service fee: $10.00' 
+                                  : 'Paid to QuickTruckTax'}
+                              </p>
                             )}
                           </div>
-                          <p className="text-lg font-bold text-orange-900">${(finalPricing.serviceFee || 0).toFixed(2)}</p>
+                          <p className="text-lg font-bold text-orange-900">
+                            ${(() => {
+                              // For weight increase amendments, ensure $10 is shown if pricing hasn't been calculated
+                              if (isWeightIncrease && (finalPricing.serviceFee || 0) === 0) {
+                                return '10.00';
+                              }
+                              return (finalPricing.serviceFee || 0).toFixed(2);
+                            })()}
+                          </p>
                         </div>
                         {couponApplied && couponDiscount > 0 && (
                           <div className="flex items-start justify-between pt-2 border-t border-orange-200">
@@ -508,7 +557,16 @@ export function PricingSidebar({
                           <div className="flex items-center justify-between">
                             <p className="text-sm font-bold text-orange-900">Total Service Fee Due Now</p>
                             <p className="text-lg font-bold text-orange-900">
-                              ${((finalPricing.serviceFee || 0) + (finalPricing.salesTax || 0) - (finalPricing.couponDiscount || 0)).toFixed(2)}
+                              ${(() => {
+                                // For weight increase amendments, ensure $10 is used if pricing hasn't been calculated
+                                let serviceFee = finalPricing.serviceFee || 0;
+                                if (isWeightIncrease && serviceFee === 0) {
+                                  serviceFee = 10.00;
+                                }
+                                // Estimate sales tax if not calculated (7% of service fee)
+                                const salesTax = finalPricing.salesTax || (serviceFee > 0 ? serviceFee * 0.07 : 0);
+                                return (serviceFee + salesTax - (finalPricing.couponDiscount || 0)).toFixed(2);
+                              })()}
                             </p>
                           </div>
                         </div>
@@ -531,15 +589,33 @@ export function PricingSidebar({
                 </div>
               )}
 
-              {/* Amendment VIN Correction Notice */}
-              {hasData && filingType === 'amendment' && amendmentType === 'vin_correction' && (
+              {/* Amendment Notices */}
+              {hasData && filingType === 'amendment' && (
                 <div className="pt-4 border-t-2 border-slate-200">
-                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                    <p className="text-xs text-emerald-700 font-medium flex items-center gap-1.5">
-                      <CheckCircle className="w-3.5 h-3.5" />
-                      VIN corrections: $10 service fee (No IRS tax required)
-                    </p>
-                  </div>
+                  {amendmentType === 'vin_correction' && (
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                      <p className="text-xs text-emerald-700 font-medium flex items-center gap-1.5">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        VIN corrections: $10 service fee (No IRS tax required)
+                      </p>
+                    </div>
+                  )}
+                  {amendmentType === 'weight_increase' && (
+                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <p className="text-xs text-orange-700 font-medium flex items-center gap-1.5">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        Weight increase amendment: $10 service fee {weightIncreaseData?.additionalTaxDue > 0 ? `+ $${weightIncreaseData.additionalTaxDue.toFixed(2)} IRS tax` : ''}
+                      </p>
+                    </div>
+                  )}
+                  {amendmentType === 'mileage_exceeded' && (
+                    <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                      <p className="text-xs text-purple-700 font-medium flex items-center gap-1.5">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        Mileage exceeded amendment: $10 service fee {(finalPricing.totalTax || 0) > 0 ? `+ $${(finalPricing.totalTax || 0).toFixed(2)} IRS tax` : '(No IRS tax required)'}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
