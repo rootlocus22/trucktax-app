@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { subscribeToUserFilings } from '@/lib/db';
+import { subscribeToUserFilings, getBusinessesByUser, getVehicle } from '@/lib/db';
 import { subscribeToDraftFilings } from '@/lib/draftHelpers';
 import { getIncompleteFilings, formatIncompleteFiling } from '@/lib/filingIntelligence';
 import {
@@ -22,7 +22,10 @@ import {
   FileCheck,
   ChevronDown,
   RotateCcw,
-  Upload
+  Upload,
+  Edit,
+  RefreshCw,
+  Building2
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -31,6 +34,8 @@ export default function FilingsListPage() {
   const router = useRouter();
   const [filings, setFilings] = useState([]);
   const [draftFilings, setDraftFilings] = useState([]);
+  const [businesses, setBusinesses] = useState([]);
+  const [vehiclesMap, setVehiclesMap] = useState({}); // Map of vehicleId -> vehicle data
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -51,6 +56,13 @@ export default function FilingsListPage() {
 
       const unsubscribeDrafts = subscribeToDraftFilings(user.uid, (drafts) => {
         setDraftFilings(drafts);
+      });
+
+      // Load businesses
+      getBusinessesByUser(user.uid).then(businessList => {
+        setBusinesses(businessList);
+      }).catch(err => {
+        console.error('Error loading businesses:', err);
       });
 
       return () => {
@@ -112,56 +124,215 @@ export default function FilingsListPage() {
   };
 
   const incomplete = getIncompleteFilings(filings);
-  const activeDrafts = draftFilings.filter(d => d.status === 'draft');
+  // Filter drafts to only show those with selectedBusinessId (business selected)
+  const activeDrafts = draftFilings.filter(d => d.status === 'draft' && (d.selectedBusinessId || d.businessId));
   const allIncompleteFilings = [
     ...activeDrafts.map(d => ({ ...d, isDraft: true })),
     ...incomplete.all.filter(f => f.status !== 'action_required')
   ];
   const hasIncomplete = allIncompleteFilings.length > 0;
 
-  /* Grouping Logic */
-  const groupedFilings = filteredFilings.reduce((acc, filing) => {
-    const { label } = getFilingTypeInfo(filing);
-    if (!acc[label]) {
-      acc[label] = [];
+  // Filter out drafts that have been converted to actual filings
+  // A draft is considered "converted" if there's a filing with:
+  // 1. The same draftId reference, OR
+  // 2. Same tax year, business, and vehicles (likely the same filing)
+  const convertedDraftIds = new Set();
+  filings.forEach(filing => {
+    if (filing.draftId) {
+      convertedDraftIds.add(filing.draftId);
     }
-    acc[label].push(filing);
-    return acc;
-  }, {});
-
-  // Define preferred order
-  const categoryOrder = [
-    'Form 2290',
-    'VIN Correction',
-    'Weight Increase',
-    'Mileage Exceeded',
-    'Amendment',
-    'Refund (8849)'
-  ];
-
-  const sortedCategories = Object.keys(groupedFilings).sort((a, b) => {
-    const indexA = categoryOrder.indexOf(a);
-    const indexB = categoryOrder.indexOf(b);
-    return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
   });
 
-  const [expandedCategories, setExpandedCategories] = useState({});
-
-  // Initialize all categories as expanded when data loads or filtered
-  useEffect(() => {
-    const initialExpanded = {};
-    sortedCategories.forEach(cat => {
-      initialExpanded[cat] = true;
+  // Only include drafts that haven't been converted to filings AND have a business selected
+  const unconvertedDrafts = activeDrafts.filter(draft => {
+    // Only show drafts with selectedBusinessId (business must be selected)
+    if (!draft.selectedBusinessId && !draft.businessId) {
+      return false;
+    }
+    
+    // Skip if this draft was converted to a filing
+    if (convertedDraftIds.has(draft.id || draft.draftId)) {
+      return false;
+    }
+    
+    // Also check for duplicates based on tax year and business
+    // If there's a filing with same tax year and business, likely the same filing
+    const hasMatchingFiling = filings.some(filing => {
+      const sameTaxYear = filing.taxYear === draft.taxYear;
+      const sameBusiness = filing.businessId === draft.selectedBusinessId || 
+                          filing.businessId === draft.businessId;
+      // If both match and filing is submitted/completed, skip the draft
+      return sameTaxYear && sameBusiness && 
+             (filing.status === 'submitted' || filing.status === 'processing' || 
+              filing.status === 'completed' || filing.status === 'action_required');
     });
-    setExpandedCategories(prev => ({ ...initialExpanded, ...prev }));
-  }, [filteredFilings.length]); // Re-expand when list changes significantly, mostly just keep state
+    
+    return !hasMatchingFiling;
+  }).filter(d => {
+    // Only include drafts that match search/filter
+    if (statusFilter !== 'all' && d.status !== statusFilter) return false;
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesTaxYear = d.taxYear?.toLowerCase().includes(searchLower);
+      const matchesId = d.id?.toLowerCase().includes(searchLower);
+      return matchesTaxYear || matchesId;
+    }
+    return true;
+  });
 
-  const toggleCategory = (category) => {
-    setExpandedCategories(prev => ({
-      ...prev,
-      [category]: !prev[category]
-    }));
+  // Combine all filings (completed, incomplete, drafts) for the table
+  const allFilingsForTable = [
+    ...filteredFilings,
+    ...unconvertedDrafts.map(d => ({ ...d, isDraft: true }))
+  ].sort((a, b) => {
+    const dateA = a.updatedAt || a.createdAt;
+    const dateB = b.updatedAt || b.createdAt;
+    return new Date(dateB) - new Date(dateA);
+  });
+
+  // Get primary business (first business or business from first filing)
+  const primaryBusiness = businesses.length > 0 
+    ? businesses[0] 
+    : (filings.length > 0 && filings[0].business ? filings[0].business : null);
+
+  // Helper function to get return number display
+  const getReturnNumber = (filing) => {
+    if (filing.filingType === 'amendment') {
+      const type = filing.amendmentType === 'vin_correction' ? 'VIN Correction Amendment' :
+        filing.amendmentType === 'weight_increase' ? 'Weight Increase Amendment' :
+        filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded Amendment' : '2290 Amendment';
+      return `${type}-${filing.id?.slice(-7) || 'N/A'}`;
+    }
+    if (filing.filingType === 'refund') {
+      return `Refund (8849)-${filing.id?.slice(-7) || 'N/A'}`;
+    }
+    return `Form 2290-${filing.id?.slice(-7) || 'N/A'}`;
   };
+
+  // Helper function to get first used month
+  const getFirstUsedMonth = (filing) => {
+    if (filing.firstUsedMonth) {
+      const month = filing.firstUsedMonth;
+      const year = filing.taxYear?.split('-')[0] || new Date().getFullYear();
+      return `${month}-${year}`;
+    }
+    if (filing.filingData?.firstUsedMonth) {
+      const month = filing.filingData.firstUsedMonth;
+      const year = filing.taxYear?.split('-')[0] || new Date().getFullYear();
+      return `${month}-${year}`;
+    }
+    // For amendments, check amendment details
+    if (filing.amendmentDetails?.weightIncrease?.firstUsedMonth) {
+      const month = filing.amendmentDetails.weightIncrease.firstUsedMonth;
+      const year = filing.taxYear?.split('-')[0] || new Date().getFullYear();
+      return `${month}-${year}`;
+    }
+    return 'N/A';
+  };
+
+  // Helper function to get tax amount
+  const getTaxAmount = (filing) => {
+    if (filing.pricing?.totalTax) {
+      return filing.pricing.totalTax;
+    }
+    if (filing.amendmentDetails?.weightIncrease?.additionalTaxDue) {
+      return filing.amendmentDetails.weightIncrease.additionalTaxDue;
+    }
+    if (filing.totalTax) {
+      return filing.totalTax;
+    }
+    return 0;
+  };
+
+  // Helper function to check if Schedule 1 is available
+  const hasSchedule1 = (filing) => {
+    return filing.status === 'completed' && filing.schedule1Url;
+  };
+
+  // Helper function to get filing date
+  const getFilingDate = (filing) => {
+    const date = filing.createdAt || filing.updatedAt;
+    if (!date) return null;
+    const d = date instanceof Date ? date : new Date(date);
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  // Helper function to get vehicle type label
+  const getVehicleTypeLabel = (vehicleType) => {
+    const types = {
+      'taxable': 'Taxable',
+      'suspended': 'Suspended',
+      'credit': 'Credit',
+      'priorYearSold': 'Prior Year Sold'
+    };
+    return types[vehicleType] || vehicleType || 'N/A';
+  };
+
+  // Helper function to get vehicles info for a filing
+  const getVehiclesInfo = (filing) => {
+    const vehicleIds = filing.vehicleIds || filing.selectedVehicleIds || [];
+    if (vehicleIds.length === 0) {
+      // For amendments, check amendment details
+      if (filing.filingType === 'amendment') {
+        if (filing.amendmentType === 'weight_increase' && filing.amendmentDetails?.weightIncrease?.vehicleId) {
+          vehicleIds.push(filing.amendmentDetails.weightIncrease.vehicleId);
+        } else if (filing.amendmentType === 'mileage_exceeded' && filing.amendmentDetails?.mileageExceeded?.vehicleId) {
+          vehicleIds.push(filing.amendmentDetails.mileageExceeded.vehicleId);
+        } else if (filing.amendmentType === 'vin_correction') {
+          // For VIN corrections, show the VINs from amendment details
+          const vin = filing.amendmentDetails?.vinCorrection?.correctedVIN || filing.amendmentDetails?.vinCorrection?.originalVIN;
+          return vin ? [{ vin, vehicleType: 'N/A' }] : [];
+        }
+      }
+    }
+    
+    if (vehicleIds.length === 0) return [];
+    
+    return vehicleIds.map(id => vehiclesMap[id] || { id, vin: 'Loading...', vehicleType: null }).filter(v => v);
+  };
+
+  // Load vehicles when filings change
+  useEffect(() => {
+    if (!user || (filteredFilings.length === 0 && unconvertedDrafts.length === 0)) return;
+
+    const loadVehicles = async () => {
+      const vehicleIdsSet = new Set();
+      
+      // Collect all vehicle IDs from filings and drafts
+      [...filteredFilings, ...unconvertedDrafts].forEach(filing => {
+        const vehicleIds = filing.vehicleIds || filing.selectedVehicleIds || [];
+        vehicleIds.forEach(id => vehicleIdsSet.add(id));
+        
+        // For amendments, also check amendment details
+        if (filing.filingType === 'amendment' && filing.amendmentDetails) {
+          if (filing.amendmentType === 'weight_increase' && filing.amendmentDetails.weightIncrease?.vehicleId) {
+            vehicleIdsSet.add(filing.amendmentDetails.weightIncrease.vehicleId);
+          } else if (filing.amendmentType === 'mileage_exceeded' && filing.amendmentDetails.mileageExceeded?.vehicleId) {
+            vehicleIdsSet.add(filing.amendmentDetails.mileageExceeded.vehicleId);
+          }
+        }
+      });
+
+      // Load vehicles
+      const vehiclesData = {};
+      await Promise.all(
+        Array.from(vehicleIdsSet).map(async (vehicleId) => {
+          try {
+            const vehicle = await getVehicle(vehicleId);
+            if (vehicle) {
+              vehiclesData[vehicleId] = vehicle;
+            }
+          } catch (error) {
+            console.error(`Error loading vehicle ${vehicleId}:`, error);
+          }
+        })
+      );
+      
+      setVehiclesMap(prev => ({ ...prev, ...vehiclesData }));
+    };
+
+    loadVehicles();
+  }, [user, filteredFilings, unconvertedDrafts]);
 
   return (
     <ProtectedRoute>
@@ -216,51 +387,6 @@ export default function FilingsListPage() {
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Incomplete Filings Banner */}
-            {hasIncomplete && (
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 sm:p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
-                    <RotateCcw className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-slate-900">Continue Filing</h3>
-                    <p className="text-xs text-slate-600">{allIncompleteFilings.length} {allIncompleteFilings.length === 1 ? 'filing' : 'filings'} in progress</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                  {allIncompleteFilings.slice(0, 3).map(filing => {
-                    const formatted = formatIncompleteFiling(filing) || {
-                      id: filing.id || filing.draftId,
-                      description: filing.workflowType === 'upload' ? 'Schedule 1 Upload' : (filing.filingType || 'Standard Filing'),
-                      taxYear: filing.taxYear || filing.filingData?.taxYear || 'Unknown',
-                      progress: filing.step === 3 ? 75 : filing.step === 2 ? 50 : 25,
-                    };
-                    const resumeUrl = filing.isDraft || filing.status === 'draft'
-                      ? filing.workflowType === 'upload'
-                        ? `/dashboard/upload-schedule1?draft=${filing.id || filing.draftId}`
-                        : `/dashboard/new-filing?draft=${filing.id || filing.draftId}`
-                      : `/dashboard/filings/${filing.id}`;
-                    return (
-                      <Link
-                        key={filing.id || filing.draftId}
-                        href={resumeUrl}
-                        className="bg-white border border-blue-200 rounded-lg p-3 hover:border-blue-300 hover:shadow-sm transition-all"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-medium text-slate-900 truncate">{formatted.description}</span>
-                          <span className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-medium flex-shrink-0 ml-2">{formatted.taxYear}</span>
-                        </div>
-                        <div className="h-1 bg-blue-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${formatted.progress}%` }} />
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* Statistics Row - Mobile Responsive */}
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {[
@@ -313,143 +439,204 @@ export default function FilingsListPage() {
               </div>
             </div>
 
-            {/* Grouped Filings Accordion */}
-            <div className="space-y-6">
-              {filteredFilings.length === 0 ? (
-                <div className="text-center py-16 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                  <Search className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <h3 className="text-lg font-semibold text-slate-900 mb-1">No matching filings</h3>
-                  <p className="text-slate-500">Try adjusting your search or filters.</p>
-                  <button
-                    onClick={() => { setSearchTerm(''); setStatusFilter('all'); }}
-                    className="mt-4 text-[var(--color-orange)] font-semibold hover:underline"
-                  >
-                    Clear filters
-                  </button>
-                </div>
-              ) : (
-                sortedCategories.map(category => {
-                  const categoryFilings = groupedFilings[category];
-                  const isExpanded = expandedCategories[category] !== false; // Default to true if undefined
-
-                  return (
-                    <div key={category} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                      {/* Accordion Header */}
-                      <button
-                        onClick={() => toggleCategory(category)}
-                        className="w-full flex items-center justify-between p-6 bg-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer text-left border-b border-slate-100"
+            {/* Company Information Section */}
+            {primaryBusiness && (
+              <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 mb-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <div className="w-16 h-16 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl flex-shrink-0">
+                    {primaryBusiness.businessName?.charAt(0).toUpperCase() || 'B'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
+                      <h2 className="text-lg font-bold text-slate-900">
+                        {primaryBusiness.businessName} ({primaryBusiness.ein ? primaryBusiness.ein.replace(/(\d{2})(\d{7})/, '$1-$2') : 'N/A'})
+                      </h2>
+                      <Link
+                        href="/dashboard/businesses"
+                        className="text-slate-400 hover:text-slate-600 transition-colors"
+                        title="Edit business information"
                       >
-                        <div className="flex items-center gap-4">
-                          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-3">
-                            {category}
-                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-orange)] text-white shadow-sm">
-                              {categoryFilings.length}
-                            </span>
-                          </h2>
-                        </div>
-                        <div className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                          <ChevronDown className="w-5 h-5" />
-                        </div>
-                      </button>
-
-                      {/* Accordion Body */}
-                      {isExpanded && (
-                        <div className="p-6 space-y-4">
-                          {categoryFilings.map((filing) => {
-                            const status = getStatusConfig(filing.status);
-                            const typeInfo = getFilingTypeInfo(filing);
-                            const StatusIcon = status.icon;
-                            const date = filing.createdAt ? new Date(filing.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
-
-                            return (
-                              <Link
-                                key={filing.id}
-                                href={`/dashboard/filings/${filing.id}`}
-                                className="group block bg-white rounded-xl border border-slate-200 p-5 hover:border-[var(--color-orange)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden"
-                              >
-                                {/* Status Stripe */}
-                                <div className={`absolute left-0 top-0 bottom-0 w-1 ${status.bg.replace('bg-', 'bg-').replace('50', '500')}`}></div>
-
-                                <div className="flex flex-col md:flex-row md:items-center gap-4 sm:gap-6 pl-2">
-                                  {/* Icon Section - Show on mobile too but smaller */}
-                                  <div className="flex md:hidden flex-col items-center gap-2 min-w-[60px] mb-2">
-                                    <div className="relative w-12 h-12 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
-                                      <Image
-                                        src={typeInfo.image}
-                                        alt={typeInfo.label}
-                                        fill
-                                        className="object-contain"
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="hidden md:flex flex-col items-center gap-2 min-w-[80px]">
-                                    <div className="relative w-16 h-16 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
-                                      <Image
-                                        src={typeInfo.image}
-                                        alt={typeInfo.label}
-                                        fill
-                                        className="object-contain"
-                                      />
-                                    </div>
-                                  </div>
-
-                                  {/* Main Info */}
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-3 mb-1">
-                                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide border ${status.bg} ${status.color} ${status.border}`}>
-                                        <StatusIcon className="w-3 h-3" />
-                                        {status.label}
-                                      </span>
-                                      <span className="text-xs text-slate-400 font-medium">#{filing.id.slice(0, 8)}</span>
-                                    </div>
-
-                                    <div className="flex items-baseline gap-2 mb-1">
-                                      <h3 className="text-lg font-bold text-slate-900 group-hover:text-[var(--color-orange)] transition-colors truncate">
-                                        {filing.business?.businessName || 'Unnamed Business'}
-                                      </h3>
-                                    </div>
-
-                                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
-                                      <div className="flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-slate-400" />
-                                        <span className="font-medium">Tax Year {filing.taxYear}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <FileText className="w-4 h-4 text-slate-400" />
-                                        <span>{typeInfo.label}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Truck className="w-4 h-4 text-slate-400" />
-                                        <span>{filing.vehicleIds?.length || 0} Vehicle{filing.vehicleIds?.length !== 1 ? 's' : ''}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2 text-slate-500 text-xs">
-                                        <span>Filed {date}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* Action Area - Mobile Optimized */}
-                                  <div className="flex items-center gap-3 sm:gap-4 border-t md:border-t-0 border-slate-100 pt-3 sm:pt-4 md:pt-0 mt-3 sm:mt-4 md:mt-0 justify-between md:justify-end">
-                                    <div className="md:hidden flex items-center gap-2 text-slate-500 text-xs">
-                                      <Clock className="w-3 h-3" />
-                                      <span className="truncate">{date}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 sm:gap-3 text-[var(--color-orange)] font-semibold text-xs sm:text-sm group-hover:underline decoration-2 underline-offset-4 touch-manipulation">
-                                      <span className="whitespace-nowrap">View Details</span>
-                                      <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform flex-shrink-0" />
-                                    </div>
-                                  </div>
-                                </div>
-                              </Link>
-                            );
-                          })}
-                        </div>
+                        <Edit className="w-4 h-4" />
+                      </Link>
+                    </div>
+                    <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-600">
+                      {primaryBusiness.address && (
+                        <span>Address: {primaryBusiness.address}{primaryBusiness.city ? `, ${primaryBusiness.city}` : ''}{primaryBusiness.state ? `, ${primaryBusiness.state}` : ''} {primaryBusiness.zip || ''}</span>
+                      )}
+                      {primaryBusiness.signingAuthorityName && (
+                        <span>Signatory: {primaryBusiness.signingAuthorityName}{primaryBusiness.signingAuthorityPhone ? `, (${primaryBusiness.signingAuthorityPhone})` : ''}</span>
                       )}
                     </div>
-                  );
-                })
-              )}
-            </div>
+                  </div>
+                  <Link
+                    href="/dashboard/new-filing"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-orange-hover)] transition-colors whitespace-nowrap"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Start New Return
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Returns Table */}
+            {allFilingsForTable.length === 0 ? (
+              <div className="text-center py-16 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                <Search className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-slate-900 mb-1">No matching filings</h3>
+                <p className="text-slate-500">Try adjusting your search or filters.</p>
+                <button
+                  onClick={() => { setSearchTerm(''); setStatusFilter('all'); }}
+                  className="mt-4 text-[var(--color-orange)] font-semibold hover:underline"
+                >
+                  Clear filters
+                </button>
+              </div>
+            ) : (
+              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                <div className="p-4 sm:p-6 border-b border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-bold text-slate-900">Returns</h2>
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="text-slate-400 hover:text-slate-600 transition-colors"
+                      title="Refresh status"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-50 border-b border-slate-200">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Return Number</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">First Used Month</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Vehicles</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Vehicle Type</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Tax Amount</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Status</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Action</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Schedule 1</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {allFilingsForTable.map((filing) => {
+                        // If it's a draft (has isDraft flag or is from draftFilings collection), use 'draft'
+                        // Otherwise, if it's in the filings collection but has no status, default to 'submitted' (not 'draft')
+                        // because filings in the filings collection have been submitted
+                        const filingStatus = filing.isDraft 
+                          ? 'draft' 
+                          : (filing.status || 'submitted'); // Default to 'submitted' for actual filings without status
+                        const statusConfig = getStatusConfig(filingStatus);
+                        const StatusIcon = statusConfig.icon;
+                        // A filing is incomplete only if it's a draft or has incomplete status
+                        // Submitted/processing/completed/action_required are NOT incomplete
+                        const isIncomplete = filingStatus === 'draft' || filing.isDraft || 
+                          (filingStatus !== 'completed' && filingStatus !== 'action_required' && 
+                           filingStatus !== 'submitted' && filingStatus !== 'processing');
+                        const resumeUrl = filing.isDraft || filingStatus === 'draft'
+                          ? filing.workflowType === 'upload'
+                            ? `/dashboard/upload-schedule1?draft=${filing.id || filing.draftId}`
+                            : `/dashboard/new-filing?draft=${filing.id || filing.draftId}`
+                          : `/dashboard/filings/${filing.id}`;
+                        
+                        const vehiclesInfo = getVehiclesInfo(filing);
+                        const vehicleTypes = [...new Set(vehiclesInfo.map(v => v.vehicleType).filter(Boolean))];
+                        
+                        return (
+                          <tr key={filing.id || filing.draftId} className="hover:bg-slate-50 transition-colors">
+                            <td className="px-4 py-4">
+                              <Link
+                                href={resumeUrl}
+                                className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                              >
+                                {getReturnNumber(filing)}
+                              </Link>
+                              {getFilingDate(filing) && (
+                                <div className="text-xs text-slate-500 mt-1">[{getFilingDate(filing)}]</div>
+                              )}
+                            </td>
+                            <td className="px-4 py-4 text-sm text-slate-700">
+                              {getFirstUsedMonth(filing)}
+                            </td>
+                            <td className="px-4 py-4 text-sm text-slate-700">
+                              {vehiclesInfo.length > 0 ? (
+                                <div className="space-y-1">
+                                  {vehiclesInfo.slice(0, 3).map((vehicle, idx) => (
+                                    <div key={idx} className="font-mono text-xs">
+                                      {vehicle.vin || vehicle.id || 'N/A'}
+                                    </div>
+                                  ))}
+                                  {vehiclesInfo.length > 3 && (
+                                    <div className="text-xs text-slate-500">+{vehiclesInfo.length - 3} more</div>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-slate-400">-</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-4 text-sm text-slate-700">
+                              {vehicleTypes.length > 0 ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {vehicleTypes.map((type, idx) => (
+                                    <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                      {getVehicleTypeLabel(type)}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-slate-400">-</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-4 text-sm font-semibold text-slate-900">
+                              ${getTaxAmount(filing).toFixed(2)}
+                            </td>
+                            <td className="px-4 py-4">
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusConfig.bg} ${statusConfig.color} border ${statusConfig.border}`}>
+                                <StatusIcon className="w-3 h-3" />
+                                {isIncomplete ? 'Incomplete' : statusConfig.label}
+                              </span>
+                            </td>
+                            <td className="px-4 py-4">
+                              {isIncomplete ? (
+                                <Link
+                                  href={resumeUrl}
+                                  className="inline-flex items-center px-3 py-1.5 bg-[var(--color-orange)] text-white text-xs font-semibold rounded-lg hover:bg-[var(--color-orange-hover)] transition-colors"
+                                >
+                                  Continue where you left off
+                                </Link>
+                              ) : (
+                                <Link
+                                  href={resumeUrl}
+                                  className="text-blue-600 hover:text-blue-800 text-xs font-medium hover:underline"
+                                >
+                                  View Details
+                                </Link>
+                              )}
+                            </td>
+                            <td className="px-4 py-4 text-sm text-slate-500">
+                              {hasSchedule1(filing) ? (
+                                <Link
+                                  href={filing.schedule1Url}
+                                  target="_blank"
+                                  className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium"
+                                >
+                                  <FileCheck className="w-4 h-4" />
+                                  View
+                                </Link>
+                              ) : (
+                                <span>-</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

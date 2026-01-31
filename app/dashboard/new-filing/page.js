@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { getBusinessesByUser, createBusiness, getVehiclesByUser, createVehicle, createFiling, getFilingsByUser, getVehicle } from '@/lib/db';
-import { saveDraftFiling, getDraftFiling, deleteDraftFiling } from '@/lib/draftHelpers';
+import { saveDraftFiling, getDraftFiling, deleteDraftFiling, getDraftFilingsByUser } from '@/lib/draftHelpers';
 // Duplicate filing detection imports removed - functionality disabled
 import { uploadInputDocument } from '@/lib/storage';
 import { calculateFilingCost } from '@/app/actions/pricing'; // Server Action
@@ -434,6 +434,8 @@ function NewFilingContent() {
   const [error, setError] = useState('');
   const [draftId, setDraftId] = useState(null);
   const draftSavingRef = useRef(false);
+  const [showDraftWarningModal, setShowDraftWarningModal] = useState(false);
+  const [existingDraft, setExistingDraft] = useState(null);
 
   // Step 1: Filing Type
   const [filingType, setFilingType] = useState('standard'); // standard, amendment, refund
@@ -786,6 +788,36 @@ function NewFilingContent() {
       loadData();
     }
   }, [user]);
+
+  // Check for existing drafts after data is loaded (only if no draft param in URL)
+  useEffect(() => {
+    const checkForExistingDrafts = async () => {
+      if (!user || !searchParams) return;
+      const draftParam = searchParams.get('draft');
+      if (draftParam) return; // Don't check if already resuming a draft
+      
+      // Only check if we have businesses loaded (data is ready)
+      if (businesses.length === 0 && vehicles.length === 0) return;
+      
+      try {
+        const drafts = await getDraftFilingsByUser(user.uid);
+        // Filter to only drafts with selectedBusinessId (business selected)
+        const draftsWithBusiness = drafts.filter(d => d.selectedBusinessId || d.businessId);
+        if (draftsWithBusiness.length > 0 && !showDraftWarningModal) {
+          // Show the most recent draft
+          const mostRecentDraft = draftsWithBusiness[0];
+          setExistingDraft(mostRecentDraft);
+          setShowDraftWarningModal(true);
+        }
+      } catch (error) {
+        console.error('Error checking for existing drafts:', error);
+      }
+    };
+    
+    // Small delay to ensure data is loaded
+    const timer = setTimeout(checkForExistingDrafts, 500);
+    return () => clearTimeout(timer);
+  }, [user, businesses.length, vehicles.length, searchParams, showDraftWarningModal]);
 
   // Reload vehicles when business selection changes
   useEffect(() => {
@@ -2894,8 +2926,6 @@ function NewFilingContent() {
             {/* Step 2: Business (skip for amendments, renumber for non-amendments) */}
             {step === 2 && filingType !== 'amendment' && (
               <div className="bg-[var(--color-card)] rounded-xl sm:rounded-2xl border border-[var(--color-border)] p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-[var(--color-text)] mb-3 sm:mb-4 md:mb-6">Business Information</h2>
-
                 {/* Existing Businesses List */}
                 {!showBusinessForm && businesses.length > 0 && (
                   <div className="mb-4 sm:mb-6 md:mb-8">
@@ -2947,29 +2977,41 @@ function NewFilingContent() {
                 {/* Add New Business Form */}
                 {(showBusinessForm || businesses.length === 0) && (
                   <div className="mb-3 sm:mb-4 md:mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="flex items-center justify-between mb-2 sm:mb-3 md:mb-4">
-                      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-[var(--color-text)]">
-                        {businesses.length > 0 ? 'Add New Business' : 'Add Business Details'}
-                      </h3>
+                    <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-5">
+                      <div>
+                        <h3 className="text-base sm:text-lg md:text-xl font-bold text-slate-900 mb-1">
+                          {businesses.length > 0 ? 'Add New Business' : 'Add Business Details'}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-slate-600">
+                          {businesses.length > 0 ? 'Add another business to your account' : 'Enter your business information to continue'}
+                        </p>
+                      </div>
                       {businesses.length > 0 && (
                         <button
                           onClick={() => setShowBusinessForm(false)}
-                          className="text-xs sm:text-sm text-[var(--color-muted)] hover:text-[var(--color-text)] underline touch-manipulation"
+                          className="text-xs sm:text-sm text-slate-500 hover:text-slate-700 underline touch-manipulation transition-colors"
                         >
                           Cancel
                         </button>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3 md:gap-4 lg:gap-6 p-2.5 sm:p-3 md:p-4 lg:p-6 bg-[var(--color-page-alt)] rounded-lg sm:rounded-xl border border-[var(--color-border)]">
+                    <div className="bg-white rounded-xl sm:rounded-2xl border-2 border-slate-200 shadow-sm overflow-hidden">
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 px-4 sm:px-6 py-3 sm:py-4">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-5 h-5 text-blue-600" />
+                          <h4 className="text-sm sm:text-base font-semibold text-slate-900">Business Details</h4>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6 p-4 sm:p-6 md:p-8">
                       <div>
                         <div className="flex items-center gap-2 mb-2">
-                          <label className="block text-sm font-medium text-[var(--color-text)]">
-                            Business Name <span className="text-[var(--color-orange)]">*</span>
+                          <label className="block text-sm font-semibold text-slate-900">
+                            Business Name <span className="text-red-500">*</span>
                           </label>
                           <div className="group relative">
-                            <Info className="w-4 h-4 text-[var(--color-muted)] cursor-help" />
-                            <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
+                            <Info className="w-4 h-4 text-slate-400 hover:text-blue-600 cursor-help transition-colors" />
+                            <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-slate-900 text-white text-xs rounded-lg shadow-xl hidden group-hover:block z-10">
                               <strong>IRS Rule:</strong> Only letters, numbers, spaces, "&" and "-" are allowed. Do not use commas, periods, or other symbols.
                             </div>
                           </div>
@@ -2978,216 +3020,255 @@ function NewFilingContent() {
                           type="text"
                           value={newBusiness.businessName}
                           onChange={(e) => handleBusinessChange('businessName', e.target.value)}
-                          className={`w-full px-4 py-3 text-base sm:text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation ${businessErrors.businessName ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                          placeholder="ABC Trucking LLC"
+                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.businessName ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
+                          placeholder="e.g., ABC Trucking LLC"
                         />
-                        {businessErrors.businessName && (
-                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.businessName}</span>
+                        {businessErrors.businessName ? (
+                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
+                            <span className="flex-1">{businessErrors.businessName}</span>
                           </p>
+                        ) : (
+                          <p className="mt-1 text-xs text-slate-500">Enter your legal business name</p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                          EIN (Employer Identification Number) <span className="text-[var(--color-orange)]">*</span>
+                        <label className="block text-sm font-semibold text-slate-900 mb-2">
+                          EIN (Employer Identification Number) <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           value={newBusiness.ein}
                           onChange={(e) => handleBusinessChange('ein', e.target.value)}
-                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.ein ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                          placeholder="12-3456789"
+                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal font-mono ${businessErrors.ein ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
+                          placeholder="e.g., 12-3456789"
                           maxLength="10"
                         />
-                        {businessErrors.ein && (
-                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.ein}</span>
+                        {businessErrors.ein ? (
+                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
+                            <span className="flex-1">{businessErrors.ein}</span>
                           </p>
+                        ) : (
+                          <p className="mt-1 text-xs text-slate-500">Format: XX-XXXXXXX (9 digits)</p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                          Business Address <span className="text-[var(--color-orange)]">*</span>
+                        <label className="block text-sm font-semibold text-slate-900 mb-2">
+                          Business Address <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           value={newBusiness.address}
                           onChange={(e) => handleBusinessChange('address', e.target.value)}
-                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.address ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                          placeholder="123 Main St"
+                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.address ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
+                          placeholder="e.g., 123 Main Street"
                         />
-                        {businessErrors.address && (
-                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.address}</span>
+                        {businessErrors.address ? (
+                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
+                            <span className="flex-1">{businessErrors.address}</span>
                           </p>
+                        ) : (
+                          <p className="mt-1 text-xs text-slate-500">Street address where business is located</p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                          City <span className="text-[var(--color-orange)]">*</span>
+                        <label className="block text-sm font-semibold text-slate-900 mb-2">
+                          City <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           value={newBusiness.city}
                           onChange={(e) => handleBusinessChange('city', e.target.value)}
-                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.city ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                          placeholder="Los Angeles"
+                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.city ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
+                          placeholder="e.g., Los Angeles"
                         />
-                        {businessErrors.city && (
-                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.city}</span>
+                        {businessErrors.city ? (
+                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
+                            <span className="flex-1">{businessErrors.city}</span>
                           </p>
+                        ) : (
+                          <p className="mt-1 text-xs text-slate-500">City name</p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                          State <span className="text-[var(--color-orange)]">*</span>
+                        <label className="block text-sm font-semibold text-slate-900 mb-2">
+                          State <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           value={newBusiness.state}
                           onChange={(e) => handleBusinessChange('state', e.target.value)}
-                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] uppercase ${businessErrors.state ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                          placeholder="CA"
+                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal uppercase ${businessErrors.state ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
+                          placeholder="e.g., CA"
                           maxLength="2"
                         />
-                        {businessErrors.state && (
-                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.state}</span>
+                        {businessErrors.state ? (
+                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
+                            <span className="flex-1">{businessErrors.state}</span>
                           </p>
+                        ) : (
+                          <p className="mt-1 text-xs text-slate-500">2-letter state code (e.g., CA, NY, TX)</p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                          ZIP Code <span className="text-[var(--color-orange)]">*</span>
+                        <label className="block text-sm font-semibold text-slate-900 mb-2">
+                          ZIP Code <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           value={newBusiness.zip}
                           onChange={(e) => handleBusinessChange('zip', e.target.value)}
-                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono ${businessErrors.zip ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                          placeholder="12345"
+                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal font-mono ${businessErrors.zip ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
+                          placeholder="e.g., 12345"
                           maxLength="10"
                         />
-                        {businessErrors.zip && (
-                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.zip}</span>
+                        {businessErrors.zip ? (
+                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
+                            <span className="flex-1">{businessErrors.zip}</span>
                           </p>
+                        ) : (
+                          <p className="mt-1 text-xs text-slate-500">5-digit ZIP code (or 9-digit ZIP+4)</p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                          Country <span className="text-[var(--color-orange)]">*</span>
+                        <label className="block text-sm font-semibold text-slate-900 mb-2">
+                          Country <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           value={newBusiness.country}
                           onChange={(e) => handleBusinessChange('country', e.target.value)}
-                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.country ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                          placeholder="United States"
+                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.country ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
+                          placeholder="e.g., United States"
                         />
-                        {businessErrors.country && (
-                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.country}</span>
+                        {businessErrors.country ? (
+                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
+                            <span className="flex-1">{businessErrors.country}</span>
                           </p>
+                        ) : (
+                          <p className="mt-1 text-xs text-slate-500">Country name</p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                          Phone <span className="text-[var(--color-orange)]">*</span>
+                        <label className="block text-sm font-semibold text-slate-900 mb-2">
+                          Phone <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="tel"
                           value={newBusiness.phone}
                           onChange={(e) => handleBusinessChange('phone', e.target.value)}
-                          className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] ${businessErrors.phone ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                          placeholder="(555) 123-4567"
+                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.phone ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
+                          placeholder="e.g., (555) 123-4567"
                         />
-                        {businessErrors.phone && (
-                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.phone}</span>
+                        {businessErrors.phone ? (
+                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
+                            <span className="flex-1">{businessErrors.phone}</span>
                           </p>
+                        ) : (
+                          <p className="mt-1 text-xs text-slate-500">Business phone number</p>
                         )}
                       </div>
                       {/* Signing Authority Section */}
-                      <div className="md:col-span-2 border-t border-[var(--color-border)] pt-4 mt-2">
-                        <div className="flex items-center gap-2 mb-4">
-                          <h3 className="text-base font-semibold text-[var(--color-text)]">Signing Authority</h3>
-                          <div className="group relative">
-                            <Info className="w-4 h-4 text-[var(--color-muted)] cursor-help" />
-                            <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
-                              The person authorized to sign Form 2290 on behalf of the business. This person must have the legal authority to sign tax returns.
+                      <div className="md:col-span-2 border-t-2 border-slate-200 pt-6 mt-4">
+                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 rounded-lg px-4 py-3 mb-5">
+                          <div className="flex items-center gap-2 mb-1">
+                            <ShieldCheck className="w-5 h-5 text-purple-600" />
+                            <h3 className="text-base font-bold text-slate-900">Signing Authority</h3>
+                            <div className="group relative">
+                              <Info className="w-4 h-4 text-slate-400 hover:text-purple-600 cursor-help transition-colors" />
+                              <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-slate-900 text-white text-xs rounded-lg shadow-xl hidden group-hover:block z-10">
+                                The person authorized to sign Form 2290 on behalf of the business. This person must have the legal authority to sign tax returns.
+                              </div>
                             </div>
                           </div>
+                          <p className="text-xs text-slate-600">Person authorized to sign tax forms on behalf of your business</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
                           <div>
-                            <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                              Name <span className="text-[var(--color-orange)]">*</span>
+                            <label className="block text-sm font-semibold text-slate-900 mb-2">
+                              Name <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
                               value={newBusiness.signingAuthorityName}
                               onChange={(e) => handleBusinessChange('signingAuthorityName', e.target.value)}
-                              className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation ${businessErrors.signingAuthorityName ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                              placeholder="John Doe"
+                              className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.signingAuthorityName ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
+                              placeholder="e.g., John Doe"
                             />
-                            {businessErrors.signingAuthorityName && (
-                              <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityName}</span>
+                            {businessErrors.signingAuthorityName ? (
+                              <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
+                                <span className="flex-1">{businessErrors.signingAuthorityName}</span>
                               </p>
+                            ) : (
+                              <p className="mt-1 text-xs text-slate-500">Full name of authorized signer</p>
                             )}
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                              Phone <span className="text-[var(--color-orange)]">*</span>
+                            <label className="block text-sm font-semibold text-slate-900 mb-2">
+                              Phone <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="tel"
                               value={newBusiness.signingAuthorityPhone}
                               onChange={(e) => handleBusinessChange('signingAuthorityPhone', e.target.value)}
-                              className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation ${businessErrors.signingAuthorityPhone ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                              placeholder="(555) 123-4567"
+                              className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.signingAuthorityPhone ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
+                              placeholder="e.g., (555) 123-4567"
                             />
-                            {businessErrors.signingAuthorityPhone && (
-                              <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityPhone}</span>
+                            {businessErrors.signingAuthorityPhone ? (
+                              <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
+                                <span className="flex-1">{businessErrors.signingAuthorityPhone}</span>
                               </p>
+                            ) : (
+                              <p className="mt-1 text-xs text-slate-500">Contact phone number</p>
                             )}
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                              PIN <span className="text-[var(--color-orange)]">*</span>
+                            <label className="block text-sm font-semibold text-slate-900 mb-2">
+                              PIN <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
                               value={newBusiness.signingAuthorityPIN}
                               onChange={(e) => handleBusinessChange('signingAuthorityPIN', e.target.value)}
-                              className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono touch-manipulation ${businessErrors.signingAuthorityPIN ? 'border-red-500' : 'border-[var(--color-border)]'}`}
-                              placeholder="12345"
+                              className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal font-mono ${businessErrors.signingAuthorityPIN ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
+                              placeholder="e.g., 12345"
                               maxLength="5"
                             />
-                            {businessErrors.signingAuthorityPIN && (
-                              <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityPIN}</span>
+                            {businessErrors.signingAuthorityPIN ? (
+                              <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
+                                <span className="flex-1">{businessErrors.signingAuthorityPIN}</span>
                               </p>
+                            ) : (
+                              <p className="mt-1 text-xs text-slate-500">5-digit PIN for IRS verification</p>
                             )}
                           </div>
                         </div>
+                      </div>
 
                         {/* Third Party Designee */}
-                        <div className="mt-4">
-                          <div className="flex items-center gap-2 mb-3">
-                            <label className="block text-sm font-medium text-[var(--color-text)]">
+                        <div className="md:col-span-2 mt-6 pt-6 border-t-2 border-slate-200">
+                          <div className="flex items-center gap-2 mb-4">
+                            <label className="block text-sm font-semibold text-slate-900">
                               Third Party Designee
                             </label>
                             <div className="group relative">
-                              <Info className="w-4 h-4 text-[var(--color-muted)] cursor-help" />
-                              <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
+                              <Info className="w-4 h-4 text-slate-400 hover:text-blue-600 cursor-help transition-colors" />
+                              <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-slate-900 text-white text-xs rounded-lg shadow-xl hidden group-hover:block z-10">
                                 A third party designee is someone you authorize to discuss your Form 2290 with the IRS. This is optional.
                               </div>
                             </div>
+                            <span className="text-xs text-slate-500 font-normal">(Optional)</span>
                           </div>
                           <div className="flex items-center gap-3">
                             <button
@@ -3245,102 +3326,123 @@ function NewFilingContent() {
                           </div>
 
                           {newBusiness.hasThirdPartyDesignee && (
-                            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 shadow-sm">
                               <div>
-                                <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                                  Name <span className="text-[var(--color-orange)]">*</span>
+                                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                                  Name <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                   type="text"
                                   value={newBusiness.thirdPartyDesigneeName}
                                   onChange={(e) => handleBusinessChange('thirdPartyDesigneeName', e.target.value)}
-                                  className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation ${businessErrors.thirdPartyDesigneeName ? 'border-red-500' : 'border-blue-300'}`}
-                                  placeholder="Jane Smith"
+                                  className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.thirdPartyDesigneeName ? 'border-red-500 bg-red-50' : 'border-blue-300 hover:border-blue-400'}`}
+                                  placeholder="e.g., Jane Smith"
                                 />
-                                {businessErrors.thirdPartyDesigneeName && (
-                                  <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneeName}</span>
+                                {businessErrors.thirdPartyDesigneeName ? (
+                                  <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
+                                    <span className="flex-1">{businessErrors.thirdPartyDesigneeName}</span>
                                   </p>
+                                ) : (
+                                  <p className="mt-1 text-xs text-slate-500">Designee's full name</p>
                                 )}
                               </div>
                               <div>
-                                <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                                  Phone <span className="text-[var(--color-orange)]">*</span>
+                                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                                  Phone <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                   type="tel"
                                   value={newBusiness.thirdPartyDesigneePhone}
                                   onChange={(e) => handleBusinessChange('thirdPartyDesigneePhone', e.target.value)}
-                                  className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation ${businessErrors.thirdPartyDesigneePhone ? 'border-red-500' : 'border-blue-300'}`}
-                                  placeholder="(555) 123-4567"
+                                  className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.thirdPartyDesigneePhone ? 'border-red-500 bg-red-50' : 'border-blue-300 hover:border-blue-400'}`}
+                                  placeholder="e.g., (555) 123-4567"
                                 />
-                                {businessErrors.thirdPartyDesigneePhone && (
-                                  <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneePhone}</span>
+                                {businessErrors.thirdPartyDesigneePhone ? (
+                                  <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
+                                    <span className="flex-1">{businessErrors.thirdPartyDesigneePhone}</span>
                                   </p>
+                                ) : (
+                                  <p className="mt-1 text-xs text-slate-500">Designee's phone number</p>
                                 )}
                               </div>
                               <div>
-                                <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                                  PIN <span className="text-[var(--color-orange)]">*</span>
+                                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                                  PIN <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                   type="text"
                                   value={newBusiness.thirdPartyDesigneePIN}
                                   onChange={(e) => handleBusinessChange('thirdPartyDesigneePIN', e.target.value)}
-                                  className={`w-full px-4 py-3 text-base border rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono touch-manipulation ${businessErrors.thirdPartyDesigneePIN ? 'border-red-500' : 'border-blue-300'}`}
-                                  placeholder="12345"
+                                  className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal font-mono ${businessErrors.thirdPartyDesigneePIN ? 'border-red-500 bg-red-50' : 'border-blue-300 hover:border-blue-400'}`}
+                                  placeholder="e.g., 12345"
                                   maxLength="5"
                                 />
-                                {businessErrors.thirdPartyDesigneePIN && (
-                                  <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneePIN}</span>
+                                {businessErrors.thirdPartyDesigneePIN ? (
+                                  <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
+                                    <span className="flex-1">{businessErrors.thirdPartyDesigneePIN}</span>
                                   </p>
+                                ) : (
+                                  <p className="mt-1 text-xs text-slate-500">5-digit PIN</p>
                                 )}
                               </div>
                             </div>
                           )}
                         </div>
                       </div>
-                      <button
-                        onClick={async () => {
-                          // Run validations first
-                          const nameVal = validateBusinessName(newBusiness.businessName);
-                          const einVal = validateEIN(newBusiness.ein);
-                          const addrVal = validateAddress(newBusiness.address, true); // Required
-                          const phoneVal = validatePhone(newBusiness.phone, true); // Required
+                      <div className="md:col-span-2 pt-4 border-t-2 border-slate-200 mt-4">
+                        <button
+                          onClick={async () => {
+                            // Run validations first
+                            const nameVal = validateBusinessName(newBusiness.businessName);
+                            const einVal = validateEIN(newBusiness.ein);
+                            const addrVal = validateAddress(newBusiness.address, true); // Required
+                            const phoneVal = validatePhone(newBusiness.phone, true); // Required
 
-                          if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !phoneVal.isValid) {
-                            setBusinessErrors({
-                              businessName: nameVal.error,
-                              ein: einVal.error,
-                              address: addrVal.error,
-                              phone: phoneVal.error
-                            });
-                            // Create a detailed error message listing all issues
-                            const errorFields = [];
-                            if (!nameVal.isValid) errorFields.push('Business Name');
-                            if (!einVal.isValid) errorFields.push('EIN');
-                            if (!addrVal.isValid) errorFields.push('Business Address');
-                            if (!phoneVal.isValid) errorFields.push('Phone Number');
+                            if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !phoneVal.isValid) {
+                              setBusinessErrors({
+                                businessName: nameVal.error,
+                                ein: einVal.error,
+                                address: addrVal.error,
+                                phone: phoneVal.error
+                              });
+                              // Create a detailed error message listing all issues
+                              const errorFields = [];
+                              if (!nameVal.isValid) errorFields.push('Business Name');
+                              if (!einVal.isValid) errorFields.push('EIN');
+                              if (!addrVal.isValid) errorFields.push('Business Address');
+                              if (!phoneVal.isValid) errorFields.push('Phone Number');
 
-                            setError(`Please correct the following required fields before saving: ${errorFields.join(', ')}. All fields marked with an asterisk (*) are required.`);
-                            // Keep form visible - don't hide it
-                            return;
-                          }
+                              setError(`Please correct the following required fields before saving: ${errorFields.join(', ')}. All fields marked with an asterisk (*) are required.`);
+                              // Keep form visible - don't hide it
+                              return;
+                            }
 
-                          // If validation passes, proceed with adding business
-                          const success = await handleAddBusiness();
-                          // Only hide form if business was successfully created
-                          if (success) {
-                            setShowBusinessForm(false);
-                          }
-                        }}
-                        disabled={loading}
-                        className="w-full md:col-span-2 bg-[#ff8b3d] text-white py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition disabled:opacity-50 mt-2 sm:mt-4 shadow-sm touch-manipulation"
-                      >
-                        {loading ? 'Adding...' : 'Save & Add Business'}
-                      </button>
+                            // If validation passes, proceed with adding business
+                            const success = await handleAddBusiness();
+                            // Only hide form if business was successfully created
+                            if (success) {
+                              setShowBusinessForm(false);
+                            }
+                          }}
+                          disabled={loading}
+                          className="w-full bg-gradient-to-r from-[var(--color-orange)] to-orange-600 text-white py-3.5 sm:py-4 rounded-xl text-sm sm:text-base font-bold hover:from-orange-600 hover:to-[var(--color-orange)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl touch-manipulation flex items-center justify-center gap-2"
+                        >
+                          {loading ? (
+                            <>
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                              <span>Saving Business...</span>
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="w-5 h-5" />
+                              <span>Save & Add Business</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -5057,6 +5159,169 @@ function NewFilingContent() {
           title="Add New Vehicle"
           externalErrors={vehicleErrors}
         />
+
+        {/* Draft Warning Modal */}
+        {showDraftWarningModal && existingDraft && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                      <AlertCircle className="w-6 h-6 text-amber-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-slate-900">Draft Filing Found</h2>
+                      <p className="text-sm text-slate-600">You have an incomplete filing in progress</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowDraftWarningModal(false)}
+                    className="text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {/* Draft Details */}
+                <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                  <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Draft Filing Details
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-slate-500">Filing Type:</span>
+                      <span className="ml-2 font-medium text-slate-900">
+                        {existingDraft.filingType === 'amendment' 
+                          ? existingDraft.amendmentType === 'vin_correction' ? 'VIN Correction Amendment'
+                          : existingDraft.amendmentType === 'weight_increase' ? 'Weight Increase Amendment'
+                          : existingDraft.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded Amendment'
+                          : 'Amendment'
+                          : existingDraft.filingType === 'refund' ? 'Refund (8849)'
+                          : 'Form 2290'}
+                      </span>
+                    </div>
+                    
+                    {existingDraft.filingData?.taxYear && (
+                      <div>
+                        <span className="text-slate-500">Tax Year:</span>
+                        <span className="ml-2 font-medium text-slate-900">{existingDraft.filingData.taxYear}</span>
+                      </div>
+                    )}
+                    
+                    {existingDraft.selectedBusinessId && (
+                      <div className="md:col-span-2">
+                        <span className="text-slate-500">Business:</span>
+                        <span className="ml-2 font-medium text-slate-900">
+                          {businesses.find(b => b.id === existingDraft.selectedBusinessId)?.businessName || 'Loading...'}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {existingDraft.selectedVehicleIds && existingDraft.selectedVehicleIds.length > 0 && (
+                      <div className="md:col-span-2">
+                        <span className="text-slate-500">Vehicles:</span>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {existingDraft.selectedVehicleIds.slice(0, 5).map((vehicleId, idx) => {
+                            const vehicle = vehicles.find(v => v.id === vehicleId);
+                            return (
+                              <span key={idx} className="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-mono border border-blue-200">
+                                {vehicle?.vin || vehicleId?.slice(-8) || 'Loading...'}
+                              </span>
+                            );
+                          })}
+                          {existingDraft.selectedVehicleIds.length > 5 && (
+                            <span className="text-xs text-slate-500">+{existingDraft.selectedVehicleIds.length - 5} more</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {existingDraft.step && (
+                      <div>
+                        <span className="text-slate-500">Current Step:</span>
+                        <span className="ml-2 font-medium text-slate-900">
+                          Step {existingDraft.step === 4 ? 4 : existingDraft.step > 4 ? existingDraft.step - 1 : existingDraft.step} of 5
+                        </span>
+                      </div>
+                    )}
+                    
+                    {existingDraft.updatedAt && (
+                      <div>
+                        <span className="text-slate-500">Last Updated:</span>
+                        <span className="ml-2 font-medium text-slate-900">
+                          {existingDraft.updatedAt instanceof Date 
+                            ? existingDraft.updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                            : new Date(existingDraft.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {existingDraft.pricing?.grandTotal > 0 && (
+                      <div className="md:col-span-2">
+                        <span className="text-slate-500">Estimated Total:</span>
+                        <span className="ml-2 font-bold text-lg text-slate-900">
+                          ${existingDraft.pricing.grandTotal.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Warning Message */}
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm text-amber-800 font-medium">
+                        If you start a new filing, this draft will be deleted. You can continue with this draft or start fresh.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-slate-200 flex flex-col sm:flex-row gap-3 justify-end">
+                <button
+                  onClick={async () => {
+                    // Delete draft and start new
+                    try {
+                      await deleteDraftFiling(existingDraft.id);
+                      setShowDraftWarningModal(false);
+                      setExistingDraft(null);
+                      // Reset form state
+                      setDraftId(null);
+                      setStep(1);
+                      setFilingType('standard');
+                      setSelectedBusinessId('');
+                      setSelectedVehicleIds([]);
+                      setAmendmentType('');
+                    } catch (error) {
+                      console.error('Error deleting draft:', error);
+                      setError('Failed to delete draft. Please try again.');
+                    }
+                  }}
+                  className="px-6 py-3 bg-white border-2 border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 hover:border-slate-400 transition-colors"
+                >
+                  Start New Filing
+                </button>
+                <button
+                  onClick={() => {
+                    // Continue with draft
+                    router.push(`/dashboard/new-filing?draft=${existingDraft.id}`);
+                  }}
+                  className="px-6 py-3 bg-gradient-to-r from-[var(--color-orange)] to-orange-600 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-[var(--color-orange)] transition-all shadow-lg hover:shadow-xl"
+                >
+                  Continue Draft
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ProtectedRoute>
   );
