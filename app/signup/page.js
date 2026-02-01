@@ -3,7 +3,24 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
+import { 
+  Mail, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  ArrowRight, 
+  ShieldCheck, 
+  Users, 
+  Zap, 
+  Award,
+  Star,
+  CheckCircle2,
+  FileCheck,
+  Clock,
+  DollarSign
+} from 'lucide-react';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -24,8 +41,8 @@ export default function SignupPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-navy)]"></div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-slate-300 border-t-slate-900"></div>
       </div>
     );
   }
@@ -75,101 +92,113 @@ export default function SignupPage() {
 
   const benefits = [
     {
-      icon: '🚛',
-      title: 'Expert Tax Filing',
-      description: 'Get your Form 2290 filed by certified tax professionals—no stress, no mistakes.'
+      icon: Users,
+      title: 'Expert Team Review',
+      description: 'Our tax professionals handle your Form 2290 filing from start to finish.'
     },
     {
-      icon: '⚡',
-      title: '24-Hour Turnaround',
-      description: 'Submit your filing request and receive your Schedule 1 within 24 hours.'
+      icon: Clock,
+      title: 'Fast Processing',
+      description: 'Get your Schedule 1 typically within 24 hours, often much faster.'
     },
     {
-      icon: '📊',
-      title: 'Complete Compliance',
-      description: 'Manage HVUT, UCR, MCS-150, and IFTA all in one place with deadline reminders.'
+      icon: ShieldCheck,
+      title: '100% Accuracy',
+      description: 'We catch errors before submission and offer free corrections if needed.'
     },
     {
-      icon: '💰',
-      title: 'Save Time & Money',
-      description: 'Avoid penalties and late fees with timely filings and expert guidance.'
+      icon: DollarSign,
+      title: 'Transparent Pricing',
+      description: 'Flat $34.99 fee with no hidden charges. Free VIN corrections included.'
     }
   ];
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Left Panel - Marketing */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] text-white p-10 xl:p-12 flex-col justify-between relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--color-orange)]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[var(--color-sky)]/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
-        
-        <div className="relative z-10">
-          <div className="mb-12">
-            <h1 className="text-4xl font-bold mb-2 tracking-tight">QuickTruckTax</h1>
-            <p className="text-white/80 text-lg sm:text-xl">Form 2290 Filing Made Simple</p>
-          </div>
-
-          <div className="mb-12">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl xl:text-[4.25rem] font-bold mb-4 leading-[1.1] tracking-tight">
-              Start Your <span className="text-[var(--color-amber)]">Compliant</span> Journey
-            </h2>
-            <p className="text-lg sm:text-xl lg:text-[1.375rem] text-white/90 leading-relaxed">
-              Join thousands of trucking professionals who trust QuickTruckTax for expert Form 2290 filing and compliance management.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 mb-12">
-            {benefits.map((benefit, index) => (
-              <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                <div className="text-3xl mb-2">{benefit.icon}</div>
-                <h3 className="text-lg font-semibold mb-1">{benefit.title}</h3>
-                <p className="text-white/80 text-sm">{benefit.description}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-[var(--color-amber)] text-xl">★</span>
-                ))}
-              </div>
-              <span className="text-2xl font-bold">4.9/5</span>
-              <span className="text-white/70">(2,500+ reviews)</span>
-            </div>
-            <p className="text-white/90 italic mb-2">
-              "I've been using QuickTruckTax for 3 years. Their service is fast, reliable, and saves me hours every filing season."
-            </p>
-            <p className="text-white/70 text-sm">— Sarah Martinez, Fleet Manager</p>
-          </div>
+    <div className="min-h-screen flex flex-col lg:flex-row bg-white">
+      {/* Left Panel - Professional Marketing */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] text-white relative overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <Image
+            src="/hero-truck-sunset.png"
+            alt="Truck on highway"
+            fill
+            className="object-cover opacity-5"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-midnight)]/90 to-transparent" />
         </div>
+        
+        <div className="relative z-10 p-10 xl:p-12 flex flex-col justify-between w-full">
+          <div>
+            <div className="mb-12">
+              <h1 className="text-3xl font-bold mb-2 tracking-tight">QuickTruckTax</h1>
+              <p className="text-white/70 text-base font-light">Expert Form 2290 Filing Service</p>
+            </div>
 
-        <div className="relative z-10 bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] rounded-2xl p-6 shadow-xl">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl">✨</span>
-            <h3 className="text-xl font-bold">Join 10,000+ Success Stories</h3>
+            <div className="mb-12">
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-[1.1] tracking-tight">
+                Start Your <span className="text-[var(--color-orange)]">Compliant</span> Journey
+              </h2>
+              <p className="text-lg sm:text-xl text-white/80 leading-relaxed font-light max-w-lg">
+                Join thousands of trucking professionals who trust QuickTruckTax for expert Form 2290 filing and compliance management.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-12">
+              {benefits.map((benefit, index) => {
+                const Icon = benefit.icon;
+                return (
+                  <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
+                    <div className="w-10 h-10 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center mb-3">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-base font-semibold mb-1.5 tracking-tight">{benefit.title}</h3>
+                    <p className="text-white/70 text-xs leading-relaxed font-light">{benefit.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="flex items-center gap-2 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                ))}
+                <span className="ml-2 text-xl font-bold">4.9/5</span>
+                <span className="text-white/60 text-sm font-light">(10,000+ reviews)</span>
+              </div>
+              <p className="text-white/90 italic mb-2 text-sm leading-relaxed">
+                "I've been using QuickTruckTax for 3 years. Their service is fast, reliable, and saves me hours every filing season."
+              </p>
+              <p className="text-white/60 text-xs">— Sarah Martinez, Fleet Manager</p>
+            </div>
           </div>
-          <p className="text-white/90">Get started in minutes. File your first Form 2290 today and experience the difference.</p>
+
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+            <div className="flex items-center gap-3 mb-2">
+              <Award className="w-6 h-6 text-[var(--color-orange)]" />
+              <h3 className="text-lg font-bold">Join 10,000+ Success Stories</h3>
+            </div>
+            <p className="text-white/80 text-sm font-light">Get started in minutes. File your first Form 2290 today and experience the difference.</p>
+          </div>
         </div>
       </div>
 
       {/* Right Panel - Signup Form */}
-      <div className="w-full lg:w-1/2 bg-gradient-to-br from-white via-[var(--color-page)] to-white flex flex-col p-4 sm:p-6 lg:p-10 xl:p-12">
+      <div className="w-full lg:w-1/2 bg-white flex flex-col p-6 sm:p-8 lg:p-12 xl:p-16">
         <div className="w-full max-w-md mx-auto flex-1 flex flex-col justify-center">
-          <div className="mb-6 sm:mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold text-[var(--color-text)] mb-2">Create Your Account</h1>
-            <p className="text-sm sm:text-base text-[var(--color-muted)]">
+          <div className="mb-8">
+            <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3 tracking-tight">Create Your Account</h1>
+            <p className="text-sm sm:text-base text-slate-600 font-light">
               Already have an account?{' '}
-              <Link href="/login" className="text-[var(--color-navy)] font-semibold hover:text-[var(--color-orange)] transition">
+              <Link href="/login" className="text-[var(--color-navy)] font-semibold hover:text-[var(--color-orange)] transition-colors">
                 Sign in here
               </Link>
             </p>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
               {error}
             </div>
           )}
@@ -177,7 +206,7 @@ export default function SignupPage() {
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 border-2 border-[var(--color-border)] bg-white py-3.5 sm:py-4 rounded-xl font-semibold text-[var(--color-text)] hover:bg-[var(--color-page-alt)] active:scale-95 transition disabled:opacity-50 mb-6 shadow-sm touch-manipulation min-h-[48px] sm:min-h-[52px]"
+            className="w-full flex items-center justify-center gap-3 border-2 border-slate-200 bg-white py-3.5 rounded-xl font-semibold text-slate-900 hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed mb-6 shadow-sm min-h-[52px]"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -190,23 +219,21 @@ export default function SignupPage() {
 
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[var(--color-border)]"></div>
+              <div className="w-full border-t border-slate-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-[var(--color-muted)]">Or sign up with email</span>
+              <span className="px-4 bg-white text-slate-500 font-light">Or sign up with email</span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-[var(--color-text)] mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-slate-900 mb-2">
                 Email Address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="w-5 h-5 text-[var(--color-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
+                  <Mail className="w-5 h-5 text-slate-400" />
                 </div>
                 <input
                   id="email"
@@ -215,21 +242,19 @@ export default function SignupPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 sm:py-4 border-2 border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)] transition text-base"
+                  className="w-full pl-12 pr-4 py-3.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)] transition text-base bg-white"
                   placeholder="Enter your email address"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-[var(--color-text)] mb-2">
+              <label htmlFor="password" className="block text-sm font-semibold text-slate-900 mb-2">
                 Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="w-5 h-5 text-[var(--color-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
+                  <Lock className="w-5 h-5 text-slate-400" />
                 </div>
                 <input
                   id="password"
@@ -238,38 +263,31 @@ export default function SignupPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3.5 sm:py-4 border-2 border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)] transition text-base"
+                  className="w-full pl-12 pr-12 py-3.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)] transition text-base bg-white"
                   placeholder="Enter your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
+                    <EyeOff className="w-5 h-5" />
                   ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
+                    <Eye className="w-5 h-5" />
                   )}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-[var(--color-muted)]">Must be at least 6 characters</p>
+              <p className="mt-1.5 text-xs text-slate-500 font-light">Must be at least 6 characters</p>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-[var(--color-text)] mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-slate-900 mb-2">
                 Confirm Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="w-5 h-5 text-[var(--color-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <CheckCircle2 className="w-5 h-5 text-slate-400" />
                 </div>
                 <input
                   id="confirmPassword"
@@ -278,23 +296,18 @@ export default function SignupPage() {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3.5 sm:py-4 border-2 border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)] transition text-base"
+                  className="w-full pl-12 pr-12 py-3.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)] transition text-base bg-white"
                   placeholder="Confirm your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   {showConfirmPassword ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
+                    <EyeOff className="w-5 h-5" />
                   ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
+                    <Eye className="w-5 h-5" />
                   )}
                 </button>
               </div>
@@ -303,49 +316,50 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-navy-soft)] text-white py-3.5 sm:py-4 rounded-xl font-semibold hover:shadow-lg active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation min-h-[48px] sm:min-h-[52px]"
+              className="w-full bg-[var(--color-navy)] text-white py-3.5 rounded-xl font-semibold hover:bg-[var(--color-navy-soft)] active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[var(--color-navy)]/20 min-h-[52px]"
             >
-              {loading ? 'Creating account...' : 'Create Your Free Account'}
-              {!loading && (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  <span>Creating account...</span>
+                </>
+              ) : (
+                <>
+                  Create Your Free Account
+                  <ArrowRight className="w-5 h-5" />
+                </>
               )}
             </button>
           </form>
 
-          <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-            <div className="flex flex-col items-center">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mb-2">
-                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
+          <div className="mt-8 pt-8 border-t border-slate-200">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="flex flex-col items-center">
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                  <ShieldCheck className="w-5 h-5 text-slate-700" />
+                </div>
+                <span className="text-xs font-medium text-slate-600">Secure</span>
               </div>
-              <span className="text-xs font-medium text-[var(--color-text)]">Secure Signup</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
+              <div className="flex flex-col items-center">
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                  <Lock className="w-5 h-5 text-slate-700" />
+                </div>
+                <span className="text-xs font-medium text-slate-600">Private</span>
               </div>
-              <span className="text-xs font-medium text-[var(--color-text)]">Privacy Protected</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mb-2">
-                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+              <div className="flex flex-col items-center">
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                  <CheckCircle2 className="w-5 h-5 text-slate-700" />
+                </div>
+                <span className="text-xs font-medium text-slate-600">Free to Start</span>
               </div>
-              <span className="text-xs font-medium text-[var(--color-text)]">Free to Start</span>
             </div>
           </div>
 
-          <p className="mt-6 text-xs text-center text-[var(--color-muted)]">
+          <p className="mt-6 text-xs text-center text-slate-500 font-light">
             By creating an account, you agree to our{' '}
-            <Link href="#" className="text-[var(--color-navy)] hover:underline">Terms of Service</Link>
+            <Link href="/terms" className="text-[var(--color-navy)] hover:underline font-medium">Terms of Service</Link>
             {' '}and{' '}
-            <Link href="#" className="text-[var(--color-navy)] hover:underline">Privacy Policy</Link>
+            <Link href="/privacy" className="text-[var(--color-navy)] hover:underline font-medium">Privacy Policy</Link>
           </p>
         </div>
       </div>

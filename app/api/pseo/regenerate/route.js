@@ -21,7 +21,15 @@ if (!getApps().length) {
 }
 
 const db = getFirestore();
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+
+// Lazy initialization of Gemini AI to avoid build-time errors
+function getGenAI() {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    if (!apiKey) {
+        throw new Error('GEMINI_API_KEY not configured');
+    }
+    return new GoogleGenerativeAI(apiKey);
+}
 
 /**
  * POST /api/pseo/regenerate
@@ -90,6 +98,7 @@ export async function GET(request) {
 }
 
 async function generateContent(slug, type, context, fixIssues = null) {
+    const genAI = getGenAI();
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     // Build topic from slug

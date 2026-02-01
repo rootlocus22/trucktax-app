@@ -3,8 +3,18 @@ import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+// Lazy initialization to avoid build-time errors
+function getStripe() {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+        throw new Error('STRIPE_SECRET_KEY not configured');
+    }
+    return new Stripe(secretKey);
+}
+
+function getWebhookSecret() {
+    return process.env.STRIPE_WEBHOOK_SECRET;
+}
 
 export async function POST(req) {
     const body = await req.text();
@@ -13,10 +23,12 @@ export async function POST(req) {
     let event;
 
     try {
+        const webhookSecret = getWebhookSecret();
         if (!webhookSecret) {
             console.warn('STRIPE_WEBHOOK_SECRET is not set. Skipping signature verification (DEVELOPMENT ONLY).');
             event = JSON.parse(body);
         } else {
+            const stripe = getStripe();
             event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
         }
     } catch (err) {
