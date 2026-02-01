@@ -535,856 +535,856 @@ export default function VehiclesPage() {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Professional Header */}
         <div className="bg-white border-b border-slate-200 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-6 mb-8">
-          <div className="max-w-7xl mx-auto">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors text-sm font-medium"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Dashboard
-            </Link>
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-center sm:text-left">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-1">
-                  Vehicles
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-xl bg-[#173b63] flex items-center justify-center text-white shadow-lg shadow-slate-900/20">
+                  <Truck className="w-5 h-5" />
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                  Fleet Management
                 </h1>
-                <p className="text-sm text-slate-600 font-light">
-                  Manage your vehicle fleet details, weight categories, and filing information
-                </p>
               </div>
+              <p className="text-sm text-slate-500 font-medium">
+                Control your vehicle fleet, weights, and compliance status
+              </p>
+            </div>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept=".csv"
-                  className="hidden"
-                />
-                <button
-                  onClick={() => {
-                    if (businesses.length === 0) {
-                      setUploadError('Please create a business first before importing vehicles.');
-                      return;
-                    }
-                    setShowCsvBusinessModal(true);
-                  }}
-                  disabled={uploading || businesses.length === 0}
-                  className="inline-flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 sm:px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all shadow-sm disabled:opacity-50"
-                >
-                  {uploading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="hidden sm:inline">Importing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-4 h-4" />
-                      <span className="hidden sm:inline">Import CSV</span>
-                      <span className="sm:hidden">Import</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-4 sm:px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-hover)] hover:shadow-lg active:scale-95 transition-all duration-200 shadow-md"
-                >
-                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="hidden sm:inline">Add Vehicle</span>
-                  <span className="sm:hidden">Add</span>
-                </button>
-              </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept=".csv"
+                className="hidden"
+              />
+              <button
+                onClick={() => {
+                  if (businesses.length === 0) {
+                    setUploadError('Please create a business first before importing vehicles.');
+                    return;
+                  }
+                  setShowCsvBusinessModal(true);
+                }}
+                disabled={uploading || businesses.length === 0}
+                className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white border-2 border-slate-200 text-slate-700 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95 disabled:opacity-50"
+              >
+                {uploading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4" />
+                )}
+                Import CSV
+              </button>
+
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#14b8a6] text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#0d9488] transition-all shadow-xl shadow-teal-500/20 active:scale-95"
+              >
+                <Plus className="w-4 h-4" strokeWidth={3} />
+                Add Vehicle
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Alerts */}
-        {uploadError && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between text-red-700 animate-in fade-in slide-in-from-top-2">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5" />
-              <span className="font-medium">{uploadError}</span>
-            </div>
-            <button onClick={() => setUploadError('')} className="p-1 hover:bg-red-100 rounded-lg transition-colors">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+        <div className="max-w-7xl mx-auto">
+          {/* Fleet Summary Banner */}
+          <div className="bg-[#173b63] rounded-[2rem] p-6 shadow-xl shadow-slate-900/10 border border-white/10 relative overflow-hidden group mb-8">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl transition-transform group-hover:scale-110"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#14b8a6]/10 rounded-full -ml-24 -mb-24 blur-3xl transition-transform group-hover:scale-110"></div>
 
-        {uploadSuccess && (
-          <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-emerald-700 animate-in fade-in slide-in-from-top-2">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5" />
-              <span className="font-medium">{uploadSuccess}</span>
-            </div>
-            <button onClick={() => setUploadSuccess('')} className="p-1 hover:bg-emerald-100 rounded-lg transition-colors">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {/* Search and Filter Bar */}
-        {vehicles.length > 0 && (
-          <div className="mb-6 flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search by VIN..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
-              />
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setFilterStatus('all')}
-                className={`px-4 py-3 rounded-xl font-semibold text-sm transition-all ${filterStatus === 'all'
-                  ? 'bg-[var(--color-orange)] text-white shadow-md'
-                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                  }`}
-              >
-                All ({vehicles.length})
-              </button>
-              <button
-                onClick={() => setFilterStatus('active')}
-                className={`px-4 py-3 rounded-xl font-semibold text-sm transition-all ${filterStatus === 'active'
-                  ? 'bg-emerald-500 text-white shadow-md'
-                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                  }`}
-              >
-                Active ({vehicles.filter(v => v.vehicleType === 'taxable' || v.vehicleType === 'credit').length})
-              </button>
-              <button
-                onClick={() => setFilterStatus('suspended')}
-                className={`px-4 py-3 rounded-xl font-semibold text-sm transition-all ${filterStatus === 'suspended'
-                  ? 'bg-amber-500 text-white shadow-md'
-                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                  }`}
-              >
-                Suspended ({vehicles.filter(v => v.vehicleType === 'suspended' || v.vehicleType === 'priorYearSold').length})
-              </button>
-            </div>
-          </div>
-        )}
-
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-24">
-            <div className="w-12 h-12 border-4 border-[var(--color-orange)]/30 border-t-[var(--color-orange)] rounded-full animate-spin mb-4"></div>
-            <p className="text-slate-500 font-medium">Loading vehicles...</p>
-          </div>
-        ) : filteredVehicles.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-4 bg-white border border-dashed border-slate-200 rounded-3xl">
-            <div className="relative mb-8 group">
-              <div className="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity"></div>
-              <div className="relative bg-gradient-to-br from-white to-blue-50 p-8 rounded-[2rem] border border-blue-100 shadow-xl transform group-hover:scale-105 transition-transform duration-300">
-                <Truck className="w-20 h-20 text-blue-600" strokeWidth={1.5} />
-                <div className="absolute -bottom-3 -right-3 bg-white p-3 rounded-2xl shadow-lg border border-blue-50">
-                  <Plus className="w-6 h-6 text-blue-600" strokeWidth={3} />
+            <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-[#ff8b3d] to-[#f07a2d] flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-orange-500/20">
+                  <Truck className="w-8 h-8" />
                 </div>
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-3">
-              {searchQuery || filterStatus !== 'all' ? 'No vehicles match your filters' : 'No Vehicles Yet'}
-            </h2>
-            <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">
-              {searchQuery || filterStatus !== 'all'
-                ? 'Try adjusting your search or filter criteria.'
-                : 'Add your vehicle information to streamline your future filings. You can also import multiple vehicles via CSV.'}
-            </p>
-            {(!searchQuery && filterStatus === 'all') && (
-              <div className="flex flex-col sm:flex-row gap-4 mt-6">
-                <button
-                  onClick={() => {
-                    if (businesses.length === 0) {
-                      setUploadError('Please create a business first before importing vehicles.');
-                      return;
-                    }
-                    setShowCsvBusinessModal(true);
-                  }}
-                  disabled={businesses.length === 0}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-700 font-bold text-sm border-2 border-slate-200 rounded-xl hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Upload className="w-4 h-4" />
-                  Import CSV
-                </button>
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-hover)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
-                >
-                  Add Your First Vehicle
-                  <ArrowLeft className="w-4 h-4 rotate-180" />
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm" style={{ overflow: 'visible' }}>
-            {/* Modern Table Header - Hidden on mobile */}
-            <div className="hidden lg:block sticky top-0 z-10 bg-white border-b border-slate-200 backdrop-blur-sm bg-white/95">
-              <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gradient-to-r from-slate-50/80 via-white to-slate-50/80">
-                <div className="col-span-3">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Vehicle</span>
-                </div>
-                <div className="col-span-2">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</span>
-                </div>
-                <div className="col-span-2">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Details</span>
-                </div>
-                <div className="col-span-2">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Weight</span>
-                </div>
-                <div className="col-span-1">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Added</span>
-                </div>
-                <div className="col-span-2 text-right">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Modern Table Body */}
-            <div className="divide-y divide-slate-100 relative" style={{ overflow: 'visible' }}>
-              {filteredVehicles.map((vehicle, index) => (
-                <div
-                  key={vehicle.id}
-                  className="group grid grid-cols-1 lg:grid-cols-12 gap-4 px-4 sm:px-6 py-4 sm:py-5 hover:bg-gradient-to-r hover:from-blue-50/30 hover:via-white hover:to-white transition-all duration-300 relative cursor-pointer"
-                  style={{
-                    animationDelay: `${index * 30}ms`,
-                    animation: 'fadeInUp 0.4s ease-out forwards',
-                    position: 'relative',
-                    zIndex: 1
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.zIndex = '50';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.zIndex = '1';
-                  }}
-                >
-                  {/* Left accent bar on hover */}
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[var(--color-orange)] via-[var(--color-amber)] to-[var(--color-orange)] opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-r-full"></div>
-
-                  {/* Vehicle Info - Full width on mobile, spans 3 cols on desktop */}
-                  <div className="col-span-1 lg:col-span-3 flex items-center gap-3 sm:gap-4">
-                    <div className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm ${vehicle.vehicleType === 'suspended' || vehicle.vehicleType === 'priorYearSold'
-                      ? 'bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-300 group-hover:from-amber-100 group-hover:to-amber-200 group-hover:scale-110 group-hover:shadow-md'
-                      : 'bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-300 group-hover:from-emerald-100 group-hover:to-emerald-200 group-hover:scale-110 group-hover:shadow-md'
-                      }`}>
-                      <Truck className={`w-6 h-6 sm:w-7 sm:h-7 transition-transform group-hover:rotate-12 ${vehicle.vehicleType === 'suspended' || vehicle.vehicleType === 'priorYearSold' ? 'text-amber-600' : 'text-emerald-600'
-                        }`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <h3 className="text-base sm:text-lg font-bold text-slate-900 font-mono group-hover:text-[var(--color-orange)] transition-colors truncate">
-                          {vehicle.vin || 'No VIN'}
-                        </h3>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            copyToClipboard(vehicle.vin);
-                          }}
-                          className="p-1.5 hover:bg-slate-100 rounded-lg transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
-                          title="Copy VIN"
-                        >
-                          <Copy className="w-3.5 h-3.5 text-slate-400" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Vehicle Type - Full width on mobile, spans 2 cols on desktop */}
-                  <div className="col-span-1 lg:col-span-2 flex items-center">
-                    <span className="inline-flex items-center gap-2 px-3 py-2 bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold">
-                      {getVehicleTypeLabel(vehicle.vehicleType || 'taxable')}
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2 py-0.5 bg-white/10 rounded text-[9px] font-black uppercase tracking-widest text-white/70 border border-white/5">
+                      Fleet Overview
                     </span>
                   </div>
-
-                  {/* Details - Full width on mobile, spans 2 cols on desktop */}
-                  <div className="col-span-1 lg:col-span-2 flex items-center">
-                    <div className="flex flex-col gap-1 text-xs sm:text-sm text-slate-600">
-                      {vehicle.vehicleType === 'taxable' && (
-                        <span>Logging: {vehicle.logging ? 'Yes' : vehicle.logging === false ? 'No' : 'N/A'}</span>
-                      )}
-                      {vehicle.vehicleType === 'suspended' && (
-                        <>
-                          <span>Logging: {vehicle.logging ? 'Yes' : vehicle.logging === false ? 'No' : 'N/A'}</span>
-                          <span>Agricultural: {vehicle.agricultural ? 'Yes' : vehicle.agricultural === false ? 'No' : 'N/A'}</span>
-                        </>
-                      )}
-                      {vehicle.vehicleType === 'credit' && (
-                        <>
-                          <span>Logging: {vehicle.logging ? 'Yes' : vehicle.logging === false ? 'No' : 'N/A'}</span>
-                          <span>Reason: {getCreditReasonLabel(vehicle.creditReason)}</span>
-                          {vehicle.creditDate && (
-                            <span>Date: {new Date(vehicle.creditDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                          )}
-                        </>
-                      )}
-                      {vehicle.vehicleType === 'priorYearSold' && (
-                        <>
-                          <span>Sold To: {vehicle.soldTo || 'N/A'}</span>
-                          {vehicle.soldDate && (
-                            <span>Date: {new Date(vehicle.soldDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Weight Category - Full width on mobile, spans 2 cols on desktop */}
-                  <div className="col-span-1 lg:col-span-2 flex items-center">
-                    {vehicle.vehicleType !== 'priorYearSold' && (
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 flex items-center justify-center border-2 border-slate-400 shadow-sm group-hover:scale-110 transition-transform">
-                          <span className="text-sm font-bold text-slate-700">{vehicle.grossWeightCategory || 'N/A'}</span>
-                        </div>
-                        <span className="text-sm text-slate-600 font-medium hidden lg:inline">
-                          {vehicle.grossWeightCategory ? `Category ${vehicle.grossWeightCategory}` : 'Not set'}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Added Date - Full width on mobile, spans 1 col on desktop */}
-                  <div className="col-span-1 lg:col-span-1 flex items-center">
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                      <span className="font-medium hidden lg:inline">
-                        {vehicle.createdAt
-                          ? new Date(vehicle.createdAt.seconds ? vehicle.createdAt.seconds * 1000 : vehicle.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                          : 'N/A'}
-                      </span>
-                      <span className="font-medium lg:hidden">
-                        {vehicle.createdAt
-                          ? new Date(vehicle.createdAt.seconds ? vehicle.createdAt.seconds * 1000 : vehicle.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                          : 'N/A'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Actions - Full width on mobile, spans 2 cols on desktop */}
-                  <div className="col-span-1 lg:col-span-2 flex items-center justify-start lg:justify-end gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100 lg:border-0">
-                    <Link
-                      href={`/dashboard/new-filing?vehicleId=${vehicle.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex-1 lg:flex-none px-4 py-2.5 bg-gradient-to-r from-[var(--color-orange)] to-[var(--color-amber)] text-white rounded-xl text-sm font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
-                    >
-                      <FileText className="w-4 h-4" />
-                      <span>Use for Filing</span>
-                    </Link>
-                    <div className="relative actions-menu-group" style={{ zIndex: 50 }}>
-                      <button
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-2.5 hover:bg-slate-100 rounded-xl transition-all hover:scale-110 relative"
-                      >
-                        <MoreVertical className="w-5 h-5 text-slate-400" />
-                      </button>
-                      <div className="absolute right-0 top-full mt-0.5 w-48 bg-white border border-slate-200 rounded-xl shadow-2xl opacity-0 invisible actions-menu transition-all" style={{ zIndex: 100 }}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit(vehicle);
-                          }}
-                          className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 rounded-t-xl transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                          Edit Vehicle
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeletingVehicle(vehicle);
-                          }}
-                          className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 rounded-b-xl transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Delete Vehicle
-                        </button>
-                      </div>
-                    </div>
+                  <h2 className="text-2xl font-black text-white tracking-tight">
+                    {vehicles.length} Total Vehicles
+                  </h2>
+                  <div className="flex items-center gap-4 mt-1 text-sm text-white/60">
+                    <span className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                      {vehicles.filter(v => v.vehicleType === 'taxable' || v.vehicleType === 'credit').length} Active
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+                      {vehicles.filter(v => v.vehicleType === 'suspended' || v.vehicleType === 'priorYearSold').length} Suspended
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Edit Modal */}
-        {editingVehicle && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto" onClick={() => !saving && setEditingVehicle(null)}>
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 my-8 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-slate-900">Edit Vehicle</h2>
-                <button
-                  onClick={() => setEditingVehicle(null)}
-                  disabled={saving}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
-                >
-                  <X className="w-5 h-5" />
-                </button>
               </div>
 
-              {vehicleErrors.general && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                  {vehicleErrors.general}
+              <div className="flex items-center gap-3">
+                <div className="px-5 py-3 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-md">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">
+                    Data Integrity
+                  </div>
+                  <div className="flex items-center gap-2 text-white font-bold">
+                    <Shield className="w-4 h-4 text-[#14b8a6]" />
+                    Safe & Secure
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Alerts */}
+          {uploadError && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between text-red-700 animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5" />
+                <span className="font-medium">{uploadError}</span>
+              </div>
+              <button onClick={() => setUploadError('')} className="p-1 hover:bg-red-100 rounded-lg transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {uploadSuccess && (
+            <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-emerald-700 animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5" />
+                <span className="font-medium">{uploadSuccess}</span>
+              </div>
+              <button onClick={() => setUploadSuccess('')} className="p-1 hover:bg-emerald-100 rounded-lg transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Search and Filter Bar */}
+          {vehicles.length > 0 && (
+            <div className="mb-8 flex flex-col md:flex-row items-center gap-4 bg-white p-2 rounded-[1.5rem] border border-slate-200 shadow-sm">
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search fleet by VIN..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-[#14b8a6] outline-none transition-all text-sm font-bold tracking-tight"
+                />
+              </div>
+              <div className="flex p-1 bg-slate-100 rounded-[1.25rem] w-full md:w-auto">
+                <button
+                  onClick={() => setFilterStatus('all')}
+                  className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterStatus === 'all'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                >
+                  All ({vehicles.length})
+                </button>
+                <button
+                  onClick={() => setFilterStatus('active')}
+                  className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterStatus === 'active'
+                    ? 'bg-[#14b8a6] text-white shadow-lg shadow-teal-500/20'
+                    : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                >
+                  Active ({vehicles.filter(v => v.vehicleType === 'taxable' || v.vehicleType === 'credit').length})
+                </button>
+                <button
+                  onClick={() => setFilterStatus('suspended')}
+                  className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterStatus === 'suspended'
+                    ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
+                    : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                >
+                  Suspended ({vehicles.filter(v => v.vehicleType === 'suspended' || v.vehicleType === 'priorYearSold').length})
+                </button>
+              </div>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-24">
+              <div className="w-12 h-12 border-4 border-[var(--color-orange)]/30 border-t-[var(--color-orange)] rounded-full animate-spin mb-4"></div>
+              <p className="text-slate-500 font-medium">Loading vehicles...</p>
+            </div>
+          ) : filteredVehicles.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 px-4 bg-white border border-dashed border-slate-200 rounded-3xl">
+              <div className="relative mb-8 group">
+                <div className="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-gradient-to-br from-white to-blue-50 p-8 rounded-[2rem] border border-blue-100 shadow-xl transform group-hover:scale-105 transition-transform duration-300">
+                  <Truck className="w-20 h-20 text-blue-600" strokeWidth={1.5} />
+                  <div className="absolute -bottom-3 -right-3 bg-white p-3 rounded-2xl shadow-lg border border-blue-50">
+                    <Plus className="w-6 h-6 text-blue-600" strokeWidth={3} />
+                  </div>
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-3">
+                {searchQuery || filterStatus !== 'all' ? 'No vehicles match your filters' : 'No Vehicles Yet'}
+              </h2>
+              <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">
+                {searchQuery || filterStatus !== 'all'
+                  ? 'Try adjusting your search or filter criteria.'
+                  : 'Add your vehicle information to streamline your future filings. You can also import multiple vehicles via CSV.'}
+              </p>
+              {(!searchQuery && filterStatus === 'all') && (
+                <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                  <button
+                    onClick={() => {
+                      if (businesses.length === 0) {
+                        setUploadError('Please create a business first before importing vehicles.');
+                        return;
+                      }
+                      setShowCsvBusinessModal(true);
+                    }}
+                    disabled={businesses.length === 0}
+                    className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white border-2 border-slate-200 text-slate-700 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Import CSV
+                  </button>
+                  <button
+                    onClick={() => setShowAddModal(true)}
+                    className="inline-flex items-center justify-center gap-2 bg-[#14b8a6] text-white px-8 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#0d9488] transition-all shadow-xl shadow-teal-500/20 active:scale-95"
+                  >
+                    <Plus className="w-4 h-4" strokeWidth={3} />
+                    Add Your First Vehicle
+                  </button>
                 </div>
               )}
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-20">
+              {/* Modern Table Header */}
+              <div className="hidden lg:block bg-slate-50 border-b border-slate-200">
+                <div className="grid grid-cols-12 gap-4 px-6 py-4">
+                  <div className="col-span-3">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Vehicle Identification</span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Status</span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Context</span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Weight Profile</span>
+                  </div>
+                  <div className="col-span-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Added</span>
+                  </div>
+                  <div className="col-span-2 text-right">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Management</span>
+                  </div>
+                </div>
+              </div>
 
-              <div className="space-y-4">
-                {/* VIN - Always visible */}
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    VIN <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={editingVehicle.vin || ''}
-                    onChange={(e) => {
-                      const val = e.target.value.toUpperCase();
-                      setEditingVehicle({ ...editingVehicle, vin: val });
-                      if (val.length === 17) {
-                        const vinVal = validateVIN(val);
-                        setVehicleErrors({ ...vehicleErrors, vin: vinVal.isValid ? '' : vinVal.error });
-                      } else {
-                        setVehicleErrors({ ...vehicleErrors, vin: '' });
-                      }
+              {/* High-Density Row Redesign */}
+              <div className="divide-y divide-slate-100">
+                {filteredVehicles.map((vehicle, index) => (
+                  <div
+                    key={vehicle.id}
+                    className="group grid grid-cols-1 lg:grid-cols-12 gap-4 px-4 sm:px-6 py-4 hover:bg-slate-50/50 transition-all duration-300 relative"
+                    style={{
+                      animationDelay: `${index * 30}ms`,
+                      animation: 'fadeInUp 0.4s ease-out forwards',
                     }}
-                    maxLength={17}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all font-mono"
-                    placeholder="17-character VIN"
-                  />
-                  {vehicleErrors.vin && (
-                    <p className="mt-1 text-sm text-red-600">{vehicleErrors.vin}</p>
-                  )}
-                </div>
-
-                {/* Business Selection */}
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Business <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={editingVehicle.businessId || ''}
-                    onChange={(e) => setEditingVehicle({ ...editingVehicle, businessId: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
                   >
-                    <option value="">Select a business</option>
-                    {businesses.map(business => (
-                      <option key={business.id} value={business.id}>
-                        {business.businessName || business.name || 'Unnamed Business'}
-                      </option>
-                    ))}
-                  </select>
-                  {vehicleErrors.businessId && (
-                    <p className="mt-1 text-sm text-red-600">{vehicleErrors.businessId}</p>
-                  )}
-                  {businesses.length === 0 && (
-                    <p className="mt-1 text-sm text-amber-600">
-                      No businesses found. Please create a business first.
-                    </p>
-                  )}
-                </div>
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#14b8a6] opacity-0 group-hover:opacity-100 transition-all rounded-r-full"></div>
 
-                {/* Vehicle Type */}
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Vehicle Type <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={editingVehicle.vehicleType || 'taxable'}
-                    onChange={(e) => {
-                      const newType = e.target.value;
-                      setEditingVehicle({
-                        ...editingVehicle,
-                        vehicleType: newType,
-                        // Reset type-specific fields when changing type
-                        grossWeightCategory: newType === 'suspended' ? 'W' : (newType === 'priorYearSold' ? '' : editingVehicle.grossWeightCategory),
-                        logging: null,
-                        agricultural: null,
-                        creditReason: '',
-                        creditDate: '',
-                        soldTo: '',
-                        soldDate: ''
-                      });
-                    }}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
-                  >
-                    {vehicleTypes.map(type => (
-                      <option key={type.value} value={type.value}>{type.label}</option>
-                    ))}
-                  </select>
-                </div>
+                    {/* Vehicle */}
+                    <div className="col-span-1 lg:col-span-3 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-[#14b8a6]/10 group-hover:text-[#14b8a6] group-hover:border-[#14b8a6]/20 transition-all shadow-sm">
+                        <Truck className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-base font-black text-slate-900 font-mono tracking-tighter">
+                            {vehicle.vin || 'NO VIN'}
+                          </span>
+                          <button
+                            onClick={() => copyToClipboard(vehicle.vin)}
+                            className="p-1 text-slate-300 hover:text-[#14b8a6] transition-colors"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          VIN Identity
+                        </span>
+                      </div>
+                    </div>
 
-                {/* Gross Weight Category - Show for taxable, suspended, credit */}
-                {(editingVehicle.vehicleType === 'taxable' || editingVehicle.vehicleType === 'credit' || editingVehicle.vehicleType === 'suspended') && (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Gross Weight Category <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={editingVehicle.grossWeightCategory || ''}
-                      onChange={(e) => setEditingVehicle({ ...editingVehicle, grossWeightCategory: e.target.value })}
-                      disabled={editingVehicle.vehicleType === 'suspended'}
-                      className={`w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all ${editingVehicle.vehicleType === 'suspended' ? 'bg-slate-100 cursor-not-allowed' : ''
-                        }`}
-                    >
-                      {editingVehicle.vehicleType === 'suspended' ? (
-                        <option value="W">W</option>
-                      ) : (
-                        <>
-                          <option value="">Select weight category</option>
-                          {getWeightCategoryOptions(editingVehicle.logging).map(cat => (
-                            <option key={cat.value} value={cat.value}>{cat.label}</option>
-                          ))}
-                        </>
+                    {/* Status Pill */}
+                    <div className="col-span-1 lg:col-span-2 flex items-center">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-colors ${vehicle.vehicleType === 'suspended' || vehicle.vehicleType === 'priorYearSold'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        }`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${vehicle.vehicleType === 'suspended' || vehicle.vehicleType === 'priorYearSold' ? 'bg-amber-500' : 'bg-emerald-500'
+                          }`}></div>
+                        {getVehicleTypeLabel(vehicle.vehicleType || 'taxable')}
+                      </span>
+                    </div>
+
+                    {/* Details/Context */}
+                    <div className="col-span-1 lg:col-span-2 flex items-center">
+                      <div className="flex flex-col">
+                        <span className="text-[11px] font-black text-slate-900 uppercase tracking-tight">
+                          {vehicle.vehicleType === 'taxable' ? (vehicle.logging ? 'Logging Integrated' : 'Standard Transport') : 'Non-Taxable Use'}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">
+                          Fleet Context
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Weight Profile */}
+                    <div className="col-span-1 lg:col-span-2 flex items-center">
+                      {vehicle.vehicleType !== 'priorYearSold' && (
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white font-black text-xs shadow-lg shadow-slate-900/10 group-hover:bg-[#173b63] transition-colors">
+                            {vehicle.grossWeightCategory || 'N/A'}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-black text-slate-900 tracking-tight">
+                              Category {vehicle.grossWeightCategory || 'N/A'}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                              Weight Profile
+                            </span>
+                          </div>
+                        </div>
                       )}
-                    </select>
-                    {vehicleErrors.grossWeightCategory && (
-                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.grossWeightCategory}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Logging - Show for taxable, suspended, credit */}
-                {(editingVehicle.vehicleType === 'taxable' || editingVehicle.vehicleType === 'credit' || editingVehicle.vehicleType === 'suspended') && (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Logging <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setEditingVehicle({ ...editingVehicle, logging: true })}
-                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${editingVehicle.logging === true
-                          ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                          }`}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingVehicle({ ...editingVehicle, logging: false })}
-                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${editingVehicle.logging === false
-                          ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                          }`}
-                      >
-                        No
-                      </button>
                     </div>
-                    {vehicleErrors.logging && (
-                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.logging}</p>
-                    )}
-                  </div>
-                )}
 
-                {/* Agricultural - Show for suspended */}
-                {editingVehicle.vehicleType === 'suspended' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Agricultural <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setEditingVehicle({ ...editingVehicle, agricultural: true })}
-                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${editingVehicle.agricultural === true
-                          ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                          }`}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingVehicle({ ...editingVehicle, agricultural: false })}
-                        className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${editingVehicle.agricultural === false
-                          ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                          }`}
-                      >
-                        No
-                      </button>
+                    {/* Added Date - Premium Polish */}
+                    <div className="col-span-1 lg:col-span-1 flex items-center">
+                      <div className="flex flex-col">
+                        <span className="text-[11px] font-black text-slate-900">
+                          {vehicle.createdAt
+                            ? new Date(vehicle.createdAt.seconds ? vehicle.createdAt.seconds * 1000 : vehicle.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                            : 'N/A'}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          Registered
+                        </span>
+                      </div>
                     </div>
-                    {vehicleErrors.agricultural && (
-                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.agricultural}</p>
-                    )}
+
+                    {/* Management Actions */}
+                    <div className="col-span-1 lg:col-span-2 flex items-center justify-end gap-3">
+                      <Link
+                        href={`/dashboard/new-filing?vehicleId=${vehicle.id}`}
+                        className="min-w-[120px] text-center px-4 py-2 bg-[#14b8a6] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-all shadow-md shadow-teal-500/10 active:scale-95"
+                      >
+                        Use for Filing
+                      </Link>
+                      <div className="relative actions-menu-group" style={{ zIndex: 100 }}>
+                        <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all">
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                        <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-slate-200 rounded-2xl shadow-2xl opacity-0 invisible actions-menu transition-all transform scale-95 z-[200]">
+                          <button
+                            onClick={() => handleEdit(vehicle)}
+                            className="w-full px-4 py-3 text-left text-[11px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 flex items-center gap-3 rounded-t-2xl transition-colors"
+                          >
+                            <Edit className="w-4 h-4 text-slate-400" />
+                            Edit Vehicle
+                          </button>
+                          <button
+                            onClick={() => setDeletingVehicle(vehicle)}
+                            className="w-full px-4 py-3 text-left text-[11px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 flex items-center gap-3 rounded-b-2xl transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Remove Fleet
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                )}
+                ))}
+              </div>
+            </div>
+          )}
 
-                {/* Credit Reason - Show for credit */}
-                {editingVehicle.vehicleType === 'credit' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Reason <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={editingVehicle.creditReason || ''}
-                      onChange={(e) => setEditingVehicle({ ...editingVehicle, creditReason: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
-                    >
-                      <option value="">Select reason</option>
-                      {creditReasons.map(reason => (
-                        <option key={reason.value} value={reason.value}>{reason.label}</option>
-                      ))}
-                    </select>
-                    {vehicleErrors.creditReason && (
-                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.creditReason}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Credit Date - Show for credit */}
-                {editingVehicle.vehicleType === 'credit' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Date <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={editingVehicle.creditDate || ''}
-                      onChange={(e) => {
-                        const selectedDate = e.target.value;
-                        setEditingVehicle({ ...editingVehicle, creditDate: selectedDate });
-
-                        // Real-time validation for June
-                        if (selectedDate) {
-                          const dateObj = new Date(selectedDate);
-                          const month = dateObj.getMonth(); // 0-indexed: 0=January, 5=June
-                          if (month === 5) {
-                            setVehicleErrors({
-                              ...vehicleErrors,
-                              creditDate: 'You cannot claim credit for the June month for any reason. June is the last month of the tax period, so there are no remaining months to claim credit.'
-                            });
-                          } else {
-                            // Clear error if not June
-                            const newErrors = { ...vehicleErrors };
-                            delete newErrors.creditDate;
-                            setVehicleErrors(newErrors);
-                          }
-                        }
-                      }}
-                      min={getMinDate('credit')}
-                      max={getMaxDate('credit')}
-                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all ${vehicleErrors.creditDate ? 'border-red-500' : 'border-slate-200'
-                        }`}
-                    />
-                    {vehicleErrors.creditDate && (
-                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.creditDate}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Sold To - Show for priorYearSold */}
-                {editingVehicle.vehicleType === 'priorYearSold' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Sold To <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={editingVehicle.soldTo || ''}
-                      onChange={(e) => setEditingVehicle({ ...editingVehicle, soldTo: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
-                      placeholder="Buyer name or company"
-                    />
-                    {vehicleErrors.soldTo && (
-                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.soldTo}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Sold Date - Show for priorYearSold */}
-                {editingVehicle.vehicleType === 'priorYearSold' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Sold Date <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={editingVehicle.soldDate || ''}
-                      onChange={(e) => setEditingVehicle({ ...editingVehicle, soldDate: e.target.value })}
-                      min={getMinDate('priorYearSold')}
-                      max={getMaxDate()}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
-                    />
-                    {vehicleErrors.soldDate && (
-                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.soldDate}</p>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex gap-3 pt-4">
+          {/* Edit Modal */}
+          {editingVehicle && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto" onClick={() => !saving && setEditingVehicle(null)}>
+              <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 my-8 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-slate-900">Edit Vehicle</h2>
                   <button
                     onClick={() => setEditingVehicle(null)}
                     disabled={saving}
-                    className="flex-1 px-4 py-3 border-2 border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
+                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    Cancel
+                    <X className="w-5 h-5" />
                   </button>
-                  <button
-                    onClick={handleSaveEdit}
-                    disabled={saving}
-                    className="flex-1 px-4 py-3 bg-[var(--color-orange)] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-hover)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {saving ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      'Save Changes'
+                </div>
+
+                {vehicleErrors.general && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {vehicleErrors.general}
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  {/* VIN - Always visible */}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      VIN <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={editingVehicle.vin || ''}
+                      onChange={(e) => {
+                        const val = e.target.value.toUpperCase();
+                        setEditingVehicle({ ...editingVehicle, vin: val });
+                        if (val.length === 17) {
+                          const vinVal = validateVIN(val);
+                          setVehicleErrors({ ...vehicleErrors, vin: vinVal.isValid ? '' : vinVal.error });
+                        } else {
+                          setVehicleErrors({ ...vehicleErrors, vin: '' });
+                        }
+                      }}
+                      maxLength={17}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all font-mono"
+                      placeholder="17-character VIN"
+                    />
+                    {vehicleErrors.vin && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.vin}</p>
                     )}
-                  </button>
+                  </div>
+
+                  {/* Business Selection */}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Business <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={editingVehicle.businessId || ''}
+                      onChange={(e) => setEditingVehicle({ ...editingVehicle, businessId: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                    >
+                      <option value="">Select a business</option>
+                      {businesses.map(business => (
+                        <option key={business.id} value={business.id}>
+                          {business.businessName || business.name || 'Unnamed Business'}
+                        </option>
+                      ))}
+                    </select>
+                    {vehicleErrors.businessId && (
+                      <p className="mt-1 text-sm text-red-600">{vehicleErrors.businessId}</p>
+                    )}
+                    {businesses.length === 0 && (
+                      <p className="mt-1 text-sm text-amber-600">
+                        No businesses found. Please create a business first.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Vehicle Type */}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Vehicle Type <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={editingVehicle.vehicleType || 'taxable'}
+                      onChange={(e) => {
+                        const newType = e.target.value;
+                        setEditingVehicle({
+                          ...editingVehicle,
+                          vehicleType: newType,
+                          // Reset type-specific fields when changing type
+                          grossWeightCategory: newType === 'suspended' ? 'W' : (newType === 'priorYearSold' ? '' : editingVehicle.grossWeightCategory),
+                          logging: null,
+                          agricultural: null,
+                          creditReason: '',
+                          creditDate: '',
+                          soldTo: '',
+                          soldDate: ''
+                        });
+                      }}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                    >
+                      {vehicleTypes.map(type => (
+                        <option key={type.value} value={type.value}>{type.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Gross Weight Category - Show for taxable, suspended, credit */}
+                  {(editingVehicle.vehicleType === 'taxable' || editingVehicle.vehicleType === 'credit' || editingVehicle.vehicleType === 'suspended') && (
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Gross Weight Category <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={editingVehicle.grossWeightCategory || ''}
+                        onChange={(e) => setEditingVehicle({ ...editingVehicle, grossWeightCategory: e.target.value })}
+                        disabled={editingVehicle.vehicleType === 'suspended'}
+                        className={`w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all ${editingVehicle.vehicleType === 'suspended' ? 'bg-slate-100 cursor-not-allowed' : ''
+                          }`}
+                      >
+                        {editingVehicle.vehicleType === 'suspended' ? (
+                          <option value="W">W</option>
+                        ) : (
+                          <>
+                            <option value="">Select weight category</option>
+                            {getWeightCategoryOptions(editingVehicle.logging).map(cat => (
+                              <option key={cat.value} value={cat.value}>{cat.label}</option>
+                            ))}
+                          </>
+                        )}
+                      </select>
+                      {vehicleErrors.grossWeightCategory && (
+                        <p className="mt-1 text-sm text-red-600">{vehicleErrors.grossWeightCategory}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Logging - Show for taxable, suspended, credit */}
+                  {(editingVehicle.vehicleType === 'taxable' || editingVehicle.vehicleType === 'credit' || editingVehicle.vehicleType === 'suspended') && (
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Logging <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setEditingVehicle({ ...editingVehicle, logging: true })}
+                          className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${editingVehicle.logging === true
+                            ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                            }`}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingVehicle({ ...editingVehicle, logging: false })}
+                          className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${editingVehicle.logging === false
+                            ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                            }`}
+                        >
+                          No
+                        </button>
+                      </div>
+                      {vehicleErrors.logging && (
+                        <p className="mt-1 text-sm text-red-600">{vehicleErrors.logging}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Agricultural - Show for suspended */}
+                  {editingVehicle.vehicleType === 'suspended' && (
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Agricultural <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setEditingVehicle({ ...editingVehicle, agricultural: true })}
+                          className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${editingVehicle.agricultural === true
+                            ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                            }`}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingVehicle({ ...editingVehicle, agricultural: false })}
+                          className={`flex-1 px-4 py-2.5 rounded-xl border-2 transition-all ${editingVehicle.agricultural === false
+                            ? 'border-[var(--color-orange)] bg-orange-50 text-[var(--color-orange)]'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                            }`}
+                        >
+                          No
+                        </button>
+                      </div>
+                      {vehicleErrors.agricultural && (
+                        <p className="mt-1 text-sm text-red-600">{vehicleErrors.agricultural}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Credit Reason - Show for credit */}
+                  {editingVehicle.vehicleType === 'credit' && (
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Reason <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={editingVehicle.creditReason || ''}
+                        onChange={(e) => setEditingVehicle({ ...editingVehicle, creditReason: e.target.value })}
+                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                      >
+                        <option value="">Select reason</option>
+                        {creditReasons.map(reason => (
+                          <option key={reason.value} value={reason.value}>{reason.label}</option>
+                        ))}
+                      </select>
+                      {vehicleErrors.creditReason && (
+                        <p className="mt-1 text-sm text-red-600">{vehicleErrors.creditReason}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Credit Date - Show for credit */}
+                  {editingVehicle.vehicleType === 'credit' && (
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Date <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        value={editingVehicle.creditDate || ''}
+                        onChange={(e) => {
+                          const selectedDate = e.target.value;
+                          setEditingVehicle({ ...editingVehicle, creditDate: selectedDate });
+
+                          // Real-time validation for June
+                          if (selectedDate) {
+                            const dateObj = new Date(selectedDate);
+                            const month = dateObj.getMonth(); // 0-indexed: 0=January, 5=June
+                            if (month === 5) {
+                              setVehicleErrors({
+                                ...vehicleErrors,
+                                creditDate: 'You cannot claim credit for the June month for any reason. June is the last month of the tax period, so there are no remaining months to claim credit.'
+                              });
+                            } else {
+                              // Clear error if not June
+                              const newErrors = { ...vehicleErrors };
+                              delete newErrors.creditDate;
+                              setVehicleErrors(newErrors);
+                            }
+                          }
+                        }}
+                        min={getMinDate('credit')}
+                        max={getMaxDate('credit')}
+                        className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all ${vehicleErrors.creditDate ? 'border-red-500' : 'border-slate-200'
+                          }`}
+                      />
+                      {vehicleErrors.creditDate && (
+                        <p className="mt-1 text-sm text-red-600">{vehicleErrors.creditDate}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Sold To - Show for priorYearSold */}
+                  {editingVehicle.vehicleType === 'priorYearSold' && (
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Sold To <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={editingVehicle.soldTo || ''}
+                        onChange={(e) => setEditingVehicle({ ...editingVehicle, soldTo: e.target.value })}
+                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                        placeholder="Buyer name or company"
+                      />
+                      {vehicleErrors.soldTo && (
+                        <p className="mt-1 text-sm text-red-600">{vehicleErrors.soldTo}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Sold Date - Show for priorYearSold */}
+                  {editingVehicle.vehicleType === 'priorYearSold' && (
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Sold Date <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        value={editingVehicle.soldDate || ''}
+                        onChange={(e) => setEditingVehicle({ ...editingVehicle, soldDate: e.target.value })}
+                        min={getMinDate('priorYearSold')}
+                        max={getMaxDate()}
+                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                      />
+                      {vehicleErrors.soldDate && (
+                        <p className="mt-1 text-sm text-red-600">{vehicleErrors.soldDate}</p>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      onClick={() => setEditingVehicle(null)}
+                      disabled={saving}
+                      className="flex-1 px-4 py-3 border-2 border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveEdit}
+                      disabled={saving}
+                      className="flex-1 px-4 py-3 bg-[var(--color-orange)] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-hover)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {saving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Changes'
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Add Vehicle Modal */}
-        <VehicleFormModal
-          isOpen={showAddModal}
-          onClose={() => {
-            setShowAddModal(false);
-            setVehicleErrors({});
-          }}
-          onSubmit={handleAddVehicle}
-          businesses={businesses}
-          loading={saving}
-          submitButtonText="Add Vehicle"
-          title="Add New Vehicle"
-          externalErrors={vehicleErrors}
-        />
+          {/* Add Vehicle Modal */}
+          <VehicleFormModal
+            isOpen={showAddModal}
+            onClose={() => {
+              setShowAddModal(false);
+              setVehicleErrors({});
+            }}
+            onSubmit={handleAddVehicle}
+            businesses={businesses}
+            loading={saving}
+            submitButtonText="Add Vehicle"
+            title="Add New Vehicle"
+            externalErrors={vehicleErrors}
+          />
 
-        {/* CSV Business Selection Modal */}
-        {showCsvBusinessModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-slate-900">Select Business for CSV Import</h2>
-                <button
-                  onClick={() => {
-                    setShowCsvBusinessModal(false);
-                    setCsvBusinessId('');
-                    setUploadError('');
-                  }}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Business <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={csvBusinessId}
-                    onChange={(e) => {
-                      setCsvBusinessId(e.target.value);
-                      setUploadError('');
-                    }}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
-                  >
-                    <option value="">Select a business</option>
-                    {businesses.map(business => (
-                      <option key={business.id} value={business.id}>
-                        {business.businessName || business.name || 'Unnamed Business'}
-                      </option>
-                    ))}
-                  </select>
-                  {uploadError && csvBusinessId === '' && (
-                    <p className="mt-1 text-sm text-red-600">{uploadError}</p>
-                  )}
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                  <p className="text-sm text-blue-800">
-                    <strong>CSV Format:</strong> VIN, Weight Category, Suspended (optional)
-                    <br />
-                    <span className="text-xs text-blue-600 mt-1 block">
-                      Example: 1HGBH41JXMN109186, F, false
-                    </span>
-                  </p>
-                </div>
-
-                <div className="flex gap-3 pt-4">
+          {/* CSV Business Selection Modal */}
+          {showCsvBusinessModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-slate-900">Select Business for CSV Import</h2>
                   <button
                     onClick={() => {
                       setShowCsvBusinessModal(false);
                       setCsvBusinessId('');
                       setUploadError('');
                     }}
-                    className="flex-1 px-4 py-3 border-2 border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Business <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={csvBusinessId}
+                      onChange={(e) => {
+                        setCsvBusinessId(e.target.value);
+                        setUploadError('');
+                      }}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all"
+                    >
+                      <option value="">Select a business</option>
+                      {businesses.map(business => (
+                        <option key={business.id} value={business.id}>
+                          {business.businessName || business.name || 'Unnamed Business'}
+                        </option>
+                      ))}
+                    </select>
+                    {uploadError && csvBusinessId === '' && (
+                      <p className="mt-1 text-sm text-red-600">{uploadError}</p>
+                    )}
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <p className="text-sm text-blue-800">
+                      <strong>CSV Format:</strong> VIN, Weight Category, Suspended (optional)
+                      <br />
+                      <span className="text-xs text-blue-600 mt-1 block">
+                        Example: 1HGBH41JXMN109186, F, false
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      onClick={() => {
+                        setShowCsvBusinessModal(false);
+                        setCsvBusinessId('');
+                        setUploadError('');
+                      }}
+                      className="flex-1 px-4 py-3 border-2 border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleCsvBusinessSelect}
+                      disabled={!csvBusinessId || csvBusinessId.trim() === ''}
+                      className="flex-1 px-4 py-3 bg-[var(--color-orange)] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      Continue to Upload
+                      <Upload className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {deletingVehicle && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <Trash2 className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900">Delete Vehicle</h2>
+                    <p className="text-sm text-slate-500">This action cannot be undone</p>
+                  </div>
+                </div>
+
+                <p className="mb-6 text-slate-700">
+                  Are you sure you want to delete vehicle <span className="font-mono font-bold">{deletingVehicle.vin}</span>? This will remove it from your fleet permanently.
+                </p>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setDeletingVehicle(null)}
+                    disabled={saving}
+                    className="flex-1 px-4 py-3 border-2 border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={handleCsvBusinessSelect}
-                    disabled={!csvBusinessId || csvBusinessId.trim() === ''}
-                    className="flex-1 px-4 py-3 bg-[var(--color-orange)] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    onClick={() => handleDelete(deletingVehicle.id)}
+                    disabled={saving}
+                    className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    Continue to Upload
-                    <Upload className="w-4 h-4" />
+                    {saving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Delete Confirmation Modal */}
-        {deletingVehicle && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <Trash2 className="w-6 h-6 text-red-600" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900">Delete Vehicle</h2>
-                  <p className="text-sm text-slate-500">This action cannot be undone</p>
-                </div>
-              </div>
-
-              <p className="mb-6 text-slate-700">
-                Are you sure you want to delete vehicle <span className="font-mono font-bold">{deletingVehicle.vin}</span>? This will remove it from your fleet permanently.
-              </p>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setDeletingVehicle(null)}
-                  disabled={saving}
-                  className="flex-1 px-4 py-3 border-2 border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDelete(deletingVehicle.id)}
-                  disabled={saving}
-                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </ProtectedRoute>
   );
