@@ -348,12 +348,12 @@ export default function DashboardPage() {
       {/* Viewport layout - flex-1 to fill space between header and footer */}
       <div className="flex flex-col flex-1 h-full min-h-0">
         {/* Compact Header - Mobile Responsive */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3 bg-[var(--color-page)] border-b border-[var(--color-border)] flex-shrink-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-[var(--color-page)] border-b border-[var(--color-border)] flex-shrink-0">
           <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-            <h1 className="text-xl sm:text-2xl font-bold text-[var(--color-text)] tracking-tight">Dashboard</h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--color-text)] tracking-tight">Dashboard</h1>
             {/* Compact User Badge - Hidden on very small screens */}
             <div className="hidden xs:inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-full px-2 sm:px-3 py-1.5">
-              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-xs">
+              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-xs sm:text-sm">
                 {(userData?.displayName || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
               </div>
               <span className="text-xs sm:text-sm font-semibold text-[var(--color-navy)] hidden sm:inline">
@@ -366,25 +366,25 @@ export default function DashboardPage() {
               <>
                 <Link
                   href="/dashboard/filings"
-                  className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 active:bg-slate-100 flex items-center justify-center transition-colors touch-manipulation"
+                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg border border-slate-200 hover:bg-slate-50 active:bg-slate-100 flex items-center justify-center transition-colors touch-manipulation"
                   title="Search all filings"
                 >
-                  <Search className="w-4 h-4 text-slate-600" />
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
                 </Link>
                 <Link
                   href="/dashboard/filings"
-                  className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 active:bg-slate-100 flex items-center justify-center transition-colors touch-manipulation"
+                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg border border-slate-200 hover:bg-slate-50 active:bg-slate-100 flex items-center justify-center transition-colors touch-manipulation"
                   title="Filter filings"
                 >
-                  <Filter className="w-4 h-4 text-slate-600" />
+                  <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
                 </Link>
                 <Link
                   href="/dashboard/new-filing"
-                  className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition-all touch-manipulation whitespace-nowrap"
+                  className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-[var(--color-orange)] text-white rounded-lg text-sm sm:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition-all touch-manipulation whitespace-nowrap min-h-[44px]"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">New Filing</span>
-                  <span className="sm:hidden">New</span>
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="hidden sm:inline">File 2290</span>
+                  <span className="sm:hidden">File 2290</span>
                 </Link>
               </>
             )}
@@ -405,7 +405,7 @@ export default function DashboardPage() {
               <div className="max-w-6xl mx-auto">
                 {/* Stats Row - Compact - Mobile Responsive */}
                 {(hasFilings || hasIncomplete) && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 flex-shrink-0">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6 flex-shrink-0">
                     {[
                       { label: 'Total', value: stats.total, color: 'slate', icon: FileText },
                       { label: 'Completed', value: stats.completed, color: 'emerald', icon: CheckCircle },
@@ -420,39 +420,39 @@ export default function DashboardPage() {
                         blue: 'bg-blue-50 border-blue-200 text-blue-700',
                       };
                       return (
-                        <div key={idx} className={`bg-white border rounded-xl p-3 sm:p-4 ${colors[stat.color]}`}>
+                        <div key={idx} className={`bg-white border rounded-lg sm:rounded-xl p-3 sm:p-4 ${colors[stat.color]}`}>
                           <div className="flex items-center justify-between mb-2">
-                            <Icon className="w-4 h-4 opacity-60" />
+                            <Icon className="w-4 h-4 sm:w-5 sm:h-5 opacity-60" />
                           </div>
-                          <div className="text-xl sm:text-2xl font-bold mb-0.5">{stat.value}</div>
-                          <div className="text-xs font-medium opacity-70">{stat.label}</div>
+                          <div className="text-xl sm:text-2xl lg:text-3xl font-bold mb-0.5">{stat.value}</div>
+                          <div className="text-xs sm:text-sm font-medium opacity-70">{stat.label}</div>
                         </div>
                       );
                     })}
                   </div>
                 )}
 
-                {/* Company Information Section */}
+                {/* Company Information Section - Mobile Optimized */}
                 {primaryBusiness && (
-                  <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 mb-6">
+                  <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                      <div className="w-16 h-16 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl flex-shrink-0">
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg sm:rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg sm:text-xl flex-shrink-0">
                         {primaryBusiness.businessName?.charAt(0).toUpperCase() || 'B'}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
-                          <h2 className="text-lg font-bold text-slate-900">
+                          <h2 className="text-base sm:text-lg font-bold text-slate-900">
                             {primaryBusiness.businessName} ({primaryBusiness.ein ? primaryBusiness.ein.replace(/(\d{2})(\d{7})/, '$1-$2') : 'N/A'})
                           </h2>
                           <Link
                             href="/dashboard/businesses"
-                            className="text-slate-400 hover:text-slate-600 transition-colors"
+                            className="text-slate-400 hover:text-slate-600 transition-colors touch-manipulation w-8 h-8 flex items-center justify-center"
                             title="Edit business information"
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
                           </Link>
                         </div>
-                        <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-600">
+                        <div className="flex flex-col sm:flex-wrap sm:flex-row gap-x-6 gap-y-1 text-xs sm:text-sm text-slate-600">
                           {primaryBusiness.address && (
                             <span>Address: {primaryBusiness.address}{primaryBusiness.city ? `, ${primaryBusiness.city}` : ''}{primaryBusiness.state ? `, ${primaryBusiness.state}` : ''} {primaryBusiness.zip || ''}</span>
                           )}
@@ -463,9 +463,9 @@ export default function DashboardPage() {
                       </div>
                       <Link
                         href="/dashboard/new-filing"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-orange-hover)] transition-colors whitespace-nowrap"
+                        className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-[var(--color-orange)] text-white rounded-lg text-sm sm:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition-all whitespace-nowrap touch-manipulation min-h-[44px] w-full sm:w-auto justify-center sm:justify-start"
                       >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                         Start New Return
                       </Link>
                     </div>
@@ -516,19 +516,19 @@ export default function DashboardPage() {
                             const isIncomplete = filingStatus === 'draft' || filing.isDraft;
                             
                             const resumeUrl = filing.isDraft || filingStatus === 'draft' || filingStatus === 'pending_payment'
-                              ? filing.workflowType === 'upload'
+                          ? filing.workflowType === 'upload'
                                 ? `/dashboard/upload-schedule1?draft=${filing.draftId || filing.id}`
                                 : `/dashboard/new-filing?draft=${filing.draftId || filing.id}`
-                              : `/dashboard/filings/${filing.id}`;
+                          : `/dashboard/filings/${filing.id}`;
                             
                             const vehiclesInfo = getVehiclesInfo(filing);
                             const vehicleTypes = [...new Set(vehiclesInfo.map(v => v.vehicleType).filter(Boolean))];
                             
-                            return (
+                        return (
                               <tr key={filing.id || filing.draftId} className="hover:bg-slate-50 transition-colors">
                                 <td className="px-4 py-4">
-                                  <Link
-                                    href={resumeUrl}
+                          <Link
+                            href={resumeUrl}
                                     className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
                                   >
                                     {getReturnNumber(filing)}
@@ -551,7 +551,7 @@ export default function DashboardPage() {
                                       {vehiclesInfo.length > 3 && (
                                         <div className="text-xs text-slate-500">+{vehiclesInfo.length - 3} more</div>
                                       )}
-                                    </div>
+                            </div>
                                   ) : (
                                     <span className="text-slate-400">-</span>
                                   )}
@@ -564,7 +564,7 @@ export default function DashboardPage() {
                                           {getVehicleTypeLabel(type)}
                                         </span>
                                       ))}
-                                    </div>
+                            </div>
                                   ) : (
                                     <span className="text-slate-400">-</span>
                                   )}
@@ -608,14 +608,14 @@ export default function DashboardPage() {
                                     >
                                       <FileCheck className="w-4 h-4" />
                                       View
-                                    </Link>
+                          </Link>
                                   ) : (
                                     <span>-</span>
                                   )}
                                 </td>
                               </tr>
-                            );
-                          })}
+                        );
+                      })}
                         </tbody>
                       </table>
                     </div>
@@ -756,12 +756,12 @@ export default function DashboardPage() {
                     <div className="space-y-2">
                       {filings.filter(f => f.status === 'action_required').slice(0, 2).map(filing => {
                         const typeInfo = getFilingTypeInfo(filing);
-                        return (
-                          <Link
-                            key={filing.id}
-                            href={`/dashboard/filings/${filing.id}`}
+                          return (
+                            <Link
+                              key={filing.id}
+                              href={`/dashboard/filings/${filing.id}`}
                             className="block bg-white border border-orange-200 rounded-lg p-3 hover:border-orange-300 hover:shadow-sm transition-all"
-                          >
+                            >
                             <div className="flex items-center justify-between">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
@@ -772,9 +772,9 @@ export default function DashboardPage() {
                               </div>
                               <ChevronRight className="w-4 h-4 text-orange-600 flex-shrink-0 ml-2" />
                             </div>
-                          </Link>
-                        );
-                      })}
+                            </Link>
+                          );
+                        })}
                     </div>
                   </div>
                 )}

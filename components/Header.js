@@ -218,9 +218,9 @@ export function Header() {
                   <div className="relative">
                     <button
                       onClick={() => setUserMenuOpen(!userMenuOpen)}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition group"
+                      className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 rounded-lg hover:bg-white/10 active:bg-white/20 transition group touch-manipulation min-h-[44px]"
                     >
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-orange)] to-[var(--color-orange-hover)] flex items-center justify-center text-white font-semibold text-sm shadow-md">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-[var(--color-orange)] to-[var(--color-orange-hover)] flex items-center justify-center text-white font-semibold text-xs sm:text-sm shadow-md">
                         {getUserInitials()}
                       </div>
                       <div className="hidden md:block text-left">
@@ -334,13 +334,13 @@ export function Header() {
                   <div className="flex items-center gap-2">
                     <Link
                       href="/login"
-                      className="px-3 py-2 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition"
+                      className="px-3 sm:px-4 py-2 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 active:bg-white/20 rounded-lg transition touch-manipulation min-h-[44px] flex items-center"
                     >
                       Login
                     </Link>
                     <Link
                       href="/signup"
-                      className="px-3 py-2 text-sm font-medium bg-white/10 text-white rounded-lg hover:bg-white/20 transition"
+                      className="px-3 sm:px-4 py-2 text-sm font-medium bg-white/10 text-white rounded-lg hover:bg-white/20 active:bg-white/30 transition touch-manipulation min-h-[44px] flex items-center"
                     >
                       Sign Up
                     </Link>
@@ -365,14 +365,15 @@ export function Header() {
               {!loading && !user && (
                 <Link
                   href="/signup"
-                  className="px-3 py-1.5 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition touch-manipulation"
+                  className="px-3 sm:px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition touch-manipulation min-h-[44px] flex items-center"
                 >
-                  File Now
+                  <span className="hidden sm:inline">File Now</span>
+                  <span className="sm:hidden">File</span>
                 </Link>
               )}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 text-white hover:bg-white/10 active:bg-white/20 rounded-lg transition touch-manipulation"
+                className="p-2.5 sm:p-3 text-white hover:bg-white/10 active:bg-white/20 rounded-lg transition touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center relative"
                 aria-label="Toggle menu"
               >
                 {mobileMenuOpen ? (
@@ -392,10 +393,29 @@ export function Header() {
           {mobileMenuOpen && (
             <>
               <div
-                className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden animate-in fade-in duration-300"
                 onClick={() => setMobileMenuOpen(false)}
               ></div>
-              <div className="fixed right-0 top-0 bottom-0 w-80 sm:w-96 bg-white z-50 overflow-y-auto overscroll-contain shadow-2xl lg:hidden">
+              <div className="fixed right-0 top-0 bottom-0 w-[85vw] sm:w-80 md:w-96 max-w-sm bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] z-50 overflow-y-auto overscroll-contain shadow-2xl lg:hidden animate-in slide-in-from-right duration-300">
+                {/* Theme Header */}
+                <div className="sticky top-0 bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy)] border-b border-white/10 px-5 py-4 flex items-center justify-between z-10 backdrop-blur-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--color-orange)] to-[var(--color-orange-hover)] flex items-center justify-center shadow-md">
+                      <span className="text-white font-bold text-sm">QT</span>
+                    </div>
+                    <span className="font-bold text-white text-base">QuickTruckTax</span>
+                  </div>
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-2 hover:bg-white/10 active:bg-white/20 rounded-lg transition touch-manipulation min-w-[40px] min-h-[40px] flex items-center justify-center"
+                    aria-label="Close menu"
+                  >
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
                 {/* User Profile Section */}
                 {user && (
                   <div className="bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-navy-soft)] p-6">
@@ -411,57 +431,103 @@ export function Header() {
                   </div>
                 )}
 
-                <div className="py-4">
+                <div className="py-1">
                   {!user ? (
-                    // Landing page mobile menu (not logged in)
+                    // Landing page mobile menu (not logged in) - Clean Professional Design
                     <>
-                      <Link
-                        href="/features"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition"
-                        style={{ color: '#1b2838', textDecoration: 'none' }}
-                      >
-                        <span style={{ color: '#1b2838' }}>Features</span>
-                      </Link>
-                      <Link
-                        href="/how-it-works"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition"
-                        style={{ color: '#1b2838', textDecoration: 'none' }}
-                      >
-                        <span style={{ color: '#1b2838' }}>How it Works</span>
-                      </Link>
-                      <Link
-                        href="/insights"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition"
-                        style={{ color: '#1b2838', textDecoration: 'none' }}
-                      >
-                        <span style={{ color: '#1b2838' }}>Insights</span>
-                      </Link>
-                      <Link
-                        href="/pricing"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition"
-                        style={{ color: '#1b2838', textDecoration: 'none' }}
-                      >
-                        <span style={{ color: '#1b2838' }}>Pricing</span>
-                      </Link>
-                      <Link
-                        href="/faq"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition"
-                        style={{ color: '#1b2838', textDecoration: 'none' }}
-                      >
-                        <span style={{ color: '#1b2838' }}>FAQ</span>
-                      </Link>
-                      <div className="px-6 py-4 border-t border-gray-200 mt-4">
+                      {/* Navigation Links - Clean & Simple */}
+                      <div className="py-2">
+                        <Link
+                          href="/features"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/10 active:bg-white/15 transition-colors touch-manipulation min-h-[52px] group"
+                          style={{ color: 'white', textDecoration: 'none' }}
+                        >
+                          <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors backdrop-blur-sm">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <span className="font-medium text-[15px] text-white">Features</span>
+                        </Link>
+                        <Link
+                          href="/how-it-works"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/10 active:bg-white/15 transition-colors touch-manipulation min-h-[52px] group"
+                          style={{ color: 'white', textDecoration: 'none' }}
+                        >
+                          <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors backdrop-blur-sm">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                          </div>
+                          <span className="font-medium text-[15px] text-white">How it Works</span>
+                        </Link>
+                        <Link
+                          href="/insights"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/10 active:bg-white/15 transition-colors touch-manipulation min-h-[52px] group"
+                          style={{ color: 'white', textDecoration: 'none' }}
+                        >
+                          <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors backdrop-blur-sm">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                          </div>
+                          <span className="font-medium text-[15px] text-white">Insights</span>
+                        </Link>
+                        <Link
+                          href="/pricing"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/10 active:bg-white/15 transition-colors touch-manipulation min-h-[52px] group"
+                          style={{ color: 'white', textDecoration: 'none' }}
+                        >
+                          <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors backdrop-blur-sm">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <span className="font-medium text-[15px] text-white">Pricing</span>
+                        </Link>
+                        <Link
+                          href="/faq"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/10 active:bg-white/15 transition-colors touch-manipulation min-h-[52px] group"
+                          style={{ color: 'white', textDecoration: 'none' }}
+                        >
+                          <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors backdrop-blur-sm">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <span className="font-medium text-[15px] text-white">FAQ</span>
+                        </Link>
+                      </div>
+
+                      {/* CTA Section - Theme Colors */}
+                      <div className="px-5 py-6 border-t border-white/10 mt-4 space-y-3">
+                        {/* Primary CTA - File Now */}
                         <Link
                           href="/signup"
                           onClick={() => setMobileMenuOpen(false)}
-                          className="block w-full text-center bg-gradient-to-r from-[var(--color-orange)] to-[var(--color-orange-hover)] text-white px-6 py-3 rounded-lg font-semibold transition shadow-md hover:shadow-lg"
+                          className="block w-full text-center bg-[var(--color-orange)] text-white px-6 py-4 rounded-xl font-bold text-base shadow-lg hover:bg-[var(--color-orange-hover)] hover:shadow-xl active:scale-95 transition-all touch-manipulation min-h-[56px] flex items-center justify-center gap-2"
                         >
-                          File Now
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                          </svg>
+                          <span>File Now</span>
+                        </Link>
+                        
+                        {/* Secondary CTA - Login */}
+                        <Link
+                          href="/login"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block w-full text-center bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white px-6 py-4 rounded-xl font-semibold text-base shadow-md hover:bg-white/30 hover:border-white/50 hover:shadow-lg active:scale-95 transition-all touch-manipulation min-h-[56px] flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                          </svg>
+                          <span>Login</span>
                         </Link>
                       </div>
                     </>
@@ -699,24 +765,6 @@ export function Header() {
                     </div>
                   )}
 
-                  {!user && (
-                    <div className="mt-6 px-6 space-y-3">
-                      <Link
-                        href="/login"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block w-full px-4 py-3 text-center border-2 border-[var(--color-navy)] text-[var(--color-navy)] rounded-lg font-semibold hover:bg-[var(--color-navy)] hover:text-white active:scale-95 transition touch-manipulation min-h-[48px] flex items-center justify-center"
-                      >
-                        Login
-                      </Link>
-                      <Link
-                        href="/signup"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block w-full px-4 py-3 text-center bg-gradient-to-r from-[var(--color-orange)] to-[var(--color-orange-hover)] text-white rounded-lg font-semibold hover:shadow-lg active:scale-95 transition touch-manipulation min-h-[48px] flex items-center justify-center"
-                      >
-                        Sign Up
-                      </Link>
-                    </div>
-                  )}
                 </div>
               </div>
             </>

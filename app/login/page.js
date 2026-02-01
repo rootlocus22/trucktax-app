@@ -79,9 +79,9 @@ export default function LoginPage() {
   ];
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Left Panel - Marketing */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] text-white p-12 flex-col justify-between relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] text-white p-10 xl:p-12 flex-col justify-between relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--color-orange)]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-[var(--color-sky)]/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
@@ -139,11 +139,11 @@ export default function LoginPage() {
       </div>
 
       {/* Right Panel - Login Form */}
-      <div className="w-full lg:w-1/2 bg-gradient-to-br from-white via-[var(--color-page)] to-white flex flex-col p-6 lg:p-12">
-        <div className="w-full max-w-md mx-auto">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-[var(--color-text)] mb-2">Welcome Back!</h1>
-            <p className="text-[var(--color-muted)]">
+      <div className="w-full lg:w-1/2 bg-gradient-to-br from-white via-[var(--color-page)] to-white flex flex-col p-4 sm:p-6 lg:p-10 xl:p-12">
+        <div className="w-full max-w-md mx-auto flex-1 flex flex-col justify-center">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-3xl sm:text-4xl font-bold text-[var(--color-text)] mb-2">Welcome Back!</h1>
+            <p className="text-sm sm:text-base text-[var(--color-muted)]">
               New to QuickTruckTax?{' '}
               <Link href="/signup" className="text-[var(--color-navy)] font-semibold hover:text-[var(--color-orange)] transition">
                 Create your free account
@@ -160,7 +160,7 @@ export default function LoginPage() {
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 border-2 border-[var(--color-border)] bg-white py-3.5 rounded-xl font-semibold text-[var(--color-text)] hover:bg-[var(--color-page-alt)] transition disabled:opacity-50 mb-6 shadow-sm"
+            className="w-full flex items-center justify-center gap-3 border-2 border-[var(--color-border)] bg-white py-3.5 sm:py-4 rounded-xl font-semibold text-[var(--color-text)] hover:bg-[var(--color-page-alt)] active:scale-95 transition disabled:opacity-50 mb-6 shadow-sm touch-manipulation min-h-[48px] sm:min-h-[52px]"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -198,7 +198,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 border-2 border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)] transition"
+                  className="w-full pl-12 pr-4 py-3.5 sm:py-4 border-2 border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)] transition text-base"
                   placeholder="Enter your email address"
                 />
               </div>
@@ -221,7 +221,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3.5 border-2 border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)] transition"
+                  className="w-full pl-12 pr-12 py-3.5 sm:py-4 border-2 border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)] transition text-base"
                   placeholder="Enter your password"
                 />
                 <button
@@ -246,7 +246,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-navy-soft)] text-white py-3.5 rounded-xl font-semibold hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-navy-soft)] text-white py-3.5 sm:py-4 rounded-xl font-semibold hover:shadow-lg active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation min-h-[48px] sm:min-h-[52px]"
             >
               {loading ? 'Signing in...' : 'Sign In to Your Account'}
               {!loading && (

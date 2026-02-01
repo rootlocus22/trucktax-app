@@ -201,6 +201,37 @@ section p {
   animation: fadeInUp 0.4s ease-out;
 }
 
+/* Mobile Menu Animations */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation-fill-mode: both;
+}
+
+.slide-in-from-right {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
 /* Smooth transitions for interactive elements */
 * {
   transition-property: color, background-color, border-color, transform, opacity;
