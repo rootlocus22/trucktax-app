@@ -533,25 +533,25 @@ export default function VehiclesPage() {
   return (
     <ProtectedRoute>
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-slate-500 hover:text-[var(--color-orange)] mb-4 transition-colors group"
-          >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-medium">Back to Dashboard</span>
-          </Link>
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">
-                Vehicle Fleet Management
-              </h1>
-              <p className="text-slate-500">
-                Manage your vehicle fleet details, weight categories, and filing information
-              </p>
-            </div>
+        {/* Professional Header */}
+        <div className="bg-white border-b border-slate-200 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-6 mb-8">
+          <div className="max-w-7xl mx-auto">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors text-sm font-medium"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Dashboard
+            </Link>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-center sm:text-left">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-1">
+                  Vehicles
+                </h1>
+                <p className="text-sm text-slate-600 font-light">
+                  Manage your vehicle fleet details, weight categories, and filing information
+                </p>
+              </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <input

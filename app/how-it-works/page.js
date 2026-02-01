@@ -406,7 +406,7 @@ export default function HowItWorksPage() {
             <p className="text-sm text-slate-500 font-light">
               Expert Team • Fast Processing • Free VIN Corrections • 24/7 Support
             </p>
-          </div>
+        </div>
       </div>
       </section>
     </div>

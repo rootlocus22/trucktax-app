@@ -129,14 +129,14 @@ export default function DashboardPage() {
         ids.add(filing.draftId);
       }
     });
-    
+
     // Also add drafts that have an explicit filingId reference
     draftFilings.forEach(draft => {
       if (draft.filingId && filings.some(f => f.id === draft.filingId)) {
         ids.add(draft.id || draft.draftId);
       }
     });
-    
+
     return ids;
   }, [filings, draftFilings]);
 
@@ -147,23 +147,23 @@ export default function DashboardPage() {
       if (!draft.selectedBusinessId && !draft.businessId) {
         return false;
       }
-      
+
       // Skip if this draft was converted to a filing
       if (convertedDraftIds.has(draft.id || draft.draftId)) {
         return false;
       }
-      
+
       // Also check for duplicates based on tax year and business
       // If there's a filing with same tax year and business, likely the same filing
       const hasMatchingFiling = filings.some(filing => {
         const sameTaxYear = filing.taxYear === draft.taxYear;
-        const sameBusiness = filing.businessId === draft.selectedBusinessId || 
-                            filing.businessId === draft.businessId;
+        const sameBusiness = filing.businessId === draft.selectedBusinessId ||
+          filing.businessId === draft.businessId;
         // If both match and filing exists (even without status), skip the draft
         // A filing in the filings collection means it was submitted or is in payment flow
         return sameTaxYear && sameBusiness;
       });
-      
+
       return !hasMatchingFiling;
     });
   }, [activeDrafts, convertedDraftIds, filings]);
@@ -182,8 +182,8 @@ export default function DashboardPage() {
   const hasIncomplete = useMemo(() => allIncompleteFilings.length > 0, [allIncompleteFilings]);
 
   // Get primary business (first business or business from first filing)
-  const primaryBusiness = useMemo(() => businesses.length > 0 
-    ? businesses[0] 
+  const primaryBusiness = useMemo(() => businesses.length > 0
+    ? businesses[0]
     : (filings.length > 0 && filings[0].business ? filings[0].business : null), [businesses, filings]);
 
   // Helper function to get return number display
@@ -191,7 +191,7 @@ export default function DashboardPage() {
     if (filing.filingType === 'amendment') {
       const type = filing.amendmentType === 'vin_correction' ? 'VIN Correction Amendment' :
         filing.amendmentType === 'weight_increase' ? 'Weight Increase Amendment' :
-        filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded Amendment' : '2290 Amendment';
+          filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded Amendment' : '2290 Amendment';
       return `${type}-${filing.id?.slice(-7) || 'N/A'}`;
     }
     if (filing.filingType === 'refund') {
@@ -276,9 +276,9 @@ export default function DashboardPage() {
         }
       }
     }
-    
+
     if (vehicleIds.length === 0) return [];
-    
+
     return vehicleIds.map(id => vehiclesMap[id] || { id, vin: 'Loading...', vehicleType: null }).filter(v => v);
   };
 
@@ -290,12 +290,12 @@ export default function DashboardPage() {
     const timeoutId = setTimeout(() => {
       const loadVehicles = async () => {
         const vehicleIdsSet = new Set();
-        
+
         // Collect all vehicle IDs from filings and drafts
         [...filings, ...unconvertedDrafts].forEach(filing => {
           const vehicleIds = filing.vehicleIds || filing.selectedVehicleIds || [];
           vehicleIds.forEach(id => vehicleIdsSet.add(id));
-          
+
           // For amendments, also check amendment details
           if (filing.filingType === 'amendment' && filing.amendmentDetails) {
             if (filing.amendmentType === 'weight_increase' && filing.amendmentDetails.weightIncrease?.vehicleId) {
@@ -308,7 +308,7 @@ export default function DashboardPage() {
 
         // Limit to prevent blocking - only load first 50 vehicles
         const vehicleIdsArray = Array.from(vehicleIdsSet).slice(0, 50);
-        
+
         // Load vehicles in batches to prevent blocking
         const vehiclesData = {};
         const batchSize = 10;
@@ -326,10 +326,10 @@ export default function DashboardPage() {
               }
             })
           );
-          
+
           // Update state after each batch to show progress
           setVehiclesMap(prev => ({ ...prev, ...vehiclesData }));
-          
+
           // Small delay between batches to prevent blocking
           if (i + batchSize < vehicleIdsArray.length) {
             await new Promise(resolve => setTimeout(resolve, 50));
@@ -347,47 +347,44 @@ export default function DashboardPage() {
     <ProtectedRoute>
       {/* Viewport layout - flex-1 to fill space between header and footer */}
       <div className="flex flex-col flex-1 h-full min-h-0">
-        {/* Compact Header - Mobile Responsive */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-[var(--color-page)] border-b border-[var(--color-border)] flex-shrink-0">
-          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--color-text)] tracking-tight">Dashboard</h1>
-            {/* Compact User Badge - Hidden on very small screens */}
-            <div className="hidden xs:inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-full px-2 sm:px-3 py-1.5">
-              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-xs sm:text-sm">
-                {(userData?.displayName || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+        {/* Professional Header */}
+        <div className="bg-[#f8fafc] border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-8 lg:py-10 flex-shrink-0 relative overflow-hidden">
+          {/* Subtle background glow */}
+          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-blue-50/20 to-transparent pointer-events-none" />
+
+          <div className="max-w-7xl mx-auto relative z-10">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div className="text-center lg:text-left">
+                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-50 text-[#173b63] text-[10px] font-black mb-2 border border-blue-100 uppercase tracking-widest">
+                  Management Console
+                </div>
+                <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                  Dashboard
+                </h1>
+                <p className="text-base sm:text-lg text-slate-500 font-medium max-w-xl mt-2 lg:max-w-none mx-auto lg:mx-0">
+                  Your central hub for Form 2290 compliance and fleet management.
+                </p>
               </div>
-              <span className="text-xs sm:text-sm font-semibold text-[var(--color-navy)] hidden sm:inline">
-                {userData?.displayName || user?.email?.split('@')[0] || 'User'}
-              </span>
+
+              {hasFilings && (
+                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-3 w-full lg:w-auto">
+                  <Link
+                    href="/dashboard/new-filing"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#ff8b3d] hover:bg-[#f07a2d] text-white !text-white rounded-2xl text-sm font-black transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-orange-500/20"
+                  >
+                    <Plus className="w-5 h-5 stroke-[3px]" />
+                    File New Form 2290
+                  </Link>
+                  <Link
+                    href="/dashboard/filings"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white text-slate-700 border-2 border-slate-200 rounded-2xl text-sm font-bold hover:bg-slate-50 transition-all hover:scale-[1.02] active:scale-95 shadow-sm"
+                  >
+                    <Search className="w-4 h-4" />
+                    View All Filings
+                  </Link>
+                </div>
+              )}
             </div>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
-            {hasFilings && (
-              <>
-                <Link
-                  href="/dashboard/filings"
-                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg border border-slate-200 hover:bg-slate-50 active:bg-slate-100 flex items-center justify-center transition-colors touch-manipulation"
-                  title="Search all filings"
-                >
-                  <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
-                </Link>
-                <Link
-                  href="/dashboard/filings"
-                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg border border-slate-200 hover:bg-slate-50 active:bg-slate-100 flex items-center justify-center transition-colors touch-manipulation"
-                  title="Filter filings"
-                >
-                  <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
-                </Link>
-                <Link
-                  href="/dashboard/new-filing"
-                  className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-[var(--color-orange)] text-white rounded-lg text-sm sm:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition-all touch-manipulation whitespace-nowrap min-h-[44px]"
-                >
-                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="hidden sm:inline">File 2290</span>
-                  <span className="sm:hidden">File 2290</span>
-                </Link>
-              </>
-            )}
           </div>
         </div>
 
@@ -403,102 +400,112 @@ export default function DashboardPage() {
             {/* Main Content Area - Scrollable if needed */}
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="max-w-6xl mx-auto">
-                {/* Stats Row - Compact - Mobile Responsive */}
+                {/* Professional Stats Cards */}
                 {(hasFilings || hasIncomplete) && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6 flex-shrink-0">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
                     {[
-                      { label: 'Total', value: stats.total, color: 'slate', icon: FileText },
-                      { label: 'Completed', value: stats.completed, color: 'emerald', icon: CheckCircle },
-                      { label: 'Active', value: stats.processing, color: 'amber', icon: Clock },
-                      { label: 'Vehicles', value: stats.totalVehicles, color: 'blue', icon: Truck },
+                      { label: 'Total Filings', value: stats.total, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
+                      { label: 'Completed', value: stats.completed, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                      { label: 'In Progress', value: stats.processing, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+                      { label: 'Total Vehicles', value: stats.totalVehicles, icon: Truck, color: 'text-purple-600', bg: 'bg-purple-50' },
                     ].map((stat, idx) => {
                       const Icon = stat.icon;
-                      const colors = {
-                        slate: 'bg-slate-50 border-slate-200 text-slate-700',
-                        emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700',
-                        amber: 'bg-amber-50 border-amber-200 text-amber-700',
-                        blue: 'bg-blue-50 border-blue-200 text-blue-700',
-                      };
                       return (
-                        <div key={idx} className={`bg-white border rounded-lg sm:rounded-xl p-3 sm:p-4 ${colors[stat.color]}`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <Icon className="w-4 h-4 sm:w-5 sm:h-5 opacity-60" />
+                        <div key={idx} className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 hover:shadow-md hover:border-slate-300 transition-all">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg ${stat.bg} ${stat.color} flex items-center justify-center flex-shrink-0`}>
+                              <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                            </div>
+                            <div>
+                              <div className="text-xl sm:text-2xl font-black text-slate-900 leading-none mb-1">{stat.value}</div>
+                              <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight">{stat.label}</div>
+                            </div>
                           </div>
-                          <div className="text-xl sm:text-2xl lg:text-3xl font-bold mb-0.5">{stat.value}</div>
-                          <div className="text-xs sm:text-sm font-medium opacity-70">{stat.label}</div>
                         </div>
                       );
                     })}
                   </div>
                 )}
 
-                {/* Company Information Section - Mobile Optimized */}
+                {/* Compact Business Information Card */}
                 {primaryBusiness && (
-                  <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
+                  <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 mb-6 hover:shadow-lg hover:shadow-slate-200/50 transition-all">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg sm:rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg sm:text-xl flex-shrink-0">
+                      <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-xl flex-shrink-0 shadow-lg shadow-slate-900/20">
                         {primaryBusiness.businessName?.charAt(0).toUpperCase() || 'B'}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
-                          <h2 className="text-base sm:text-lg font-bold text-slate-900">
-                            {primaryBusiness.businessName} ({primaryBusiness.ein ? primaryBusiness.ein.replace(/(\d{2})(\d{7})/, '$1-$2') : 'N/A'})
+                        <div className="flex items-center gap-3">
+                          <h2 className="text-lg font-black text-slate-900 truncate">
+                            {primaryBusiness.businessName}
                           </h2>
+                          <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500 font-mono">
+                            {primaryBusiness.ein ? primaryBusiness.ein.replace(/(\d{2})(\d{7})/, '$1-$2') : 'N/A'}
+                          </span>
                           <Link
                             href="/dashboard/businesses"
-                            className="text-slate-400 hover:text-slate-600 transition-colors touch-manipulation w-8 h-8 flex items-center justify-center"
-                            title="Edit business information"
+                            className="text-slate-400 hover:text-[#ff8b3d] transition-colors"
+                            title="Edit business"
                           >
-                            <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
+                            <Edit className="w-4 h-4" />
                           </Link>
                         </div>
-                        <div className="flex flex-col sm:flex-wrap sm:flex-row gap-x-6 gap-y-1 text-xs sm:text-sm text-slate-600">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-slate-500 font-medium">
                           {primaryBusiness.address && (
-                            <span>Address: {primaryBusiness.address}{primaryBusiness.city ? `, ${primaryBusiness.city}` : ''}{primaryBusiness.state ? `, ${primaryBusiness.state}` : ''} {primaryBusiness.zip || ''}</span>
+                            <p className="truncate max-w-[300px]">{primaryBusiness.address}, {primaryBusiness.city}, {primaryBusiness.state}</p>
                           )}
                           {primaryBusiness.signingAuthorityName && (
-                            <span>Signatory: {primaryBusiness.signingAuthorityName}{primaryBusiness.signingAuthorityPhone ? `, (${primaryBusiness.signingAuthorityPhone})` : ''}</span>
+                            <p className="border-l border-slate-200 pl-4 hidden md:block">Signatory: <span className="text-slate-700 font-bold">{primaryBusiness.signingAuthorityName}</span></p>
                           )}
                         </div>
                       </div>
                       <Link
                         href="/dashboard/new-filing"
-                        className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-[var(--color-orange)] text-white rounded-lg text-sm sm:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition-all whitespace-nowrap touch-manipulation min-h-[44px] w-full sm:w-auto justify-center sm:justify-start"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-[#ff8b3d] hover:bg-[#f07a2d] text-white !text-white rounded-xl text-sm font-black transition-all hover:scale-105 shadow-md shadow-orange-500/10"
                       >
-                        <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                        Start New Return
+                        <Plus className="w-4 h-4 stroke-[3px]" />
+                        New Filing
                       </Link>
                     </div>
                   </div>
                 )}
 
-                {/* Returns Table */}
+                {/* Professional Returns Table */}
                 {allFilingsForTable.length > 0 && (
-                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden mb-6">
-                    <div className="p-4 sm:p-6 border-b border-slate-200">
+                  <div className="bg-white border border-slate-200 rounded-lg overflow-hidden mb-6">
+                    <div className="px-5 py-3 border-b border-slate-200 bg-slate-50/50">
                       <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-slate-900">Returns</h2>
-                        <button
-                          onClick={() => window.location.reload()}
-                          className="text-slate-400 hover:text-slate-600 transition-colors"
-                          title="Refresh status"
-                        >
-                          <RefreshCw className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-6 bg-[#ff8b3d] rounded-full" />
+                          <h2 className="text-base font-black text-slate-900">Recent Filings</h2>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Link
+                            href="/dashboard/filings"
+                            className="text-xs text-slate-500 hover:text-[#ff8b3d] font-bold transition-colors"
+                          >
+                            View All
+                          </Link>
+                          <button
+                            onClick={() => window.location.reload()}
+                            className="w-7 h-7 rounded-lg border border-slate-200 hover:bg-white flex items-center justify-center transition-all hover:rotate-180 duration-500"
+                            title="Refresh"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full">
-                        <thead className="bg-slate-50 border-b border-slate-200">
+                        <thead className="bg-slate-50/50 border-b border-slate-200">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Return Number</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">First Used Month</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Vehicles</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Vehicle Type</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Tax Amount</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Status</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Action</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Schedule 1</th>
+                            <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Return</th>
+                            <th className="hidden sm:table-cell px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">First Used</th>
+                            <th className="hidden lg:table-cell px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Vehicles</th>
+                            <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Tax Amount</th>
+                            <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                            <th className="px-4 sm:px-6 py-3 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -506,349 +513,240 @@ export default function DashboardPage() {
                             // If it's a draft (has isDraft flag or is from draftFilings collection), use 'draft'
                             // Otherwise, if it's in the filings collection but has no status, default to 'submitted' (not 'draft')
                             // because filings in the filings collection have been submitted
-                            const filingStatus = filing.isDraft 
-                              ? 'draft' 
+                            const filingStatus = filing.isDraft
+                              ? 'draft'
                               : (filing.status || 'submitted'); // Default to 'submitted' for actual filings without status
                             const statusConfig = getStatusConfig(filingStatus);
                             const StatusIcon = statusConfig.icon;
                             // A filing is incomplete only if it's a draft
                             // Submitted/processing/completed/action_required/pending_payment/awaiting_schedule_1 are NOT incomplete drafts
                             const isIncomplete = filingStatus === 'draft' || filing.isDraft;
-                            
+
                             const resumeUrl = filing.isDraft || filingStatus === 'draft' || filingStatus === 'pending_payment'
-                          ? filing.workflowType === 'upload'
+                              ? filing.workflowType === 'upload'
                                 ? `/dashboard/upload-schedule1?draft=${filing.draftId || filing.id}`
                                 : `/dashboard/new-filing?draft=${filing.draftId || filing.id}`
-                          : `/dashboard/filings/${filing.id}`;
-                            
+                              : `/dashboard/filings/${filing.id}`;
+
                             const vehiclesInfo = getVehiclesInfo(filing);
                             const vehicleTypes = [...new Set(vehiclesInfo.map(v => v.vehicleType).filter(Boolean))];
-                            
-                        return (
-                              <tr key={filing.id || filing.draftId} className="hover:bg-slate-50 transition-colors">
-                                <td className="px-4 py-4">
-                          <Link
-                            href={resumeUrl}
-                                    className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+
+                            return (
+                              <tr key={filing.id || filing.draftId} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-4 sm:px-6 py-3">
+                                  <Link
+                                    href={resumeUrl}
+                                    className="text-sm text-slate-900 hover:text-[#ff8b3d] font-bold block truncate max-w-[120px] sm:max-w-none"
                                   >
                                     {getReturnNumber(filing)}
                                   </Link>
+                                  <div className="flex items-center gap-2 mt-0.5 sm:hidden">
+                                    <span className="text-[10px] text-slate-500">{getFirstUsedMonth(filing)}</span>
+                                  </div>
                                   {getFilingDate(filing) && (
-                                    <div className="text-xs text-slate-500 mt-1">[{getFilingDate(filing)}]</div>
+                                    <div className="text-[10px] text-slate-400 mt-0.5">{getFilingDate(filing)}</div>
                                   )}
                                 </td>
-                                <td className="px-4 py-4 text-sm text-slate-700">
+                                <td className="hidden sm:table-cell px-6 py-3 text-xs text-slate-600 font-medium">
                                   {getFirstUsedMonth(filing)}
                                 </td>
-                                <td className="px-4 py-4 text-sm text-slate-700">
+                                <td className="hidden lg:table-cell px-6 py-3">
                                   {vehiclesInfo.length > 0 ? (
-                                    <div className="space-y-1">
+                                    <div className="flex -space-x-2 overflow-hidden">
                                       {vehiclesInfo.slice(0, 3).map((vehicle, idx) => (
-                                        <div key={idx} className="font-mono text-xs">
-                                          {vehicle.vin || vehicle.id || 'N/A'}
+                                        <div key={idx} className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 border-2 border-white text-[8px] font-bold text-slate-600" title={vehicle.vin || 'Vehicle'}>
+                                          {vehicle.vin?.slice(-2) || 'V'}
                                         </div>
                                       ))}
                                       {vehiclesInfo.length > 3 && (
-                                        <div className="text-xs text-slate-500">+{vehiclesInfo.length - 3} more</div>
+                                        <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 border-2 border-white text-[8px] font-bold text-slate-600">
+                                          +{vehiclesInfo.length - 3}
+                                        </div>
                                       )}
-                            </div>
+                                    </div>
                                   ) : (
-                                    <span className="text-slate-400">-</span>
+                                    <span className="text-slate-300 text-xs">-</span>
                                   )}
                                 </td>
-                                <td className="px-4 py-4 text-sm text-slate-700">
-                                  {vehicleTypes.length > 0 ? (
-                                    <div className="flex flex-wrap gap-1">
-                                      {vehicleTypes.map((type, idx) => (
-                                        <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                                          {getVehicleTypeLabel(type)}
-                                        </span>
-                                      ))}
-                            </div>
-                                  ) : (
-                                    <span className="text-slate-400">-</span>
-                                  )}
-                                </td>
-                                <td className="px-4 py-4 text-sm font-semibold text-slate-900">
+                                <td className="px-4 sm:px-6 py-3 text-sm font-black text-slate-900">
                                   ${getTaxAmount(filing).toFixed(2)}
                                 </td>
-                                <td className="px-4 py-4">
-                                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusConfig.bg} ${statusConfig.color} border ${statusConfig.border}`}>
-                                    <StatusIcon className="w-3 h-3" />
+                                <td className="px-4 sm:px-6 py-3">
+                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${statusConfig.bg} ${statusConfig.color} border border-current/10`}>
+                                    <div className={`w-1 h-1 rounded-full ${statusConfig.dot}`} />
                                     {isIncomplete ? 'Incomplete' : statusConfig.label}
                                   </span>
                                 </td>
-                                <td className="px-4 py-4">
-                                  {isIncomplete ? (
-                                    <Link
-                                      href={resumeUrl}
-                                      onClick={(e) => {
-                                        console.log('[CLICK] Continue where you left off clicked', { resumeUrl });
-                                        // Don't prevent default - let navigation happen
-                                      }}
-                                      className="inline-flex items-center px-3 py-1.5 bg-[var(--color-orange)] text-white text-xs font-semibold rounded-lg hover:bg-[var(--color-orange-hover)] transition-colors"
-                                    >
-                                      Continue where you left off
-                                    </Link>
-                                  ) : (
-                                    <Link
-                                      href={resumeUrl}
-                                      className="text-blue-600 hover:text-blue-800 text-xs font-medium hover:underline"
-                                    >
-                                      View Details
-                                    </Link>
-                                  )}
-                                </td>
-                                <td className="px-4 py-4 text-sm text-slate-500">
-                                  {hasSchedule1(filing) ? (
-                                    <Link
-                                      href={filing.schedule1Url}
-                                      target="_blank"
-                                      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium"
-                                    >
-                                      <FileCheck className="w-4 h-4" />
-                                      View
-                          </Link>
-                                  ) : (
-                                    <span>-</span>
-                                  )}
+                                <td className="px-4 sm:px-6 py-3 text-right">
+                                  <div className="flex items-center justify-end gap-2">
+                                    {isIncomplete ? (
+                                      <Link
+                                        href={resumeUrl}
+                                        className="inline-flex items-center justify-center px-4 py-1.5 bg-[#ff8b3d] hover:bg-[#f07a2d] text-white !text-white rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95 shadow-md shadow-orange-500/10"
+                                      >
+                                        Continue
+                                      </Link>
+                                    ) : (
+                                      <Link
+                                        href={resumeUrl}
+                                        className="inline-flex items-center justify-center px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold transition-all"
+                                      >
+                                        View
+                                      </Link>
+                                    )}
+                                    {hasSchedule1(filing) && (
+                                      <Link
+                                        href={filing.schedule1Url}
+                                        target="_blank"
+                                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-all"
+                                        title="View Schedule 1"
+                                      >
+                                        <FileCheck className="w-3.5 h-3.5" />
+                                      </Link>
+                                    )}
+                                  </div>
                                 </td>
                               </tr>
-                        );
-                      })}
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
                   </div>
                 )}
 
-                {/* Empty State - Beautiful & Engaging */}
+                {/* Professional Empty State */}
                 {!hasFilings && !hasIncomplete && (
-                  <div className="flex items-start justify-center py-8">
-                    <div className="text-center max-w-4xl px-6 w-full">
-                      {/* Welcome Message */}
-                      <div className="mb-8">
-                        <h2 className="text-3xl sm:text-4xl font-bold text-[var(--color-text)] mb-4 bg-gradient-to-r from-[var(--color-orange)] via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                          Welcome to Your Dashboard
-                        </h2>
-                        <p className="text-base sm:text-lg text-[var(--color-muted)] max-w-2xl mx-auto leading-relaxed">
-                          Get started with your first Form 2290 filing in minutes. Choose the method that works best for you.
-                        </p>
+                  <div className="bg-white border border-slate-200 rounded-lg p-12 text-center">
+                    <div className="max-w-2xl mx-auto">
+                      <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                        <FileText className="w-8 h-8 text-slate-600" />
                       </div>
-
-                      {/* Filing Method Cards - Mobile Optimized */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8 max-w-3xl mx-auto">
+                      <h2 className="text-2xl font-bold text-slate-900 mb-2">Get Started with Your First Filing</h2>
+                      <p className="text-slate-600 mb-8 max-w-md mx-auto">
+                        Choose how you'd like to file your Form 2290. Our expert team will handle the rest.
+                      </p>
+                      <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
                         <Link
                           href="/dashboard/upload-schedule1"
-                          className="group relative bg-white border-2 border-slate-200 rounded-2xl p-6 sm:p-8 hover:border-blue-400 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                          className="group relative bg-[#fdfdfe] border border-slate-200 rounded-2xl p-8 hover:border-[#ff8b3d]/30 hover:shadow-2xl hover:shadow-orange-500/5 transition-all duration-300 overflow-hidden"
                         >
-                          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                          <div className="relative z-10">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                              <Upload className="w-8 h-8 text-white" />
-                            </div>
-                            <h3 className="text-lg font-bold text-[var(--color-text)] mb-2">Upload Schedule 1 PDF</h3>
-                            <p className="text-sm text-[var(--color-muted)] mb-4 leading-relaxed">
-                              Let our AI extract vehicle information from your existing Schedule 1 PDF automatically
-                            </p>
-                            <div className="space-y-1.5 mb-4">
-                              <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                                <span>AI-powered data extraction</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                                <span>Save time on data entry</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                                <span>Instant verification</span>
-                              </div>
-                            </div>
-                            <div className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 group-hover:gap-3 transition-all">
-                              <span>Get Started</span>
-                              <ArrowRight className="w-4 h-4" />
-                            </div>
+                          <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <Upload className="w-20 h-20" />
+                          </div>
+                          <div className="w-14 h-14 rounded-xl bg-slate-50 flex items-center justify-center mb-6 group-hover:bg-[#ff8b3d] group-hover:text-white transition-all duration-300">
+                            <Upload className="w-7 h-7" />
+                          </div>
+                          <h3 className="text-xl font-bold text-slate-900 mb-3 text-left">Upload Schedule 1</h3>
+                          <p className="text-sm text-slate-600 mb-6 text-left leading-relaxed">AI extracts data from your existing Schedule 1 PDF. Fast & Accurate.</p>
+                          <div className="inline-flex items-center gap-2 px-0 py-2 text-[#ff8b3d] text-sm font-black group-hover:gap-4 transition-all">
+                            Get Started <ArrowRight className="w-5 h-5 stroke-[3px]" />
                           </div>
                         </Link>
 
                         <Link
                           href="/dashboard/new-filing"
-                          className="group relative bg-white border-2 border-slate-200 rounded-2xl p-6 sm:p-8 hover:border-[var(--color-orange)] hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                          className="group relative bg-[#fdfdfe] border border-slate-200 rounded-2xl p-8 hover:border-[#ff8b3d]/30 hover:shadow-2xl hover:shadow-orange-500/5 transition-all duration-300 overflow-hidden"
                         >
-                          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                          <div className="relative z-10">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--color-orange)] to-slate-700 flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                              <Edit className="w-8 h-8 text-white" />
-                            </div>
-                            <h3 className="text-lg font-bold text-[var(--color-text)] mb-2">Manual Entry</h3>
-                            <p className="text-sm text-[var(--color-muted)] mb-4 leading-relaxed">
-                              Fill out your Form 2290 step-by-step with our guided filing process
-                            </p>
-                            <div className="space-y-1.5 mb-4">
-                              <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-[var(--color-orange)] flex-shrink-0" />
-                                <span>Step-by-step guidance</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-[var(--color-orange)] flex-shrink-0" />
-                                <span>Real-time validation</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-[var(--color-orange)] flex-shrink-0" />
-                                <span>Save progress anytime</span>
-                              </div>
-                            </div>
-                            <div className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-orange)] group-hover:gap-3 transition-all">
-                              <span>Get Started</span>
-                              <ArrowRight className="w-4 h-4" />
-                            </div>
+                          <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <Edit className="w-20 h-20" />
+                          </div>
+                          <div className="w-14 h-14 rounded-xl bg-slate-50 flex items-center justify-center mb-6 group-hover:bg-[#ff8b3d] group-hover:text-white transition-all duration-300">
+                            <Edit className="w-7 h-7" />
+                          </div>
+                          <h3 className="text-xl font-bold text-slate-900 mb-3 text-left">Manual Entry</h3>
+                          <p className="text-sm text-slate-600 mb-6 text-left leading-relaxed">Step-by-step guided filing process. Perfect for new vehicles.</p>
+                          <div className="inline-flex items-center gap-2 px-0 py-2 text-[#ff8b3d] text-sm font-black group-hover:gap-4 transition-all">
+                            Get Started <ArrowRight className="w-5 h-5 stroke-[3px]" />
                           </div>
                         </Link>
-                      </div>
-
-                      {/* Trust Indicators */}
-                      <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto">
-                        <div className="text-center p-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center mx-auto mb-2">
-                            <CheckCircle className="w-5 h-5 text-emerald-600" />
-                          </div>
-                          <h4 className="text-xs font-semibold text-[var(--color-text)] mb-0.5">IRS Approved</h4>
-                          <p className="text-xs text-[var(--color-muted)]">Authorized e-file provider</p>
-                        </div>
-                        <div className="text-center p-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center mx-auto mb-2">
-                            <Clock className="w-5 h-5 text-blue-600" />
-                          </div>
-                          <h4 className="text-xs font-semibold text-[var(--color-text)] mb-0.5">Fast Processing</h4>
-                          <p className="text-xs text-[var(--color-muted)]">File in under 10 minutes</p>
-                        </div>
-                        <div className="text-center p-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center mx-auto mb-2">
-                            <TrendingUp className="w-5 h-5 text-purple-600" />
-                          </div>
-                          <h4 className="text-xs font-semibold text-[var(--color-text)] mb-0.5">Easy to Use</h4>
-                          <p className="text-xs text-[var(--color-muted)]">No tax expertise needed</p>
-                        </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Quick Overview - Action Items */}
+                {/* Action Required Alert */}
                 {hasFilings && stats.actionRequired > 0 && (
-                  <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4 sm:p-5">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-5 mb-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0">
                         <AlertCircle className="w-5 h-5 text-white" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-bold text-orange-900">Action Required</h3>
-                        <p className="text-sm text-orange-800">{stats.actionRequired} {stats.actionRequired === 1 ? 'filing needs' : 'filings need'} your attention</p>
+                      <div className="flex-1">
+                        <h3 className="text-base font-bold text-amber-900 mb-1">Action Required</h3>
+                        <p className="text-sm text-amber-800 mb-3">{stats.actionRequired} {stats.actionRequired === 1 ? 'filing requires' : 'filings require'} your attention</p>
+                        <Link
+                          href="/dashboard/filings?status=action_required"
+                          className="text-sm font-semibold text-amber-700 hover:text-amber-900 hover:underline"
+                        >
+                          Review Filings →
+                        </Link>
                       </div>
-                      <Link
-                        href="/dashboard/filings?status=action_required"
-                        className="text-sm font-semibold text-orange-700 hover:text-orange-900 hover:underline"
-                      >
-                        Review →
-                      </Link>
-                    </div>
-                    <div className="space-y-2">
-                      {filings.filter(f => f.status === 'action_required').slice(0, 2).map(filing => {
-                        const typeInfo = getFilingTypeInfo(filing);
-                          return (
-                            <Link
-                              key={filing.id}
-                              href={`/dashboard/filings/${filing.id}`}
-                            className="block bg-white border border-orange-200 rounded-lg p-3 hover:border-orange-300 hover:shadow-sm transition-all"
-                            >
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-sm font-semibold text-slate-900 truncate">{filing.business?.businessName || 'Unnamed Business'}</span>
-                                  <span className="text-xs px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded font-medium">{filing.taxYear}</span>
-                                </div>
-                                <div className="text-xs text-slate-600">{typeInfo.label}</div>
-                              </div>
-                              <ChevronRight className="w-4 h-4 text-orange-600 flex-shrink-0 ml-2" />
-                            </div>
-                            </Link>
-                          );
-                        })}
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Right Sidebar - Fixed, Scrollable */}
-            <div className="hidden xl:block w-80 border-l border-[var(--color-border)] bg-white overflow-y-auto flex-shrink-0">
-              <div className="p-4 sm:p-6 space-y-4">
-                {/* Quick Actions - Compact Grid */}
-                <div className="flex-shrink-0 bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                  <h3 className="text-xs font-semibold text-[var(--color-text)] mb-3 uppercase tracking-wide">Quick Actions</h3>
-                  <div className="grid grid-cols-2 gap-2">
+            {/* Right Sidebar - Professional */}
+            <div className="hidden xl:block w-80 border-l border-slate-200 bg-white overflow-y-auto flex-shrink-0">
+              <div className="p-6 space-y-6">
+                {/* Quick Actions */}
+                <div className="bg-white border border-slate-200 rounded-lg p-5">
+                  <h3 className="text-sm font-semibold text-slate-900 mb-4">Quick Actions</h3>
+                  <div className="space-y-2">
                     {[
-                      { href: '/dashboard/new-filing', icon: Plus, label: 'New Filing', color: 'blue' },
-                      { href: '/dashboard/upload-schedule1', icon: Upload, label: 'Upload PDF', color: 'purple' },
-                      { href: '/dashboard/new-filing?type=refund', icon: CreditCard, label: 'Refund', color: 'emerald' },
-                      { href: '/dashboard/new-filing?type=amendment', icon: Edit, label: 'Amend', color: 'amber' },
+                      { href: '/dashboard/new-filing', icon: Plus, label: 'New Filing' },
+                      { href: '/dashboard/upload-schedule1', icon: Upload, label: 'Upload PDF' },
+                      { href: '/dashboard/new-filing?type=amendment', icon: Edit, label: 'Amendment' },
                     ].map((action, idx) => {
                       const Icon = action.icon;
-                      const colors = {
-                        blue: 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100',
-                        purple: 'bg-purple-50 border-purple-200 text-purple-600 hover:bg-purple-100',
-                        emerald: 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100',
-                        amber: 'bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100',
-                      };
                       return (
                         <Link
                           key={idx}
                           href={action.href}
-                          className={`group border rounded-lg p-3 hover:shadow-sm transition-all ${colors[action.color]}`}
+                          className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 hover:border-[#173b63]/30 hover:bg-slate-50 hover:shadow-sm transition-all group"
                         >
-                          <div className="w-8 h-8 rounded-lg bg-white border border-current/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                            <Icon className="w-4 h-4" />
+                          <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-[#173b63] group-hover:text-white transition-all duration-300">
+                            <Icon className="w-4.5 h-4.5" />
                           </div>
-                          <div className="text-xs font-semibold">{action.label}</div>
+                          <span className="text-sm font-bold text-slate-700 group-hover:text-[#173b63] transition-colors">{action.label}</span>
                         </Link>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* View All Filings Link */}
+                {/* View All Filings */}
                 {hasFilings && (
                   <Link
                     href="/dashboard/filings"
-                    className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl hover:shadow-md transition-all group"
+                    className="block p-5 bg-slate-50 border border-slate-200 rounded-lg hover:shadow-sm transition-all group"
                   >
-                    <div>
-                      <h3 className="text-sm font-semibold text-blue-900 mb-1">View All Filings</h3>
-                      <p className="text-xs text-blue-700">Search, filter, and manage all your filings</p>
+                    <h3 className="text-sm font-semibold text-slate-900 mb-1">View All Filings</h3>
+                    <p className="text-xs text-slate-600 mb-3">Search, filter, and manage all your filings</p>
+                    <div className="text-sm font-medium text-slate-700 group-hover:text-slate-900 flex items-center gap-2">
+                      View All <ArrowRight className="w-4 h-4" />
                     </div>
-                    <ArrowRight className="w-5 h-5 text-blue-600 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 )}
 
-                {/* Help Section - Compact */}
-                <div className="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-xl p-4">
-                  <h3 className="text-xs font-semibold text-[var(--color-text)] mb-2">Need Help?</h3>
-                  <p className="text-xs text-[var(--color-muted)] mb-3">Our support team is here to help with Form 2290 filing questions.</p>
+                {/* Help Section */}
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-5">
+                  <h3 className="text-sm font-semibold text-slate-900 mb-2">Need Help?</h3>
+                  <p className="text-xs text-slate-600 mb-4">Our support team is here to assist you.</p>
                   <div className="space-y-2">
                     <Link
                       href="/faq"
-                      className="flex items-center justify-between px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-[var(--color-text)] hover:bg-slate-50 hover:border-slate-300 transition-all"
+                      className="block text-sm font-medium text-slate-700 hover:text-slate-900"
                     >
-                      <span>Visit FAQ</span>
-                      <ArrowRight className="w-3 h-3" />
+                      FAQ →
                     </Link>
                     <Link
                       href="/how-it-works"
-                      className="flex items-center justify-between px-3 py-2 bg-[var(--color-orange)] text-white rounded-lg text-xs font-semibold hover:bg-[var(--color-orange-hover)] transition-all"
+                      className="block text-sm font-medium text-slate-700 hover:text-slate-900"
                     >
-                      <span>How It Works</span>
-                      <ArrowRight className="w-3 h-3" />
+                      How It Works →
                     </Link>
                   </div>
                 </div>

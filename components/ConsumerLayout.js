@@ -107,12 +107,22 @@ export function ConsumerLayout({ children }) {
                 </ul>
               </div>
             </div>
-            <div className="border-t border-white/10 mt-12 pt-8 text-center text-sm text-white/50">
-              &copy; {new Date().getFullYear()} QuickTruckTax. All rights reserved.
+            <div className="border-t border-white/10 pt-6 mt-8">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/60">
+                <div className="text-center sm:text-left">
+                  <p>&copy; {new Date().getFullYear()} QuickTruckTax. All rights reserved.</p>
+                </div>
+                <div className="text-center sm:text-right">
+                  <p className="font-semibold text-white/80">Vendax Systems LLC</p>
+                  <p>28 Geary St STE 650 Suite #500, San Francisco, CA 94108, USA</p>
+                  <p>
+                    <a href="mailto:support@vendaxsystemlabs.com" className="hover:text-white transition">
+                      support@vendaxsystemlabs.com
+                    </a>
+                  </p>
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-center text-white/50 mt-2">
-              Delaware, USA • Secure & Compliant Tax Filing
-            </p>
           </div>
         )}
       </footer>

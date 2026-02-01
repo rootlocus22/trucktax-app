@@ -122,9 +122,9 @@ function MobilePricingSummary({
         // For VIN corrections and mileage exceeded, vehicles array can be empty
         const sanitizedVehicles = selectedVehiclesList.length > 0
           ? selectedVehiclesList.map(v => ({
-            id: v.id,
-            vin: v.vin,
-            grossWeightCategory: v.grossWeightCategory,
+          id: v.id,
+          vin: v.vin,
+          grossWeightCategory: v.grossWeightCategory,
             isSuspended: v.isSuspended || false,
             vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
             logging: v.logging !== undefined ? v.logging : null,
@@ -256,7 +256,7 @@ function MobilePricingSummary({
                         <div className="flex-1">
                           <span className="text-xs font-semibold text-blue-700">Payment to IRS</span>
                           <p className="text-xs text-slate-500 mt-0.5">IRS Tax Amount</p>
-                        </div>
+                    </div>
                         <span className="text-sm font-bold text-blue-700">
                           ${(() => {
                             // For weight increase amendments, use additionalTaxDue if available
@@ -266,7 +266,7 @@ function MobilePricingSummary({
                             return pricing.totalTax?.toFixed(2) || '0.00';
                           })()}
                         </span>
-                      </div>
+                    </div>
                     </div>
                     <div className="pb-2 border-b border-slate-200">
                       <div className="flex justify-between items-start mb-1">
@@ -305,12 +305,12 @@ function MobilePricingSummary({
                           )}
                         </div>
                       )}
-                      {pricing.salesTax > 0 && (
+                    {pricing.salesTax > 0 && (
                         <div className="flex justify-between text-xs mt-1">
                           <span className="text-slate-500">+ Sales Tax</span>
                           <span className="font-medium">${pricing.salesTax?.toFixed(2)}</span>
-                        </div>
-                      )}
+                      </div>
+                    )}
                       <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-200">
                         <span className="text-xs font-bold text-orange-700">Total Due Now</span>
                         <span className="text-sm font-bold text-orange-700">
@@ -836,7 +836,7 @@ function NewFilingContent() {
           userIdMatch: draft?.userId === user.uid 
         });
         
-        if (draft && draft.userId === user.uid) {
+          if (draft && draft.userId === user.uid) {
           console.log('[DRAFT LOAD] Step 3: Restoring draft state...');
           const restoreStart = performance.now();
           
@@ -913,7 +913,7 @@ function NewFilingContent() {
             } catch (error) {
               console.error('[DRAFT LOAD] Error loading vehicles for draft:', error);
               setSelectedBusinessId(draft.selectedBusinessId);
-              if (draft.selectedVehicleIds) setSelectedVehicleIds(draft.selectedVehicleIds);
+            if (draft.selectedVehicleIds) setSelectedVehicleIds(draft.selectedVehicleIds);
             }
           } else {
             console.log('[DRAFT LOAD] Step 4: Loading all vehicles (no business selected)');
@@ -925,8 +925,8 @@ function NewFilingContent() {
               if (draft.selectedVehicleIds) {
                 console.log('[DRAFT LOAD] Setting selectedVehicleIds:', draft.selectedVehicleIds.length, 'vehicles');
                 setSelectedVehicleIds(draft.selectedVehicleIds);
-              }
-            } catch (error) {
+          }
+        } catch (error) {
               console.error('[DRAFT LOAD] Error loading vehicles for draft:', error);
               if (draft.selectedVehicleIds) setSelectedVehicleIds(draft.selectedVehicleIds);
             }
@@ -1280,9 +1280,9 @@ function NewFilingContent() {
         // For VIN corrections and mileage exceeded, vehicles array can be empty
         const sanitizedVehicles = selectedVehiclesList.length > 0
           ? selectedVehiclesList.map(v => ({
-            id: v.id,
-            vin: v.vin,
-            grossWeightCategory: v.grossWeightCategory,
+          id: v.id,
+          vin: v.vin,
+          grossWeightCategory: v.grossWeightCategory,
             isSuspended: v.isSuspended || false,
             vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
             logging: v.logging !== undefined ? v.logging : null,
@@ -1331,8 +1331,8 @@ function NewFilingContent() {
   useEffect(() => {
     if (selectedVehicleIds.length === 0) {
       setVehicleTypeError('');
-      return;
-    }
+        return;
+      }
 
     // Only validate if all selected vehicle IDs exist in the vehicles array (to avoid race conditions)
     const allVehiclesExist = selectedVehicleIds.every(id => vehicles.some(v => v.id === id));
@@ -1447,22 +1447,22 @@ function NewFilingContent() {
       // Load previous filings for VIN correction dropdown - defer to prevent blocking
       setTimeout(async () => {
         try {
-          const filings = await getFilingsByUser(user.uid);
-          setPreviousFilings(filings);
+      const filings = await getFilingsByUser(user.uid);
+      setPreviousFilings(filings);
 
-          // Extract unique VINs from previous filings (completed filings only)
+      // Extract unique VINs from previous filings (completed filings only)
           // Defer this heavy operation to prevent blocking - load VINs asynchronously
-          const completedFilings = filings.filter(f => f.status === 'completed');
+      const completedFilings = filings.filter(f => f.status === 'completed');
           
           // Load VINs asynchronously in the background to prevent blocking
           setTimeout(async () => {
             try {
-              const vinMap = new Map(); // Map VIN -> { filingId, vehicleId }
+      const vinMap = new Map(); // Map VIN -> { filingId, vehicleId }
 
               // Collect all unique vehicle IDs first
               const vehicleIdsSet = new Set();
-              for (const filing of completedFilings) {
-                if (filing.vehicleIds && filing.vehicleIds.length > 0) {
+      for (const filing of completedFilings) {
+        if (filing.vehicleIds && filing.vehicleIds.length > 0) {
                   filing.vehicleIds.forEach(id => vehicleIdsSet.add(id));
                 }
               }
@@ -1470,8 +1470,8 @@ function NewFilingContent() {
               // Load vehicles in parallel (limit to prevent blocking)
               const vehicleIdsArray = Array.from(vehicleIdsSet).slice(0, 50); // Limit to 50 vehicles max
               const vehiclePromises = vehicleIdsArray.map(async (vehicleId) => {
-                try {
-                  const vehicle = await getVehicle(vehicleId);
+            try {
+              const vehicle = await getVehicle(vehicleId);
                   return { vehicleId, vehicle };
                 } catch (err) {
                   console.error(`Error loading vehicle ${vehicleId}:`, err);
@@ -1490,26 +1490,26 @@ function NewFilingContent() {
                 if (filing.vehicleIds && filing.vehicleIds.length > 0) {
                   for (const vehicleId of filing.vehicleIds) {
                     const vehicle = vehicleMap.get(vehicleId);
-                    if (vehicle && vehicle.vin) {
-                      if (!vinMap.has(vehicle.vin)) {
-                        vinMap.set(vehicle.vin, {
-                          vin: vehicle.vin,
-                          filingId: filing.id,
-                          vehicleId: vehicleId,
-                          taxYear: filing.taxYear,
-                          filingDate: filing.createdAt
-                        });
-                      }
-                    }
-                  }
+              if (vehicle && vehicle.vin) {
+                if (!vinMap.has(vehicle.vin)) {
+                  vinMap.set(vehicle.vin, {
+                    vin: vehicle.vin,
+                    filingId: filing.id,
+                    vehicleId: vehicleId,
+                    taxYear: filing.taxYear,
+                    filingDate: filing.createdAt
+                  });
                 }
-              }
+            }
+          }
+        }
+      }
 
-              setPreviousFilingsVINs(Array.from(vinMap.values()).sort((a, b) => {
-                // Sort by most recent filing date first
-                if (!a.filingDate || !b.filingDate) return 0;
-                return new Date(b.filingDate) - new Date(a.filingDate);
-              }));
+      setPreviousFilingsVINs(Array.from(vinMap.values()).sort((a, b) => {
+        // Sort by most recent filing date first
+        if (!a.filingDate || !b.filingDate) return 0;
+        return new Date(b.filingDate) - new Date(a.filingDate);
+      }));
             } catch (error) {
               console.error('Error loading VINs:', error);
             }
@@ -2305,7 +2305,7 @@ function NewFilingContent() {
     }
 
     setCouponError('');
-
+    
     // Mock coupon validation (replace with actual API call)
     // For testing, use dummy coupon codes
     const validCoupons = {
@@ -2317,13 +2317,13 @@ function NewFilingContent() {
     };
 
     const coupon = validCoupons[couponCode.toUpperCase()];
-
+    
     if (coupon) {
       setCouponType(coupon.type);
       setCouponDiscount(coupon.value);
       setCouponApplied(true);
       setCouponError('');
-
+      
       // Recalculate pricing with coupon
       await recalculatePricingWithCoupon(coupon.type, coupon.value);
     } else {
@@ -2441,22 +2441,22 @@ function NewFilingContent() {
                 const isCompleted = s < step || (step === 4 && s === 3); // If we're on step 4 (hidden), step 3 is completed
 
                 return (
-                  <div key={s} className="flex items-center">
-                    <div className={`
-                      w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 border-2
+                <div key={s} className="flex items-center">
+                  <div className={`
+                    w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 border-2
                       ${isCompleted
-                        ? 'bg-[var(--color-orange)] border-[var(--color-orange)] text-white'
+                      ? 'bg-[var(--color-orange)] border-[var(--color-orange)] text-white'
                         : isCurrentStep
-                          ? 'bg-white border-[var(--color-orange)] text-[var(--color-orange)] shadow-lg scale-110'
-                          : 'bg-white border-slate-200 text-slate-400'
-                      }
-                    `}>
+                        ? 'bg-white border-[var(--color-orange)] text-[var(--color-orange)] shadow-lg scale-110'
+                        : 'bg-white border-slate-200 text-slate-400'
+                    }
+                  `}>
                       {isCompleted ? <CheckCircle className="w-5 h-5" /> : displayStep}
-                    </div>
-                    {s < 6 && (
-                      <div className={`w-12 h-1 transition-colors duration-300 ${isCompleted ? 'bg-[var(--color-orange)]' : 'bg-slate-200'}`} />
-                    )}
                   </div>
+                  {s < 6 && (
+                      <div className={`w-12 h-1 transition-colors duration-300 ${isCompleted ? 'bg-[var(--color-orange)]' : 'bg-slate-200'}`} />
+                  )}
+                </div>
                 );
               })}
             </div>
@@ -2823,21 +2823,21 @@ function NewFilingContent() {
 
                     {/* Vehicle Selection or Manual VIN Entry */}
                     {weightIncreaseInputMode === 'select' ? (
-                      <div>
-                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                          Select Vehicle *
-                        </label>
-                        <select
-                          value={weightIncreaseData.vehicleId}
-                          onChange={(e) => {
-                            const selectedVehicleId = e.target.value;
-                            const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                        Select Vehicle *
+                      </label>
+                      <select
+                        value={weightIncreaseData.vehicleId}
+                        onChange={(e) => {
+                          const selectedVehicleId = e.target.value;
+                          const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
 
                             // Auto-populate original weight category and logging status from selected vehicle (read-only)
-                            if (selectedVehicle) {
-                              setWeightIncreaseData({
-                                ...weightIncreaseData,
-                                vehicleId: selectedVehicleId,
+                          if (selectedVehicle) {
+                            setWeightIncreaseData({
+                              ...weightIncreaseData,
+                              vehicleId: selectedVehicleId,
                                 vin: selectedVehicle.vin || '',
                                 originalWeightCategory: selectedVehicle.grossWeightCategory || '',
                                 originalIsLogging: selectedVehicle.logging === true,
@@ -2855,21 +2855,21 @@ function NewFilingContent() {
                                 );
                                 setWeightIncreaseData(prev => ({ ...prev, additionalTaxDue: additionalTax }));
                               }
-                            } else {
+                          } else {
                               setWeightIncreaseData({ ...weightIncreaseData, vehicleId: '', vin: '', originalWeightCategory: '', originalIsLogging: false });
-                            }
-                          }}
-                          className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
-                        >
-                          <option value="">Select a vehicle...</option>
+                          }
+                        }}
+                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
+                      >
+                        <option value="">Select a vehicle...</option>
                           {vehicles.filter(v => v.vehicleType === 'taxable' || !v.vehicleType).map(v => (
                             <option key={v.id} value={v.id}>{v.vin} {v.grossWeightCategory ? `(Category ${v.grossWeightCategory})` : ''}</option>
-                          ))}
-                        </select>
+                        ))}
+                      </select>
                         {vehicles.filter(v => v.vehicleType === 'taxable' || !v.vehicleType).length === 0 && (
                           <p className="mt-1 text-xs text-amber-600">No taxable vehicles found. You can enter the VIN manually using the "Manual" option above.</p>
                         )}
-                      </div>
+                    </div>
                     ) : (
                       <div>
                         <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
@@ -3165,7 +3165,7 @@ function NewFilingContent() {
                         <p className="mt-1 text-xs text-amber-600">No suspended vehicles found. Please add a suspended vehicle first.</p>
                       )}
                       {vehicles.filter(v => v.vehicleType === 'suspended' || (v.vehicleType === undefined && v.isSuspended === true)).length > 0 && (
-                        <p className="mt-1 text-xs text-[var(--color-muted)]">Only suspended vehicles are shown</p>
+                      <p className="mt-1 text-xs text-[var(--color-muted)]">Only suspended vehicles are shown</p>
                       )}
                     </div>
 
@@ -3411,8 +3411,8 @@ function NewFilingContent() {
                     <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-5">
                       <div>
                         <h3 className="text-base sm:text-lg md:text-xl font-bold text-slate-900 mb-1">
-                          {businesses.length > 0 ? 'Add New Business' : 'Add Business Details'}
-                        </h3>
+                        {businesses.length > 0 ? 'Add New Business' : 'Add Business Details'}
+                      </h3>
                         <p className="text-xs sm:text-sm text-slate-600">
                           {businesses.length > 0 ? 'Add another business to your account' : 'Enter your business information to continue'}
                         </p>
@@ -3623,13 +3623,13 @@ function NewFilingContent() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
-                          <div>
+                        <div>
                             <label className="block text-sm font-semibold text-slate-900 mb-2">
                               Name <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={newBusiness.signingAuthorityName}
+                          </label>
+                          <input
+                            type="text"
+                            value={newBusiness.signingAuthorityName}
                               onChange={(e) => handleBusinessChange('signingAuthorityName', e.target.value)}
                               className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.signingAuthorityName ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
                               placeholder="e.g., John Doe"
@@ -3642,8 +3642,8 @@ function NewFilingContent() {
                             ) : (
                               <p className="mt-1 text-xs text-slate-500">Full name of authorized signer</p>
                             )}
-                          </div>
-                          <div>
+                        </div>
+                        <div>
                             <label className="block text-sm font-semibold text-slate-900 mb-2">
                               Phone <span className="text-red-500">*</span>
                             </label>
@@ -3666,9 +3666,9 @@ function NewFilingContent() {
                           <div>
                             <label className="block text-sm font-semibold text-slate-900 mb-2">
                               PIN <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
+                          </label>
+                          <input
+                            type="text"
                               value={newBusiness.signingAuthorityPIN}
                               onChange={(e) => handleBusinessChange('signingAuthorityPIN', e.target.value)}
                               className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal font-mono ${businessErrors.signingAuthorityPIN ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
@@ -3683,8 +3683,8 @@ function NewFilingContent() {
                             ) : (
                               <p className="mt-1 text-xs text-slate-500">5-digit PIN for IRS verification</p>
                             )}
-                          </div>
                         </div>
+                      </div>
                       </div>
 
                         {/* Third Party Designee */}
@@ -3824,8 +3824,8 @@ function NewFilingContent() {
                         </div>
                       </div>
                       <div className="md:col-span-2 pt-4 border-t-2 border-slate-200 mt-4 -mx-4 sm:-mx-6 md:-mx-8 px-4 sm:px-6 md:px-8">
-                        <button
-                          onClick={async () => {
+                      <button
+                        onClick={async () => {
                             // Run validations first
                             const nameVal = validateBusinessName(newBusiness.businessName);
                             const einVal = validateEIN(newBusiness.ein);
@@ -3855,10 +3855,10 @@ function NewFilingContent() {
                             const success = await handleAddBusiness();
                             // Only hide form if business was successfully created
                             if (success) {
-                              setShowBusinessForm(false);
+                          setShowBusinessForm(false);
                             }
-                          }}
-                          disabled={loading}
+                        }}
+                        disabled={loading}
                           className="w-full bg-gradient-to-r from-[var(--color-orange)] to-orange-600 text-white py-3.5 sm:py-4 rounded-xl text-sm sm:text-base font-bold hover:from-orange-600 hover:to-[var(--color-orange)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl touch-manipulation flex items-center justify-center gap-2"
                         >
                           {loading ? (
@@ -3872,7 +3872,7 @@ function NewFilingContent() {
                               <span>Save & Add Business</span>
                             </>
                           )}
-                        </button>
+                      </button>
                       </div>
                     </div>
                   </div>
@@ -3912,8 +3912,8 @@ function NewFilingContent() {
                             // Form is valid but not saved - prompt to save first
                             const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund' : 'filing';
                             setError(`Your business information looks complete. Please click "Save & Add Business" to save it before proceeding with your ${filingTypeLabel}.`);
-                            return;
-                          }
+                        return;
+                      }
                         }
                       }
 
@@ -4048,22 +4048,22 @@ function NewFilingContent() {
                               {vehicleCategories.taxable.map((vehicle) => {
                                 const isSelected = selectedVehicleIds.includes(vehicle.id);
                                 const estimatedAmount = vehicleCategories.isRefund
-                                  ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
-                                  : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
+                          ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
+                          : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
 
-                                return (
+                        return (
                                   <label
                                     key={vehicle.id}
                                     className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-green-50 transition ${isSelected ? 'bg-green-100 border border-green-300' : ''}`}
                                   >
-                                    <input
-                                      type="checkbox"
-                                      checked={isSelected}
-                                      onChange={(e) => {
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={(e) => {
                                         let newSelectedIds;
-                                        if (e.target.checked) {
+                                      if (e.target.checked) {
                                           newSelectedIds = [...selectedVehicleIds, vehicle.id];
-                                        } else {
+                                      } else {
                                           newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
                                         }
 
@@ -4079,12 +4079,12 @@ function NewFilingContent() {
                                     />
                                     <div className="flex-1 min-w-0">
                                       <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
-                                        {vehicle.vin}
+                                      {vehicle.vin}
                                       </div>
                                       <div className="flex items-center gap-2 mt-1">
                                         <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
-                                          Cat: {vehicle.grossWeightCategory}
-                                        </span>
+                                        Cat: {vehicle.grossWeightCategory}
+                                      </span>
                                         <span className={`text-xs font-semibold ${vehicleCategories.isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>
                                           {vehicleCategories.isRefund ? 'Refund' : 'Tax'}: ${estimatedAmount.toFixed(2)}
                                         </span>
@@ -4095,8 +4095,8 @@ function NewFilingContent() {
                               })}
                             </div>
                           </div>
-                        )}
-                      </div>
+                                      )}
+                                    </div>
                     )}
 
                     {/* Suspended Vehicles Dropdown */}
@@ -4118,9 +4118,9 @@ function NewFilingContent() {
                               <div className="font-bold text-amber-900">Suspended Vehicles (Low Mileage)</div>
                               <div className="text-xs text-amber-700">
                                 {selectedVehicleIds.filter(id => vehicleCategories.suspended.some(v => v.id === id)).length} of {vehicleCategories.suspended.length} selected • $0 Tax
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
                           {suspendedDropdownOpen ? (
                             <ChevronUp className="w-5 h-5 text-amber-600" />
                           ) : (
@@ -4170,16 +4170,16 @@ function NewFilingContent() {
                                       <div className="flex items-center gap-2 mt-1">
                                         <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
                                           Cat: {vehicle.grossWeightCategory}
-                                        </span>
+                                </span>
                                         <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-semibold">
                                           Suspended
                                         </span>
                                         <span className={`text-xs font-semibold ${vehicleCategories.isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>
                                           {vehicleCategories.isRefund ? 'Refund' : 'Tax'}: ${estimatedAmount.toFixed(2)}
-                                        </span>
+                                </span>
                                       </div>
-                                    </div>
-                                  </label>
+                              </div>
+                            </label>
                                 );
                               })}
                             </div>
@@ -4203,7 +4203,7 @@ function NewFilingContent() {
                         >
                           <div className="flex items-center gap-3">
                             <CreditCard className="w-5 h-5 text-blue-600" />
-                            <div>
+                                <div>
                               <div className="font-bold text-blue-900">Credit Vehicles</div>
                               <div className="text-xs text-blue-700">
                                 {selectedVehicleIds.filter(id => vehicleCategories.credit.some(v => v.id === id)).length} of {vehicleCategories.credit.length} selected
@@ -4228,7 +4228,7 @@ function NewFilingContent() {
                                     key={vehicle.id}
                                     className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-blue-50 transition ${isSelected ? 'bg-blue-100 border border-blue-300' : ''}`}
                                   >
-                                    <input
+                                  <input
                                       type="checkbox"
                                       checked={isSelected}
                                       onChange={(e) => {
@@ -4252,7 +4252,7 @@ function NewFilingContent() {
                                     <div className="flex-1 min-w-0">
                                       <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
                                         {vehicle.vin}
-                                      </div>
+                                </div>
                                       <div className="flex items-center gap-2 mt-1">
                                         <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
                                           Cat: {vehicle.grossWeightCategory}
@@ -4264,13 +4264,13 @@ function NewFilingContent() {
                                           <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded">
                                             {vehicle.creditReason}
                                           </span>
-                                        )}
-                                      </div>
+                            )}
+                          </div>
                                     </div>
                                   </label>
-                                );
-                              })}
-                            </div>
+                        );
+                      })}
+                    </div>
                           </div>
                         )}
                       </div>
@@ -4279,7 +4279,7 @@ function NewFilingContent() {
                     {/* Prior Year Sold Suspended Vehicles Dropdown */}
                     {vehicleCategories.priorYearSold.length > 0 && (
                       <div className="relative">
-                        <button
+                    <button
                           type="button"
                           onClick={() => {
                             setPriorYearSoldDropdownOpen(!priorYearSoldDropdownOpen);
@@ -4295,8 +4295,8 @@ function NewFilingContent() {
                               <div className="font-bold text-purple-900">Prior Year Sold Suspended Vehicles</div>
                               <div className="text-xs text-purple-700">
                                 {selectedVehicleIds.filter(id => vehicleCategories.priorYearSold.some(v => v.id === id)).length} of {vehicleCategories.priorYearSold.length} selected
-                              </div>
-                            </div>
+                      </div>
+                  </div>
                           </div>
                           {priorYearSoldDropdownOpen ? (
                             <ChevronUp className="w-5 h-5 text-purple-600" />
@@ -4349,16 +4349,16 @@ function NewFilingContent() {
                                           <span className="text-xs px-2 py-0.5 bg-purple-50 text-purple-600 rounded">
                                             Sold To: {vehicle.soldTo}
                                           </span>
-                                        )}
-                                      </div>
+                      )}
+                    </div>
                                     </div>
-                                  </label>
+                          </label>
                                 );
                               })}
                             </div>
                           </div>
                         )}
-                      </div>
+                        </div>
                     )}
 
                     {/* Vehicle Type Combination Error */}
@@ -4367,23 +4367,23 @@ function NewFilingContent() {
                         <div className="flex items-start gap-3 mb-4">
                           <div className="flex-shrink-0 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
                             <AlertCircle className="w-5 h-5 text-white" />
-                          </div>
+                        </div>
                           <div className="flex-1">
                             <h4 className="text-base font-bold text-red-900 mb-2">Invalid Vehicle Type Combination</h4>
                             <p className="text-sm text-red-800 mb-3">The selected vehicle types cannot be combined. Please choose one of the following valid combinations:</p>
-                          </div>
-                        </div>
+                      </div>
+                            </div>
 
                         <div className="bg-white rounded-lg p-4 border border-red-200">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                             <div className="flex items-start gap-2">
                               <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
                               <span className="text-xs text-slate-700 font-medium">All 4 types together</span>
-                            </div>
+                          </div>
                             <div className="flex items-start gap-2">
                               <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
                               <span className="text-xs text-slate-700 font-medium">Only Taxable</span>
-                            </div>
+                        </div>
                             <div className="flex items-start gap-2">
                               <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
                               <span className="text-xs text-slate-700 font-medium">Only Suspended</span>
@@ -4483,7 +4483,7 @@ function NewFilingContent() {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
                                   <label className="block text-xs font-medium text-[var(--color-text)] mb-1">Refund Reason</label>
-                                  <select
+                        <select
                                     className="w-full px-3 py-2 text-sm border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
                                     value={refundDetails[vehicleId]?.reason || ''}
                                     onChange={(e) => setRefundDetails(prev => ({
@@ -4495,11 +4495,11 @@ function NewFilingContent() {
                                     <option value="sold">Sold / Transferred</option>
                                     <option value="destroyed">Destroyed / Stolen</option>
                                     <option value="mileage">Low Mileage (Overpaid)</option>
-                                  </select>
-                                </div>
+                        </select>
+                      </div>
                                 <div>
                                   <label className="block text-xs font-medium text-[var(--color-text)] mb-1">Date of Event</label>
-                                  <input
+                        <input
                                     type="date"
                                     className="w-full px-3 py-2 text-sm border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
                                     value={refundDetails[vehicleId]?.date || ''}
@@ -4508,8 +4508,8 @@ function NewFilingContent() {
                                       [vehicleId]: { ...prev[vehicleId], date: e.target.value }
                                     }))}
                                   />
-                                </div>
-                              </div>
+                        </div>
+                      </div>
                             </div>
                           );
                         })}
@@ -4517,7 +4517,7 @@ function NewFilingContent() {
                     )}
 
                     {/* Add Another Vehicle Button */}
-                    <button
+                      <button
                       onClick={() => {
                         setNewVehicle(prev => ({ ...prev, businessId: selectedBusinessId || '' }));
                         setShowAddModal(true);
@@ -4528,7 +4528,7 @@ function NewFilingContent() {
                         <span className="font-bold text-sm sm:text-base">+</span>
                       </div>
                       <span className="font-semibold text-sm sm:text-base">Add Another Vehicle</span>
-                    </button>
+                      </button>
                   </div>
                 )}
 
@@ -4727,10 +4727,10 @@ function NewFilingContent() {
                               <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Amended Month</p>
                               <p className="text-base sm:text-lg font-semibold break-words">{weightIncreaseData.amendedMonth || 'Not set'}</p>
                             </div>
-                          </div>
-                          <div className="bg-white p-3 sm:p-4 rounded-xl border border-orange-200">
-                            <p className="text-xs text-orange-700 uppercase tracking-wider mb-1">Additional Tax Due</p>
-                            <p className="text-xl sm:text-2xl font-bold text-orange-600">${weightIncreaseData.additionalTaxDue?.toFixed(2) || '0.00'}</p>
+                            </div>
+                            <div className="bg-white p-3 sm:p-4 rounded-xl border border-orange-200">
+                              <p className="text-xs text-orange-700 uppercase tracking-wider mb-1">Additional Tax Due</p>
+                              <p className="text-xl sm:text-2xl font-bold text-orange-600">${weightIncreaseData.additionalTaxDue?.toFixed(2) || '0.00'}</p>
                           </div>
                         </div>
                       )}
@@ -4778,7 +4778,7 @@ function NewFilingContent() {
                     <h3 className="font-bold text-lg sm:text-xl text-[var(--color-text)] mb-4 sm:mb-6 flex items-center gap-2">
                       <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-orange)]" />
                       Filing Details
-                    </h3>
+                        </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                       <div className="bg-white rounded-lg p-4 border border-slate-200">
                         <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-2">Filing Type</p>
@@ -4805,7 +4805,7 @@ function NewFilingContent() {
                   </div>
 
                   {/* Business & Vehicle Summary */}
-                  {selectedBusiness && (
+                        {selectedBusiness && (
                     <div className="bg-gradient-to-br from-white to-slate-50 rounded-xl p-5 sm:p-6 md:p-8 border-2 border-slate-200 shadow-sm">
                       <h3 className="font-bold text-lg sm:text-xl text-[var(--color-text)] mb-6 flex items-center gap-2">
                         <div className="w-10 h-10 rounded-full bg-[var(--color-orange)]/10 flex items-center justify-center">
@@ -4819,11 +4819,11 @@ function NewFilingContent() {
                           <p className="font-bold text-base text-[var(--color-text)] break-words">{selectedBusiness.businessName}</p>
                         </div>
                         <div className="bg-white rounded-lg p-4 border border-slate-200">
-                          <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">EIN</p>
+                                <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">EIN</p>
                           <p className="font-bold text-base font-mono text-[var(--color-text)]">{selectedBusiness.ein}</p>
-                        </div>
+                              </div>
                         <div className="bg-white rounded-lg p-4 border border-slate-200 md:col-span-2">
-                          <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Address</p>
+                                <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Address</p>
                           <p className="font-semibold text-sm text-[var(--color-text)] break-words">
                             {selectedBusiness.address}
                             {selectedBusiness.city && `, ${selectedBusiness.city}`}
@@ -4831,12 +4831,12 @@ function NewFilingContent() {
                             {selectedBusiness.zip && ` ${selectedBusiness.zip}`}
                             {selectedBusiness.country && `, ${selectedBusiness.country}`}
                           </p>
-                        </div>
+                              </div>
                         {selectedBusiness.phone && (
                           <div className="bg-white rounded-lg p-4 border border-slate-200">
-                            <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Phone</p>
+                                  <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Phone</p>
                             <p className="font-semibold text-sm text-[var(--color-text)]">{selectedBusiness.phone}</p>
-                          </div>
+                                </div>
                         )}
                         {(selectedBusiness.signingAuthorityName || selectedBusiness.signingAuthorityPhone) && (
                           <div className="bg-white rounded-lg p-4 border border-slate-200">
@@ -4845,11 +4845,11 @@ function NewFilingContent() {
                               {selectedBusiness.signingAuthorityName}
                               {selectedBusiness.signingAuthorityPhone && ` • ${selectedBusiness.signingAuthorityPhone}`}
                             </p>
+                                </div>
+                        )}
+                            </div>
                           </div>
                         )}
-                      </div>
-                    </div>
-                  )}
 
                   {/* Selected Vehicles Summary - Enhanced */}
                   {selectedVehicles.length > 0 && (
@@ -4899,7 +4899,7 @@ function NewFilingContent() {
                           return reasons[reason] || reason || 'N/A';
                         };
 
-                        return (
+                            return (
                           <div className="space-y-4">
                             {/* Taxable Vehicles */}
                             {groupedVehicles.taxable.length > 0 && (
@@ -4914,7 +4914,7 @@ function NewFilingContent() {
                                   {groupedVehicles.taxable.map((vehicle) => (
                                     <div key={vehicle.id} className="bg-white rounded-xl p-4 border-2 border-green-200 hover:border-green-300 transition-all shadow-sm">
                                       <div className="flex items-start justify-between mb-3">
-                                        <div className="flex-1 min-w-0">
+                                <div className="flex-1 min-w-0">
                                           <p className="font-mono font-bold text-base text-slate-900 break-all mb-1">{vehicle.vin}</p>
                                           <div className="flex items-center gap-2 flex-wrap">
                                             <span className="px-2 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-semibold">
@@ -4932,8 +4932,8 @@ function NewFilingContent() {
                                             <span className="text-slate-600">Logging:</span>
                                             <span className="font-semibold text-slate-700">{vehicle.logging ? 'Yes' : 'No'}</span>
                                           </div>
-                                        )}
-                                      </div>
+                                    )}
+                                  </div>
                                     </div>
                                   ))}
                                 </div>
@@ -4948,7 +4948,7 @@ function NewFilingContent() {
                                   <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
                                     Suspended Vehicles ({groupedVehicles.suspended.length})
                                   </h4>
-                                </div>
+                                  </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                   {groupedVehicles.suspended.map((vehicle) => (
                                     <div key={vehicle.id} className="bg-white rounded-xl p-4 border-2 border-amber-200 hover:border-amber-300 transition-all shadow-sm">
@@ -4962,15 +4962,15 @@ function NewFilingContent() {
                                             <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
                                               Cat: {vehicle.grossWeightCategory || 'W'}
                                             </span>
-                                          </div>
-                                        </div>
-                                      </div>
+                                </div>
+                                </div>
+                              </div>
                                       <div className="space-y-1.5 pt-2 border-t border-slate-100">
                                         {vehicle.logging !== null && vehicle.logging !== undefined && (
                                           <div className="flex items-center justify-between text-xs">
                                             <span className="text-slate-600">Logging:</span>
                                             <span className="font-semibold text-slate-700">{vehicle.logging ? 'Yes' : 'No'}</span>
-                                          </div>
+                        </div>
                                         )}
                                         {vehicle.agricultural !== null && vehicle.agricultural !== undefined && (
                                           <div className="flex items-center justify-between text-xs">
@@ -4981,9 +4981,9 @@ function NewFilingContent() {
                                       </div>
                                     </div>
                                   ))}
-                                </div>
-                              </div>
-                            )}
+                      </div>
+                    </div>
+                  )}
 
                             {/* Credit Vehicles */}
                             {groupedVehicles.credit.length > 0 && (
@@ -4993,7 +4993,7 @@ function NewFilingContent() {
                                   <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
                                     Credit Vehicles ({groupedVehicles.credit.length})
                                   </h4>
-                                </div>
+                      </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                   {groupedVehicles.credit.map((vehicle) => (
                                     <div key={vehicle.id} className="bg-white rounded-xl p-4 border-2 border-blue-200 hover:border-blue-300 transition-all shadow-sm">
@@ -5007,9 +5007,9 @@ function NewFilingContent() {
                                             <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
                                               Cat: {vehicle.grossWeightCategory || 'N/A'}
                                             </span>
-                                          </div>
-                                        </div>
-                                      </div>
+                      </div>
+                      </div>
+                      </div>
                                       <div className="space-y-1.5 pt-2 border-t border-slate-100">
                                         {vehicle.logging !== null && vehicle.logging !== undefined && (
                                           <div className="flex items-center justify-between text-xs">
@@ -5028,15 +5028,15 @@ function NewFilingContent() {
                                             <span className="text-slate-600">Date:</span>
                                             <span className="font-semibold text-slate-700">
                                               {new Date(vehicle.creditDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                            </span>
-                                          </div>
+                        </span>
+                      </div>
                                         )}
-                                      </div>
+                        </div>
                                     </div>
                                   ))}
                                 </div>
-                              </div>
-                            )}
+                          </div>
+                        )}
 
                             {/* Prior Year Sold Vehicles */}
                             {groupedVehicles.priorYearSold.length > 0 && (
@@ -5065,20 +5065,20 @@ function NewFilingContent() {
                                           <div className="flex items-center justify-between text-xs">
                                             <span className="text-slate-600">Sold To:</span>
                                             <span className="font-semibold text-slate-700 text-right max-w-[60%] break-words">{vehicle.soldTo}</span>
-                                          </div>
-                                        )}
+                          </div>
+                        )}
                                         {vehicle.soldDate && (
                                           <div className="flex items-center justify-between text-xs">
                                             <span className="text-slate-600">Sold Date:</span>
                                             <span className="font-semibold text-slate-700">
                                               {new Date(vehicle.soldDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                             </span>
-                                          </div>
+                        </div>
                                         )}
-                                      </div>
-                                    </div>
+                      </div>
+                    </div>
                                   ))}
-                                </div>
+                  </div>
                               </div>
                             )}
                           </div>
@@ -5178,90 +5178,90 @@ function NewFilingContent() {
                       <>
                         <p className="text-sm text-blue-800 mb-4 ml-0 sm:ml-10">Choose how you'd like to pay the IRS tax amount (${totalTaxDue.toFixed(2)})</p>
                         <div className="space-y-3 sm:space-y-4 ml-0 sm:ml-10">
-                          {/* Option 1: EFW (Electronic Fund Withdrawal) */}
+                    {/* Option 1: EFW (Electronic Fund Withdrawal) */}
                           <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'efw' ? 'border-green-500 bg-green-50' : 'border-slate-200 hover:border-green-300'}`}>
                             <label className="flex items-start gap-3 cursor-pointer w-full">
-                              <input
-                                type="radio"
-                                name="irsPaymentMethod"
-                                value="efw"
-                                checked={irsPaymentMethod === 'efw'}
-                                onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                                className="mt-1 w-5 h-5 text-green-600"
-                              />
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="font-bold text-base sm:text-lg">Option 1: EFW (Electronic Fund Withdrawal)</span>
+                        <input
+                          type="radio"
+                          name="irsPaymentMethod"
+                          value="efw"
+                          checked={irsPaymentMethod === 'efw'}
+                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                          className="mt-1 w-5 h-5 text-green-600"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-bold text-base sm:text-lg">Option 1: EFW (Electronic Fund Withdrawal)</span>
                                   {irsPaymentMethod === 'efw' && <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />}
-                                </div>
+                          </div>
                                 <p className="text-sm text-slate-600 mb-2">Direct bank withdrawal - Free & Fast (Recommended)</p>
-                                {irsPaymentMethod === 'efw' && (
-                                  <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-2">
-                                    <div>
-                                      <label className="block text-sm font-medium mb-1">
-                                        Routing Number <span className="text-red-500">*</span>
-                                        <Info className="w-4 h-4 inline ml-1 text-slate-400" />
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={bankDetails.routingNumber}
-                                        onChange={(e) => setBankDetails({ ...bankDetails, routingNumber: e.target.value.replace(/\D/g, '').slice(0, 9) })}
-                                        placeholder="Enter Routing Number*"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                        maxLength="9"
-                                      />
-                                    </div>
-                                    <div>
-                                      <label className="block text-sm font-medium mb-1">
-                                        Account Number <span className="text-red-500">*</span>
-                                        <Info className="w-4 h-4 inline ml-1 text-slate-400" />
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={bankDetails.accountNumber}
-                                        onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value.replace(/\D/g, '') })}
-                                        placeholder="Enter Account Number*"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                      />
-                                    </div>
-                                    <div>
-                                      <label className="block text-sm font-medium mb-1">
-                                        Confirm Account Number <span className="text-red-500">*</span>
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={bankDetails.confirmAccountNumber}
-                                        onChange={(e) => setBankDetails({ ...bankDetails, confirmAccountNumber: e.target.value.replace(/\D/g, '') })}
-                                        placeholder="Re-enter Account Number*"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                      />
-                                      {bankDetails.accountNumber && bankDetails.confirmAccountNumber && bankDetails.accountNumber !== bankDetails.confirmAccountNumber && (
+                          {irsPaymentMethod === 'efw' && (
+                            <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-2">
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Routing Number <span className="text-red-500">*</span>
+                                  <Info className="w-4 h-4 inline ml-1 text-slate-400" />
+                                </label>
+                                <input
+                                  type="text"
+                                  value={bankDetails.routingNumber}
+                                  onChange={(e) => setBankDetails({ ...bankDetails, routingNumber: e.target.value.replace(/\D/g, '').slice(0, 9) })}
+                                  placeholder="Enter Routing Number*"
+                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                  maxLength="9"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Account Number <span className="text-red-500">*</span>
+                                  <Info className="w-4 h-4 inline ml-1 text-slate-400" />
+                                </label>
+                                <input
+                                  type="text"
+                                  value={bankDetails.accountNumber}
+                                  onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value.replace(/\D/g, '') })}
+                                  placeholder="Enter Account Number*"
+                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Confirm Account Number <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  value={bankDetails.confirmAccountNumber}
+                                  onChange={(e) => setBankDetails({ ...bankDetails, confirmAccountNumber: e.target.value.replace(/\D/g, '') })}
+                                  placeholder="Re-enter Account Number*"
+                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                />
+                                {bankDetails.accountNumber && bankDetails.confirmAccountNumber && bankDetails.accountNumber !== bankDetails.confirmAccountNumber && (
                                         <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
                                           <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">Account numbers do not match</span>
                                         </p>
-                                      )}
-                                    </div>
-                                    <div>
-                                      <label className="block text-sm font-medium mb-1">
-                                        Account Type <span className="text-red-500">*</span>
-                                      </label>
-                                      <select
-                                        value={bankDetails.accountType}
-                                        onChange={(e) => setBankDetails({ ...bankDetails, accountType: e.target.value })}
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                      >
-                                        <option value="">Select the Account Type*</option>
-                                        <option value="checking">Checking</option>
-                                        <option value="savings">Savings</option>
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <label className="block text-sm font-medium mb-1">
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Account Type <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  value={bankDetails.accountType}
+                                  onChange={(e) => setBankDetails({ ...bankDetails, accountType: e.target.value })}
+                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                >
+                                  <option value="">Select the Account Type*</option>
+                                  <option value="checking">Checking</option>
+                                  <option value="savings">Savings</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
                                         Phone Number <span className="text-[var(--color-orange)]">*</span>
-                                      </label>
-                                      <input
-                                        type="tel"
-                                        value={bankDetails.phoneNumber}
+                                </label>
+                                <input
+                                  type="tel"
+                                  value={bankDetails.phoneNumber}
                                         onChange={(e) => {
                                           const value = e.target.value.replace(/\D/g, '').slice(0, 11);
                                           setBankDetails({ ...bankDetails, phoneNumber: value });
@@ -5278,116 +5278,116 @@ function NewFilingContent() {
                                           <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{bankDetailsErrors.phoneNumber}</span>
                                         </p>
                                       )}
-                                    </div>
-                                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
-                                      <p className="text-xs sm:text-sm text-red-700">
-                                        <strong>Notice:</strong> The IRS will automatically deduct the tax amount payable directly from your account after your filing is accepted.
-                                      </p>
-                                      <div className="mt-2 flex items-center gap-2">
-                                        <ShieldCheck className="w-4 h-4 text-green-600" />
-                                        <span className="text-xs text-green-700 font-semibold">Ident Trust Secured</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
                               </div>
-                            </label>
-                          </div>
+                              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                                <p className="text-xs sm:text-sm text-red-700">
+                                  <strong>Notice:</strong> The IRS will automatically deduct the tax amount payable directly from your account after your filing is accepted.
+                                </p>
+                                <div className="mt-2 flex items-center gap-2">
+                                  <ShieldCheck className="w-4 h-4 text-green-600" />
+                                  <span className="text-xs text-green-700 font-semibold">Ident Trust Secured</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    </div>
 
-                          {/* Option 2: EFTPS */}
+                    {/* Option 2: EFTPS */}
                           <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'eftps' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300'}`}>
                             <label className="flex items-start gap-3 cursor-pointer w-full">
-                              <input
-                                type="radio"
-                                name="irsPaymentMethod"
-                                value="eftps"
-                                checked={irsPaymentMethod === 'eftps'}
-                                onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                                className="mt-1 w-5 h-5 text-blue-600"
-                              />
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="font-bold text-base sm:text-lg">Option 2: EFTPS</span>
+                        <input
+                          type="radio"
+                          name="irsPaymentMethod"
+                          value="eftps"
+                          checked={irsPaymentMethod === 'eftps'}
+                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                          className="mt-1 w-5 h-5 text-blue-600"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-bold text-base sm:text-lg">Option 2: EFTPS</span>
                                   {irsPaymentMethod === 'eftps' && <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />}
-                                </div>
-                                <p className="text-sm text-slate-600 mb-2">Electronic Federal Tax Payment System</p>
-                                {irsPaymentMethod === 'eftps' && (
-                                  <p className="text-sm text-slate-600 mt-2">
-                                    Once the IRS accepts your filing you will receive the payment link via email.
-                                  </p>
-                                )}
-                              </div>
-                            </label>
                           </div>
+                                <p className="text-sm text-slate-600 mb-2">Electronic Federal Tax Payment System</p>
+                          {irsPaymentMethod === 'eftps' && (
+                            <p className="text-sm text-slate-600 mt-2">
+                              Once the IRS accepts your filing you will receive the payment link via email.
+                            </p>
+                          )}
+                        </div>
+                      </label>
+                    </div>
 
-                          {/* Option 3: Credit or Debit Card */}
+                    {/* Option 3: Credit or Debit Card */}
                           <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'credit_card' ? 'border-purple-500 bg-purple-50' : 'border-slate-200 hover:border-purple-300'}`}>
                             <label className="flex items-start gap-3 cursor-pointer w-full">
-                              <input
-                                type="radio"
-                                name="irsPaymentMethod"
-                                value="credit_card"
-                                checked={irsPaymentMethod === 'credit_card'}
-                                onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                                className="mt-1 w-5 h-5 text-purple-600"
-                              />
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="font-bold text-base sm:text-lg">Option 3: Credit or Debit Card</span>
+                        <input
+                          type="radio"
+                          name="irsPaymentMethod"
+                          value="credit_card"
+                          checked={irsPaymentMethod === 'credit_card'}
+                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                          className="mt-1 w-5 h-5 text-purple-600"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-bold text-base sm:text-lg">Option 3: Credit or Debit Card</span>
                                   {irsPaymentMethod === 'credit_card' && <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0" />}
-                                </div>
-                                <p className="text-sm text-slate-600 mb-2">Pay via credit/debit card (3rd party fee applies)</p>
-                                {irsPaymentMethod === 'credit_card' && (
-                                  <div className="mt-3 space-y-2">
-                                    <p className="text-sm text-slate-600">
-                                      Once the IRS accepts your filing, you will receive the payment link. The IRS uses service providers that may charge an additional service fee additional to the tax amount payable.
-                                    </p>
-                                    <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
-                                      <strong>Note:</strong> The IRS imposes a limit on the frequency of credit card payments for Form 2290.
-                                    </p>
-                                    <label className="flex items-center gap-2 mt-3">
-                                      <input type="checkbox" className="w-4 h-4" />
-                                      <span className="text-sm text-slate-600">
-                                        I understand that if I fail to pay the tax due within 10 business days, the IRS may assess penalties.
-                                      </span>
-                                    </label>
-                                  </div>
-                                )}
-                              </div>
-                            </label>
                           </div>
+                                <p className="text-sm text-slate-600 mb-2">Pay via credit/debit card (3rd party fee applies)</p>
+                          {irsPaymentMethod === 'credit_card' && (
+                            <div className="mt-3 space-y-2">
+                              <p className="text-sm text-slate-600">
+                                Once the IRS accepts your filing, you will receive the payment link. The IRS uses service providers that may charge an additional service fee additional to the tax amount payable.
+                              </p>
+                                    <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
+                                <strong>Note:</strong> The IRS imposes a limit on the frequency of credit card payments for Form 2290.
+                              </p>
+                              <label className="flex items-center gap-2 mt-3">
+                                <input type="checkbox" className="w-4 h-4" />
+                                      <span className="text-sm text-slate-600">
+                                  I understand that if I fail to pay the tax due within 10 business days, the IRS may assess penalties.
+                                </span>
+                              </label>
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    </div>
 
-                          {/* Option 4: Check or Money Order */}
+                    {/* Option 4: Check or Money Order */}
                           <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'check' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-300'}`}>
                             <label className="flex items-start gap-3 cursor-pointer w-full">
-                              <input
-                                type="radio"
-                                name="irsPaymentMethod"
-                                value="check"
-                                checked={irsPaymentMethod === 'check'}
-                                onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                                className="mt-1 w-5 h-5 text-orange-600"
-                              />
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="font-bold text-base sm:text-lg">Option 4: Check or Money Order</span>
+                        <input
+                          type="radio"
+                          name="irsPaymentMethod"
+                          value="check"
+                          checked={irsPaymentMethod === 'check'}
+                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                          className="mt-1 w-5 h-5 text-orange-600"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-bold text-base sm:text-lg">Option 4: Check or Money Order</span>
                                   {irsPaymentMethod === 'check' && <CheckCircle className="w-5 h-5 text-orange-600 flex-shrink-0" />}
-                                </div>
+                          </div>
                                 <p className="text-sm text-slate-600 mb-2">Mail a check or money order with voucher</p>
-                                {irsPaymentMethod === 'check' && (
-                                  <div className="mt-3 space-y-2 text-sm text-slate-600">
-                                    <p>
-                                      Make the tax amount payable to the 'United States Treasury'. Please mention your EIN, phone number, and 'Form 2290' on the money order/check. Print your money order voucher, enclose it, and mail it to:
-                                    </p>
+                          {irsPaymentMethod === 'check' && (
+                            <div className="mt-3 space-y-2 text-sm text-slate-600">
+                              <p>
+                                Make the tax amount payable to the 'United States Treasury'. Please mention your EIN, phone number, and 'Form 2290' on the money order/check. Print your money order voucher, enclose it, and mail it to:
+                              </p>
                                     <div className="bg-white p-3 rounded border border-slate-200 font-mono text-sm">
-                                      Internal Revenue Service<br />
-                                      P.O. Box 932500<br />
-                                      Louisville, KY 40293-2500
-                                    </div>
-                                  </div>
-                                )}
+                                Internal Revenue Service<br />
+                                P.O. Box 932500<br />
+                                Louisville, KY 40293-2500
                               </div>
-                            </label>
+                            </div>
+                          )}
+                        </div>
+                      </label>
                           </div>
                         </div>
                       </>
@@ -5491,18 +5491,18 @@ function NewFilingContent() {
                         </div>
                       </div>
                     )}
-                  </div>
+                    </div>
 
-                  {/* Navigation Buttons */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 pt-4 border-t border-slate-200">
-                    <button
-                      onClick={() => setStep(5)}
-                      className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border border-slate-300 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-slate-50 active:bg-slate-100 transition font-medium touch-manipulation"
-                    >
-                      Previous Step
-                    </button>
-                    <button
-                      onClick={handleSubmit}
+                    {/* Navigation Buttons */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 pt-4 border-t border-slate-200">
+                      <button
+                        onClick={() => setStep(5)}
+                        className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border border-slate-300 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-slate-50 active:bg-slate-100 transition font-medium touch-manipulation"
+                      >
+                        Previous Step
+                      </button>
+                      <button
+                        onClick={handleSubmit}
                       disabled={
                         loading ||
                         (!irsPaymentMethod && (() => {
@@ -5519,44 +5519,44 @@ function NewFilingContent() {
                         (irsPaymentMethod === 'efw' && (!bankDetails.routingNumber || !bankDetails.accountNumber || !bankDetails.confirmAccountNumber || !bankDetails.accountType || !bankDetails.phoneNumber || bankDetails.accountNumber !== bankDetails.confirmAccountNumber))
                       }
                       className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-                    >
-                      {loading ? (
-                        <>
-                          <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span className="hidden sm:inline">Processing...</span>
-                          <span className="sm:hidden">Processing</span>
-                        </>
-                      ) : (
-                        <>
+                      >
+                        {loading ? (
+                          <>
+                            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span className="hidden sm:inline">Processing...</span>
+                            <span className="sm:hidden">Processing</span>
+                          </>
+                        ) : (
+                          <>
                           <span className="hidden sm:inline">Submit Filing</span>
                           <span className="sm:hidden">Submit</span>
-                        </>
-                      )}
-                    </button>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
               </div>
             )}
           </div>
 
           {/* Pricing Sidebar - Right Side (Only shown on Step 6 - Payment) */}
           {step === 6 && (
-            <div className="hidden xl:block sticky top-24 self-start h-fit">
-              <PricingSidebar
-                filingType={filingType}
-                filingData={filingData}
-                selectedVehicleIds={selectedVehicleIds}
-                vehicles={vehicles}
-                selectedBusinessId={selectedBusinessId}
-                businesses={businesses}
-                amendmentType={amendmentType}
-                weightIncreaseData={weightIncreaseData}
-                mileageExceededData={mileageExceededData}
-                step={step}
-                onContinue={handleContinue}
-                onSubmit={handleSubmit}
-                loading={loading}
-                hideSubmitButton={step === 5 || step === 6}
+          <div className="hidden xl:block sticky top-24 self-start h-fit">
+            <PricingSidebar
+              filingType={filingType}
+              filingData={filingData}
+              selectedVehicleIds={selectedVehicleIds}
+              vehicles={vehicles}
+              selectedBusinessId={selectedBusinessId}
+              businesses={businesses}
+              amendmentType={amendmentType}
+              weightIncreaseData={weightIncreaseData}
+              mileageExceededData={mileageExceededData}
+            step={step}
+            onContinue={handleContinue}
+            onSubmit={handleSubmit}
+            loading={loading}
+            hideSubmitButton={step === 5 || step === 6}
                 couponCode={couponCode}
                 couponApplied={couponApplied}
                 couponDiscount={couponDiscount}
@@ -5572,31 +5572,31 @@ function NewFilingContent() {
                   recalculatePricingWithCoupon('percentage', 0);
                 }}
                 onCouponCodeChange={(value) => setCouponCode(value.toUpperCase())}
-              />
-            </div>
+          />
+        </div>
           )}
         </div>
 
         {/* Mobile Pricing Summary - Sticky Bottom (Only shown on Step 6 - Payment) */}
         {step === 6 && (
-          <div className="xl:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-slate-200 shadow-2xl safe-area-inset-bottom">
-            <MobilePricingSummary
-              filingType={filingType}
-              filingData={filingData}
-              selectedVehicleIds={selectedVehicleIds}
-              vehicles={vehicles}
-              selectedBusinessId={selectedBusinessId}
-              businesses={businesses}
-              amendmentType={amendmentType}
-              weightIncreaseData={weightIncreaseData}
-              mileageExceededData={mileageExceededData}
-              step={step}
-              onContinue={handleContinue}
-              onSubmit={handleSubmit}
-              loading={loading}
-              hideSubmitButton={step === 5 || step === 6}
-            />
-          </div>
+        <div className="xl:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-slate-200 shadow-2xl safe-area-inset-bottom">
+          <MobilePricingSummary
+            filingType={filingType}
+            filingData={filingData}
+            selectedVehicleIds={selectedVehicleIds}
+            vehicles={vehicles}
+            selectedBusinessId={selectedBusinessId}
+            businesses={businesses}
+            amendmentType={amendmentType}
+            weightIncreaseData={weightIncreaseData}
+            mileageExceededData={mileageExceededData}
+            step={step}
+            onContinue={handleContinue}
+            onSubmit={handleSubmit}
+            loading={loading}
+            hideSubmitButton={step === 5 || step === 6}
+          />
+        </div>
         )}
 
         {/* Add Vehicle Modal */}
@@ -5629,7 +5629,7 @@ function NewFilingContent() {
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
                       <AlertCircle className="w-6 h-6 text-amber-600" />
-                    </div>
+      </div>
                     <div>
                       <h2 className="text-xl font-bold text-slate-900">
                         {existingDraft.isSubmitted ? 'Filing Already Submitted' : 'Draft Filing Found'}
@@ -5834,12 +5834,12 @@ function NewFilingContent() {
                 >
                   {existingDraft.isSubmitted ? 'View Existing Filing' : 'Continue Draft'}
                 </button>
-              </div>
             </div>
           </div>
+          </div>
         )}
-      </div>
-    </ProtectedRoute>
+        </div>
+      </ProtectedRoute>
   );
 }
 
@@ -5852,9 +5852,9 @@ export default function NewFilingPage() {
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
           <div className="w-12 h-12 border-4 border-slate-200 border-t-[var(--color-orange)] rounded-full animate-spin"></div>
         </div>
-      }>
-        <NewFilingContent />
-      </Suspense>
+    }>
+      <NewFilingContent />
+    </Suspense>
     </ProtectedRoute>
   );
 }

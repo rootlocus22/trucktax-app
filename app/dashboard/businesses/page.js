@@ -406,27 +406,25 @@ export default function BusinessesPage() {
   return (
     <ProtectedRoute>
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-slate-500 hover:text-[var(--color-orange)] mb-4 transition-colors group"
-          >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-medium">Back to Dashboard</span>
-          </Link>
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">
-                Business Management
-              </h1>
-              <p className="text-slate-500">
-                Manage your business profiles and filing information
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
+        {/* Professional Header */}
+        <div className="bg-white border-b border-slate-200 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-6 mb-8">
+          <div className="max-w-7xl mx-auto">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors text-sm font-medium"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Dashboard
+            </Link>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-center sm:text-left">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-1">
+                  Businesses
+                </h1>
+                <p className="text-sm text-slate-600 font-light">
+                  Manage your business profiles and filing information
+                </p>
+              </div>
               <button
                 onClick={() => {
                   setShowAddModal(true);
@@ -449,9 +447,9 @@ export default function BusinessesPage() {
                   });
                   setBusinessErrors({});
                 }}
-                className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-4 sm:px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-hover)] hover:shadow-lg active:scale-95 transition-all duration-200 shadow-md"
+                className="inline-flex items-center justify-center gap-2 bg-[var(--color-navy)] text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-[var(--color-navy-soft)] transition-colors whitespace-nowrap"
               >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">Add Business</span>
                 <span className="sm:hidden">Add</span>
               </button>
