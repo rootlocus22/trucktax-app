@@ -52,58 +52,88 @@ export default function PaymentHistoryPage() {
             </Link>
           </div>
         ) : (
-          <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-[var(--color-page-alt)]">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text)] uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text)] uppercase tracking-wider">
-                      Description
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text)] uppercase tracking-wider">
-                      Amount
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text)] uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text)] uppercase tracking-wider">
-                      Invoice
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--color-border)]">
-                  {payments.map((payment) => (
-                    <tr key={payment.id} className="hover:bg-[var(--color-page-alt)]">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text)]">
-                        {payment.date}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-[var(--color-text)]">
-                        {payment.description}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-[var(--color-text)]">
-                        ${payment.amount}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                          payment.status === 'paid' ? 'bg-green-100 text-green-800' :
-                          payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {payment.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Link href={payment.invoiceUrl} className="text-[var(--color-navy)] hover:underline">
-                          Download
-                        </Link>
-                      </td>
+          <div className="space-y-4">
+            {/* Mobile Card Layout */}
+            <div className="sm:hidden space-y-3">
+              {payments.map((payment) => {
+                const statusConfig = payment.status === 'paid'
+                  ? { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100', dot: 'bg-emerald-500' }
+                  : payment.status === 'pending'
+                    ? { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100', dot: 'bg-amber-500' }
+                    : { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-100', dot: 'bg-red-500' };
+
+                return (
+                  <div key={payment.id} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="text-sm font-bold text-slate-900">{payment.date}</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5 uppercase tracking-widest font-black">Transaction Date</div>
+                      </div>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
+                        <div className={`w-1 h-1 rounded-full ${statusConfig.dot}`} />
+                        {payment.status}
+                      </span>
+                    </div>
+
+                    <div className="py-2 border-y border-slate-50">
+                      <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Description</div>
+                      <div className="text-sm font-medium text-slate-700 leading-relaxed">{payment.description}</div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-lg font-black text-slate-900">${payment.amount}</div>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount Paid</div>
+                      </div>
+                      <Link
+                        href={payment.invoiceUrl}
+                        className="px-5 py-2 bg-[#14b8a6] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-all shadow-md shadow-teal-500/10 active:scale-95"
+                      >
+                        Invoice
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table Layout */}
+            <div className="hidden sm:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50 border-b border-slate-100">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</th>
+                      <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</th>
+                      <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount</th>
+                      <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                      <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Invoice</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {payments.map((payment) => (
+                      <tr key={payment.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-700">{payment.date}</td>
+                        <td className="px-6 py-4 text-sm text-slate-600 font-medium">{payment.description}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-slate-900">${payment.amount}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border ${payment.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                            payment.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                              'bg-red-50 text-red-700 border-red-100'
+                            }`}>
+                            {payment.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <Link href={payment.invoiceUrl} className="text-[#14b8a6] hover:text-[#0d9488] font-black text-[10px] uppercase tracking-widest hover:underline">
+                            Download
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

@@ -188,10 +188,9 @@ export function Header() {
               <div className="flex items-center gap-4">
                 <Link
                   href="/dashboard/filings/new"
-                  className="px-5 py-2.5 bg-white rounded-xl font-black text-sm shadow-xl shadow-white/5 hover:translate-y-[-2px] active:translate-y-[0px] transition-all flex items-center gap-2"
-                  style={{ color: '#0f2647' }}
+                  className="px-5 py-2.5 bg-[#ff8b3d] hover:bg-[#f07a2d] text-white rounded-xl font-black text-sm shadow-xl shadow-orange-500/20 hover:translate-y-[-2px] active:translate-y-[0px] transition-all flex items-center gap-2"
                 >
-                  <svg className="w-4 h-4" style={{ color: '#0f2647' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
                   File Now
                 </Link>
 
@@ -429,7 +428,7 @@ export function Header() {
           )}
         </div>
       </div>
-    </header>
+    </header >
   );
 }
 

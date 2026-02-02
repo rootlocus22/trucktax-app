@@ -470,147 +470,212 @@ export default function DashboardPage() {
                   </div>
                 )}
 
-                {/* Professional Returns Table */}
+                {/* Professional Returns List - Table (Desktop) & Cards (Mobile) */}
                 {allFilingsForTable.length > 0 && (
-                  <div className="bg-white border border-slate-200 rounded-lg overflow-hidden mb-6">
-                    <div className="px-5 py-3 border-b border-slate-200 bg-slate-50/50">
-                      <div className="flex items-center justify-between">
+                  <div className="space-y-4 mb-8">
+                    {/* Mobile Card Layout */}
+                    <div className="sm:hidden space-y-3">
+                      <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-1.5 h-6 bg-[#ff8b3d] rounded-full" />
-                          <h2 className="text-base font-black text-slate-900">Recent Filings</h2>
+                          <div className="w-1 h-5 bg-[#ff8b3d] rounded-full" />
+                          <h2 className="text-sm font-black text-slate-900">Recent Filings</h2>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <Link
-                            href="/dashboard/filings"
-                            className="text-xs text-slate-500 hover:text-[#ff8b3d] font-bold transition-colors"
-                          >
-                            View All
-                          </Link>
-                          <button
-                            onClick={() => window.location.reload()}
-                            className="w-7 h-7 rounded-lg border border-slate-200 hover:bg-white flex items-center justify-center transition-all hover:rotate-180 duration-500"
-                            title="Refresh"
-                          >
-                            <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
-                          </button>
+                        <Link href="/dashboard/filings" className="text-[10px] text-slate-500 hover:text-[#ff8b3d] font-bold transition-colors">
+                          View All
+                        </Link>
+                      </div>
+                      {allFilingsForTable.map((filing) => {
+                        const filingStatus = filing.isDraft ? 'draft' : (filing.status || 'submitted');
+                        const statusConfig = getStatusConfig(filingStatus);
+                        const isIncomplete = filingStatus === 'draft' || filing.isDraft;
+
+                        const resumeUrl = filing.isDraft || filingStatus === 'draft' || filingStatus === 'pending_payment'
+                          ? filing.workflowType === 'upload'
+                            ? `/dashboard/upload-schedule1?draft=${filing.draftId || filing.id}`
+                            : `/dashboard/new-filing?draft=${filing.draftId || filing.id}`
+                          : `/dashboard/filings/${filing.id}`;
+
+                        return (
+                          <div key={filing.id || filing.draftId} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <Link href={resumeUrl} className="text-sm text-slate-900 hover:text-[#ff8b3d] font-bold block truncate max-w-[200px]">
+                                  {getReturnNumber(filing)}
+                                </Link>
+                                <div className="text-[10px] text-slate-400 mt-0.5">{getFirstUsedMonth(filing)} • {getFilingDate(filing) || 'Draft'}</div>
+                              </div>
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold ${statusConfig.bg} ${statusConfig.color} border border-current/10`}>
+                                <div className={`w-1 h-1 rounded-full ${statusConfig.dot}`} />
+                                {isIncomplete ? 'Incomplete' : statusConfig.label}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center justify-between py-2 border-y border-slate-50 text-[11px]">
+                              <div className="flex flex-col">
+                                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Tax Due</span>
+                                <span className="text-slate-900 font-black">${getTaxAmount(filing).toFixed(2)}</span>
+                              </div>
+                              <div className="flex flex-col text-right">
+                                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Fleet</span>
+                                <span className="text-slate-700 font-bold">{getVehiclesInfo(filing).length} Vehicles</span>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-2">
+                              <Link
+                                href={resumeUrl}
+                                className={`flex-1 py-2 rounded-lg text-center text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95 ${isIncomplete
+                                    ? 'bg-[#ff8b3d] text-white hover:bg-[#f07a2d] shadow-orange-500/10'
+                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 shadow-slate-200/50'
+                                  }`}
+                              >
+                                {isIncomplete ? 'Continue' : 'View'}
+                              </Link>
+                              {hasSchedule1(filing) && (
+                                <Link
+                                  href={filing.schedule1Url}
+                                  target="_blank"
+                                  className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-slate-600 hover:border-slate-300 transition-all shadow-sm"
+                                >
+                                  <FileCheck className="w-4 h-4" />
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Desktop Table Layout */}
+                    <div className="hidden sm:block bg-white border border-slate-200 rounded-lg overflow-hidden">
+                      <div className="px-5 py-3 border-b border-slate-200 bg-slate-50/50">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-6 bg-[#ff8b3d] rounded-full" />
+                            <h2 className="text-base font-black text-slate-900">Recent Filings</h2>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Link
+                              href="/dashboard/filings"
+                              className="text-xs text-slate-500 hover:text-[#ff8b3d] font-bold transition-colors"
+                            >
+                              View All
+                            </Link>
+                            <button
+                              onClick={() => window.location.reload()}
+                              className="w-7 h-7 rounded-lg border border-slate-200 hover:bg-white flex items-center justify-center transition-all hover:rotate-180 duration-500"
+                              title="Refresh"
+                            >
+                              <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-slate-50/50 border-b border-slate-200">
-                          <tr>
-                            <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Return</th>
-                            <th className="hidden sm:table-cell px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">First Used</th>
-                            <th className="hidden lg:table-cell px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Vehicles</th>
-                            <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Tax Amount</th>
-                            <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
-                            <th className="px-4 sm:px-6 py-3 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {allFilingsForTable.map((filing) => {
-                            // If it's a draft (has isDraft flag or is from draftFilings collection), use 'draft'
-                            // Otherwise, if it's in the filings collection but has no status, default to 'submitted' (not 'draft')
-                            // because filings in the filings collection have been submitted
-                            const filingStatus = filing.isDraft
-                              ? 'draft'
-                              : (filing.status || 'submitted'); // Default to 'submitted' for actual filings without status
-                            const statusConfig = getStatusConfig(filingStatus);
-                            const StatusIcon = statusConfig.icon;
-                            // A filing is incomplete only if it's a draft
-                            // Submitted/processing/completed/action_required/pending_payment/awaiting_schedule_1 are NOT incomplete drafts
-                            const isIncomplete = filingStatus === 'draft' || filing.isDraft;
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-slate-50/50 border-b border-slate-200">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Return</th>
+                              <th className="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest hidden md:table-cell">First Used</th>
+                              <th className="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest hidden lg:table-cell">Vehicles</th>
+                              <th className="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Tax Amount</th>
+                              <th className="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                              <th className="px-6 py-3 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {allFilingsForTable.map((filing) => {
+                              const filingStatus = filing.isDraft ? 'draft' : (filing.status || 'submitted');
+                              const statusConfig = getStatusConfig(filingStatus);
+                              const isIncomplete = filingStatus === 'draft' || filing.isDraft;
 
-                            const resumeUrl = filing.isDraft || filingStatus === 'draft' || filingStatus === 'pending_payment'
-                              ? filing.workflowType === 'upload'
-                                ? `/dashboard/upload-schedule1?draft=${filing.draftId || filing.id}`
-                                : `/dashboard/new-filing?draft=${filing.draftId || filing.id}`
-                              : `/dashboard/filings/${filing.id}`;
+                              const resumeUrl = filing.isDraft || filingStatus === 'draft' || filingStatus === 'pending_payment'
+                                ? filing.workflowType === 'upload'
+                                  ? `/dashboard/upload-schedule1?draft=${filing.draftId || filing.id}`
+                                  : `/dashboard/new-filing?draft=${filing.draftId || filing.id}`
+                                : `/dashboard/filings/${filing.id}`;
 
-                            const vehiclesInfo = getVehiclesInfo(filing);
-                            const vehicleTypes = [...new Set(vehiclesInfo.map(v => v.vehicleType).filter(Boolean))];
+                              const vehiclesInfo = getVehiclesInfo(filing);
 
-                            return (
-                              <tr key={filing.id || filing.draftId} className="hover:bg-slate-50/50 transition-colors">
-                                <td className="px-4 sm:px-6 py-3">
-                                  <Link
-                                    href={resumeUrl}
-                                    className="text-sm text-slate-900 hover:text-[#ff8b3d] font-bold block truncate max-w-[120px] sm:max-w-none"
-                                  >
-                                    {getReturnNumber(filing)}
-                                  </Link>
-                                  <div className="flex items-center gap-2 mt-0.5 sm:hidden">
-                                    <span className="text-[10px] text-slate-500">{getFirstUsedMonth(filing)}</span>
-                                  </div>
-                                  {getFilingDate(filing) && (
-                                    <div className="text-[10px] text-slate-400 mt-0.5">{getFilingDate(filing)}</div>
-                                  )}
-                                </td>
-                                <td className="hidden sm:table-cell px-6 py-3 text-xs text-slate-600 font-medium">
-                                  {getFirstUsedMonth(filing)}
-                                </td>
-                                <td className="hidden lg:table-cell px-6 py-3">
-                                  {vehiclesInfo.length > 0 ? (
-                                    <div className="flex -space-x-2 overflow-hidden">
-                                      {vehiclesInfo.slice(0, 3).map((vehicle, idx) => (
-                                        <div key={idx} className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 border-2 border-white text-[8px] font-bold text-slate-600" title={vehicle.vin || 'Vehicle'}>
-                                          {vehicle.vin?.slice(-2) || 'V'}
-                                        </div>
-                                      ))}
-                                      {vehiclesInfo.length > 3 && (
-                                        <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 border-2 border-white text-[8px] font-bold text-slate-600">
-                                          +{vehiclesInfo.length - 3}
-                                        </div>
+                              return (
+                                <tr key={filing.id || filing.draftId} className="hover:bg-slate-50/50 transition-colors">
+                                  <td className="px-6 py-3">
+                                    <Link
+                                      href={resumeUrl}
+                                      className="text-sm text-slate-900 hover:text-[#ff8b3d] font-bold block"
+                                    >
+                                      {getReturnNumber(filing)}
+                                    </Link>
+                                    <div className="sm:hidden text-[10px] text-slate-500">{getFirstUsedMonth(filing)}</div>
+                                    {getFilingDate(filing) && (
+                                      <div className="text-[10px] text-slate-400 mt-0.5">{getFilingDate(filing)}</div>
+                                    )}
+                                  </td>
+                                  <td className="px-6 py-3 text-xs text-slate-600 font-medium hidden md:table-cell">
+                                    {getFirstUsedMonth(filing)}
+                                  </td>
+                                  <td className="px-6 py-3 hidden lg:table-cell">
+                                    {vehiclesInfo.length > 0 ? (
+                                      <div className="flex -space-x-2 overflow-hidden">
+                                        {vehiclesInfo.slice(0, 3).map((vehicle, idx) => (
+                                          <div key={idx} className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 border-2 border-white text-[8px] font-bold text-slate-600" title={vehicle.vin || 'Vehicle'}>
+                                            {vehicle.vin?.slice(-2) || 'V'}
+                                          </div>
+                                        ))}
+                                        {vehiclesInfo.length > 3 && (
+                                          <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 border-2 border-white text-[8px] font-bold text-slate-600">
+                                            +{vehiclesInfo.length - 3}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <span className="text-slate-300 text-xs">-</span>
+                                    )}
+                                  </td>
+                                  <td className="px-6 py-3 text-sm font-black text-slate-900">
+                                    ${getTaxAmount(filing).toFixed(2)}
+                                  </td>
+                                  <td className="px-6 py-3">
+                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${statusConfig.bg} ${statusConfig.color} border border-current/10`}>
+                                      <div className={`w-1 h-1 rounded-full ${statusConfig.dot}`} />
+                                      {isIncomplete ? 'Incomplete' : statusConfig.label}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-3 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                      {isIncomplete ? (
+                                        <Link
+                                          href={resumeUrl}
+                                          className="inline-flex items-center justify-center px-4 py-1.5 bg-[#ff8b3d] hover:bg-[#f07a2d] text-white !text-white rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95 shadow-md shadow-orange-500/10"
+                                        >
+                                          Continue
+                                        </Link>
+                                      ) : (
+                                        <Link
+                                          href={resumeUrl}
+                                          className="inline-flex items-center justify-center px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold transition-all"
+                                        >
+                                          View
+                                        </Link>
+                                      )}
+                                      {hasSchedule1(filing) && (
+                                        <Link
+                                          href={filing.schedule1Url}
+                                          target="_blank"
+                                          className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-all"
+                                          title="View Schedule 1"
+                                        >
+                                          <FileCheck className="w-3.5 h-3.5" />
+                                        </Link>
                                       )}
                                     </div>
-                                  ) : (
-                                    <span className="text-slate-300 text-xs">-</span>
-                                  )}
-                                </td>
-                                <td className="px-4 sm:px-6 py-3 text-sm font-black text-slate-900">
-                                  ${getTaxAmount(filing).toFixed(2)}
-                                </td>
-                                <td className="px-4 sm:px-6 py-3">
-                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${statusConfig.bg} ${statusConfig.color} border border-current/10`}>
-                                    <div className={`w-1 h-1 rounded-full ${statusConfig.dot}`} />
-                                    {isIncomplete ? 'Incomplete' : statusConfig.label}
-                                  </span>
-                                </td>
-                                <td className="px-4 sm:px-6 py-3 text-right">
-                                  <div className="flex items-center justify-end gap-2">
-                                    {isIncomplete ? (
-                                      <Link
-                                        href={resumeUrl}
-                                        className="inline-flex items-center justify-center px-4 py-1.5 bg-[#ff8b3d] hover:bg-[#f07a2d] text-white !text-white rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95 shadow-md shadow-orange-500/10"
-                                      >
-                                        Continue
-                                      </Link>
-                                    ) : (
-                                      <Link
-                                        href={resumeUrl}
-                                        className="inline-flex items-center justify-center px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold transition-all"
-                                      >
-                                        View
-                                      </Link>
-                                    )}
-                                    {hasSchedule1(filing) && (
-                                      <Link
-                                        href={filing.schedule1Url}
-                                        target="_blank"
-                                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-all"
-                                        title="View Schedule 1"
-                                      >
-                                        <FileCheck className="w-3.5 h-3.5" />
-                                      </Link>
-                                    )}
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
                 )}

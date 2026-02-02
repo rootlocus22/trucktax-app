@@ -756,7 +756,7 @@ export default function VehiclesPage() {
               )}
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-20">
+            <div className="bg-transparent lg:bg-white lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-sm overflow-hidden mb-20">
               {/* Modern Table Header */}
               <div className="hidden lg:block bg-slate-50 border-b border-slate-200">
                 <div className="grid grid-cols-12 gap-4 px-6 py-4">
@@ -782,17 +782,17 @@ export default function VehiclesPage() {
               </div>
 
               {/* High-Density Row Redesign */}
-              <div className="divide-y divide-slate-100">
+              <div className="space-y-4 lg:space-y-0 lg:divide-y lg:divide-slate-100 p-1 lg:p-0">
                 {filteredVehicles.map((vehicle, index) => (
                   <div
                     key={vehicle.id}
-                    className="group grid grid-cols-1 lg:grid-cols-12 gap-4 px-4 sm:px-6 py-4 hover:bg-slate-50/50 transition-all duration-300 relative"
+                    className="group bg-white lg:bg-transparent rounded-2xl lg:rounded-none border border-slate-200 lg:border-none shadow-sm lg:shadow-none grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 py-5 lg:px-6 lg:py-4 hover:bg-slate-50/50 transition-all duration-300 relative"
                     style={{
                       animationDelay: `${index * 30}ms`,
                       animation: 'fadeInUp 0.4s ease-out forwards',
                     }}
                   >
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#14b8a6] opacity-0 group-hover:opacity-100 transition-all rounded-r-full"></div>
+                    <div className="hidden lg:block absolute left-0 top-0 bottom-0 w-1 bg-[#14b8a6] opacity-0 group-hover:opacity-100 transition-all rounded-r-full"></div>
 
                     {/* Vehicle */}
                     <div className="col-span-1 lg:col-span-3 flex items-center gap-4">

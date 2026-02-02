@@ -13,7 +13,7 @@ import { calculateFilingCost } from '@/app/actions/pricing'; // Server Action
 import { calculateTax, calculateRefundAmount, calculateWeightIncreaseAdditionalTax, calculateMileageExceededTax } from '@/lib/pricing'; // Keep for client-side estimation only
 import { validateBusinessName, validateEIN, formatEIN, validateVIN, validateAddress, validatePhone, validateState, validateZip, validateCity, validateCountry, validatePIN } from '@/lib/validation';
 import { validateVINCorrection, validateWeightIncrease, validateMileageExceeded, calculateWeightIncreaseDueDate, getAmendmentTypeConfig } from '@/lib/amendmentHelpers';
-import { FileText, AlertTriangle, RefreshCw, Truck, Info, CreditCard, CheckCircle, ShieldCheck, AlertCircle, RotateCcw, Clock, Building2, ChevronUp, ChevronDown, Loader2, X, Plus } from 'lucide-react';
+import { FileText, AlertTriangle, RefreshCw, Truck, Info, CreditCard, CheckCircle, ShieldCheck, AlertCircle, RotateCcw, Clock, Building2, ChevronUp, ChevronDown, Loader2, X, Plus, ArrowRight } from 'lucide-react';
 import { PricingSidebar } from '@/components/PricingSidebar';
 import StripeWrapper from '@/components/StripeWrapper';
 import VehicleFormModal from '@/components/VehicleFormModal';
@@ -122,9 +122,9 @@ function MobilePricingSummary({
         // For VIN corrections and mileage exceeded, vehicles array can be empty
         const sanitizedVehicles = selectedVehiclesList.length > 0
           ? selectedVehiclesList.map(v => ({
-          id: v.id,
-          vin: v.vin,
-          grossWeightCategory: v.grossWeightCategory,
+            id: v.id,
+            vin: v.vin,
+            grossWeightCategory: v.grossWeightCategory,
             isSuspended: v.isSuspended || false,
             vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
             logging: v.logging !== undefined ? v.logging : null,
@@ -164,14 +164,14 @@ function MobilePricingSummary({
   const totalAmount = filingType === 'refund'
     ? pricing.totalRefund
     : (() => {
-        // For weight increase amendments, ensure $10 service fee is included if pricing hasn't been calculated
-        if (isWeightIncrease && (pricing.serviceFee || 0) === 0) {
-          const baseFee = 10.00;
-          const estimatedSalesTax = baseFee * 0.07;
-          return baseFee + estimatedSalesTax;
-        }
-        return (pricing.serviceFee || 0) + (pricing.salesTax || 0) - (pricing.couponDiscount || 0);
-      })();
+      // For weight increase amendments, ensure $10 service fee is included if pricing hasn't been calculated
+      if (isWeightIncrease && (pricing.serviceFee || 0) === 0) {
+        const baseFee = 10.00;
+        const estimatedSalesTax = baseFee * 0.07;
+        return baseFee + estimatedSalesTax;
+      }
+      return (pricing.serviceFee || 0) + (pricing.salesTax || 0) - (pricing.couponDiscount || 0);
+    })();
 
   return (
     <div className="w-full">
@@ -194,7 +194,7 @@ function MobilePricingSummary({
               </div>
             ) : (
               <div className="flex items-baseline gap-1.5 sm:gap-2">
-                <span className={`text-base sm:text-lg md:text-xl font-bold ${hasData && filingType === 'refund' ? 'text-emerald-600' : hasData ? 'text-slate-900' : 'text-slate-400'}`}>
+                <span className={`text-base sm:text-lg md:text-xl font-bold ${hasData && filingType === 'refund' ? 'text-emerald-600' : hasData ? 'text-midnight' : 'text-slate-400'}`}>
                   {hasData && filingType === 'refund' ? '+' : ''}${hasData ? totalAmount.toFixed(2) : '0.00'}
                 </span>
                 {hasData && filingType === 'amendment' && amendmentType === 'vin_correction' && (
@@ -211,7 +211,7 @@ function MobilePricingSummary({
               <button
                 onClick={onSubmit}
                 disabled={loading || !hasData}
-                className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-[var(--color-orange)] text-white rounded-lg text-xs sm:text-sm font-bold hover:bg-[var(--color-orange-hover)] active:scale-95 transition touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-1.5 sm:gap-2"
+                className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-[var(--color-orange)] text-white rounded-lg text-xs sm:text-sm font-bold hover:bg-[var(--color-orange-hover)] active:scale-95 transition touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-1.5 sm:gap-2 shadow-lg shadow-orange-500/20"
               >
                 {loading ? (
                   <>
@@ -242,21 +242,39 @@ function MobilePricingSummary({
       {expanded && (
         <div className="border-t border-slate-200 bg-slate-50 px-2 sm:px-3 md:px-4 py-2.5 sm:py-3 max-h-[60vh] overflow-y-auto">
           <div className="space-y-2 text-xs">
-            {hasData ? (
+            {!hasData ? (
+              <>
+                <div className="pb-2 border-b border-slate-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-semibold text-slate-500 uppercase">Payment to IRS</span>
+                    <span className="text-xs font-bold text-slate-400">$0.00</span>
+                  </div>
+                </div>
+                <div className="pb-2 border-b border-slate-200 pt-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-semibold text-slate-500 uppercase">Service Fee</span>
+                    <span className="text-xs font-bold text-slate-400">$0.00</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-2 text-center">
+                    Select filing type and vehicles to see pricing
+                  </div>
+                </div>
+              </>
+            ) : (
               <>
                 {filingType === 'refund' ? (
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Estimated Refund</span>
-                    <span className="font-semibold text-emerald-600">+${pricing.totalRefund?.toFixed(2) || '0.00'}</span>
+                  <div className="flex justify-between pb-2 border-b border-slate-200">
+                    <span className="text-slate-600 font-semibold uppercase tracking-tight">Estimated Refund</span>
+                    <span className="font-bold text-emerald-600">+${pricing.totalRefund?.toFixed(2) || '0.00'}</span>
                   </div>
                 ) : (
                   <>
                     <div className="pb-2 border-b border-slate-200">
                       <div className="flex justify-between items-start mb-1">
                         <div className="flex-1">
-                          <span className="text-xs font-semibold text-blue-700">Payment to IRS</span>
-                          <p className="text-xs text-slate-500 mt-0.5">IRS Tax Amount</p>
-                    </div>
+                          <span className="text-xs font-semibold text-blue-700 uppercase tracking-tight">Payment to IRS</span>
+                          <p className="text-[10px] text-slate-500 mt-0.5">IRS Tax Amount</p>
+                        </div>
                         <span className="text-sm font-bold text-blue-700">
                           ${(() => {
                             // For weight increase amendments, use additionalTaxDue if available
@@ -266,15 +284,15 @@ function MobilePricingSummary({
                             return pricing.totalTax?.toFixed(2) || '0.00';
                           })()}
                         </span>
+                      </div>
                     </div>
-                    </div>
-                    <div className="pb-2 border-b border-slate-200">
+                    <div className="pb-2 border-b border-slate-200 pt-1">
                       <div className="flex justify-between items-start mb-1">
                         <div className="flex-1">
-                          <span className="text-xs font-semibold text-orange-700">Service Fee</span>
-                          <p className="text-xs text-slate-500 mt-0.5">Platform service fee</p>
+                          <span className="text-xs font-semibold text-emerald-700 uppercase tracking-tight">Service Fee</span>
+                          <p className="text-[10px] text-slate-500 mt-0.5">Platform service fee</p>
                         </div>
-                        <span className="text-sm font-bold text-orange-700">
+                        <span className="text-sm font-bold text-emerald-700">
                           ${(() => {
                             // For weight increase amendments, ensure $10 is shown if pricing hasn't been calculated
                             if (isWeightIncrease && (pricing.serviceFee || 0) === 0) {
@@ -305,15 +323,15 @@ function MobilePricingSummary({
                           )}
                         </div>
                       )}
-                    {pricing.salesTax > 0 && (
+                      {pricing.salesTax > 0 && (
                         <div className="flex justify-between text-xs mt-1">
                           <span className="text-slate-500">+ Sales Tax</span>
                           <span className="font-medium">${pricing.salesTax?.toFixed(2)}</span>
-                      </div>
-                    )}
+                        </div>
+                      )}
                       <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-200">
-                        <span className="text-xs font-bold text-orange-700">Total Due Now</span>
-                        <span className="text-sm font-bold text-orange-700">
+                        <span className="text-xs font-bold text-emerald-700">Total Due Now</span>
+                        <span className="text-sm font-bold text-emerald-700">
                           ${(() => {
                             // For weight increase amendments, ensure $10 service fee is included if pricing hasn't been calculated
                             let serviceFee = pricing.serviceFee || 0;
@@ -349,10 +367,6 @@ function MobilePricingSummary({
                   </div>
                 )}
               </>
-            ) : (
-              <div className="text-slate-500 text-center py-2">
-                Select filing type and vehicles to see pricing
-              </div>
             )}
           </div>
         </div>
@@ -425,21 +439,21 @@ const getWeightCategoryOptionsWithPricing = (isLogging = false, includeW = false
 
 function NewFilingContent() {
   console.log('[COMPONENT INIT] NewFilingContent function called');
-  
+
   const { user } = useAuth();
   console.log('[COMPONENT INIT] useAuth completed', { hasUser: !!user });
-  
+
   const router = useRouter();
   console.log('[COMPONENT INIT] useRouter completed');
-  
+
   const searchParams = useSearchParams();
   const draftParam = searchParams.get('draft');
   const lastLoadedDraftIdRef = useRef(null);
-  
+
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [filingId, setFilingId] = useState(null);
-  
+
   console.log('[COMPONENT INIT] State initialized');
 
   const [error, setError] = useState('');
@@ -453,17 +467,17 @@ function NewFilingContent() {
   const loadingDraftRef = useRef(false);
   const effectRunCounts = useRef({ draftLoad: 0, vehicleReload: 0, pricing: 0, loadData: 0 });
   const renderCount = useRef(0);
-  
+
   // RESET logic when draftParam changes
   useEffect(() => {
     if (draftParam !== lastLoadedDraftIdRef.current) {
       console.log('[COMPONENT INIT] Draft param changed from', lastLoadedDraftIdRef.current, 'to', draftParam);
       setDataLoaded(false);
       setDraftId(null);
-      setStep(1); 
+      setStep(1);
     }
   }, [draftParam]);
-  
+
   // Track render count - defer to avoid blocking
   useEffect(() => {
     renderCount.current++;
@@ -779,7 +793,7 @@ function NewFilingContent() {
   // Load draft if resuming
   useEffect(() => {
     effectRunCounts.current.draftLoad++;
-    
+
     const loadDraft = async () => {
       // If no user or no draftParam, nothing to load from database
       if (!user || !draftParam) {
@@ -795,20 +809,20 @@ function NewFilingContent() {
       console.log('[DRAFT LOAD] Proceeding with draft load for:', draftParam);
       loadingRef.current = true;
       loadingDraftRef.current = true;
-      
+
       const startTime = performance.now();
-      
+
       try {
         console.log('[DRAFT LOAD] Step 1: Loading businesses...');
         const businessesStart = performance.now();
         const userBusinesses = await getBusinessesByUser(user.uid);
         console.log('[DRAFT LOAD] Businesses loaded in', performance.now() - businessesStart, 'ms', { count: userBusinesses.length });
         setBusinesses(userBusinesses);
-        
+
         console.log('[DRAFT LOAD] Step 2: Loading draft or filing...');
         const draftStart = performance.now();
         let draft = await getDraftFiling(draftParam);
-        
+
         // If not found in draftFilings, check filings collection (for resumed payments)
         if (!draft) {
           console.log('[DRAFT LOAD] Not found in drafts, checking filings...');
@@ -830,16 +844,16 @@ function NewFilingContent() {
             };
           }
         }
-        
-        console.log('[DRAFT LOAD] Data loaded in', performance.now() - draftStart, 'ms', { 
-          found: !!draft, 
-          userIdMatch: draft?.userId === user.uid 
+
+        console.log('[DRAFT LOAD] Data loaded in', performance.now() - draftStart, 'ms', {
+          found: !!draft,
+          userIdMatch: draft?.userId === user.uid
         });
-        
-          if (draft && draft.userId === user.uid) {
+
+        if (draft && draft.userId === user.uid) {
           console.log('[DRAFT LOAD] Step 3: Restoring draft state...');
           const restoreStart = performance.now();
-          
+
           // RESET all form state before restoring to prevent bleeding from previous attempts
           setFilingType('standard');
           setAmendmentType('');
@@ -893,7 +907,7 @@ function NewFilingContent() {
             console.log('[DRAFT LOAD] Setting filingId:', draft.filingId);
             setFilingId(draft.filingId);
           }
-          
+
           // Load vehicles BEFORE setting step to ensure UI has data
           if (draft.selectedBusinessId) {
             console.log('[DRAFT LOAD] Step 4: Loading vehicles for business:', draft.selectedBusinessId);
@@ -902,7 +916,7 @@ function NewFilingContent() {
               const filteredVehicles = await getVehiclesByUser(user.uid, draft.selectedBusinessId);
               console.log('[DRAFT LOAD] Vehicles loaded in', performance.now() - vehiclesStart, 'ms', { count: filteredVehicles.length });
               setVehicles(filteredVehicles);
-              
+
               // Set business and vehicle IDs AFTER vehicles are loaded into state
               console.log('[DRAFT LOAD] Setting selectedBusinessId:', draft.selectedBusinessId);
               setSelectedBusinessId(draft.selectedBusinessId);
@@ -913,7 +927,7 @@ function NewFilingContent() {
             } catch (error) {
               console.error('[DRAFT LOAD] Error loading vehicles for draft:', error);
               setSelectedBusinessId(draft.selectedBusinessId);
-            if (draft.selectedVehicleIds) setSelectedVehicleIds(draft.selectedVehicleIds);
+              if (draft.selectedVehicleIds) setSelectedVehicleIds(draft.selectedVehicleIds);
             }
           } else {
             console.log('[DRAFT LOAD] Step 4: Loading all vehicles (no business selected)');
@@ -925,8 +939,8 @@ function NewFilingContent() {
               if (draft.selectedVehicleIds) {
                 console.log('[DRAFT LOAD] Setting selectedVehicleIds:', draft.selectedVehicleIds.length, 'vehicles');
                 setSelectedVehicleIds(draft.selectedVehicleIds);
-          }
-        } catch (error) {
+              }
+            } catch (error) {
               console.error('[DRAFT LOAD] Error loading vehicles for draft:', error);
               if (draft.selectedVehicleIds) setSelectedVehicleIds(draft.selectedVehicleIds);
             }
@@ -944,9 +958,9 @@ function NewFilingContent() {
             console.log('[DRAFT LOAD] Step 5: No step found in draft, but business exists. Defaulting to Step 2.');
             setStep(2);
           }
-          
+
           console.log('[DRAFT LOAD] State restoration complete in', performance.now() - restoreStart, 'ms');
-          
+
           // Mark data as loaded AFTER all state is restored to prevent cascading effects
           console.log('[DRAFT LOAD] Step 6: Setting dataLoaded = true');
           setDataLoaded(true);
@@ -970,7 +984,7 @@ function NewFilingContent() {
         }, 100);
       }
     };
-    
+
     loadDraft();
   }, [user, draftParam]);
 
@@ -980,7 +994,7 @@ function NewFilingContent() {
       setStep(5);
     }
   }, [step]);
-  
+
   useEffect(() => {
     effectRunCounts.current.loadData++;
     console.log('[LOAD DATA] useEffect RUN #' + effectRunCounts.current.loadData, {
@@ -989,22 +1003,22 @@ function NewFilingContent() {
       loadingRef: loadingRef.current,
       draftParam
     });
-    
+
     if (!user || dataLoaded || loadingRef.current) {
       console.log('[LOAD DATA] Early return');
       return;
     }
-    
+
     // Don't load data if we're resuming a draft - draft loading will handle it
     if (draftParam) {
       console.log('[LOAD DATA] Skipping - draft param exists');
       // Don't mark as loaded yet - let draft loading handle it
       return;
     }
-    
+
     console.log('[LOAD DATA] Starting loadData()');
     loadingRef.current = true;
-    
+
     // Defer loadData to next tick to allow component to render first
     setTimeout(() => {
       loadData().then(() => {
@@ -1029,21 +1043,21 @@ function NewFilingContent() {
       loadingDraftRef: loadingDraftRef.current,
       selectedBusinessId
     });
-    
+
     // Skip if we're currently loading a draft to prevent conflicts
     if (!user || !dataLoaded || loadingRef.current || loadingDraftRef.current) {
       console.log('[VEHICLE RELOAD] Early return - conditions not met');
       return;
     }
-    
+
     // Skip if we're resuming a draft (draft loading handles vehicles)
     if (draftParam) {
       console.log('[VEHICLE RELOAD] Skipping - draft param exists');
       return;
     }
-    
+
     console.log('[VEHICLE RELOAD] Proceeding with vehicle reload');
-    
+
     if (selectedBusinessId) {
       const reloadVehicles = async () => {
         try {
@@ -1074,12 +1088,12 @@ function NewFilingContent() {
   // Scroll to top when error occurs
   useEffect(() => {
     // Check if any error exists
-    const hasError = error || 
-                     vehicleTypeError || 
-                     Object.keys(businessErrors).length > 0 || 
-                     Object.keys(vehicleErrors).length > 0 || 
-                     Object.keys(bankDetailsErrors).length > 0;
-    
+    const hasError = error ||
+      vehicleTypeError ||
+      Object.keys(businessErrors).length > 0 ||
+      Object.keys(vehicleErrors).length > 0 ||
+      Object.keys(bankDetailsErrors).length > 0;
+
     if (hasError && errorRef.current) {
       // Small delay to ensure error is rendered
       setTimeout(() => {
@@ -1088,15 +1102,15 @@ function NewFilingContent() {
           // Get the error message element (the actual visible error div)
           const errorMessage = element.querySelector('.bg-red-50, .text-red-700');
           const targetElement = errorMessage || element;
-          
+
           // Calculate position accounting for current scroll position
           const elementTop = targetElement.getBoundingClientRect().top;
           const currentScrollY = window.scrollY || window.pageYOffset;
           const offset = 100; // Offset from top of viewport to account for any sticky headers
-          
+
           // Scroll to position that puts error message near top of viewport
           const scrollPosition = currentScrollY + elementTop - offset;
-          
+
           window.scrollTo({
             top: Math.max(0, scrollPosition), // Ensure we don't scroll to negative position
             behavior: 'smooth'
@@ -1127,18 +1141,18 @@ function NewFilingContent() {
       setError('Please select the type of amendment you need: VIN Correction, Weight Increase, or Mileage Exceeded. Each amendment type has different requirements.');
       return;
     }
-    
+
     setError('');
-    
+
     // Only check for drafts/submitted filings if it's a Standard 2290 filing and no draft is currently active
     if (filingType === 'standard' && !draftParam) {
       try {
         setLoading(true);
-        
+
         // 1. Check for submitted/processing filings first (higher priority warning)
         const recentFilings = await getFilingsByUser(user.uid);
-        const processingFiling = recentFilings.find(f => 
-          f.filingType === 'standard' && 
+        const processingFiling = recentFilings.find(f =>
+          f.filingType === 'standard' &&
           (f.status === 'processing' || f.status === 'awaiting_schedule_1' || f.status === 'submitted')
         );
 
@@ -1157,7 +1171,7 @@ function NewFilingContent() {
         const drafts = await getDraftFilingsByUser(user.uid);
         // Filter to only drafts with selectedBusinessId (significant progress)
         const draftsWithBusiness = drafts.filter(d => d.selectedBusinessId || d.businessId);
-        
+
         if (draftsWithBusiness.length > 0) {
           const mostRecentDraft = draftsWithBusiness[0];
           setExistingDraft(mostRecentDraft);
@@ -1171,7 +1185,7 @@ function NewFilingContent() {
         setLoading(false);
       }
     }
-    
+
     // If not standard, or no drafts/filings found, proceed to step 2
     setStep(2);
   };
@@ -1187,15 +1201,15 @@ function NewFilingContent() {
       selectedVehicleIds: selectedVehicleIds.length,
       step
     });
-    
+
     // Skip pricing calculation if we're loading a draft or data isn't loaded yet
     if (loadingRef.current || loadingDraftRef.current || !dataLoaded) {
       console.log('[PRICING] Early return - conditions not met');
       return;
     }
-    
+
     console.log('[PRICING] Proceeding with pricing calculation');
-    
+
     const fetchPricing = async () => {
       // Calculate pricing when we have minimum data (filing type and at least one vehicle selected)
       // Exception: VIN corrections and mileage exceeded don't require vehicles in selectedVehicleIds, so allow pricing calculation
@@ -1280,9 +1294,9 @@ function NewFilingContent() {
         // For VIN corrections and mileage exceeded, vehicles array can be empty
         const sanitizedVehicles = selectedVehiclesList.length > 0
           ? selectedVehiclesList.map(v => ({
-          id: v.id,
-          vin: v.vin,
-          grossWeightCategory: v.grossWeightCategory,
+            id: v.id,
+            vin: v.vin,
+            grossWeightCategory: v.grossWeightCategory,
             isSuspended: v.isSuspended || false,
             vehicleType: v.vehicleType || (v.isSuspended ? 'suspended' : 'taxable'),
             logging: v.logging !== undefined ? v.logging : null,
@@ -1331,8 +1345,8 @@ function NewFilingContent() {
   useEffect(() => {
     if (selectedVehicleIds.length === 0) {
       setVehicleTypeError('');
-        return;
-      }
+      return;
+    }
 
     // Only validate if all selected vehicle IDs exist in the vehicles array (to avoid race conditions)
     const allVehiclesExist = selectedVehicleIds.every(id => vehicles.some(v => v.id === id));
@@ -1356,7 +1370,7 @@ function NewFilingContent() {
     const saveDraft = async () => {
       // Don't save if no user, already saving, or currently loading a draft
       if (!user || draftSavingRef.current || loadingDraftRef.current) {
-        return; 
+        return;
       }
 
       // Drafts are ONLY for Standard 2290 filings
@@ -1378,7 +1392,7 @@ function NewFilingContent() {
           try {
             const existingDrafts = await getDraftFilingsByUser(user.uid);
             const sortedCurrentVehicles = [...selectedVehicleIds].sort().join(',');
-            
+
             const duplicateDraft = existingDrafts.find(d => {
               if (d.selectedBusinessId !== selectedBusinessId) return false;
               if (!d.selectedVehicleIds) return false;
@@ -1447,22 +1461,22 @@ function NewFilingContent() {
       // Load previous filings for VIN correction dropdown - defer to prevent blocking
       setTimeout(async () => {
         try {
-      const filings = await getFilingsByUser(user.uid);
-      setPreviousFilings(filings);
+          const filings = await getFilingsByUser(user.uid);
+          setPreviousFilings(filings);
 
-      // Extract unique VINs from previous filings (completed filings only)
+          // Extract unique VINs from previous filings (completed filings only)
           // Defer this heavy operation to prevent blocking - load VINs asynchronously
-      const completedFilings = filings.filter(f => f.status === 'completed');
-          
+          const completedFilings = filings.filter(f => f.status === 'completed');
+
           // Load VINs asynchronously in the background to prevent blocking
           setTimeout(async () => {
             try {
-      const vinMap = new Map(); // Map VIN -> { filingId, vehicleId }
+              const vinMap = new Map(); // Map VIN -> { filingId, vehicleId }
 
               // Collect all unique vehicle IDs first
               const vehicleIdsSet = new Set();
-      for (const filing of completedFilings) {
-        if (filing.vehicleIds && filing.vehicleIds.length > 0) {
+              for (const filing of completedFilings) {
+                if (filing.vehicleIds && filing.vehicleIds.length > 0) {
                   filing.vehicleIds.forEach(id => vehicleIdsSet.add(id));
                 }
               }
@@ -1470,8 +1484,8 @@ function NewFilingContent() {
               // Load vehicles in parallel (limit to prevent blocking)
               const vehicleIdsArray = Array.from(vehicleIdsSet).slice(0, 50); // Limit to 50 vehicles max
               const vehiclePromises = vehicleIdsArray.map(async (vehicleId) => {
-            try {
-              const vehicle = await getVehicle(vehicleId);
+                try {
+                  const vehicle = await getVehicle(vehicleId);
                   return { vehicleId, vehicle };
                 } catch (err) {
                   console.error(`Error loading vehicle ${vehicleId}:`, err);
@@ -1481,7 +1495,7 @@ function NewFilingContent() {
 
               // Wait for all vehicle loads to complete in parallel
               const vehicleResults = await Promise.all(vehiclePromises);
-              
+
               // Map vehicles back to their filings
               const vehicleMap = new Map(vehicleResults.map(r => [r.vehicleId, r.vehicle]));
 
@@ -1490,26 +1504,26 @@ function NewFilingContent() {
                 if (filing.vehicleIds && filing.vehicleIds.length > 0) {
                   for (const vehicleId of filing.vehicleIds) {
                     const vehicle = vehicleMap.get(vehicleId);
-              if (vehicle && vehicle.vin) {
-                if (!vinMap.has(vehicle.vin)) {
-                  vinMap.set(vehicle.vin, {
-                    vin: vehicle.vin,
-                    filingId: filing.id,
-                    vehicleId: vehicleId,
-                    taxYear: filing.taxYear,
-                    filingDate: filing.createdAt
-                  });
+                    if (vehicle && vehicle.vin) {
+                      if (!vinMap.has(vehicle.vin)) {
+                        vinMap.set(vehicle.vin, {
+                          vin: vehicle.vin,
+                          filingId: filing.id,
+                          vehicleId: vehicleId,
+                          taxYear: filing.taxYear,
+                          filingDate: filing.createdAt
+                        });
+                      }
+                    }
+                  }
                 }
-            }
-          }
-        }
-      }
+              }
 
-      setPreviousFilingsVINs(Array.from(vinMap.values()).sort((a, b) => {
-        // Sort by most recent filing date first
-        if (!a.filingDate || !b.filingDate) return 0;
-        return new Date(b.filingDate) - new Date(a.filingDate);
-      }));
+              setPreviousFilingsVINs(Array.from(vinMap.values()).sort((a, b) => {
+                // Sort by most recent filing date first
+                if (!a.filingDate || !b.filingDate) return 0;
+                return new Date(b.filingDate) - new Date(a.filingDate);
+              }));
             } catch (error) {
               console.error('Error loading VINs:', error);
             }
@@ -2305,7 +2319,7 @@ function NewFilingContent() {
     }
 
     setCouponError('');
-    
+
     // Mock coupon validation (replace with actual API call)
     // For testing, use dummy coupon codes
     const validCoupons = {
@@ -2317,13 +2331,13 @@ function NewFilingContent() {
     };
 
     const coupon = validCoupons[couponCode.toUpperCase()];
-    
+
     if (coupon) {
       setCouponType(coupon.type);
       setCouponDiscount(coupon.value);
       setCouponApplied(true);
       setCouponError('');
-      
+
       // Recalculate pricing with coupon
       await recalculatePricingWithCoupon(coupon.type, coupon.value);
     } else {
@@ -2409,9 +2423,9 @@ function NewFilingContent() {
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
           <div className="flex flex-col items-center gap-4">
-            <div className="w-12 h-12 border-4 border-slate-200 border-t-[var(--color-orange)] rounded-full animate-spin"></div>
+            <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
             <div className="text-center">
-              <h2 className="text-xl font-bold text-slate-900 mb-1">Resuming your filing...</h2>
+              <h2 className="text-xl font-bold text-midnight mb-1">Resuming your filing...</h2>
               <p className="text-slate-500">We're loading your saved progress, please wait a moment.</p>
             </div>
           </div>
@@ -2422,230 +2436,244 @@ function NewFilingContent() {
 
   return (
     <ProtectedRoute>
-      <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 md:py-6 lg:py-8 pb-24 xl:pb-8 max-w-[1600px] xl:mx-auto">
-        {/* Header - Mobile Optimized */}
-        <div className="mb-3 sm:mb-4 md:mb-6 lg:mb-10 w-full">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 sm:gap-3 md:gap-4 lg:gap-6 mb-3 sm:mb-4 md:mb-6 lg:mb-8">
-            <div className="w-full md:w-auto">
-              <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight mb-1 sm:mb-2">New Filing Request</h1>
-              <p className="text-xs sm:text-sm md:text-base text-slate-500 font-medium">
-                Step {step === 4 ? 4 : step > 4 ? step - 1 : step} of 5: <span className="text-[var(--color-orange)] font-bold">{getStepTitle(step)}</span>
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 pb-28 xl:pb-10 max-w-[1400px] mx-auto">
+        {/* Compact Professional Header */}
+        <div className="mb-4 sm:mb-6">
+          {/* Desktop Layout */}
+          <div className="hidden md:flex items-center justify-between gap-6 mb-4">
+            <div>
+              <h1 className="text-xl lg:text-2xl font-bold text-midnight tracking-tight">Form 2290 Filing</h1>
+              <p className="text-sm text-slate-500 mt-0.5">
+                {getStepTitle(step)}
               </p>
             </div>
-            {/* Desktop Stepper */}
-            <div className="hidden md:flex items-center">
-              {[1, 2, 3, 5, 6].map((s) => {
-                // Map step numbers for display (skip step 4)
+
+            {/* Compact Desktop Stepper */}
+            <div className="flex items-center bg-slate-50 rounded-xl px-4 py-2 border border-slate-200">
+              {[1, 2, 3, 5, 6].map((s, idx) => {
                 const displayStep = s > 4 ? s - 1 : s;
                 const isCurrentStep = s === step;
-                const isCompleted = s < step || (step === 4 && s === 3); // If we're on step 4 (hidden), step 3 is completed
+                const isCompleted = s < step || (step === 4 && s === 3);
+                const stepLabels = ['Type', 'Business', 'Vehicles', 'Review', 'Payment'];
 
                 return (
-                <div key={s} className="flex items-center">
-                  <div className={`
-                    w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 border-2
-                      ${isCompleted
-                      ? 'bg-[var(--color-orange)] border-[var(--color-orange)] text-white'
-                        : isCurrentStep
-                        ? 'bg-white border-[var(--color-orange)] text-[var(--color-orange)] shadow-lg scale-110'
-                        : 'bg-white border-slate-200 text-slate-400'
-                    }
-                  `}>
-                      {isCompleted ? <CheckCircle className="w-5 h-5" /> : displayStep}
+                  <div key={s} className="flex items-center">
+                    <div className="flex flex-col items-center">
+                      <div className={`
+                        w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all
+                        ${isCompleted
+                          ? 'bg-emerald-500 text-white'
+                          : isCurrentStep
+                            ? 'bg-midnight text-white ring-2 ring-midnight ring-offset-2'
+                            : 'bg-white border border-slate-300 text-slate-400'
+                        }
+                      `}>
+                        {isCompleted ? <CheckCircle className="w-4 h-4" /> : displayStep}
+                      </div>
+                      <span className={`text-[10px] mt-1 font-medium ${isCurrentStep ? 'text-midnight' : isCompleted ? 'text-emerald-600' : 'text-slate-400'}`}>
+                        {stepLabels[idx]}
+                      </span>
+                    </div>
+                    {s < 6 && (
+                      <div className={`w-8 h-0.5 mx-1.5 mb-4 transition-colors ${isCompleted ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+                    )}
                   </div>
-                  {s < 6 && (
-                      <div className={`w-12 h-1 transition-colors duration-300 ${isCompleted ? 'bg-[var(--color-orange)]' : 'bg-slate-200'}`} />
-                  )}
-                </div>
                 );
               })}
             </div>
           </div>
-          {/* Mobile Progress Bar with Label */}
-          <div className="md:hidden mb-3 sm:mb-4 md:mb-6">
-            <div className="flex justify-between items-center mb-1.5 sm:mb-2">
-              <span className="text-xs sm:text-sm font-bold text-slate-900">Step {step === 4 ? 4 : step > 4 ? step - 1 : step} of 5</span>
-              <span className="text-xs sm:text-sm font-medium text-[var(--color-orange)]">{getStepTitle(step)}</span>
+
+          {/* Mobile Layout */}
+          <div className="md:hidden">
+            <div className="flex items-center justify-between mb-3">
+              <h1 className="text-lg font-bold text-midnight">Form 2290 Filing</h1>
+              <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
+                {step === 4 ? 4 : step > 4 ? step - 1 : step}/5
+              </span>
             </div>
-            <div className="h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[var(--color-orange)] transition-all duration-500 ease-out"
-                style={{ width: `${((step === 4 ? 4 : step > 4 ? step - 1 : step) / 5) * 100}%` }}
-              />
+            <div className="flex items-center gap-1.5 mb-2">
+              {[1, 2, 3, 5, 6].map((s) => {
+                const isCurrentStep = s === step;
+                const isCompleted = s < step || (step === 4 && s === 3);
+                return (
+                  <div
+                    key={s}
+                    className={`flex-1 h-1.5 rounded-full transition-all ${isCompleted ? 'bg-emerald-500' : isCurrentStep ? 'bg-midnight' : 'bg-slate-200'
+                      }`}
+                  />
+                );
+              })}
             </div>
+            <p className="text-xs text-slate-500 font-medium">{getStepTitle(step)}</p>
           </div>
         </div>
 
-        {/* Error and Warnings */}
-        <div ref={errorRef} className="mb-3 sm:mb-4 md:mb-6 space-y-2 sm:space-y-3 md:space-y-4 w-full">
-          {error && (
-            <div className="p-2.5 sm:p-3 md:p-4 bg-red-50 border border-red-200 rounded-lg sm:rounded-xl text-red-700 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-              <span className="text-xs sm:text-sm font-medium">{error}</span>
-            </div>
-          )}
+        {/* Error Display */}
+        {error && (
+          <div ref={errorRef} className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <span className="text-sm font-medium">{error}</span>
+          </div>
+        )}
 
-        </div>
-
-        {/* Main Content - Full width for steps 1-5, Grid for step 6 */}
-        <div className={`w-full ${step === 6 ? 'grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-3 sm:gap-4 md:gap-6 lg:gap-8' : 'mx-auto'}`}>
+        {/* Main Content */}
+        <div className={`w-full ${step === 6 ? 'grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4 lg:gap-6' : 'max-w-4xl mx-auto'}`}>
           {/* Form Content */}
-          <div className="space-y-3 sm:space-y-4 md:space-y-6">
+          <div className="space-y-4">
             {/* Step 1: Filing Type */}
             {step === 1 && (
-              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 lg:p-10 shadow-sm">
-                <div className="mb-6 sm:mb-8">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-bold text-lg">1</div>
-                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900">Select Filing Type</h2>
-                  </div>
-                  <p className="text-sm sm:text-base text-[var(--color-muted)] ml-13">Choose the type of Form 2290 filing you need</p>
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                {/* Section Header */}
+                <div className="bg-slate-50/80 border-b border-slate-200 px-4 sm:px-6 py-4 sm:py-5">
+                  <h2 className="text-base sm:text-lg font-bold text-midnight">What are you filing today?</h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1">Select the type of Form 2290 filing to begin</p>
                 </div>
 
-                <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-                  <button
-                    onClick={() => {
-                      setFilingType('standard');
-                      setAmendmentType('');
-                      setShowBusinessForm(false); // Reset business form visibility to show existing businesses
-                    }}
-                    className={`group relative p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-lg active:scale-[0.98] touch-manipulation ${filingType === 'standard'
-                      ? 'border-blue-600 bg-blue-50/50 ring-1 ring-blue-600'
-                      : 'border-slate-200 hover:border-blue-300 bg-white active:bg-slate-50'
-                      }`}
-                  >
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-3 md:mb-4 transition-colors ${filingType === 'standard' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600'}`}>
-                      <FileText className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" strokeWidth={1.5} />
-                    </div>
-                    {filingType === 'standard' && (
-                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 text-blue-600 bg-white rounded-full p-0.5 sm:p-1 shadow-sm">
-                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 fill-blue-100" />
+                <div className="p-4 sm:p-6 space-y-6">
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                    {/* Standard 2290 */}
+                    <button
+                      onClick={() => {
+                        setFilingType('standard');
+                        setAmendmentType('');
+                        setShowBusinessForm(false);
+                      }}
+                      className={`group relative p-5 rounded-xl border transition-all duration-200 text-left ${filingType === 'standard'
+                        ? 'border-indigo-600 bg-indigo-50/30'
+                        : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50 bg-white'
+                        }`}
+                    >
+                      {filingType !== 'standard' && (
+                        <div className="absolute -top-2.5 right-4 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                          Most Popular
+                        </div>
+                      )}
+                      <div className="flex items-start gap-4">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${filingType === 'standard' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200'}`}>
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-base text-midnight">Standard 2290</h3>
+                            {filingType === 'standard' && <CheckCircle className="w-4 h-4 text-indigo-600" />}
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                            Complete your regular annual filing for highway vehicles
+                          </p>
+                        </div>
                       </div>
-                    )}
-                    <h3 className={`font-bold text-sm sm:text-base md:text-lg mb-1 sm:mb-2 ${filingType === 'standard' ? 'text-blue-900' : 'text-slate-900'}`}>Standard 2290</h3>
-                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
-                      File a new Form 2290 for heavy highway vehicles.
-                    </p>
-                  </button>
+                    </button>
 
-                  <button
-                    onClick={() => setFilingType('amendment')}
-                    className={`group relative p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-lg active:scale-[0.98] touch-manipulation ${filingType === 'amendment'
-                      ? 'border-amber-500 bg-amber-50/50 ring-1 ring-amber-500'
-                      : 'border-slate-200 hover:border-amber-300 bg-white active:bg-slate-50'
-                      }`}
-                  >
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-3 md:mb-4 transition-colors ${filingType === 'amendment' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500 group-hover:bg-amber-50 group-hover:text-amber-600'}`}>
-                      <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" strokeWidth={1.5} />
-                    </div>
-                    {filingType === 'amendment' && (
-                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 text-amber-600 bg-white rounded-full p-0.5 sm:p-1 shadow-sm">
-                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 fill-amber-100" />
+                    {/* Amendment */}
+                    <button
+                      onClick={() => setFilingType('amendment')}
+                      className={`group relative p-5 rounded-xl border transition-all duration-200 text-left ${filingType === 'amendment'
+                        ? 'border-indigo-600 bg-indigo-50/30'
+                        : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50 bg-white'
+                        }`}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${filingType === 'amendment' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200'}`}>
+                          <RefreshCw className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-base text-midnight">Amendment</h3>
+                            {filingType === 'amendment' && <CheckCircle className="w-4 h-4 text-indigo-600" />}
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                            VIN corrections, weight changes, or mileage updates
+                          </p>
+                        </div>
                       </div>
-                    )}
-                    <h3 className={`font-bold text-sm sm:text-base md:text-lg mb-1 sm:mb-2 ${filingType === 'amendment' ? 'text-amber-900' : 'text-slate-900'}`}>Amendment</h3>
-                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
-                      Correct a VIN, report weight increase, or mileage exceeded.
-                    </p>
-                  </button>
-
-                </div>
-
-                {/* Amendment Type Sub-Selection */}
-                {filingType === 'amendment' && (
-                  <div className="mt-4 sm:mt-6 md:mt-8 pt-4 sm:pt-6 md:pt-8 border-t border-slate-100 animate-in fade-in slide-in-from-top-4 duration-500">
-                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-slate-900 mb-3 sm:mb-4 md:mb-6 flex items-center gap-2">
-                      <span className="w-1.5 h-4 sm:h-5 md:h-6 bg-amber-500 rounded-full"></span>
-                      What type of amendment do you need?
-                    </h3>
-                    <div className="grid gap-2.5 sm:gap-3 md:gap-4">
-                      {/* VIN Correction */}
-                      <button
-                        onClick={() => {
-                          setAmendmentType('vin_correction');
-                          setVinInputMode('select');
-                          setVinCorrectionData({ originalVIN: '', correctedVIN: '', originalFilingId: '' });
-                        }}
-                        className={`p-5 rounded-xl border-2 text-left transition-all duration-200 ${amendmentType === 'vin_correction'
-                          ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500 shadow-sm'
-                          : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
-                          }`}
-                      >
-                        <div className="flex items-start gap-5">
-                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${amendmentType === 'vin_correction' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400'}`}>
-                            <FileText className="w-6 h-6" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className={`font-bold text-base mb-1 ${amendmentType === 'vin_correction' ? 'text-blue-900' : 'text-slate-900'}`}>VIN Correction</h4>
-                            <p className="text-sm text-slate-500 mb-3">
-                              Correct an incorrect VIN on a previously filed Form 2290. No additional tax due.
-                            </p>
-                            <div className="flex gap-2">
-                              {amendmentType === 'vin_correction' && <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md">Selected</span>}
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-
-                      {/* Weight Increase */}
-                      <button
-                        onClick={() => setAmendmentType('weight_increase')}
-                        className={`p-5 rounded-xl border-2 text-left transition-all duration-200 ${amendmentType === 'weight_increase'
-                          ? 'border-orange-500 bg-orange-50 ring-1 ring-orange-500 shadow-sm'
-                          : 'border-slate-200 hover:border-orange-300 hover:bg-slate-50'
-                          }`}
-                      >
-                        <div className="flex items-start gap-5">
-                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${amendmentType === 'weight_increase' ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 text-slate-400'}`}>
-                            <Truck className="w-6 h-6" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className={`font-bold text-base mb-1 ${amendmentType === 'weight_increase' ? 'text-orange-900' : 'text-slate-900'}`}>Taxable Gross Weight Increase</h4>
-                            <p className="text-sm text-slate-500 mb-3">
-                              Report vehicle moving to higher weight category. Additional tax will be calculated.
-                            </p>
-                            <div className="flex gap-2">
-                              {amendmentType === 'weight_increase' && <span className="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md">Selected</span>}
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-
-                      {/* Mileage Exceeded */}
-                      <button
-                        onClick={() => setAmendmentType('mileage_exceeded')}
-                        className={`p-5 rounded-xl border-2 text-left transition-all duration-200 ${amendmentType === 'mileage_exceeded'
-                          ? 'border-purple-500 bg-purple-50 ring-1 ring-purple-500 shadow-sm'
-                          : 'border-slate-200 hover:border-purple-300 hover:bg-slate-50'
-                          }`}
-                      >
-                        <div className="flex items-start gap-5">
-                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${amendmentType === 'mileage_exceeded' ? 'bg-purple-100 text-purple-600' : 'bg-slate-100 text-slate-400'}`}>
-                            <Clock className="w-6 h-6" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className={`font-bold text-base mb-1 ${amendmentType === 'mileage_exceeded' ? 'text-purple-900' : 'text-slate-900'}`}>Mileage Use Limit Exceeded</h4>
-                            <p className="text-sm text-slate-500 mb-3">
-                              Report suspended vehicle exceeding 5,000 miles. Full tax due.
-                            </p>
-                            <div className="flex gap-2">
-                              {amendmentType === 'mileage_exceeded' && <span className="text-xs font-bold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-md">Selected</span>}
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    </div>
+                    </button>
                   </div>
-                )}
-                <div className="mt-8 flex justify-end">
-                  <button
-                    onClick={handleNextFromStep1}
-                    disabled={loading}
-                    className="px-6 py-3 bg-[#ff8b3d] text-white rounded-xl font-semibold hover:bg-[var(--color-orange-hover)] transition shadow-sm disabled:opacity-50 flex items-center gap-2"
-                  >
-                    {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                    Next Step
-                  </button>
+
+                  {/* Amendment Type Sub-Selection */}
+                  {filingType === 'amendment' && (
+                    <div className="mt-4 pt-6 border-t border-slate-100 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Info className="w-4 h-4 text-indigo-600" />
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Select Amendment Type</p>
+                      </div>
+                      <div className="grid gap-3">
+                        {/* VIN Correction */}
+                        <button
+                          onClick={() => {
+                            setAmendmentType('vin_correction');
+                            setVinInputMode('select');
+                            setVinCorrectionData({ originalVIN: '', correctedVIN: '', originalFilingId: '' });
+                          }}
+                          className={`p-4 rounded-xl border transition-all flex items-center gap-4 ${amendmentType === 'vin_correction'
+                            ? 'border-indigo-500 bg-indigo-50/50'
+                            : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50'
+                            }`}
+                        >
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${amendmentType === 'vin_correction' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                            <FileText className="w-5 h-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className={`font-bold text-sm ${amendmentType === 'vin_correction' ? 'text-indigo-900' : 'text-midnight'}`}>VIN Correction</h4>
+                            <p className="text-xs text-slate-500 mt-0.5">Correct details from a previous filing • No tax due</p>
+                          </div>
+                          {amendmentType === 'vin_correction' && <CheckCircle className="w-4 h-4 text-indigo-600 flex-shrink-0" />}
+                        </button>
+
+                        {/* Weight Increase */}
+                        <button
+                          onClick={() => setAmendmentType('weight_increase')}
+                          className={`p-4 rounded-xl border transition-all flex items-center gap-4 ${amendmentType === 'weight_increase'
+                            ? 'border-indigo-500 bg-indigo-50/50'
+                            : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50'
+                            }`}
+                        >
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${amendmentType === 'weight_increase' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                            <Truck className="w-5 h-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className={`font-bold text-sm ${amendmentType === 'weight_increase' ? 'text-indigo-900' : 'text-midnight'}`}>Weight Increase</h4>
+                            <p className="text-xs text-slate-500 mt-0.5">Moving to a higher category • Additional tax may apply</p>
+                          </div>
+                          {amendmentType === 'weight_increase' && <CheckCircle className="w-4 h-4 text-indigo-600 flex-shrink-0" />}
+                        </button>
+
+                        {/* Mileage Exceeded */}
+                        <button
+                          onClick={() => setAmendmentType('mileage_exceeded')}
+                          className={`p-4 rounded-xl border transition-all flex items-center gap-4 ${amendmentType === 'mileage_exceeded'
+                            ? 'border-indigo-500 bg-indigo-50/50'
+                            : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50'
+                            }`}
+                        >
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${amendmentType === 'mileage_exceeded' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                            <Clock className="w-5 h-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className={`font-bold text-sm ${amendmentType === 'mileage_exceeded' ? 'text-indigo-900' : 'text-midnight'}`}>Mileage Exceeded</h4>
+                            <p className="text-xs text-slate-500 mt-0.5">Previously suspended vehicle exceeded limit</p>
+                          </div>
+                          {amendmentType === 'mileage_exceeded' && <CheckCircle className="w-4 h-4 text-indigo-600 flex-shrink-0" />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Navigation */}
+                  <div className="mt-8 flex items-center justify-between pt-6 border-t border-slate-100">
+                    <div className="flex items-center gap-2.5 text-xs text-slate-500 font-medium bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
+                      <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                      <span>Secured with 256-bit encryption</span>
+                    </div>
+                    <button
+                      onClick={handleNextFromStep1}
+                      disabled={loading}
+                      className="px-6 py-2.5 bg-[var(--color-orange)] text-white rounded-lg text-sm font-bold hover:bg-[var(--color-orange-hover)] shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                      Continue Process
+                      {!loading && <ArrowRight className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -2660,12 +2688,14 @@ function NewFilingContent() {
                 {/* VIN Correction Details */}
                 {amendmentType === 'vin_correction' && (
                   <div className="space-y-4 sm:space-y-6">
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6">
-                      <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                        <span className="text-2xl sm:text-3xl">📝</span>
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 sm:p-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center text-2xl">
+                          📝
+                        </div>
                         <div>
-                          <h3 className="font-bold text-sm sm:text-base text-[var(--color-text)]">VIN Correction</h3>
-                          <p className="text-xs sm:text-sm text-[var(--color-muted)]">Correct an incorrect VIN from a previously filed Form 2290</p>
+                          <h3 className="font-bold text-midnight">VIN Correction</h3>
+                          <p className="text-sm text-slate-500">Correct an incorrect VIN from a previously filed Form 2290</p>
                         </div>
                       </div>
                     </div>
@@ -2719,7 +2749,7 @@ function NewFilingContent() {
                                 setVinCorrectionData({ ...vinCorrectionData, originalVIN: '', originalFilingId: '' });
                               }
                             }}
-                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono bg-white touch-manipulation"
+                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono bg-white touch-manipulation"
                           >
                             <option value="">Select a VIN from previous filings...</option>
                             {previousFilingsVINs.map((vinData) => (
@@ -2744,7 +2774,7 @@ function NewFilingContent() {
                             type="text"
                             value={vinCorrectionData.originalVIN}
                             onChange={(e) => setVinCorrectionData({ ...vinCorrectionData, originalVIN: e.target.value.toUpperCase() })}
-                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono touch-manipulation"
+                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono touch-manipulation"
                             placeholder="1HGBH41JXMN109186"
                             maxLength="17"
                           />
@@ -2761,16 +2791,17 @@ function NewFilingContent() {
                         type="text"
                         value={vinCorrectionData.correctedVIN}
                         onChange={(e) => setVinCorrectionData({ ...vinCorrectionData, correctedVIN: e.target.value.toUpperCase() })}
-                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] font-mono touch-manipulation"
+                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono touch-manipulation"
                         placeholder="1HGBH41JXMN109187"
                         maxLength="17"
                       />
                       <p className="mt-1 text-xs text-[var(--color-muted)]">Enter the correct VIN (must be different from original)</p>
                     </div>
 
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
-                      <p className="text-xs sm:text-sm text-green-700">
-                        <strong>✓ No Additional Tax:</strong> VIN corrections are FREE with no additional HVUT tax due.
+                    <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                      <p className="text-sm text-emerald-700 font-medium">
+                        VIN corrections are processed with no additional IRS tax due.
                       </p>
                     </div>
                   </div>
@@ -2779,12 +2810,14 @@ function NewFilingContent() {
                 {/* Weight Increase Details */}
                 {amendmentType === 'weight_increase' && (
                   <div className="space-y-4 sm:space-y-6">
-                    <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 sm:p-6">
-                      <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                        <span className="text-2xl sm:text-3xl">⚖️</span>
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 sm:p-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center text-2xl">
+                          ⚖️
+                        </div>
                         <div>
-                          <h3 className="font-bold text-sm sm:text-base text-[var(--color-text)]">Taxable Gross Weight Increase</h3>
-                          <p className="text-xs sm:text-sm text-[var(--color-muted)]">Report when your vehicle moved to a higher weight category</p>
+                          <h3 className="font-bold text-midnight">Taxable Gross Weight Increase</h3>
+                          <p className="text-sm text-slate-500">Report when your vehicle moved to a higher weight category</p>
                         </div>
                       </div>
                     </div>
@@ -2823,21 +2856,21 @@ function NewFilingContent() {
 
                     {/* Vehicle Selection or Manual VIN Entry */}
                     {weightIncreaseInputMode === 'select' ? (
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                        Select Vehicle *
-                      </label>
-                      <select
-                        value={weightIncreaseData.vehicleId}
-                        onChange={(e) => {
-                          const selectedVehicleId = e.target.value;
-                          const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
+                      <div>
+                        <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                          Select Vehicle *
+                        </label>
+                        <select
+                          value={weightIncreaseData.vehicleId}
+                          onChange={(e) => {
+                            const selectedVehicleId = e.target.value;
+                            const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
 
                             // Auto-populate original weight category and logging status from selected vehicle (read-only)
-                          if (selectedVehicle) {
-                            setWeightIncreaseData({
-                              ...weightIncreaseData,
-                              vehicleId: selectedVehicleId,
+                            if (selectedVehicle) {
+                              setWeightIncreaseData({
+                                ...weightIncreaseData,
+                                vehicleId: selectedVehicleId,
                                 vin: selectedVehicle.vin || '',
                                 originalWeightCategory: selectedVehicle.grossWeightCategory || '',
                                 originalIsLogging: selectedVehicle.logging === true,
@@ -2855,21 +2888,21 @@ function NewFilingContent() {
                                 );
                                 setWeightIncreaseData(prev => ({ ...prev, additionalTaxDue: additionalTax }));
                               }
-                          } else {
+                            } else {
                               setWeightIncreaseData({ ...weightIncreaseData, vehicleId: '', vin: '', originalWeightCategory: '', originalIsLogging: false });
-                          }
-                        }}
-                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
-                      >
-                        <option value="">Select a vehicle...</option>
+                            }
+                          }}
+                          className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none bg-white touch-manipulation"
+                        >
+                          <option value="">Select a vehicle...</option>
                           {vehicles.filter(v => v.vehicleType === 'taxable' || !v.vehicleType).map(v => (
                             <option key={v.id} value={v.id}>{v.vin} {v.grossWeightCategory ? `(Category ${v.grossWeightCategory})` : ''}</option>
-                        ))}
-                      </select>
+                          ))}
+                        </select>
                         {vehicles.filter(v => v.vehicleType === 'taxable' || !v.vehicleType).length === 0 && (
                           <p className="mt-1 text-xs text-amber-600">No taxable vehicles found. You can enter the VIN manually using the "Manual" option above.</p>
                         )}
-                    </div>
+                      </div>
                     ) : (
                       <div>
                         <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
@@ -2879,7 +2912,7 @@ function NewFilingContent() {
                           type="text"
                           value={weightIncreaseData.vin}
                           onChange={(e) => setWeightIncreaseData({ ...weightIncreaseData, vin: e.target.value.toUpperCase() })}
-                          className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] font-mono touch-manipulation"
+                          className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono touch-manipulation"
                           placeholder="1HGBH41JXMN109186"
                           maxLength="17"
                         />
@@ -2913,7 +2946,7 @@ function NewFilingContent() {
                             }
                           }}
                           disabled={!!weightIncreaseData.vehicleId}
-                          className={`w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation ${weightIncreaseData.vehicleId ? 'bg-gray-50 cursor-not-allowed opacity-75' : ''}`}
+                          className={`w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none bg-white touch-manipulation ${weightIncreaseData.vehicleId ? 'bg-gray-50 cursor-not-allowed opacity-75' : ''}`}
                         >
                           <option value="">Select...</option>
                           {getWeightCategoryOptionsWithPricing(weightIncreaseData.originalIsLogging, false).map(option => (
@@ -2947,7 +2980,7 @@ function NewFilingContent() {
                               setWeightIncreaseData(prev => ({ ...prev, newWeightCategory: newCat, additionalTaxDue: additionalTax }));
                             }
                           }}
-                          className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
+                          className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none bg-white touch-manipulation"
                         >
                           <option value="">Select...</option>
                           {getWeightCategoryOptionsWithPricing(weightIncreaseData.newIsLogging, true).map(option => (
@@ -2993,7 +3026,7 @@ function NewFilingContent() {
                             setWeightIncreaseData(prev => ({ ...prev, additionalTaxDue: additionalTax }));
                           }
                         }}
-                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
+                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none bg-white touch-manipulation"
                       >
                         <option value="">Select the month of first use...</option>
                         {['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June'].map(m => {
@@ -3031,7 +3064,7 @@ function NewFilingContent() {
                             setWeightIncreaseData(prev => ({ ...prev, amendedMonth: month, additionalTaxDue: additionalTax }));
                           }
                         }}
-                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
+                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none bg-white touch-manipulation"
                       >
                         <option value="">Select the month when gross weight increased...</option>
                         {['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June'].map(m => {
@@ -3072,7 +3105,7 @@ function NewFilingContent() {
                             }
                           }}
                           disabled={!!weightIncreaseData.vehicleId}
-                          className={`w-4 h-4 text-[var(--color-orange)] border-gray-300 rounded focus:ring-[var(--color-orange)] ${weightIncreaseData.vehicleId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          className={`w-4 h-4 text-indigo-600/80 border-gray-300 rounded focus:ring-indigo-500/20 focus:border-indigo-500 ${weightIncreaseData.vehicleId ? 'opacity-50 cursor-not-allowed' : ''}`}
                         />
                         <label htmlFor="weightIncreaseOriginalLogging" className={`text-sm text-[var(--color-text)] ${weightIncreaseData.vehicleId ? 'opacity-75' : ''}`}>
                           Original weight category was used for logging (75% tax rate)
@@ -3109,7 +3142,7 @@ function NewFilingContent() {
                               setWeightIncreaseData(prev => ({ ...prev, additionalTaxDue: additionalTax }));
                             }
                           }}
-                          className="w-4 h-4 text-[var(--color-orange)] border-gray-300 rounded focus:ring-[var(--color-orange)]"
+                          className="w-4 h-4 text-indigo-600/80 border-gray-300 rounded focus:ring-indigo-500/20 focus:border-indigo-500"
                         />
                         <label htmlFor="weightIncreaseNewLogging" className="text-sm text-[var(--color-text)]">
                           New weight category is used for logging (75% tax rate)
@@ -3137,12 +3170,14 @@ function NewFilingContent() {
                 {/* Mileage Exceeded Details */}
                 {amendmentType === 'mileage_exceeded' && (
                   <div className="space-y-4 sm:space-y-6">
-                    <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 sm:p-6">
-                      <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                        <span className="text-2xl sm:text-3xl">🛣️</span>
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 sm:p-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center text-2xl">
+                          🛣️
+                        </div>
                         <div>
-                          <h3 className="font-bold text-sm sm:text-base text-[var(--color-text)]">Mileage Use Limit Exceeded</h3>
-                          <p className="text-xs sm:text-sm text-[var(--color-muted)]">Report when a suspended vehicle exceeded its mileage limit</p>
+                          <h3 className="font-bold text-midnight">Mileage Use Limit Exceeded</h3>
+                          <p className="text-sm text-slate-500">Report when a suspended vehicle exceeded its mileage limit</p>
                         </div>
                       </div>
                     </div>
@@ -3154,7 +3189,7 @@ function NewFilingContent() {
                       <select
                         value={mileageExceededData.vehicleId}
                         onChange={(e) => setMileageExceededData({ ...mileageExceededData, vehicleId: e.target.value })}
-                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white touch-manipulation"
+                        className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none bg-white touch-manipulation"
                       >
                         <option value="">Select a vehicle...</option>
                         {vehicles.filter(v => v.vehicleType === 'suspended' || (v.vehicleType === undefined && v.isSuspended === true)).map(v => (
@@ -3165,7 +3200,7 @@ function NewFilingContent() {
                         <p className="mt-1 text-xs text-amber-600">No suspended vehicles found. Please add a suspended vehicle first.</p>
                       )}
                       {vehicles.filter(v => v.vehicleType === 'suspended' || (v.vehicleType === undefined && v.isSuspended === true)).length > 0 && (
-                      <p className="mt-1 text-xs text-[var(--color-muted)]">Only suspended vehicles are shown</p>
+                        <p className="mt-1 text-xs text-[var(--color-muted)]">Only suspended vehicles are shown</p>
                       )}
                     </div>
 
@@ -3183,7 +3218,7 @@ function NewFilingContent() {
                             name="vehicleType"
                             checked={!mileageExceededData.isAgriculturalVehicle}
                             onChange={() => setMileageExceededData({ ...mileageExceededData, isAgriculturalVehicle: false, originalMileageLimit: 5000 })}
-                            className="w-5 h-5 text-[var(--color-orange)] flex-shrink-0 touch-manipulation"
+                            className="w-5 h-5 text-indigo-600/80 flex-shrink-0 touch-manipulation"
                           />
                           <div className="min-w-0">
                             <div className="font-bold text-sm sm:text-base text-[var(--color-text)]">Standard Vehicle</div>
@@ -3199,7 +3234,7 @@ function NewFilingContent() {
                             name="vehicleType"
                             checked={mileageExceededData.isAgriculturalVehicle}
                             onChange={() => setMileageExceededData({ ...mileageExceededData, isAgriculturalVehicle: true, originalMileageLimit: 7500 })}
-                            className="w-5 h-5 text-[var(--color-orange)] flex-shrink-0 touch-manipulation"
+                            className="w-5 h-5 text-indigo-600/80 flex-shrink-0 touch-manipulation"
                           />
                           <div className="min-w-0">
                             <div className="font-bold text-sm sm:text-base text-[var(--color-text)]">Agricultural Vehicle</div>
@@ -3219,7 +3254,7 @@ function NewFilingContent() {
                             type="number"
                             value={mileageExceededData.actualMileageUsed || ''}
                             onChange={(e) => setMileageExceededData({ ...mileageExceededData, actualMileageUsed: parseInt(e.target.value) || 0 })}
-                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation"
+                            className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 touch-manipulation"
                             placeholder="6500"
                             min="0"
                           />
@@ -3237,7 +3272,7 @@ function NewFilingContent() {
                         <select
                           value={mileageExceededData.exceededMonth}
                           onChange={(e) => setMileageExceededData({ ...mileageExceededData, exceededMonth: e.target.value })}
-                          className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white"
+                          className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none bg-white"
                         >
                           <option value="">Select month...</option>
                           {['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June'].map(m => (
@@ -3255,7 +3290,7 @@ function NewFilingContent() {
                       <select
                         value={mileageExceededData.firstUsedMonth}
                         onChange={(e) => setMileageExceededData({ ...mileageExceededData, firstUsedMonth: e.target.value })}
-                        className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-orange)] appearance-none bg-white"
+                        className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none bg-white"
                       >
                         <option value="">Select month...</option>
                         {['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June'].map(m => (
@@ -3346,9 +3381,10 @@ function NewFilingContent() {
                       // The amendment details already captured all necessary information
                       setStep(5);
                     }}
-                    className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-2 bg-[#ff8b3d] text-white rounded-xl text-sm sm:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-sm touch-manipulation"
+                    className="w-full sm:w-auto px-6 py-2.5 bg-[var(--color-orange)] text-white rounded-lg text-sm font-bold hover:bg-[var(--color-orange-hover)] shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                   >
                     Next Step
+                    <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -3356,532 +3392,454 @@ function NewFilingContent() {
 
             {/* Step 2: Business (skip for amendments, renumber for non-amendments) */}
             {step === 2 && filingType !== 'amendment' && (
-              <div className="bg-[var(--color-card)] rounded-xl sm:rounded-2xl border border-[var(--color-border)] p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm">
-                {/* Existing Businesses List */}
-                {!showBusinessForm && businesses.length > 0 && (
-                  <div className="mb-4 sm:mb-6 md:mb-8">
-                    <label className="block text-sm font-bold text-[var(--color-text)] mb-2 sm:mb-3">
-                      Select Business
-                    </label>
-                    <div className="grid gap-2.5 sm:gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                      {businesses.map((business) => (
-                        <button
-                          key={business.id}
-                          onClick={() => setSelectedBusinessId(business.id)}
-                          className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border-2 text-left transition relative group h-full flex flex-col touch-manipulation active:scale-[0.98] ${selectedBusinessId === business.id
-                            ? 'border-[var(--color-orange)] bg-[var(--color-page-alt)] ring-1 ring-[var(--color-orange)]'
-                            : 'border-[var(--color-border)] hover:border-[var(--color-orange)]/50 hover:shadow-md bg-white active:bg-slate-50'
-                            }`}
-                        >
-                          <div className="flex-1 min-w-0">
-                            <div className="font-bold text-sm sm:text-base md:text-lg lg:text-xl text-[var(--color-text)] mb-1.5 sm:mb-2 group-hover:text-[var(--color-orange)] transition-colors break-words">{business.businessName}</div>
-                            <div className="space-y-0.5 sm:space-y-1">
-                              <p className="text-xs sm:text-sm font-medium text-[var(--color-muted)]">EIN: <span className="font-mono text-[var(--color-text)]">{business.ein}</span></p>
-                              <p className="text-xs sm:text-sm text-[var(--color-muted)] leading-relaxed break-words">{business.address}</p>
-                            </div>
-                          </div>
-                          {selectedBusinessId === business.id && (
-                            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 text-[var(--color-orange)]">
-                              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 fill-[var(--color-orange)] text-white" />
-                            </div>
-                          )}
-                        </button>
-                      ))}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                {/* Section Header */}
+                <div className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-4">
+                  <h2 className="text-base sm:text-lg font-bold text-midnight">Select Business</h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Choose or add a business for this filing</p>
+                </div>
 
-                      {/* Add New Business Button - Enhanced */}
-                      <button
-                        onClick={() => {
-                          setShowBusinessForm(true);
-                          setSelectedBusinessId(''); // Clear selection when adding new
-                        }}
-                        className="p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] hover:bg-[var(--color-page-alt)] active:scale-[0.98] transition group flex flex-col items-center justify-center gap-2 sm:gap-3 min-h-[120px] sm:min-h-[150px] md:min-h-[180px] lg:min-h-[200px] touch-manipulation"
-                      >
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-slate-100 group-hover:bg-orange-100 flex items-center justify-center transition-colors">
-                          <span className="text-lg sm:text-xl md:text-2xl font-bold">+</span>
-                        </div>
-                        <span className="font-bold text-xs sm:text-sm md:text-base lg:text-lg">Add New Business</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Add New Business Form */}
-                {(showBusinessForm || businesses.length === 0) && (
-                  <div className="mb-3 sm:mb-4 md:mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-5">
-                      <div>
-                        <h3 className="text-base sm:text-lg md:text-xl font-bold text-slate-900 mb-1">
-                        {businesses.length > 0 ? 'Add New Business' : 'Add Business Details'}
-                      </h3>
-                        <p className="text-xs sm:text-sm text-slate-600">
-                          {businesses.length > 0 ? 'Add another business to your account' : 'Enter your business information to continue'}
-                        </p>
-                      </div>
-                      {businesses.length > 0 && (
-                        <button
-                          onClick={() => setShowBusinessForm(false)}
-                          className="text-xs sm:text-sm text-slate-500 hover:text-slate-700 underline touch-manipulation transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="bg-white rounded-xl sm:rounded-2xl border-2 border-slate-200 shadow-sm overflow-hidden">
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 px-4 sm:px-6 py-3 sm:py-4">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-5 h-5 text-blue-600" />
-                          <h4 className="text-sm sm:text-base font-semibold text-slate-900">Business Details</h4>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6 p-4 sm:p-6 md:p-8">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <label className="block text-sm font-semibold text-slate-900">
-                            Business Name <span className="text-red-500">*</span>
-                          </label>
-                          <div className="group relative">
-                            <Info className="w-4 h-4 text-slate-400 hover:text-blue-600 cursor-help transition-colors" />
-                            <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-slate-900 text-white text-xs rounded-lg shadow-xl hidden group-hover:block z-10">
-                              <strong>IRS Rule:</strong> Only letters, numbers, spaces, "&" and "-" are allowed. Do not use commas, periods, or other symbols.
-                            </div>
-                          </div>
-                        </div>
-                        <input
-                          type="text"
-                          value={newBusiness.businessName}
-                          onChange={(e) => handleBusinessChange('businessName', e.target.value)}
-                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.businessName ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
-                          placeholder="e.g., ABC Trucking LLC"
-                        />
-                        {businessErrors.businessName ? (
-                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
-                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
-                            <span className="flex-1">{businessErrors.businessName}</span>
-                          </p>
-                        ) : (
-                          <p className="mt-1 text-xs text-slate-500">Enter your legal business name</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-900 mb-2">
-                          EIN (Employer Identification Number) <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={newBusiness.ein}
-                          onChange={(e) => handleBusinessChange('ein', e.target.value)}
-                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal font-mono ${businessErrors.ein ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
-                          placeholder="e.g., 12-3456789"
-                          maxLength="10"
-                        />
-                        {businessErrors.ein ? (
-                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
-                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
-                            <span className="flex-1">{businessErrors.ein}</span>
-                          </p>
-                        ) : (
-                          <p className="mt-1 text-xs text-slate-500">Format: XX-XXXXXXX (9 digits)</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-900 mb-2">
-                          Business Address <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={newBusiness.address}
-                          onChange={(e) => handleBusinessChange('address', e.target.value)}
-                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.address ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
-                          placeholder="e.g., 123 Main Street"
-                        />
-                        {businessErrors.address ? (
-                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
-                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
-                            <span className="flex-1">{businessErrors.address}</span>
-                          </p>
-                        ) : (
-                          <p className="mt-1 text-xs text-slate-500">Street address where business is located</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-900 mb-2">
-                          City <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={newBusiness.city}
-                          onChange={(e) => handleBusinessChange('city', e.target.value)}
-                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.city ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
-                          placeholder="e.g., Los Angeles"
-                        />
-                        {businessErrors.city ? (
-                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
-                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
-                            <span className="flex-1">{businessErrors.city}</span>
-                          </p>
-                        ) : (
-                          <p className="mt-1 text-xs text-slate-500">City name</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-900 mb-2">
-                          State <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={newBusiness.state}
-                          onChange={(e) => handleBusinessChange('state', e.target.value)}
-                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal uppercase ${businessErrors.state ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
-                          placeholder="e.g., CA"
-                          maxLength="2"
-                        />
-                        {businessErrors.state ? (
-                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
-                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
-                            <span className="flex-1">{businessErrors.state}</span>
-                          </p>
-                        ) : (
-                          <p className="mt-1 text-xs text-slate-500">2-letter state code (e.g., CA, NY, TX)</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-900 mb-2">
-                          ZIP Code <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={newBusiness.zip}
-                          onChange={(e) => handleBusinessChange('zip', e.target.value)}
-                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal font-mono ${businessErrors.zip ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
-                          placeholder="e.g., 12345"
-                          maxLength="10"
-                        />
-                        {businessErrors.zip ? (
-                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
-                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
-                            <span className="flex-1">{businessErrors.zip}</span>
-                          </p>
-                        ) : (
-                          <p className="mt-1 text-xs text-slate-500">5-digit ZIP code (or 9-digit ZIP+4)</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-900 mb-2">
-                          Country <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={newBusiness.country}
-                          onChange={(e) => handleBusinessChange('country', e.target.value)}
-                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.country ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
-                          placeholder="e.g., United States"
-                        />
-                        {businessErrors.country ? (
-                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
-                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
-                            <span className="flex-1">{businessErrors.country}</span>
-                          </p>
-                        ) : (
-                          <p className="mt-1 text-xs text-slate-500">Country name</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-900 mb-2">
-                          Phone <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="tel"
-                          value={newBusiness.phone}
-                          onChange={(e) => handleBusinessChange('phone', e.target.value)}
-                          className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.phone ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
-                          placeholder="e.g., (555) 123-4567"
-                        />
-                        {businessErrors.phone ? (
-                          <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
-                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
-                            <span className="flex-1">{businessErrors.phone}</span>
-                          </p>
-                        ) : (
-                          <p className="mt-1 text-xs text-slate-500">Business phone number</p>
-                        )}
-                      </div>
-                      {/* Signing Authority Section */}
-                      <div className="md:col-span-2 border-t-2 border-slate-200 pt-6 mt-4">
-                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 rounded-lg px-4 py-3 mb-5">
-                          <div className="flex items-center gap-2 mb-1">
-                            <ShieldCheck className="w-5 h-5 text-purple-600" />
-                            <h3 className="text-base font-bold text-slate-900">Signing Authority</h3>
-                            <div className="group relative">
-                              <Info className="w-4 h-4 text-slate-400 hover:text-purple-600 cursor-help transition-colors" />
-                              <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-slate-900 text-white text-xs rounded-lg shadow-xl hidden group-hover:block z-10">
-                                The person authorized to sign Form 2290 on behalf of the business. This person must have the legal authority to sign tax returns.
+                <div className="p-4 sm:p-6">
+                  {/* Existing Businesses List */}
+                  {!showBusinessForm && businesses.length > 0 && (
+                    <div className="mb-4">
+                      <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2">
+                        {businesses.map((business) => (
+                          <button
+                            key={business.id}
+                            onClick={() => setSelectedBusinessId(business.id)}
+                            className={`p-4 rounded-xl border transition-all relative group active:scale-[0.99] ${selectedBusinessId === business.id
+                              ? 'border-indigo-600 bg-indigo-50/30'
+                              : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50 bg-white'
+                              }`}
+                          >
+                            <div className="flex items-start gap-4">
+                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-base font-bold transition-all ${selectedBusinessId === business.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200'}`}>
+                                {business.businessName?.charAt(0).toUpperCase() || 'B'}
                               </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-bold text-base text-midnight truncate">{business.businessName}</div>
+                                <p className="text-xs font-mono text-slate-500 mt-1">EIN: {business.ein}</p>
+                                <p className="text-xs text-slate-400 mt-0.5 truncate">{business.city}, {business.state}</p>
+                              </div>
+                              {selectedBusinessId === business.id && (
+                                <div className="absolute top-4 right-4 animate-in fade-in zoom-in duration-200">
+                                  <CheckCircle className="w-5 h-5 text-indigo-600" />
+                                </div>
+                              )}
                             </div>
-                          </div>
-                          <p className="text-xs text-slate-600">Person authorized to sign tax forms on behalf of your business</p>
-                        </div>
+                          </button>
+                        ))}
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
+                        {/* Add New Business Button */}
+                        <button
+                          onClick={() => {
+                            setShowBusinessForm(true);
+                            setSelectedBusinessId('');
+                          }}
+                          className="p-3 sm:p-4 rounded-lg border-2 border-dashed border-slate-300 text-slate-500 hover:border-slate-400 hover:text-slate-600 hover:bg-slate-50 active:scale-[0.99] transition flex items-center justify-center gap-2 min-h-[80px]"
+                        >
+                          <Plus className="w-5 h-5" />
+                          <span className="font-semibold text-sm">Add New Business</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Add New Business Form */}
+                  {(showBusinessForm || businesses.length === 0) && (
+                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="flex items-center justify-between mb-3">
                         <div>
-                            <label className="block text-sm font-semibold text-slate-900 mb-2">
-                              Name <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={newBusiness.signingAuthorityName}
-                              onChange={(e) => handleBusinessChange('signingAuthorityName', e.target.value)}
-                              className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.signingAuthorityName ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
-                              placeholder="e.g., John Doe"
-                            />
-                            {businessErrors.signingAuthorityName ? (
-                              <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
-                                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
-                                <span className="flex-1">{businessErrors.signingAuthorityName}</span>
-                              </p>
-                            ) : (
-                              <p className="mt-1 text-xs text-slate-500">Full name of authorized signer</p>
-                            )}
+                          <h3 className="text-sm font-bold text-midnight">
+                            {businesses.length > 0 ? 'Add New Business' : 'Enter Business Details'}
+                          </h3>
+                          <p className="text-xs text-slate-500 mt-0.5">All fields marked with * are required</p>
                         </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-900 mb-2">
+                        {businesses.length > 0 && (
+                          <button
+                            onClick={() => setShowBusinessForm(false)}
+                            className="text-xs text-slate-500 hover:text-slate-700 font-medium"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="bg-slate-50 rounded-lg border border-slate-200 p-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                          {/* Business Name */}
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                              Business Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={newBusiness.businessName}
+                              onChange={(e) => handleBusinessChange('businessName', e.target.value)}
+                              className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all placeholder:text-slate-400 ${businessErrors.businessName ? 'border-red-400 bg-red-50' : 'border-slate-300'}`}
+                              placeholder="e.g., ABC Trucking LLC"
+                            />
+                            {businessErrors.businessName && (
+                              <p className="mt-1 text-xs text-red-600">{businessErrors.businessName}</p>
+                            )}
+                          </div>
+                          {/* EIN */}
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                              EIN <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={newBusiness.ein}
+                              onChange={(e) => handleBusinessChange('ein', e.target.value)}
+                              className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all placeholder:text-slate-400 font-mono ${businessErrors.ein ? 'border-red-400 bg-red-50' : 'border-slate-300'}`}
+                              placeholder="12-3456789"
+                              maxLength="10"
+                            />
+                            {businessErrors.ein && (
+                              <p className="mt-1 text-xs text-red-600">{businessErrors.ein}</p>
+                            )}
+                          </div>
+
+                          {/* Business Address */}
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                              Address <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={newBusiness.address}
+                              onChange={(e) => handleBusinessChange('address', e.target.value)}
+                              className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all placeholder:text-slate-400 ${businessErrors.address ? 'border-red-400 bg-red-50' : 'border-slate-300'}`}
+                              placeholder="123 Main Street"
+                            />
+                            {businessErrors.address && (
+                              <p className="mt-1 text-xs text-red-600">{businessErrors.address}</p>
+                            )}
+                          </div>
+
+                          {/* City */}
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                              City <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={newBusiness.city}
+                              onChange={(e) => handleBusinessChange('city', e.target.value)}
+                              className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all placeholder:text-slate-400 ${businessErrors.city ? 'border-red-400 bg-red-50' : 'border-slate-300'}`}
+                              placeholder="Los Angeles"
+                            />
+                            {businessErrors.city && (
+                              <p className="mt-1 text-xs text-red-600">{businessErrors.city}</p>
+                            )}
+                          </div>
+
+                          {/* State */}
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                              State <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={newBusiness.state}
+                              onChange={(e) => handleBusinessChange('state', e.target.value)}
+                              className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all placeholder:text-slate-400 uppercase ${businessErrors.state ? 'border-red-400 bg-red-50' : 'border-slate-300'}`}
+                              placeholder="CA"
+                              maxLength="2"
+                            />
+                            {businessErrors.state && (
+                              <p className="mt-1 text-xs text-red-600">{businessErrors.state}</p>
+                            )}
+                          </div>
+
+                          {/* ZIP Code */}
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                              ZIP Code <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={newBusiness.zip}
+                              onChange={(e) => handleBusinessChange('zip', e.target.value)}
+                              className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all placeholder:text-slate-400 font-mono ${businessErrors.zip ? 'border-red-400 bg-red-50' : 'border-slate-300'}`}
+                              placeholder="12345"
+                              maxLength="10"
+                            />
+                            {businessErrors.zip && (
+                              <p className="mt-1 text-xs text-red-600">{businessErrors.zip}</p>
+                            )}
+                          </div>
+
+                          {/* Country */}
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                              Country <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={newBusiness.country}
+                              onChange={(e) => handleBusinessChange('country', e.target.value)}
+                              className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all placeholder:text-slate-400 ${businessErrors.country ? 'border-red-400 bg-red-50' : 'border-slate-300'}`}
+                              placeholder="United States"
+                            />
+                            {businessErrors.country && (
+                              <p className="mt-1 text-xs text-red-600">{businessErrors.country}</p>
+                            )}
+                          </div>
+
+                          {/* Phone */}
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                               Phone <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="tel"
-                              value={newBusiness.signingAuthorityPhone}
-                              onChange={(e) => handleBusinessChange('signingAuthorityPhone', e.target.value)}
-                              className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.signingAuthorityPhone ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
-                              placeholder="e.g., (555) 123-4567"
+                              value={newBusiness.phone}
+                              onChange={(e) => handleBusinessChange('phone', e.target.value)}
+                              className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all placeholder:text-slate-400 ${businessErrors.phone ? 'border-red-400 bg-red-50' : 'border-slate-300'}`}
+                              placeholder="(555) 123-4567"
                             />
-                            {businessErrors.signingAuthorityPhone ? (
-                              <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
-                                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
-                                <span className="flex-1">{businessErrors.signingAuthorityPhone}</span>
-                              </p>
-                            ) : (
-                              <p className="mt-1 text-xs text-slate-500">Contact phone number</p>
+                            {businessErrors.phone && (
+                              <p className="mt-1 text-xs text-red-600">{businessErrors.phone}</p>
                             )}
                           </div>
-                          <div>
-                            <label className="block text-sm font-semibold text-slate-900 mb-2">
-                              PIN <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                              value={newBusiness.signingAuthorityPIN}
-                              onChange={(e) => handleBusinessChange('signingAuthorityPIN', e.target.value)}
-                              className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal font-mono ${businessErrors.signingAuthorityPIN ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-slate-400'}`}
-                              placeholder="e.g., 12345"
-                              maxLength="5"
-                            />
-                            {businessErrors.signingAuthorityPIN ? (
-                              <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
-                                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
-                                <span className="flex-1">{businessErrors.signingAuthorityPIN}</span>
-                              </p>
-                            ) : (
-                              <p className="mt-1 text-xs text-slate-500">5-digit PIN for IRS verification</p>
-                            )}
-                        </div>
-                      </div>
-                      </div>
-
-                        {/* Third Party Designee */}
-                        <div className="md:col-span-2 mt-6 pt-6 border-t-2 border-slate-200">
-                          <div className="flex items-center gap-2 mb-4">
-                            <label className="block text-sm font-semibold text-slate-900">
-                              Third Party Designee
-                            </label>
-                            <div className="group relative">
-                              <Info className="w-4 h-4 text-slate-400 hover:text-blue-600 cursor-help transition-colors" />
-                              <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-slate-900 text-white text-xs rounded-lg shadow-xl hidden group-hover:block z-10">
-                                A third party designee is someone you authorize to discuss your Form 2290 with the IRS. This is optional.
-                              </div>
-                            </div>
-                            <span className="text-xs text-slate-500 font-normal">(Optional)</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <button
-                              type="button"
-                              onClick={() => setNewBusiness({ ...newBusiness, hasThirdPartyDesignee: false, thirdPartyDesigneeName: '', thirdPartyDesigneePhone: '', thirdPartyDesigneePIN: '' })}
-                              className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${newBusiness.hasThirdPartyDesignee === false
-                                ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
-                                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
-                                }`}
-                            >
-                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${newBusiness.hasThirdPartyDesignee === false
-                                ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
-                                : 'border-slate-300 bg-white'
-                                }`}>
-                                {newBusiness.hasThirdPartyDesignee === false && (
-                                  <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                                )}
-                              </div>
-                              <span className={`text-sm font-semibold ${newBusiness.hasThirdPartyDesignee === false
-                                ? 'text-[var(--color-orange)]'
-                                : 'text-slate-600'
-                                }`}>
-                                No
-                              </span>
-                              {newBusiness.hasThirdPartyDesignee === false && (
-                                <CheckCircle className="w-4 h-4 text-[var(--color-orange)] absolute top-2 right-2" />
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setNewBusiness({ ...newBusiness, hasThirdPartyDesignee: true })}
-                              className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${newBusiness.hasThirdPartyDesignee === true
-                                ? 'border-[var(--color-orange)] bg-orange-50 shadow-md scale-[1.02]'
-                                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
-                                }`}
-                            >
-                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${newBusiness.hasThirdPartyDesignee === true
-                                ? 'border-[var(--color-orange)] bg-[var(--color-orange)]'
-                                : 'border-slate-300 bg-white'
-                                }`}>
-                                {newBusiness.hasThirdPartyDesignee === true && (
-                                  <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                                )}
-                              </div>
-                              <span className={`text-sm font-semibold ${newBusiness.hasThirdPartyDesignee === true
-                                ? 'text-[var(--color-orange)]'
-                                : 'text-slate-600'
-                                }`}>
-                                Yes
-                              </span>
-                              {newBusiness.hasThirdPartyDesignee === true && (
-                                <CheckCircle className="w-4 h-4 text-[var(--color-orange)] absolute top-2 right-2" />
-                              )}
-                            </button>
-                          </div>
-
-                          {newBusiness.hasThirdPartyDesignee && (
-                            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 shadow-sm">
+                          {/* Signing Authority Section */}
+                          <div className="sm:col-span-2 border-t border-slate-200 pt-4 mt-2">
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Signing Authority</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                               <div>
-                                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                                   Name <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                   type="text"
-                                  value={newBusiness.thirdPartyDesigneeName}
-                                  onChange={(e) => handleBusinessChange('thirdPartyDesigneeName', e.target.value)}
-                                  className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.thirdPartyDesigneeName ? 'border-red-500 bg-red-50' : 'border-blue-300 hover:border-blue-400'}`}
-                                  placeholder="e.g., Jane Smith"
+                                  value={newBusiness.signingAuthorityName}
+                                  onChange={(e) => handleBusinessChange('signingAuthorityName', e.target.value)}
+                                  className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all placeholder:text-slate-400 ${businessErrors.signingAuthorityName ? 'border-red-400 bg-red-50' : 'border-slate-300'}`}
+                                  placeholder="John Doe"
                                 />
-                                {businessErrors.thirdPartyDesigneeName ? (
-                                  <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
-                                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
-                                    <span className="flex-1">{businessErrors.thirdPartyDesigneeName}</span>
-                                  </p>
-                                ) : (
-                                  <p className="mt-1 text-xs text-slate-500">Designee's full name</p>
+                                {businessErrors.signingAuthorityName && (
+                                  <p className="mt-1 text-xs text-red-600">{businessErrors.signingAuthorityName}</p>
                                 )}
                               </div>
                               <div>
-                                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                                   Phone <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                   type="tel"
-                                  value={newBusiness.thirdPartyDesigneePhone}
-                                  onChange={(e) => handleBusinessChange('thirdPartyDesigneePhone', e.target.value)}
-                                  className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.thirdPartyDesigneePhone ? 'border-red-500 bg-red-50' : 'border-blue-300 hover:border-blue-400'}`}
-                                  placeholder="e.g., (555) 123-4567"
+                                  value={newBusiness.signingAuthorityPhone}
+                                  onChange={(e) => handleBusinessChange('signingAuthorityPhone', e.target.value)}
+                                  className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all placeholder:text-slate-400 ${businessErrors.signingAuthorityPhone ? 'border-red-400 bg-red-50' : 'border-slate-300'}`}
+                                  placeholder="(555) 123-4567"
                                 />
-                                {businessErrors.thirdPartyDesigneePhone ? (
-                                  <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
-                                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
-                                    <span className="flex-1">{businessErrors.thirdPartyDesigneePhone}</span>
-                                  </p>
-                                ) : (
-                                  <p className="mt-1 text-xs text-slate-500">Designee's phone number</p>
+                                {businessErrors.signingAuthorityPhone && (
+                                  <p className="mt-1 text-xs text-red-600">{businessErrors.signingAuthorityPhone}</p>
                                 )}
                               </div>
                               <div>
-                                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                                   PIN <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                   type="text"
-                                  value={newBusiness.thirdPartyDesigneePIN}
-                                  onChange={(e) => handleBusinessChange('thirdPartyDesigneePIN', e.target.value)}
-                                  className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal font-mono ${businessErrors.thirdPartyDesigneePIN ? 'border-red-500 bg-red-50' : 'border-blue-300 hover:border-blue-400'}`}
-                                  placeholder="e.g., 12345"
+                                  value={newBusiness.signingAuthorityPIN}
+                                  onChange={(e) => handleBusinessChange('signingAuthorityPIN', e.target.value)}
+                                  className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all placeholder:text-slate-400 font-mono ${businessErrors.signingAuthorityPIN ? 'border-red-400 bg-red-50' : 'border-slate-300'}`}
+                                  placeholder="12345"
                                   maxLength="5"
                                 />
-                                {businessErrors.thirdPartyDesigneePIN ? (
-                                  <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
-                                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> 
-                                    <span className="flex-1">{businessErrors.thirdPartyDesigneePIN}</span>
-                                  </p>
-                                ) : (
-                                  <p className="mt-1 text-xs text-slate-500">5-digit PIN</p>
+                                {businessErrors.signingAuthorityPIN && (
+                                  <p className="mt-1 text-xs text-red-600">{businessErrors.signingAuthorityPIN}</p>
                                 )}
                               </div>
                             </div>
-                          )}
+                          </div>
+
+                          {/* Third Party Designee */}
+                          <div className="md:col-span-2 mt-6 pt-6 border-t-2 border-slate-200">
+                            <div className="flex items-center gap-2 mb-4">
+                              <label className="block text-sm font-semibold text-midnight">
+                                Third Party Designee
+                              </label>
+                              <div className="group relative">
+                                <Info className="w-4 h-4 text-slate-400 hover:text-blue-600 cursor-help transition-colors" />
+                                <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-midnight text-white text-xs rounded-lg shadow-xl hidden group-hover:block z-10">
+                                  A third party designee is someone you authorize to discuss your Form 2290 with the IRS. This is optional.
+                                </div>
+                              </div>
+                              <span className="text-xs text-slate-500 font-normal">(Optional)</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setNewBusiness({ ...newBusiness, hasThirdPartyDesignee: false, thirdPartyDesigneeName: '', thirdPartyDesigneePhone: '', thirdPartyDesigneePIN: '' })}
+                                className={`relative flex items-center justify-center gap-3 px-5 py-2.5 rounded-xl border transition-all duration-200 touch-manipulation w-fit font-bold ${newBusiness.hasThirdPartyDesignee === false
+                                  ? 'border-indigo-600 bg-indigo-50/50 shadow-sm'
+                                  : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50'
+                                  }`}
+                              >
+                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${newBusiness.hasThirdPartyDesignee === false
+                                  ? 'border-indigo-600 bg-indigo-600 text-white'
+                                  : 'border-slate-300 bg-white'
+                                  }`}>
+                                  {newBusiness.hasThirdPartyDesignee === false && (
+                                    <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+                                  )}
+                                </div>
+                                <span className={`text-sm ${newBusiness.hasThirdPartyDesignee === false
+                                  ? 'text-indigo-900'
+                                  : 'text-slate-600'
+                                  }`}>
+                                  No
+                                </span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setNewBusiness({ ...newBusiness, hasThirdPartyDesignee: true })}
+                                className={`relative flex items-center justify-center gap-3 px-5 py-2.5 rounded-xl border transition-all duration-200 touch-manipulation w-fit font-bold ${newBusiness.hasThirdPartyDesignee === true
+                                  ? 'border-indigo-600 bg-indigo-50/50 shadow-sm'
+                                  : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50'
+                                  }`}>
+                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${newBusiness.hasThirdPartyDesignee === true
+                                  ? 'border-indigo-600 bg-indigo-600 text-white'
+                                  : 'border-slate-300 bg-white'
+                                  }`}>
+                                  {newBusiness.hasThirdPartyDesignee === true && (
+                                    <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+                                  )}
+                                </div>
+                                <span className={`text-sm ${newBusiness.hasThirdPartyDesignee === true
+                                  ? 'text-indigo-900'
+                                  : 'text-slate-600'
+                                  }`}>
+                                  Yes
+                                </span>
+                              </button>
+                            </div>
+
+                            {newBusiness.hasThirdPartyDesignee && (
+                              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6 p-5 bg-indigo-50/50 rounded-xl border border-indigo-100 shadow-sm">
+                                <div>
+                                  <label className="block text-sm font-semibold text-midnight mb-2">
+                                    Name <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={newBusiness.thirdPartyDesigneeName}
+                                    onChange={(e) => handleBusinessChange('thirdPartyDesigneeName', e.target.value)}
+                                    className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.thirdPartyDesigneeName ? 'border-red-500 bg-red-50' : 'border-indigo-200 hover:border-indigo-300'}`}
+                                    placeholder="e.g., Jane Smith"
+                                  />
+                                  {businessErrors.thirdPartyDesigneeName ? (
+                                    <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                                      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                                      <span className="flex-1">{businessErrors.thirdPartyDesigneeName}</span>
+                                    </p>
+                                  ) : (
+                                    <p className="mt-1 text-xs text-slate-500">Designee's full name</p>
+                                  )}
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-semibold text-midnight mb-2">
+                                    Phone <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    type="tel"
+                                    value={newBusiness.thirdPartyDesigneePhone}
+                                    onChange={(e) => handleBusinessChange('thirdPartyDesigneePhone', e.target.value)}
+                                    className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal ${businessErrors.thirdPartyDesigneePhone ? 'border-red-500 bg-red-50' : 'border-indigo-200 hover:border-indigo-300'}`}
+                                    placeholder="e.g., (555) 123-4567"
+                                  />
+                                  {businessErrors.thirdPartyDesigneePhone ? (
+                                    <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                                      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                                      <span className="flex-1">{businessErrors.thirdPartyDesigneePhone}</span>
+                                    </p>
+                                  ) : (
+                                    <p className="mt-1 text-xs text-slate-500">Designee's phone number</p>
+                                  )}
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-semibold text-midnight mb-2">
+                                    PIN <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={newBusiness.thirdPartyDesigneePIN}
+                                    onChange={(e) => handleBusinessChange('thirdPartyDesigneePIN', e.target.value)}
+                                    className={`w-full px-4 py-3 text-base bg-white border-2 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all touch-manipulation placeholder:text-slate-400 placeholder:font-normal font-mono ${businessErrors.thirdPartyDesigneePIN ? 'border-red-500 bg-red-50' : 'border-indigo-200 hover:border-indigo-300'}`}
+                                    placeholder="e.g., 12345"
+                                    maxLength="5"
+                                  />
+                                  {businessErrors.thirdPartyDesigneePIN ? (
+                                    <p className="mt-1.5 text-xs text-red-600 flex items-start gap-1.5">
+                                      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                                      <span className="flex-1">{businessErrors.thirdPartyDesigneePIN}</span>
+                                    </p>
+                                  ) : (
+                                    <p className="mt-1 text-xs text-slate-500">5-digit PIN</p>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="md:col-span-2 pt-4 border-t-2 border-slate-200 mt-4 -mx-4 sm:-mx-6 md:-mx-8 px-4 sm:px-6 md:px-8">
+                          <button
+                            onClick={async () => {
+                              // Run validations first
+                              const nameVal = validateBusinessName(newBusiness.businessName);
+                              const einVal = validateEIN(newBusiness.ein);
+                              const addrVal = validateAddress(newBusiness.address, true); // Required
+                              const phoneVal = validatePhone(newBusiness.phone, true); // Required
+
+                              if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !phoneVal.isValid) {
+                                setBusinessErrors({
+                                  businessName: nameVal.error,
+                                  ein: einVal.error,
+                                  address: addrVal.error,
+                                  phone: phoneVal.error
+                                });
+                                // Create a detailed error message listing all issues
+                                const errorFields = [];
+                                if (!nameVal.isValid) errorFields.push('Business Name');
+                                if (!einVal.isValid) errorFields.push('EIN');
+                                if (!addrVal.isValid) errorFields.push('Business Address');
+                                if (!phoneVal.isValid) errorFields.push('Phone Number');
+
+                                setError(`Please correct the following required fields before saving: ${errorFields.join(', ')}. All fields marked with an asterisk (*) are required.`);
+                                // Keep form visible - don't hide it
+                                return;
+                              }
+
+                              // If validation passes, proceed with adding business
+                              const success = await handleAddBusiness();
+                              // Only hide form if business was successfully created
+                              if (success) {
+                                setShowBusinessForm(false);
+                              }
+                            }}
+                            disabled={loading}
+                            className="w-full bg-[var(--color-orange)] text-white py-4 rounded-xl text-base font-bold hover:bg-[var(--color-orange-hover)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-500/20 hover:shadow-xl touch-manipulation flex items-center justify-center gap-2"
+                          >
+                            <Plus className="w-5 h-5" />
+                            <span>Save & Add Business</span>
+                            {loading && <Loader2 className="w-5 h-5 animate-spin" />}
+                          </button>
                         </div>
                       </div>
-                      <div className="md:col-span-2 pt-4 border-t-2 border-slate-200 mt-4 -mx-4 sm:-mx-6 md:-mx-8 px-4 sm:px-6 md:px-8">
-                      <button
-                        onClick={async () => {
-                            // Run validations first
-                            const nameVal = validateBusinessName(newBusiness.businessName);
-                            const einVal = validateEIN(newBusiness.ein);
-                            const addrVal = validateAddress(newBusiness.address, true); // Required
-                            const phoneVal = validatePhone(newBusiness.phone, true); // Required
-
-                            if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !phoneVal.isValid) {
-                              setBusinessErrors({
-                                businessName: nameVal.error,
-                                ein: einVal.error,
-                                address: addrVal.error,
-                                phone: phoneVal.error
-                              });
-                              // Create a detailed error message listing all issues
-                              const errorFields = [];
-                              if (!nameVal.isValid) errorFields.push('Business Name');
-                              if (!einVal.isValid) errorFields.push('EIN');
-                              if (!addrVal.isValid) errorFields.push('Business Address');
-                              if (!phoneVal.isValid) errorFields.push('Phone Number');
-
-                              setError(`Please correct the following required fields before saving: ${errorFields.join(', ')}. All fields marked with an asterisk (*) are required.`);
-                              // Keep form visible - don't hide it
-                              return;
-                            }
-
-                            // If validation passes, proceed with adding business
-                            const success = await handleAddBusiness();
-                            // Only hide form if business was successfully created
-                            if (success) {
-                          setShowBusinessForm(false);
-                            }
-                        }}
-                        disabled={loading}
-                          className="w-full bg-gradient-to-r from-[var(--color-orange)] to-orange-600 text-white py-3.5 sm:py-4 rounded-xl text-sm sm:text-base font-bold hover:from-orange-600 hover:to-[var(--color-orange)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl touch-manipulation flex items-center justify-center gap-2"
-                        >
-                          {loading ? (
-                            <>
-                              <Loader2 className="w-5 h-5 animate-spin" />
-                              <span>Saving Business...</span>
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle className="w-5 h-5" />
-                              <span>Save & Add Business</span>
-                            </>
-                          )}
-                      </button>
-                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
-                <div className="flex flex-col sm:flex-row justify-between gap-3 pt-4 border-t border-[var(--color-border)]">
+                {/* Navigation */}
+                <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-t border-slate-200 bg-slate-50/50">
                   <button
                     onClick={() => setStep(1)}
-                    className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 border border-[var(--color-border)] rounded-lg text-sm sm:text-base text-[var(--color-text)] hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation font-medium"
+                    className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-midnight transition"
                   >
                     Back
                   </button>
@@ -3912,8 +3870,8 @@ function NewFilingContent() {
                             // Form is valid but not saved - prompt to save first
                             const filingTypeLabel = filingType === 'amendment' ? 'amendment' : filingType === 'refund' ? 'refund' : 'filing';
                             setError(`Your business information looks complete. Please click "Save & Add Business" to save it before proceeding with your ${filingTypeLabel}.`);
-                        return;
-                      }
+                            return;
+                          }
                         }
                       }
 
@@ -3927,9 +3885,9 @@ function NewFilingContent() {
                       // All checks passed, proceed to next step
                       setStep(3);
                     }}
-                    className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-[#ff8b3d] text-white rounded-xl text-sm sm:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-sm touch-manipulation"
+                    className="px-5 py-2.5 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-orange-hover)] transition-colors shadow-lg shadow-orange-500/20"
                   >
-                    Next Step
+                    Continue
                   </button>
                 </div>
               </div>
@@ -3937,606 +3895,519 @@ function NewFilingContent() {
 
             {/* Step 3: Vehicles */}
             {step === 3 && (
-              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 lg:p-10 shadow-sm">
-                <div className="mb-6 sm:mb-8">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-purple-100 text-purple-600 font-bold text-lg">3</div>
-                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--color-text)]">Vehicle Information</h2>
-                  </div>
-                  <p className="text-sm sm:text-base text-[var(--color-muted)] ml-13">Add and select vehicles for this filing</p>
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                {/* Section Header */}
+                <div className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-4">
+                  <h2 className="text-base sm:text-lg font-bold text-midnight">Vehicle Information</h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Add and select vehicles for this filing</p>
                 </div>
 
-                {/* Tax Year & Month Selection - Moved here for better context */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 md:gap-4 lg:gap-6 mb-4 sm:mb-6 md:mb-8 p-2.5 sm:p-3 md:p-4 lg:p-6 bg-[var(--color-page-alt)] rounded-lg sm:rounded-xl border border-[var(--color-border)]">
-                  <div>
-                    <label className="block text-sm font-bold text-[var(--color-text)] mb-2">
-                      Tax Year
-                    </label>
-                    <select
-                      value={filingData.taxYear}
-                      onChange={(e) => setFilingData({ ...filingData, taxYear: e.target.value })}
-                      className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] bg-white touch-manipulation"
-                    >
-                      <option value="2025-2026">2025-2026 (Current)</option>
-                      <option value="2024-2025">2024-2025</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-[var(--color-text)] mb-2">
-                      First Used Month
-                    </label>
-                    <select
-                      value={filingData.firstUsedMonth}
-                      onChange={(e) => setFilingData({ ...filingData, firstUsedMonth: e.target.value })}
-                      className="w-full px-4 py-3 text-base border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] bg-white touch-manipulation"
-                    >
-                      {['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June'].map(m => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* No Vehicles - Show Add Vehicle Button */}
-                {vehicles.length === 0 && (
-                  <div className="mb-4 sm:mb-6 md:mb-8">
-                    <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-6 sm:p-8 md:p-10 text-center">
-                      <div className="flex flex-col items-center gap-4">
-                        <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center">
-                          <Truck className="w-8 h-8 text-slate-500" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">No Vehicles Added Yet</h3>
-                          <p className="text-sm sm:text-base text-slate-600 mb-4">
-                            Add your first vehicle to continue with your filing
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setNewVehicle(prev => ({ ...prev, businessId: selectedBusinessId || '' }));
-                            setShowAddModal(true);
-                          }}
-                          className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-[var(--color-orange)] to-orange-600 text-white rounded-xl text-sm sm:text-base font-bold hover:from-orange-600 hover:to-[var(--color-orange)] active:scale-95 transition-all shadow-lg hover:shadow-xl touch-manipulation"
-                        >
-                          <Plus className="w-5 h-5" />
-                          <span>Add Vehicle</span>
-                        </button>
-                      </div>
+                <div className="p-4 sm:p-6">
+                  {/* Tax Year & Month Selection */}
+                  <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200 mb-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Tax Year</label>
+                      <select
+                        value={filingData.taxYear}
+                        onChange={(e) => setFilingData({ ...filingData, taxYear: e.target.value })}
+                        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 bg-white"
+                      >
+                        <option value="2025-2026">2025-2026</option>
+                        <option value="2024-2025">2024-2025</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">First Used Month</label>
+                      <select
+                        value={filingData.firstUsedMonth}
+                        onChange={(e) => setFilingData({ ...filingData, firstUsedMonth: e.target.value })}
+                        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 bg-white"
+                      >
+                        {['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June'].map(m => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
-                )}
 
-                {/* Existing Vehicles List - Categorized Dropdowns */}
-                {vehicles.length > 0 && (
-                  <div className="mb-4 sm:mb-6 md:mb-8 space-y-4">
-                    <label className="block text-sm font-bold text-[var(--color-text)] mb-3 sm:mb-4">
-                      Select Vehicles to File
-                    </label>
-
-                    {/* Taxable Vehicles Dropdown */}
-                    {vehicleCategories.taxable.length > 0 && (
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setTaxableDropdownOpen(!taxableDropdownOpen);
-                            setSuspendedDropdownOpen(false);
-                            setCreditDropdownOpen(false);
-                            setPriorYearSoldDropdownOpen(false);
-                          }}
-                          className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-green-50 border-2 border-green-200 rounded-xl hover:border-green-300 transition-all text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Truck className="w-5 h-5 text-green-600" />
-                            <div>
-                              <div className="font-bold text-green-900">Taxable Vehicles</div>
-                              <div className="text-xs text-green-700">
-                                {selectedVehicleIds.filter(id => vehicleCategories.taxable.some(v => v.id === id)).length} of {vehicleCategories.taxable.length} selected
-                              </div>
-                            </div>
+                  {/* No Vehicles - Show Add Vehicle Button */}
+                  {vehicles.length === 0 && (
+                    <div className="mb-4 sm:mb-6 md:mb-8">
+                      <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-6 sm:p-8 md:p-10 text-center">
+                        <div className="flex flex-col items-center gap-4">
+                          <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center">
+                            <Truck className="w-8 h-8 text-slate-500" />
                           </div>
-                          {taxableDropdownOpen ? (
-                            <ChevronUp className="w-5 h-5 text-green-600" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5 text-green-600" />
-                          )}
-                        </button>
+                          <div>
+                            <h3 className="text-lg sm:text-xl font-bold text-midnight mb-2">No Vehicles Added Yet</h3>
+                            <p className="text-sm sm:text-base text-slate-600 mb-4">
+                              Add your first vehicle to continue with your filing
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setNewVehicle(prev => ({ ...prev, businessId: selectedBusinessId || '' }));
+                              setShowAddModal(true);
+                            }}
+                            className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-[var(--color-orange)] text-white rounded-xl text-sm sm:text-base font-bold hover:bg-[var(--color-orange-hover)] active:scale-95 transition-all shadow-lg shadow-orange-500/20 hover:shadow-xl touch-manipulation"
+                          >
+                            <Plus className="w-5 h-5" />
+                            <span>Add Vehicle</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                        {taxableDropdownOpen && (
-                          <div className="mt-2 border-2 border-green-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
-                            <div className="p-2 space-y-1">
-                              {vehicleCategories.taxable.map((vehicle) => {
-                                const isSelected = selectedVehicleIds.includes(vehicle.id);
-                                const estimatedAmount = vehicleCategories.isRefund
-                          ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
-                          : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
+                  {/* Existing Vehicles List - Compact Card Grid */}
+                  {vehicles.length > 0 && (
+                    <div className="mb-4 sm:mb-6 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-sm font-semibold text-[var(--color-text)]">
+                          Select Vehicles
+                        </label>
+                        <span className="text-xs text-[var(--color-muted)]">
+                          {selectedVehicleIds.length} of {vehicles.length} selected
+                        </span>
+                      </div>
 
-                        return (
-                                  <label
-                                    key={vehicle.id}
-                                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-green-50 transition ${isSelected ? 'bg-green-100 border border-green-300' : ''}`}
-                                  >
+                      {/* Taxable Vehicles - Always Visible Compact Cards */}
+                      {vehicleCategories.taxable.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border-l-4 border-green-500 rounded-lg">
+                            <Truck className="w-4 h-4 text-green-600 flex-shrink-0" />
+                            <span className="text-sm font-semibold text-green-900">Taxable Vehicles</span>
+                            <span className="text-xs text-green-700 ml-auto">
+                              ({selectedVehicleIds.filter(id => vehicleCategories.taxable.some(v => v.id === id)).length}/{vehicleCategories.taxable.length})
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {vehicleCategories.taxable.map((vehicle) => {
+                              const isSelected = selectedVehicleIds.includes(vehicle.id);
+                              const estimatedAmount = vehicleCategories.isRefund
+                                ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
+                                : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
+
+                              return (
+                                <label
+                                  key={vehicle.id}
+                                  className={`flex items-start gap-2 p-3 rounded-lg border-2 cursor-pointer transition ${isSelected
+                                    ? 'bg-green-50 border-green-400 shadow-sm'
+                                    : 'bg-white border-green-100 hover:border-green-300 hover:bg-green-50/30'
+                                    }`}
+                                >
                                   <input
                                     type="checkbox"
                                     checked={isSelected}
                                     onChange={(e) => {
-                                        let newSelectedIds;
+                                      let newSelectedIds;
                                       if (e.target.checked) {
-                                          newSelectedIds = [...selectedVehicleIds, vehicle.id];
+                                        newSelectedIds = [...selectedVehicleIds, vehicle.id];
                                       } else {
-                                          newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
-                                        }
+                                        newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
+                                      }
 
-                                        const validation = validateVehicleTypeCombination(newSelectedIds);
-                                        if (validation.isValid) {
-                                          setSelectedVehicleIds(newSelectedIds);
-                                          setVehicleTypeError('');
-                                        } else {
-                                          setVehicleTypeError(validation.error);
-                                        }
-                                      }}
-                                      className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                      <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
-                                      {vehicle.vin}
-                                      </div>
-                                      <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
-                                        Cat: {vehicle.grossWeightCategory}
+                                      const validation = validateVehicleTypeCombination(newSelectedIds);
+                                      if (validation.isValid) {
+                                        setSelectedVehicleIds(newSelectedIds);
+                                        setVehicleTypeError('');
+                                      } else {
+                                        setVehicleTypeError(validation.error);
+                                      }
+                                    }}
+                                    className="w-4 h-4 text-green-600 rounded mt-0.5 flex-shrink-0"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-mono text-xs font-semibold text-midnight break-all">{vehicle.vin}</div>
+                                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                      <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                        Cat {vehicle.grossWeightCategory}
                                       </span>
-                                        <span className={`text-xs font-semibold ${vehicleCategories.isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>
-                                          {vehicleCategories.isRefund ? 'Refund' : 'Tax'}: ${estimatedAmount.toFixed(2)}
-                                        </span>
-                                      </div>
+                                      <span className="text-[10px] font-semibold text-green-700">
+                                        {vehicleCategories.isRefund ? 'Refund' : 'Tax'}: ${estimatedAmount.toFixed(2)}
+                                      </span>
                                     </div>
-                                  </label>
-                                );
-                              })}
-                            </div>
+                                  </div>
+                                </label>
+                              );
+                            })}
                           </div>
+                        </div>
+                      )}
+
+                      {/* Suspended Vehicles - Always Visible Compact Cards */}
+                      {vehicleCategories.suspended.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border-l-4 border-amber-500 rounded-lg">
+                            <ShieldCheck className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                            <span className="text-sm font-semibold text-amber-900">Suspended (Low Mileage)</span>
+                            <span className="text-xs text-amber-700 ml-auto">
+                              ({selectedVehicleIds.filter(id => vehicleCategories.suspended.some(v => v.id === id)).length}/{vehicleCategories.suspended.length})
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {vehicleCategories.suspended.map((vehicle) => {
+                              const isSelected = selectedVehicleIds.includes(vehicle.id);
+                              const estimatedAmount = vehicleCategories.isRefund
+                                ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
+                                : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
+
+                              return (
+                                <label
+                                  key={vehicle.id}
+                                  className={`flex items-start gap-2 p-3 rounded-lg border-2 cursor-pointer transition ${isSelected
+                                    ? 'bg-amber-50 border-amber-400 shadow-sm'
+                                    : 'bg-white border-amber-100 hover:border-amber-300 hover:bg-amber-50/30'
+                                    }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={(e) => {
+                                      let newSelectedIds;
+                                      if (e.target.checked) {
+                                        newSelectedIds = [...selectedVehicleIds, vehicle.id];
+                                      } else {
+                                        newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
+                                      }
+
+                                      const validation = validateVehicleTypeCombination(newSelectedIds);
+                                      if (validation.isValid) {
+                                        setSelectedVehicleIds(newSelectedIds);
+                                        setVehicleTypeError('');
+                                      } else {
+                                        setVehicleTypeError(validation.error);
+                                      }
+                                    }}
+                                    className="w-4 h-4 text-amber-600 rounded mt-0.5 flex-shrink-0"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-mono text-xs font-semibold text-midnight break-all">{vehicle.vin}</div>
+                                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                      <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                        Cat {vehicle.grossWeightCategory}
+                                      </span>
+                                      <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-semibold">
+                                        Suspended
+                                      </span>
+                                      <span className="text-[10px] font-semibold text-amber-700">
+                                        {vehicleCategories.isRefund ? 'Refund' : 'Tax'}: ${estimatedAmount.toFixed(2)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Credit Vehicles - Always Visible Compact Cards */}
+                      {vehicleCategories.credit.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+                            <CreditCard className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                            <span className="text-sm font-semibold text-blue-900">Credit Vehicles</span>
+                            <span className="text-xs text-blue-700 ml-auto">
+                              ({selectedVehicleIds.filter(id => vehicleCategories.credit.some(v => v.id === id)).length}/{vehicleCategories.credit.length})
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {vehicleCategories.credit.map((vehicle) => {
+                              const isSelected = selectedVehicleIds.includes(vehicle.id);
+
+                              return (
+                                <label
+                                  key={vehicle.id}
+                                  className={`flex items-start gap-2 p-3 rounded-lg border-2 cursor-pointer transition ${isSelected
+                                    ? 'bg-blue-50 border-blue-400 shadow-sm'
+                                    : 'bg-white border-blue-100 hover:border-blue-300 hover:bg-blue-50/30'
+                                    }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={(e) => {
+                                      let newSelectedIds;
+                                      if (e.target.checked) {
+                                        newSelectedIds = [...selectedVehicleIds, vehicle.id];
+                                      } else {
+                                        newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
+                                      }
+
+                                      const validation = validateVehicleTypeCombination(newSelectedIds);
+                                      if (validation.isValid) {
+                                        setSelectedVehicleIds(newSelectedIds);
+                                        setVehicleTypeError('');
+                                      } else {
+                                        setVehicleTypeError(validation.error);
+                                      }
+                                    }}
+                                    className="w-4 h-4 text-blue-600 rounded mt-0.5 flex-shrink-0"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-mono text-xs font-semibold text-midnight break-all">{vehicle.vin}</div>
+                                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                      <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                        Cat {vehicle.grossWeightCategory}
+                                      </span>
+                                      <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-semibold">
+                                        Credit
+                                      </span>
+                                      {vehicle.creditReason && (
+                                        <span className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded">
+                                          {vehicle.creditReason}
+                                        </span>
                                       )}
                                     </div>
-                    )}
-
-                    {/* Suspended Vehicles Dropdown */}
-                    {vehicleCategories.suspended.length > 0 && (
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSuspendedDropdownOpen(!suspendedDropdownOpen);
-                            setTaxableDropdownOpen(false);
-                            setCreditDropdownOpen(false);
-                            setPriorYearSoldDropdownOpen(false);
-                          }}
-                          className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-amber-50 border-2 border-amber-200 rounded-xl hover:border-amber-300 transition-all text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <ShieldCheck className="w-5 h-5 text-amber-600" />
-                            <div>
-                              <div className="font-bold text-amber-900">Suspended Vehicles (Low Mileage)</div>
-                              <div className="text-xs text-amber-700">
-                                {selectedVehicleIds.filter(id => vehicleCategories.suspended.some(v => v.id === id)).length} of {vehicleCategories.suspended.length} selected • $0 Tax
                                   </div>
-                                </div>
-                              </div>
-                          {suspendedDropdownOpen ? (
-                            <ChevronUp className="w-5 h-5 text-amber-600" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5 text-amber-600" />
-                          )}
-                        </button>
-
-                        {suspendedDropdownOpen && (
-                          <div className="mt-2 border-2 border-amber-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
-                            <div className="p-2 space-y-1">
-                              {vehicleCategories.suspended.map((vehicle) => {
-                                const isSelected = selectedVehicleIds.includes(vehicle.id);
-                                const estimatedAmount = vehicleCategories.isRefund
-                                  ? calculateRefundAmount(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth)
-                                  : calculateTax(vehicle.grossWeightCategory, vehicle.isSuspended, filingData.firstUsedMonth);
-
-                                return (
-                                  <label
-                                    key={vehicle.id}
-                                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-amber-50 transition ${isSelected ? 'bg-amber-100 border border-amber-300' : ''}`}
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={isSelected}
-                                      onChange={(e) => {
-                                        let newSelectedIds;
-                                        if (e.target.checked) {
-                                          newSelectedIds = [...selectedVehicleIds, vehicle.id];
-                                        } else {
-                                          newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
-                                        }
-
-                                        const validation = validateVehicleTypeCombination(newSelectedIds);
-                                        if (validation.isValid) {
-                                          setSelectedVehicleIds(newSelectedIds);
-                                          setVehicleTypeError('');
-                                        } else {
-                                          setVehicleTypeError(validation.error);
-                                        }
-                                      }}
-                                      className="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                      <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
-                                        {vehicle.vin}
-                                      </div>
-                                      <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
-                                          Cat: {vehicle.grossWeightCategory}
-                                </span>
-                                        <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-semibold">
-                                          Suspended
-                                        </span>
-                                        <span className={`text-xs font-semibold ${vehicleCategories.isRefund ? 'text-green-600' : 'text-[var(--color-text)]'}`}>
-                                          {vehicleCategories.isRefund ? 'Refund' : 'Tax'}: ${estimatedAmount.toFixed(2)}
-                                </span>
-                                      </div>
-                              </div>
-                            </label>
-                                );
-                              })}
-                            </div>
+                                </label>
+                              );
+                            })}
                           </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Credit Vehicles Dropdown */}
-                    {vehicleCategories.credit.length > 0 && (
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setCreditDropdownOpen(!creditDropdownOpen);
-                            setTaxableDropdownOpen(false);
-                            setSuspendedDropdownOpen(false);
-                            setPriorYearSoldDropdownOpen(false);
-                          }}
-                          className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-blue-50 border-2 border-blue-200 rounded-xl hover:border-blue-300 transition-all text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <CreditCard className="w-5 h-5 text-blue-600" />
-                                <div>
-                              <div className="font-bold text-blue-900">Credit Vehicles</div>
-                              <div className="text-xs text-blue-700">
-                                {selectedVehicleIds.filter(id => vehicleCategories.credit.some(v => v.id === id)).length} of {vehicleCategories.credit.length} selected
-                              </div>
-                            </div>
-                          </div>
-                          {creditDropdownOpen ? (
-                            <ChevronUp className="w-5 h-5 text-blue-600" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5 text-blue-600" />
-                          )}
-                        </button>
-
-                        {creditDropdownOpen && (
-                          <div className="mt-2 border-2 border-blue-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
-                            <div className="p-2 space-y-1">
-                              {vehicleCategories.credit.map((vehicle) => {
-                                const isSelected = selectedVehicleIds.includes(vehicle.id);
-
-                                return (
-                                  <label
-                                    key={vehicle.id}
-                                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-blue-50 transition ${isSelected ? 'bg-blue-100 border border-blue-300' : ''}`}
-                                  >
-                                  <input
-                                      type="checkbox"
-                                      checked={isSelected}
-                                      onChange={(e) => {
-                                        let newSelectedIds;
-                                        if (e.target.checked) {
-                                          newSelectedIds = [...selectedVehicleIds, vehicle.id];
-                                        } else {
-                                          newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
-                                        }
-
-                                        const validation = validateVehicleTypeCombination(newSelectedIds);
-                                        if (validation.isValid) {
-                                          setSelectedVehicleIds(newSelectedIds);
-                                          setVehicleTypeError('');
-                                        } else {
-                                          setVehicleTypeError(validation.error);
-                                        }
-                                      }}
-                                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                      <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
-                                        {vehicle.vin}
-                                </div>
-                                      <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
-                                          Cat: {vehicle.grossWeightCategory}
-                                        </span>
-                                        <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-semibold">
-                                          Credit
-                                        </span>
-                                        {vehicle.creditReason && (
-                                          <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded">
-                                            {vehicle.creditReason}
-                                          </span>
-                            )}
-                          </div>
-                                    </div>
-                                  </label>
-                        );
-                      })}
-                    </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Prior Year Sold Suspended Vehicles Dropdown */}
-                    {vehicleCategories.priorYearSold.length > 0 && (
-                      <div className="relative">
-                    <button
-                          type="button"
-                          onClick={() => {
-                            setPriorYearSoldDropdownOpen(!priorYearSoldDropdownOpen);
-                            setTaxableDropdownOpen(false);
-                            setSuspendedDropdownOpen(false);
-                            setCreditDropdownOpen(false);
-                          }}
-                          className="w-full flex items-center justify-between px-4 py-3 sm:py-4 bg-purple-50 border-2 border-purple-200 rounded-xl hover:border-purple-300 transition-all text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <RotateCcw className="w-5 h-5 text-purple-600" />
-                            <div>
-                              <div className="font-bold text-purple-900">Prior Year Sold Suspended Vehicles</div>
-                              <div className="text-xs text-purple-700">
-                                {selectedVehicleIds.filter(id => vehicleCategories.priorYearSold.some(v => v.id === id)).length} of {vehicleCategories.priorYearSold.length} selected
-                      </div>
-                  </div>
-                          </div>
-                          {priorYearSoldDropdownOpen ? (
-                            <ChevronUp className="w-5 h-5 text-purple-600" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5 text-purple-600" />
-                          )}
-                        </button>
-
-                        {priorYearSoldDropdownOpen && (
-                          <div className="mt-2 border-2 border-purple-200 rounded-xl bg-white shadow-lg max-h-[400px] overflow-y-auto">
-                            <div className="p-2 space-y-1">
-                              {vehicleCategories.priorYearSold.map((vehicle) => {
-                                const isSelected = selectedVehicleIds.includes(vehicle.id);
-
-                                return (
-                                  <label
-                                    key={vehicle.id}
-                                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-purple-50 transition ${isSelected ? 'bg-purple-100 border border-purple-300' : ''}`}
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={isSelected}
-                                      onChange={(e) => {
-                                        let newSelectedIds;
-                                        if (e.target.checked) {
-                                          newSelectedIds = [...selectedVehicleIds, vehicle.id];
-                                        } else {
-                                          newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
-                                        }
-
-                                        const validation = validateVehicleTypeCombination(newSelectedIds);
-                                        if (validation.isValid) {
-                                          setSelectedVehicleIds(newSelectedIds);
-                                          setVehicleTypeError('');
-                                        } else {
-                                          setVehicleTypeError(validation.error);
-                                        }
-                                      }}
-                                      className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                      <div className="font-mono font-bold text-sm text-[var(--color-text)] break-all">
-                                        {vehicle.vin}
-                                      </div>
-                                      <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded font-semibold">
-                                          Prior Year Sold
-                                        </span>
-                                        {vehicle.soldTo && (
-                                          <span className="text-xs px-2 py-0.5 bg-purple-50 text-purple-600 rounded">
-                                            Sold To: {vehicle.soldTo}
-                                          </span>
+                        </div>
                       )}
-                    </div>
+
+                      {/* Prior Year Sold - Always Visible Compact Cards */}
+                      {vehicleCategories.priorYearSold.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 border-l-4 border-purple-500 rounded-lg">
+                            <RotateCcw className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                            <span className="text-sm font-semibold text-purple-900">Prior Year Sold</span>
+                            <span className="text-xs text-purple-700 ml-auto">
+                              ({selectedVehicleIds.filter(id => vehicleCategories.priorYearSold.some(v => v.id === id)).length}/{vehicleCategories.priorYearSold.length})
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {vehicleCategories.priorYearSold.map((vehicle) => {
+                              const isSelected = selectedVehicleIds.includes(vehicle.id);
+
+                              return (
+                                <label
+                                  key={vehicle.id}
+                                  className={`flex items-start gap-2 p-3 rounded-lg border-2 cursor-pointer transition ${isSelected
+                                    ? 'bg-purple-50 border-purple-400 shadow-sm'
+                                    : 'bg-white border-purple-100 hover:border-purple-300 hover:bg-purple-50/30'
+                                    }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={(e) => {
+                                      let newSelectedIds;
+                                      if (e.target.checked) {
+                                        newSelectedIds = [...selectedVehicleIds, vehicle.id];
+                                      } else {
+                                        newSelectedIds = selectedVehicleIds.filter(id => id !== vehicle.id);
+                                      }
+
+                                      const validation = validateVehicleTypeCombination(newSelectedIds);
+                                      if (validation.isValid) {
+                                        setSelectedVehicleIds(newSelectedIds);
+                                        setVehicleTypeError('');
+                                      } else {
+                                        setVehicleTypeError(validation.error);
+                                      }
+                                    }}
+                                    className="w-4 h-4 text-purple-600 rounded mt-0.5 flex-shrink-0"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-mono text-xs font-semibold text-midnight break-all">{vehicle.vin}</div>
+                                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                      <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px] font-semibold">
+                                        Prior Year Sold
+                                      </span>
+                                      {vehicle.soldTo && (
+                                        <span className="text-[10px] px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded">
+                                          Sold: {vehicle.soldTo}
+                                        </span>
+                                      )}
                                     </div>
-                          </label>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                        </div>
-                    )}
-
-                    {/* Vehicle Type Combination Error */}
-                    {vehicleTypeError && (
-                      <div className="mt-4 p-5 bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 rounded-xl shadow-sm">
-                        <div className="flex items-start gap-3 mb-4">
-                          <div className="flex-shrink-0 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                            <AlertCircle className="w-5 h-5 text-white" />
-                        </div>
-                          <div className="flex-1">
-                            <h4 className="text-base font-bold text-red-900 mb-2">Invalid Vehicle Type Combination</h4>
-                            <p className="text-sm text-red-800 mb-3">The selected vehicle types cannot be combined. Please choose one of the following valid combinations:</p>
-                      </div>
-                            </div>
-
-                        <div className="bg-white rounded-lg p-4 border border-red-200">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                            <div className="flex items-start gap-2">
-                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                              <span className="text-xs text-slate-700 font-medium">All 4 types together</span>
-                          </div>
-                            <div className="flex items-start gap-2">
-                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                              <span className="text-xs text-slate-700 font-medium">Only Taxable</span>
-                        </div>
-                            <div className="flex items-start gap-2">
-                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                              <span className="text-xs text-slate-700 font-medium">Only Suspended</span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                              <span className="text-xs text-slate-700 font-medium">Taxable + Suspended + Credit</span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                              <span className="text-xs text-slate-700 font-medium">Taxable + Suspended + Prior Year</span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                              <span className="text-xs text-slate-700 font-medium">Taxable + Credit</span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                              <span className="text-xs text-slate-700 font-medium">Taxable + Suspended</span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                              <span className="text-xs text-slate-700 font-medium">Taxable + Prior Year</span>
-                            </div>
-                            <div className="flex items-start gap-2 md:col-span-2">
-                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                              <span className="text-xs text-slate-700 font-medium">Suspended + Prior Year Sold</span>
-                            </div>
+                                  </div>
+                                </label>
+                              );
+                            })}
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Selected Vehicles Summary */}
-                    {selectedVehicleIds.length > 0 && (
-                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-semibold text-blue-900">
-                            Selected Vehicles ({selectedVehicleIds.length})
-                          </span>
-                          <button
-                            onClick={() => {
-                              setSelectedVehicleIds([]);
-                              setVehicleTypeError('');
-                            }}
-                            className="text-xs text-blue-600 hover:text-blue-800 underline"
-                          >
-                            Clear All
-                          </button>
+                      {/* Vehicle Type Combination Error */}
+                      {vehicleTypeError && (
+                        <div className="mt-4 p-5 bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 rounded-xl shadow-sm">
+                          <div className="flex items-start gap-3 mb-4">
+                            <div className="flex-shrink-0 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                              <AlertCircle className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="text-base font-bold text-red-900 mb-2">Invalid Vehicle Type Combination</h4>
+                              <p className="text-sm text-red-800 mb-3">The selected vehicle types cannot be combined. Please choose one of the following valid combinations:</p>
+                            </div>
+                          </div>
+
+                          <div className="bg-white rounded-lg p-4 border border-red-200">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                              <div className="flex items-start gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span className="text-xs text-slate-700 font-medium">All 4 types together</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span className="text-xs text-slate-700 font-medium">Only Taxable</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span className="text-xs text-slate-700 font-medium">Only Suspended</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span className="text-xs text-slate-700 font-medium">Taxable + Suspended + Credit</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span className="text-xs text-slate-700 font-medium">Taxable + Suspended + Prior Year</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span className="text-xs text-slate-700 font-medium">Taxable + Credit</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span className="text-xs text-slate-700 font-medium">Taxable + Suspended</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span className="text-xs text-slate-700 font-medium">Taxable + Prior Year</span>
+                              </div>
+                              <div className="flex items-start gap-2 md:col-span-2">
+                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span className="text-xs text-slate-700 font-medium">Suspended + Prior Year Sold</span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex flex-wrap gap-2 mt-2">
+                      )}
+
+                      {/* Selected Vehicles Summary */}
+                      {selectedVehicleIds.length > 0 && (
+                        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold text-blue-900">
+                              Selected Vehicles ({selectedVehicleIds.length})
+                            </span>
+                            <button
+                              onClick={() => {
+                                setSelectedVehicleIds([]);
+                                setVehicleTypeError('');
+                              }}
+                              className="text-xs text-blue-600 hover:text-blue-800 underline"
+                            >
+                              Clear All
+                            </button>
+                          </div>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {selectedVehicleIds.map((vehicleId) => {
+                              const vehicle = vehicles.find(v => v.id === vehicleId);
+                              if (!vehicle) return null;
+                              return (
+                                <div
+                                  key={vehicleId}
+                                  className="flex items-center gap-2 px-3 py-1.5 bg-white border border-blue-200 rounded-lg"
+                                >
+                                  <span className="text-xs font-mono font-semibold text-[var(--color-text)]">
+                                    {vehicle.vin}
+                                  </span>
+                                  <button
+                                    onClick={() => {
+                                      const newSelectedIds = selectedVehicleIds.filter(id => id !== vehicleId);
+                                      setSelectedVehicleIds(newSelectedIds);
+                                      const validation = validateVehicleTypeCombination(newSelectedIds);
+                                      if (validation.isValid) {
+                                        setVehicleTypeError('');
+                                      } else {
+                                        setVehicleTypeError(validation.error);
+                                      }
+                                    }}
+                                    className="text-blue-600 hover:text-blue-800 text-xs font-bold"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Refund Details for Selected Vehicles */}
+                      {vehicleCategories.isRefund && selectedVehicleIds.length > 0 && (
+                        <div className="mt-4 space-y-3">
+                          <h4 className="text-sm font-semibold text-[var(--color-text)]">Refund Details</h4>
                           {selectedVehicleIds.map((vehicleId) => {
                             const vehicle = vehicles.find(v => v.id === vehicleId);
                             if (!vehicle) return null;
                             return (
-                              <div
-                                key={vehicleId}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-white border border-blue-200 rounded-lg"
-                              >
-                                <span className="text-xs font-mono font-semibold text-[var(--color-text)]">
+                              <div key={vehicleId} className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                                <div className="font-mono font-semibold text-sm text-[var(--color-text)] mb-3">
                                   {vehicle.vin}
-                                </span>
-                                <button
-                                  onClick={() => {
-                                    const newSelectedIds = selectedVehicleIds.filter(id => id !== vehicleId);
-                                    setSelectedVehicleIds(newSelectedIds);
-                                    const validation = validateVehicleTypeCombination(newSelectedIds);
-                                    if (validation.isValid) {
-                                      setVehicleTypeError('');
-                                    } else {
-                                      setVehicleTypeError(validation.error);
-                                    }
-                                  }}
-                                  className="text-blue-600 hover:text-blue-800 text-xs font-bold"
-                                >
-                                  ×
-                                </button>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  <div>
+                                    <label className="block text-xs font-medium text-[var(--color-text)] mb-1">Refund Reason</label>
+                                    <select
+                                      className="w-full px-3 py-2 text-sm border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
+                                      value={refundDetails[vehicleId]?.reason || ''}
+                                      onChange={(e) => setRefundDetails(prev => ({
+                                        ...prev,
+                                        [vehicleId]: { ...prev[vehicleId], reason: e.target.value }
+                                      }))}
+                                    >
+                                      <option value="">Select Reason...</option>
+                                      <option value="sold">Sold / Transferred</option>
+                                      <option value="destroyed">Destroyed / Stolen</option>
+                                      <option value="mileage">Low Mileage (Overpaid)</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-medium text-[var(--color-text)] mb-1">Date of Event</label>
+                                    <input
+                                      type="date"
+                                      className="w-full px-3 py-2 text-sm border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
+                                      value={refundDetails[vehicleId]?.date || ''}
+                                      onChange={(e) => setRefundDetails(prev => ({
+                                        ...prev,
+                                        [vehicleId]: { ...prev[vehicleId], date: e.target.value }
+                                      }))}
+                                    />
+                                  </div>
+                                </div>
                               </div>
                             );
                           })}
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Refund Details for Selected Vehicles */}
-                    {vehicleCategories.isRefund && selectedVehicleIds.length > 0 && (
-                      <div className="mt-4 space-y-3">
-                        <h4 className="text-sm font-semibold text-[var(--color-text)]">Refund Details</h4>
-                        {selectedVehicleIds.map((vehicleId) => {
-                          const vehicle = vehicles.find(v => v.id === vehicleId);
-                          if (!vehicle) return null;
-                          return (
-                            <div key={vehicleId} className="p-4 bg-green-50 border border-green-200 rounded-xl">
-                              <div className="font-mono font-semibold text-sm text-[var(--color-text)] mb-3">
-                                {vehicle.vin}
-                              </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div>
-                                  <label className="block text-xs font-medium text-[var(--color-text)] mb-1">Refund Reason</label>
-                        <select
-                                    className="w-full px-3 py-2 text-sm border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
-                                    value={refundDetails[vehicleId]?.reason || ''}
-                                    onChange={(e) => setRefundDetails(prev => ({
-                                      ...prev,
-                                      [vehicleId]: { ...prev[vehicleId], reason: e.target.value }
-                                    }))}
-                                  >
-                                    <option value="">Select Reason...</option>
-                                    <option value="sold">Sold / Transferred</option>
-                                    <option value="destroyed">Destroyed / Stolen</option>
-                                    <option value="mileage">Low Mileage (Overpaid)</option>
-                        </select>
-                      </div>
-                                <div>
-                                  <label className="block text-xs font-medium text-[var(--color-text)] mb-1">Date of Event</label>
-                        <input
-                                    type="date"
-                                    className="w-full px-3 py-2 text-sm border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
-                                    value={refundDetails[vehicleId]?.date || ''}
-                                    onChange={(e) => setRefundDetails(prev => ({
-                                      ...prev,
-                                      [vehicleId]: { ...prev[vehicleId], date: e.target.value }
-                                    }))}
-                                  />
-                        </div>
-                      </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* Add Another Vehicle Button */}
+                      {/* Add Another Vehicle Button */}
                       <button
-                      onClick={() => {
-                        setNewVehicle(prev => ({ ...prev, businessId: selectedBusinessId || '' }));
-                        setShowAddModal(true);
-                      }}
-                      className="w-full mt-4 p-3 sm:p-4 rounded-xl border-2 border-dashed border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] hover:bg-[var(--color-page-alt)] active:scale-95 transition flex items-center justify-center gap-2 touch-manipulation"
-                    >
-                      <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-100 flex items-center justify-center">
-                        <span className="font-bold text-sm sm:text-base">+</span>
-                      </div>
-                      <span className="font-semibold text-sm sm:text-base">Add Another Vehicle</span>
+                        onClick={() => {
+                          setNewVehicle(prev => ({ ...prev, businessId: selectedBusinessId || '' }));
+                          setShowAddModal(true);
+                        }}
+                        className="w-full mt-4 p-3 sm:p-4 rounded-xl border-2 border-dashed border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-orange)] hover:text-indigo-600/80 hover:bg-[var(--color-page-alt)] active:scale-95 transition flex items-center justify-center gap-2 touch-manipulation"
+                      >
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-100 flex items-center justify-center">
+                          <span className="font-bold text-sm sm:text-base">+</span>
+                        </div>
+                        <span className="font-semibold text-sm sm:text-base">Add Another Vehicle</span>
                       </button>
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
 
-
-                <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-[var(--color-border)]">
+                {/* Navigation */}
+                <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-t border-slate-200 bg-slate-50/50">
                   <button
                     onClick={() => setStep(2)}
-                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-2 border border-[var(--color-border)] rounded-lg text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation"
+                    className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-midnight transition"
                   >
                     Back
                   </button>
@@ -4548,9 +4419,9 @@ function NewFilingContent() {
                         setError(`To proceed with your ${filingTypeLabel}, please select at least one vehicle from the list above or add a new vehicle using the "Add Vehicle" button.`);
                       }
                     }}
-                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-2 bg-[#ff8b3d] text-white rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-sm touch-manipulation"
+                    className="px-5 py-2.5 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-orange-hover)] transition-colors shadow-lg shadow-orange-500/20"
                   >
-                    Next Step
+                    Continue
                   </button>
                 </div>
               </div>
@@ -4644,7 +4515,7 @@ function NewFilingContent() {
                       }
                       setStep(5);
                     }}
-                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-2 bg-[#ff8b3d] text-white rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-sm touch-manipulation"
+                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-2 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-semibold hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-lg shadow-orange-500/20 touch-manipulation"
                   >
                     Review & Pay
                   </button>
@@ -4727,10 +4598,10 @@ function NewFilingContent() {
                               <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Amended Month</p>
                               <p className="text-base sm:text-lg font-semibold break-words">{weightIncreaseData.amendedMonth || 'Not set'}</p>
                             </div>
-                            </div>
-                            <div className="bg-white p-3 sm:p-4 rounded-xl border border-orange-200">
-                              <p className="text-xs text-orange-700 uppercase tracking-wider mb-1">Additional Tax Due</p>
-                              <p className="text-xl sm:text-2xl font-bold text-orange-600">${weightIncreaseData.additionalTaxDue?.toFixed(2) || '0.00'}</p>
+                          </div>
+                          <div className="bg-white p-3 sm:p-4 rounded-xl border border-orange-200">
+                            <p className="text-xs text-orange-700 uppercase tracking-wider mb-1">Additional Tax Due</p>
+                            <p className="text-xl sm:text-2xl font-bold text-orange-600">${weightIncreaseData.additionalTaxDue?.toFixed(2) || '0.00'}</p>
                           </div>
                         </div>
                       )}
@@ -4774,12 +4645,12 @@ function NewFilingContent() {
 
 
                   {/* Filing Details Summary */}
-                  <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl p-5 sm:p-6 md:p-8 border border-slate-200">
-                    <h3 className="font-bold text-lg sm:text-xl text-[var(--color-text)] mb-4 sm:mb-6 flex items-center gap-2">
-                      <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-orange)]" />
+                  <div className="bg-slate-50 rounded-lg p-4 sm:p-5 border border-slate-200">
+                    <h3 className="font-bold text-base sm:text-lg text-[var(--color-text)] mb-3 sm:mb-4 flex items-center gap-2">
+                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600/80" />
                       Filing Details
-                        </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                       <div className="bg-white rounded-lg p-4 border border-slate-200">
                         <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-2">Filing Type</p>
                         <p className="font-bold text-lg capitalize text-[var(--color-text)]">{filingData.filingType || filingType}</p>
@@ -4805,25 +4676,25 @@ function NewFilingContent() {
                   </div>
 
                   {/* Business & Vehicle Summary */}
-                        {selectedBusiness && (
-                    <div className="bg-gradient-to-br from-white to-slate-50 rounded-xl p-5 sm:p-6 md:p-8 border-2 border-slate-200 shadow-sm">
-                      <h3 className="font-bold text-lg sm:text-xl text-[var(--color-text)] mb-6 flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-full bg-[var(--color-orange)]/10 flex items-center justify-center">
-                          <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-orange)]" />
+                  {selectedBusiness && (
+                    <div className="bg-white rounded-lg p-4 sm:p-5 border border-slate-200">
+                      <h3 className="font-bold text-base sm:text-lg text-[var(--color-text)] mb-4 sm:mb-5 flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-[var(--color-orange)]/10 flex items-center justify-center">
+                          <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600/80" />
                         </div>
                         Business Information
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                         <div className="bg-white rounded-lg p-4 border border-slate-200">
                           <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Business Name</p>
                           <p className="font-bold text-base text-[var(--color-text)] break-words">{selectedBusiness.businessName}</p>
                         </div>
                         <div className="bg-white rounded-lg p-4 border border-slate-200">
-                                <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">EIN</p>
+                          <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">EIN</p>
                           <p className="font-bold text-base font-mono text-[var(--color-text)]">{selectedBusiness.ein}</p>
-                              </div>
+                        </div>
                         <div className="bg-white rounded-lg p-4 border border-slate-200 md:col-span-2">
-                                <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Address</p>
+                          <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Address</p>
                           <p className="font-semibold text-sm text-[var(--color-text)] break-words">
                             {selectedBusiness.address}
                             {selectedBusiness.city && `, ${selectedBusiness.city}`}
@@ -4831,12 +4702,12 @@ function NewFilingContent() {
                             {selectedBusiness.zip && ` ${selectedBusiness.zip}`}
                             {selectedBusiness.country && `, ${selectedBusiness.country}`}
                           </p>
-                              </div>
+                        </div>
                         {selectedBusiness.phone && (
                           <div className="bg-white rounded-lg p-4 border border-slate-200">
-                                  <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Phone</p>
+                            <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">Phone</p>
                             <p className="font-semibold text-sm text-[var(--color-text)]">{selectedBusiness.phone}</p>
-                                </div>
+                          </div>
                         )}
                         {(selectedBusiness.signingAuthorityName || selectedBusiness.signingAuthorityPhone) && (
                           <div className="bg-white rounded-lg p-4 border border-slate-200">
@@ -4845,21 +4716,21 @@ function NewFilingContent() {
                               {selectedBusiness.signingAuthorityName}
                               {selectedBusiness.signingAuthorityPhone && ` • ${selectedBusiness.signingAuthorityPhone}`}
                             </p>
-                                </div>
-                        )}
-                            </div>
                           </div>
                         )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Selected Vehicles Summary - Enhanced */}
                   {selectedVehicles.length > 0 && (
-                    <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl p-5 sm:p-6 md:p-8 border border-slate-200 shadow-sm">
-                      <div className="flex items-center justify-between mb-6">
-                        <h3 className="font-bold text-lg sm:text-xl text-[var(--color-text)] flex items-center gap-2">
-                          <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-orange)]" />
+                    <div className="bg-slate-50 rounded-lg p-4 sm:p-5 border border-slate-200">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-bold text-base sm:text-lg text-[var(--color-text)] flex items-center gap-2">
+                          <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600/80" />
                           Selected Vehicles
                         </h3>
-                        <span className="px-3 py-1 bg-[var(--color-orange)] text-white rounded-full text-sm font-bold">
+                        <span className="px-2.5 py-1 bg-indigo-600 text-white">
                           {selectedVehicles.length} {selectedVehicles.length === 1 ? 'Vehicle' : 'Vehicles'}
                         </span>
                       </div>
@@ -4899,41 +4770,41 @@ function NewFilingContent() {
                           return reasons[reason] || reason || 'N/A';
                         };
 
-                            return (
+                        return (
                           <div className="space-y-4">
                             {/* Taxable Vehicles */}
                             {groupedVehicles.taxable.length > 0 && (
                               <div>
-                                <div className="flex items-center gap-2 mb-3">
-                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                  <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                  <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
                                     Taxable Vehicles ({groupedVehicles.taxable.length})
                                   </h4>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                   {groupedVehicles.taxable.map((vehicle) => (
-                                    <div key={vehicle.id} className="bg-white rounded-xl p-4 border-2 border-green-200 hover:border-green-300 transition-all shadow-sm">
-                                      <div className="flex items-start justify-between mb-3">
-                                <div className="flex-1 min-w-0">
-                                          <p className="font-mono font-bold text-base text-slate-900 break-all mb-1">{vehicle.vin}</p>
-                                          <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-semibold">
+                                    <div key={vehicle.id} className="bg-white rounded-lg p-3 border-2 border-l-4 border-green-200 border-l-green-500 hover:border-green-300 transition-all shadow-sm">
+                                      <div className="flex items-start justify-between mb-2">
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-mono text-xs font-semibold text-midnight break-all mb-1">{vehicle.vin}</p>
+                                          <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-semibold">
                                               {getVehicleTypeLabel(vehicle)}
                                             </span>
-                                            <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
+                                            <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-medium">
                                               Cat: {vehicle.grossWeightCategory || 'N/A'}
                                             </span>
                                           </div>
                                         </div>
                                       </div>
-                                      <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                                        {vehicle.logging !== null && vehicle.logging !== undefined && (
-                                          <div className="flex items-center justify-between text-xs">
+                                      {vehicle.logging !== null && vehicle.logging !== undefined && (
+                                        <div className="pt-2 border-t border-slate-100">
+                                          <div className="flex items-center justify-between text-[10px]">
                                             <span className="text-slate-600">Logging:</span>
                                             <span className="font-semibold text-slate-700">{vehicle.logging ? 'Yes' : 'No'}</span>
                                           </div>
-                                    )}
-                                  </div>
+                                        </div>
+                                      )}
                                     </div>
                                   ))}
                                 </div>
@@ -4943,142 +4814,148 @@ function NewFilingContent() {
                             {/* Suspended Vehicles */}
                             {groupedVehicles.suspended.length > 0 && (
                               <div>
-                                <div className="flex items-center gap-2 mb-3">
-                                  <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                                  <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
+                                  <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
                                     Suspended Vehicles ({groupedVehicles.suspended.length})
                                   </h4>
-                                  </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                   {groupedVehicles.suspended.map((vehicle) => (
-                                    <div key={vehicle.id} className="bg-white rounded-xl p-4 border-2 border-amber-200 hover:border-amber-300 transition-all shadow-sm">
-                                      <div className="flex items-start justify-between mb-3">
+                                    <div key={vehicle.id} className="bg-white rounded-lg p-3 border-2 border-l-4 border-amber-200 border-l-amber-500 hover:border-amber-300 transition-all shadow-sm">
+                                      <div className="flex items-start justify-between mb-2">
                                         <div className="flex-1 min-w-0">
-                                          <p className="font-mono font-bold text-base text-slate-900 break-all mb-1">{vehicle.vin}</p>
-                                          <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-xs font-semibold">
+                                          <p className="font-mono text-xs font-semibold text-midnight break-all mb-1">{vehicle.vin}</p>
+                                          <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px] font-semibold">
                                               {getVehicleTypeLabel(vehicle)}
                                             </span>
-                                            <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
+                                            <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-medium">
                                               Cat: {vehicle.grossWeightCategory || 'W'}
                                             </span>
-                                </div>
-                                </div>
-                              </div>
-                                      <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                                        {vehicle.logging !== null && vehicle.logging !== undefined && (
-                                          <div className="flex items-center justify-between text-xs">
-                                            <span className="text-slate-600">Logging:</span>
-                                            <span className="font-semibold text-slate-700">{vehicle.logging ? 'Yes' : 'No'}</span>
-                        </div>
-                                        )}
-                                        {vehicle.agricultural !== null && vehicle.agricultural !== undefined && (
-                                          <div className="flex items-center justify-between text-xs">
-                                            <span className="text-slate-600">Agricultural:</span>
-                                            <span className="font-semibold text-slate-700">{vehicle.agricultural ? 'Yes' : 'No'}</span>
                                           </div>
-                                        )}
+                                        </div>
                                       </div>
+                                      {(vehicle.logging !== null && vehicle.logging !== undefined) || (vehicle.agricultural !== null && vehicle.agricultural !== undefined) ? (
+                                        <div className="pt-2 border-t border-slate-100 space-y-1">
+                                          {vehicle.logging !== null && vehicle.logging !== undefined && (
+                                            <div className="flex items-center justify-between text-[10px]">
+                                              <span className="text-slate-600">Logging:</span>
+                                              <span className="font-semibold text-slate-700">{vehicle.logging ? 'Yes' : 'No'}</span>
+                                            </div>
+                                          )}
+                                          {vehicle.agricultural !== null && vehicle.agricultural !== undefined && (
+                                            <div className="flex items-center justify-between text-[10px]">
+                                              <span className="text-slate-600">Agricultural:</span>
+                                              <span className="font-semibold text-slate-700">{vehicle.agricultural ? 'Yes' : 'No'}</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      ) : null}
                                     </div>
                                   ))}
-                      </div>
-                    </div>
-                  )}
+                                </div>
+                              </div>
+                            )}
 
                             {/* Credit Vehicles */}
                             {groupedVehicles.credit.length > 0 && (
                               <div>
-                                <div className="flex items-center gap-2 mb-3">
-                                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                  <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                  <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
                                     Credit Vehicles ({groupedVehicles.credit.length})
                                   </h4>
-                      </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                   {groupedVehicles.credit.map((vehicle) => (
-                                    <div key={vehicle.id} className="bg-white rounded-xl p-4 border-2 border-blue-200 hover:border-blue-300 transition-all shadow-sm">
-                                      <div className="flex items-start justify-between mb-3">
+                                    <div key={vehicle.id} className="bg-white rounded-lg p-3 border-2 border-l-4 border-blue-200 border-l-blue-500 hover:border-blue-300 transition-all shadow-sm">
+                                      <div className="flex items-start justify-between mb-2">
                                         <div className="flex-1 min-w-0">
-                                          <p className="font-mono font-bold text-base text-slate-900 break-all mb-1">{vehicle.vin}</p>
-                                          <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold">
+                                          <p className="font-mono text-xs font-semibold text-midnight break-all mb-1">{vehicle.vin}</p>
+                                          <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-semibold">
                                               {getVehicleTypeLabel(vehicle)}
                                             </span>
-                                            <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
+                                            <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-medium">
                                               Cat: {vehicle.grossWeightCategory || 'N/A'}
                                             </span>
-                      </div>
-                      </div>
-                      </div>
-                                      <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                                        {vehicle.logging !== null && vehicle.logging !== undefined && (
-                                          <div className="flex items-center justify-between text-xs">
-                                            <span className="text-slate-600">Logging:</span>
-                                            <span className="font-semibold text-slate-700">{vehicle.logging ? 'Yes' : 'No'}</span>
                                           </div>
-                                        )}
-                                        {vehicle.creditReason && (
-                                          <div className="flex items-center justify-between text-xs">
-                                            <span className="text-slate-600">Reason:</span>
-                                            <span className="font-semibold text-blue-700">{getCreditReasonLabel(vehicle.creditReason)}</span>
-                                          </div>
-                                        )}
-                                        {vehicle.creditDate && (
-                                          <div className="flex items-center justify-between text-xs">
-                                            <span className="text-slate-600">Date:</span>
-                                            <span className="font-semibold text-slate-700">
-                                              {new Date(vehicle.creditDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
-                      </div>
-                                        )}
-                        </div>
+                                        </div>
+                                      </div>
+                                      {(vehicle.logging !== null && vehicle.logging !== undefined) || vehicle.creditReason || vehicle.creditDate ? (
+                                        <div className="pt-2 border-t border-slate-100 space-y-1">
+                                          {vehicle.logging !== null && vehicle.logging !== undefined && (
+                                            <div className="flex items-center justify-between text-[10px]">
+                                              <span className="text-slate-600">Logging:</span>
+                                              <span className="font-semibold text-slate-700">{vehicle.logging ? 'Yes' : 'No'}</span>
+                                            </div>
+                                          )}
+                                          {vehicle.creditReason && (
+                                            <div className="flex items-center justify-between text-[10px]">
+                                              <span className="text-slate-600">Reason:</span>
+                                              <span className="font-semibold text-blue-700">{getCreditReasonLabel(vehicle.creditReason)}</span>
+                                            </div>
+                                          )}
+                                          {vehicle.creditDate && (
+                                            <div className="flex items-center justify-between text-[10px]">
+                                              <span className="text-slate-600">Date:</span>
+                                              <span className="font-semibold text-slate-700">
+                                                {new Date(vehicle.creditDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                              </span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      ) : null}
                                     </div>
                                   ))}
                                 </div>
-                          </div>
-                        )}
+                              </div>
+                            )}
 
                             {/* Prior Year Sold Vehicles */}
                             {groupedVehicles.priorYearSold.length > 0 && (
                               <div>
-                                <div className="flex items-center gap-2 mb-3">
-                                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                  <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                                    Prior Year Sold Suspended Vehicles ({groupedVehicles.priorYearSold.length})
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                                  <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
+                                    Prior Year Sold ({groupedVehicles.priorYearSold.length})
                                   </h4>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                   {groupedVehicles.priorYearSold.map((vehicle) => (
-                                    <div key={vehicle.id} className="bg-white rounded-xl p-4 border-2 border-purple-200 hover:border-purple-300 transition-all shadow-sm">
-                                      <div className="flex items-start justify-between mb-3">
+                                    <div key={vehicle.id} className="bg-white rounded-lg p-3 border-2 border-l-4 border-purple-200 border-l-purple-500 hover:border-purple-300 transition-all shadow-sm">
+                                      <div className="flex items-start justify-between mb-2">
                                         <div className="flex-1 min-w-0">
-                                          <p className="font-mono font-bold text-base text-slate-900 break-all mb-1">{vehicle.vin}</p>
-                                          <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold">
+                                          <p className="font-mono text-xs font-semibold text-midnight break-all mb-1">{vehicle.vin}</p>
+                                          <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px] font-semibold">
                                               {getVehicleTypeLabel(vehicle)}
                                             </span>
                                           </div>
                                         </div>
                                       </div>
-                                      <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                                        {vehicle.soldTo && (
-                                          <div className="flex items-center justify-between text-xs">
-                                            <span className="text-slate-600">Sold To:</span>
-                                            <span className="font-semibold text-slate-700 text-right max-w-[60%] break-words">{vehicle.soldTo}</span>
-                          </div>
-                        )}
-                                        {vehicle.soldDate && (
-                                          <div className="flex items-center justify-between text-xs">
-                                            <span className="text-slate-600">Sold Date:</span>
-                                            <span className="font-semibold text-slate-700">
-                                              {new Date(vehicle.soldDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                            </span>
-                        </div>
-                                        )}
-                      </div>
-                    </div>
+                                      {(vehicle.soldTo || vehicle.soldDate) ? (
+                                        <div className="pt-2 border-t border-slate-100 space-y-1">
+                                          {vehicle.soldTo && (
+                                            <div className="flex items-center justify-between text-[10px]">
+                                              <span className="text-slate-600">Sold To:</span>
+                                              <span className="font-semibold text-slate-700 text-right max-w-[60%] break-words">{vehicle.soldTo}</span>
+                                            </div>
+                                          )}
+                                          {vehicle.soldDate && (
+                                            <div className="flex items-center justify-between text-[10px]">
+                                              <span className="text-slate-600">Sold Date:</span>
+                                              <span className="font-semibold text-slate-700">
+                                                {new Date(vehicle.soldDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                              </span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      ) : null}
+                                    </div>
                                   ))}
-                  </div>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -5099,7 +4976,7 @@ function NewFilingContent() {
                   <button
                     onClick={initiatePaymentFlow}
                     disabled={loading}
-                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50"
+                    className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50"
                   >
                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Continue Filing'}
                   </button>
@@ -5128,20 +5005,20 @@ function NewFilingContent() {
                   {/* Section 1: IRS Payment Method - Only show if tax is due */}
                   {(() => {
                     // Calculate IRS tax due for weight increase amendments
-                    const weightIncreaseTax = (filingType === 'amendment' && amendmentType === 'weight_increase') 
-                      ? (weightIncreaseData?.additionalTaxDue || 0) 
+                    const weightIncreaseTax = (filingType === 'amendment' && amendmentType === 'weight_increase')
+                      ? (weightIncreaseData?.additionalTaxDue || 0)
                       : 0;
-                    
+
                     // Get total tax from pricing or weight increase data
-                    const totalTaxDue = weightIncreaseTax > 0 
-                      ? weightIncreaseTax 
+                    const totalTaxDue = weightIncreaseTax > 0
+                      ? weightIncreaseTax
                       : (pricing?.totalTax || 0);
-                    
+
                     // Check if IRS payment is required
                     const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
                     const isMileageExceededNoTax = filingType === 'amendment' && amendmentType === 'mileage_exceeded' && totalTaxDue === 0;
                     const isIRSRequired = totalTaxDue > 0;
-                    
+
                     if (isVinCorrection || isMileageExceededNoTax) {
                       return (
                         <div className="border-2 border-blue-200 rounded-xl p-4 sm:p-6 bg-blue-50/30">
@@ -5169,349 +5046,374 @@ function NewFilingContent() {
                       );
                     } else if (isIRSRequired) {
                       return (
-                    <div className="border-2 border-blue-200 rounded-xl p-4 sm:p-6 bg-blue-50/30">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">1</div>
-                        <h3 className="text-lg sm:text-xl font-bold text-blue-900">IRS Tax Payment</h3>
-                        <span className="text-xs sm:text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded">Required</span>
-                      </div>
-                      <>
-                        <p className="text-sm text-blue-800 mb-4 ml-0 sm:ml-10">Choose how you'd like to pay the IRS tax amount (${totalTaxDue.toFixed(2)})</p>
-                        <div className="space-y-3 sm:space-y-4 ml-0 sm:ml-10">
-                    {/* Option 1: EFW (Electronic Fund Withdrawal) */}
-                          <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'efw' ? 'border-green-500 bg-green-50' : 'border-slate-200 hover:border-green-300'}`}>
-                            <label className="flex items-start gap-3 cursor-pointer w-full">
-                        <input
-                          type="radio"
-                          name="irsPaymentMethod"
-                          value="efw"
-                          checked={irsPaymentMethod === 'efw'}
-                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                          className="mt-1 w-5 h-5 text-green-600"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-bold text-base sm:text-lg">Option 1: EFW (Electronic Fund Withdrawal)</span>
-                                  {irsPaymentMethod === 'efw' && <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />}
+                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                          <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">1</div>
+                            <div>
+                              <h3 className="text-base sm:text-lg font-bold text-midnight">IRS Tax Payment</h3>
+                              <p className="text-xs text-slate-500">Total Tax Due: <span className="font-semibold text-midnight">${totalTaxDue.toFixed(2)}</span></p>
+                            </div>
+                            <span className="ml-auto text-[10px] uppercase font-bold tracking-wider text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100">Required</span>
                           </div>
-                                <p className="text-sm text-slate-600 mb-2">Direct bank withdrawal - Free & Fast (Recommended)</p>
-                          {irsPaymentMethod === 'efw' && (
-                            <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-2">
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  Routing Number <span className="text-red-500">*</span>
-                                  <Info className="w-4 h-4 inline ml-1 text-slate-400" />
-                                </label>
-                                <input
-                                  type="text"
-                                  value={bankDetails.routingNumber}
-                                  onChange={(e) => setBankDetails({ ...bankDetails, routingNumber: e.target.value.replace(/\D/g, '').slice(0, 9) })}
-                                  placeholder="Enter Routing Number*"
-                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                  maxLength="9"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  Account Number <span className="text-red-500">*</span>
-                                  <Info className="w-4 h-4 inline ml-1 text-slate-400" />
-                                </label>
-                                <input
-                                  type="text"
-                                  value={bankDetails.accountNumber}
-                                  onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value.replace(/\D/g, '') })}
-                                  placeholder="Enter Account Number*"
-                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  Confirm Account Number <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                  type="text"
-                                  value={bankDetails.confirmAccountNumber}
-                                  onChange={(e) => setBankDetails({ ...bankDetails, confirmAccountNumber: e.target.value.replace(/\D/g, '') })}
-                                  placeholder="Re-enter Account Number*"
-                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                />
-                                {bankDetails.accountNumber && bankDetails.confirmAccountNumber && bankDetails.accountNumber !== bankDetails.confirmAccountNumber && (
-                                        <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                          <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">Account numbers do not match</span>
+
+                          <div className="p-4 sm:p-5 space-y-3">
+                            {/* Option 1: EFW (Electronic Fund Withdrawal) */}
+                            <label className={`block relative bg-white border rounded-lg transition-all cursor-pointer group ${irsPaymentMethod === 'efw' ? 'border-green-500 ring-1 ring-green-500 shadow-sm' : 'border-slate-200 hover:border-slate-300'}`}>
+                              <div className="p-4 flex items-start gap-4">
+                                <div className="mt-0.5">
+                                  <input
+                                    type="radio"
+                                    name="irsPaymentMethod"
+                                    value="efw"
+                                    checked={irsPaymentMethod === 'efw'}
+                                    onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                                    className="sr-only"
+                                  />
+                                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${irsPaymentMethod === 'efw' ? 'border-green-500 bg-green-500 text-white' : 'border-slate-300 group-hover:border-slate-400'}`}>
+                                    {irsPaymentMethod === 'efw' && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                                  </div>
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className={`font-semibold text-sm sm:text-base ${irsPaymentMethod === 'efw' ? 'text-green-800' : 'text-slate-700'}`}>Pay by Bank Account (EFW)</span>
+                                    <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Recommended</span>
+                                  </div>
+                                  <p className="text-xs text-slate-500">Direct withdrawal from your checking or savings account. Secure & free.</p>
+
+                                  {irsPaymentMethod === 'efw' && (
+                                    <div className="mt-4 pt-4 border-t border-slate-100 animate-in fade-in slide-in-from-top-1">
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="col-span-1 sm:col-span-2">
+                                          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                            Account Type
+                                          </label>
+                                          <div className="flex gap-4">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                              <input
+                                                type="radio"
+                                                name="accountType"
+                                                value="checking"
+                                                checked={bankDetails.accountType === 'checking'}
+                                                onChange={(e) => setBankDetails({ ...bankDetails, accountType: e.target.value })}
+                                                className="text-green-600 focus:ring-green-500"
+                                              />
+                                              <span className="text-sm text-slate-700">Checking</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                              <input
+                                                type="radio"
+                                                name="accountType"
+                                                value="savings"
+                                                checked={bankDetails.accountType === 'savings'}
+                                                onChange={(e) => setBankDetails({ ...bankDetails, accountType: e.target.value })}
+                                                className="text-green-600 focus:ring-green-500"
+                                              />
+                                              <span className="text-sm text-slate-700">Savings</span>
+                                            </label>
+                                          </div>
+                                        </div>
+
+                                        <div>
+                                          <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                            Routing Number <Info className="w-3 h-3 inline ml-0.5 text-slate-400" />
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={bankDetails.routingNumber}
+                                            onChange={(e) => setBankDetails({ ...bankDetails, routingNumber: e.target.value.replace(/\D/g, '').slice(0, 9) })}
+                                            placeholder="9 digits"
+                                            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                            maxLength="9"
+                                          />
+                                        </div>
+
+                                        <div>
+                                          <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                            Phone Number
+                                          </label>
+                                          <input
+                                            type="tel"
+                                            value={bankDetails.phoneNumber}
+                                            onChange={(e) => {
+                                              const value = e.target.value.replace(/\D/g, '').slice(0, 11);
+                                              setBankDetails({ ...bankDetails, phoneNumber: value });
+                                              if (bankDetailsErrors.phoneNumber) setBankDetailsErrors({ ...bankDetailsErrors, phoneNumber: '' });
+                                            }}
+                                            placeholder="(555) 123-4567"
+                                            className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${bankDetailsErrors.phoneNumber ? 'border-red-300 bg-red-50' : 'border-slate-300'}`}
+                                          />
+                                          {bankDetailsErrors.phoneNumber && (
+                                            <p className="mt-1 text-[10px] text-red-500">{bankDetailsErrors.phoneNumber}</p>
+                                          )}
+                                        </div>
+
+                                        <div>
+                                          <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                            Account Number
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={bankDetails.accountNumber}
+                                            onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value.replace(/\D/g, '') })}
+                                            placeholder="Account Number"
+                                            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                          />
+                                        </div>
+
+                                        <div>
+                                          <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                            Confirm Account Number
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={bankDetails.confirmAccountNumber}
+                                            onChange={(e) => setBankDetails({ ...bankDetails, confirmAccountNumber: e.target.value.replace(/\D/g, '') })}
+                                            placeholder="Re-enter Account Number"
+                                            className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${bankDetails.accountNumber && bankDetails.confirmAccountNumber && bankDetails.accountNumber !== bankDetails.confirmAccountNumber
+                                              ? 'border-red-300 bg-red-50'
+                                              : 'border-slate-300'
+                                              }`}
+                                          />
+                                          {bankDetails.accountNumber && bankDetails.confirmAccountNumber && bankDetails.accountNumber !== bankDetails.confirmAccountNumber && (
+                                            <p className="mt-1 text-[10px] text-red-500">Mismatch</p>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      <div className="mt-3 flex items-start gap-2 bg-slate-50 p-2.5 rounded border border-slate-100">
+                                        <ShieldCheck className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                        <p className="text-[11px] text-slate-500 leading-snug">
+                                          Your account will be debited by the IRS for <strong>${totalTaxDue.toFixed(2)}</strong> after acceptance.
                                         </p>
-                                )}
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  Account Type <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                  value={bankDetails.accountType}
-                                  onChange={(e) => setBankDetails({ ...bankDetails, accountType: e.target.value })}
-                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                >
-                                  <option value="">Select the Account Type*</option>
-                                  <option value="checking">Checking</option>
-                                  <option value="savings">Savings</option>
-                                </select>
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                        Phone Number <span className="text-[var(--color-orange)]">*</span>
-                                </label>
-                                <input
-                                  type="tel"
-                                  value={bankDetails.phoneNumber}
-                                        onChange={(e) => {
-                                          const value = e.target.value.replace(/\D/g, '').slice(0, 11);
-                                          setBankDetails({ ...bankDetails, phoneNumber: value });
-                                          // Clear error when user starts typing
-                                          if (bankDetailsErrors.phoneNumber) {
-                                            setBankDetailsErrors({ ...bankDetailsErrors, phoneNumber: '' });
-                                          }
-                                        }}
-                                        placeholder="(555) 123-4567"
-                                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-orange)] ${bankDetailsErrors.phoneNumber ? 'border-red-500' : 'border-slate-300'}`}
-                                      />
-                                      {bankDetailsErrors.phoneNumber && (
-                                        <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                          <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{bankDetailsErrors.phoneNumber}</span>
-                                        </p>
-                                      )}
-                              </div>
-                              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
-                                <p className="text-xs sm:text-sm text-red-700">
-                                  <strong>Notice:</strong> The IRS will automatically deduct the tax amount payable directly from your account after your filing is accepted.
-                                </p>
-                                <div className="mt-2 flex items-center gap-2">
-                                  <ShieldCheck className="w-4 h-4 text-green-600" />
-                                  <span className="text-xs text-green-700 font-semibold">Ident Trust Secured</span>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                      </label>
-                    </div>
+                            </label>
 
-                    {/* Option 2: EFTPS */}
-                          <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'eftps' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300'}`}>
-                            <label className="flex items-start gap-3 cursor-pointer w-full">
-                        <input
-                          type="radio"
-                          name="irsPaymentMethod"
-                          value="eftps"
-                          checked={irsPaymentMethod === 'eftps'}
-                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                          className="mt-1 w-5 h-5 text-blue-600"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-bold text-base sm:text-lg">Option 2: EFTPS</span>
-                                  {irsPaymentMethod === 'eftps' && <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />}
-                          </div>
-                                <p className="text-sm text-slate-600 mb-2">Electronic Federal Tax Payment System</p>
-                          {irsPaymentMethod === 'eftps' && (
-                            <p className="text-sm text-slate-600 mt-2">
-                              Once the IRS accepts your filing you will receive the payment link via email.
-                            </p>
-                          )}
-                        </div>
-                      </label>
-                    </div>
-
-                    {/* Option 3: Credit or Debit Card */}
-                          <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'credit_card' ? 'border-purple-500 bg-purple-50' : 'border-slate-200 hover:border-purple-300'}`}>
-                            <label className="flex items-start gap-3 cursor-pointer w-full">
-                        <input
-                          type="radio"
-                          name="irsPaymentMethod"
-                          value="credit_card"
-                          checked={irsPaymentMethod === 'credit_card'}
-                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                          className="mt-1 w-5 h-5 text-purple-600"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-bold text-base sm:text-lg">Option 3: Credit or Debit Card</span>
-                                  {irsPaymentMethod === 'credit_card' && <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0" />}
-                          </div>
-                                <p className="text-sm text-slate-600 mb-2">Pay via credit/debit card (3rd party fee applies)</p>
-                          {irsPaymentMethod === 'credit_card' && (
-                            <div className="mt-3 space-y-2">
-                              <p className="text-sm text-slate-600">
-                                Once the IRS accepts your filing, you will receive the payment link. The IRS uses service providers that may charge an additional service fee additional to the tax amount payable.
-                              </p>
-                                    <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
-                                <strong>Note:</strong> The IRS imposes a limit on the frequency of credit card payments for Form 2290.
-                              </p>
-                              <label className="flex items-center gap-2 mt-3">
-                                <input type="checkbox" className="w-4 h-4" />
-                                      <span className="text-sm text-slate-600">
-                                  I understand that if I fail to pay the tax due within 10 business days, the IRS may assess penalties.
-                                </span>
-                              </label>
-                            </div>
-                          )}
-                        </div>
-                      </label>
-                    </div>
-
-                    {/* Option 4: Check or Money Order */}
-                          <div className={`w-full border-2 rounded-lg p-4 sm:p-5 transition-all ${irsPaymentMethod === 'check' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-300'}`}>
-                            <label className="flex items-start gap-3 cursor-pointer w-full">
-                        <input
-                          type="radio"
-                          name="irsPaymentMethod"
-                          value="check"
-                          checked={irsPaymentMethod === 'check'}
-                          onChange={(e) => setIrsPaymentMethod(e.target.value)}
-                          className="mt-1 w-5 h-5 text-orange-600"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-bold text-base sm:text-lg">Option 4: Check or Money Order</span>
-                                  {irsPaymentMethod === 'check' && <CheckCircle className="w-5 h-5 text-orange-600 flex-shrink-0" />}
-                          </div>
-                                <p className="text-sm text-slate-600 mb-2">Mail a check or money order with voucher</p>
-                          {irsPaymentMethod === 'check' && (
-                            <div className="mt-3 space-y-2 text-sm text-slate-600">
-                              <p>
-                                Make the tax amount payable to the 'United States Treasury'. Please mention your EIN, phone number, and 'Form 2290' on the money order/check. Print your money order voucher, enclose it, and mail it to:
-                              </p>
-                                    <div className="bg-white p-3 rounded border border-slate-200 font-mono text-sm">
-                                Internal Revenue Service<br />
-                                P.O. Box 932500<br />
-                                Louisville, KY 40293-2500
+                            {/* Option 2: EFTPS */}
+                            <label className={`block relative bg-white border rounded-lg transition-all cursor-pointer group ${irsPaymentMethod === 'eftps' ? 'border-blue-500 ring-1 ring-blue-500 shadow-sm' : 'border-slate-200 hover:border-slate-300'}`}>
+                              <div className="p-4 flex items-start gap-4">
+                                <div className="mt-0.5">
+                                  <input
+                                    type="radio"
+                                    name="irsPaymentMethod"
+                                    value="eftps"
+                                    checked={irsPaymentMethod === 'eftps'}
+                                    onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                                    className="sr-only"
+                                  />
+                                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${irsPaymentMethod === 'eftps' ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-300 group-hover:border-slate-400'}`}>
+                                    {irsPaymentMethod === 'eftps' && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className={`font-semibold text-sm sm:text-base block mb-1 ${irsPaymentMethod === 'eftps' ? 'text-blue-800' : 'text-slate-700'}`}>EFTPS (Federal Tax Payment System)</span>
+                                  <p className="text-xs text-slate-500">You will arrange payment through the EFTPS website after filing.</p>
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                      </label>
+                            </label>
+
+                            {/* Option 3: Credit or Debit Card */}
+                            <label className={`block relative bg-white border rounded-lg transition-all cursor-pointer group ${irsPaymentMethod === 'credit_card' ? 'border-purple-500 ring-1 ring-purple-500 shadow-sm' : 'border-slate-200 hover:border-slate-300'}`}>
+                              <div className="p-4 flex items-start gap-4">
+                                <div className="mt-0.5">
+                                  <input
+                                    type="radio"
+                                    name="irsPaymentMethod"
+                                    value="credit_card"
+                                    checked={irsPaymentMethod === 'credit_card'}
+                                    onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                                    className="sr-only"
+                                  />
+                                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${irsPaymentMethod === 'credit_card' ? 'border-purple-500 bg-purple-500 text-white' : 'border-slate-300 group-hover:border-slate-400'}`}>
+                                    {irsPaymentMethod === 'credit_card' && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                                  </div>
+                                </div>
+                                <div className="flex-1">
+                                  <span className={`font-semibold text-sm sm:text-base block mb-1 ${irsPaymentMethod === 'credit_card' ? 'text-purple-800' : 'text-slate-700'}`}>Credit or Debit Card</span>
+                                  <p className="text-xs text-slate-500">Pay via IRS-approved service provider (extra fees apply).</p>
+
+                                  {irsPaymentMethod === 'credit_card' && (
+                                    <div className="mt-3 pt-3 border-t border-slate-100 animate-in fade-in">
+                                      <label className="flex items-start gap-2 cursor-pointer">
+                                        <input type="checkbox" className="mt-0.5 w-3.5 h-3.5 text-purple-600 rounded border-slate-300 focus:ring-purple-500" />
+                                        <span className="text-[11px] text-slate-600">
+                                          I understand I must pay the tax due within 10 days to avoid penalties.
+                                        </span>
+                                      </label>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </label>
+
+                            {/* Option 4: Check or Money Order */}
+                            <label className={`block relative bg-white border rounded-lg transition-all cursor-pointer group ${irsPaymentMethod === 'check' ? 'border-orange-500 ring-1 ring-orange-500 shadow-sm' : 'border-slate-200 hover:border-slate-300'}`}>
+                              <div className="p-4 flex items-start gap-4">
+                                <div className="mt-0.5">
+                                  <input
+                                    type="radio"
+                                    name="irsPaymentMethod"
+                                    value="check"
+                                    checked={irsPaymentMethod === 'check'}
+                                    onChange={(e) => setIrsPaymentMethod(e.target.value)}
+                                    className="sr-only"
+                                  />
+                                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${irsPaymentMethod === 'check' ? 'border-orange-500 bg-orange-500 text-white' : 'border-slate-300 group-hover:border-slate-400'}`}>
+                                    {irsPaymentMethod === 'check' && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                                  </div>
+                                </div>
+                                <div className="flex-1">
+                                  <span className={`font-semibold text-sm sm:text-base block mb-1 ${irsPaymentMethod === 'check' ? 'text-orange-800' : 'text-slate-700'}`}>Check or Money Order</span>
+                                  <p className="text-xs text-slate-500">Mail a check with the payment voucher.</p>
+
+                                  {irsPaymentMethod === 'check' && (
+                                    <div className="mt-3 pt-3 border-t border-slate-100 animate-in fade-in">
+                                      <div className="bg-slate-50 p-2.5 rounded border border-slate-200 font-mono text-[10px] sm:text-xs text-slate-600">
+                                        Internal Revenue Service<br />
+                                        P.O. Box 932500<br />
+                                        Louisville, KY 40293-2500
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </label>
                           </div>
                         </div>
-                      </>
-                    </div>
                       );
                     }
                     return null;
                   })()}
 
                   {/* Section 2: Service Fee Payment */}
-                  <div className={`border-2 rounded-xl p-4 sm:p-6 transition-all ${serviceFeePaid ? 'border-green-500 bg-green-50' : 'border-orange-200 bg-orange-50/30'}`}>
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className={`w-8 h-8 rounded-full ${serviceFeePaid ? 'bg-green-600' : 'bg-orange-600'} text-white flex items-center justify-center font-bold text-sm`}>2</div>
-                      <h3 className="text-lg sm:text-xl font-bold text-orange-900">Service Fee Payment</h3>
+                  <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mt-6">
+                    <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full ${serviceFeePaid ? 'bg-green-600' : 'bg-emerald-600'} text-white flex items-center justify-center font-bold text-sm shadow-sm`}>2</div>
+                      <div>
+                        <h3 className="text-base sm:text-lg font-bold text-midnight">Service Fee Payment</h3>
+                        <p className="text-xs text-slate-500">
+                          {serviceFeePaid ? 'Payment completed' : 'Payment required to submit'}
+                        </p>
+                      </div>
                       {serviceFeePaid ? (
-                        <span className="text-xs sm:text-sm text-green-700 bg-green-100 px-2 py-1 rounded flex items-center gap-1">
+                        <span className="ml-auto text-[10px] uppercase font-bold tracking-wider text-green-700 bg-green-50 px-2 py-1 rounded border border-green-100 flex items-center gap-1">
                           <CheckCircle className="w-3 h-3" /> Paid
                         </span>
                       ) : (
-                        <span className="text-xs sm:text-sm text-orange-700 bg-orange-100 px-2 py-1 rounded">Required</span>
+                        <span className="ml-auto text-[10px] uppercase font-bold tracking-wider text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">Required</span>
                       )}
                     </div>
-                    <p className="text-sm text-orange-800 mb-4 ml-0 sm:ml-10">
-                      {filingType === 'amendment' && (amendmentType === 'vin_correction' || amendmentType === 'mileage_exceeded' || amendmentType === 'weight_increase') ? (
-                        <>
-                          Pay the platform service fee (${(() => {
-                            // For amendments with fixed $10 fee, calculate with sales tax
-                            const baseFee = 10.00;
-                            // Estimate sales tax (typically 7-10%, we'll use 7% as conservative estimate)
-                            const estimatedSalesTax = baseFee * 0.07;
-                            const fee = pricing.serviceFee > 0 ? pricing.serviceFee : baseFee;
-                            const tax = pricing.salesTax > 0 ? pricing.salesTax : estimatedSalesTax;
-                            return fee + tax;
-                          })().toFixed(2)}) using a US payment method. This payment must be completed before your filing can be submitted.
-                          {(amendmentType === 'mileage_exceeded' || amendmentType === 'weight_increase') && (
-                            (() => {
-                              const weightIncreaseTax = amendmentType === 'weight_increase' ? (weightIncreaseData?.additionalTaxDue || 0) : 0;
-                              const mileageTax = amendmentType === 'mileage_exceeded' ? (pricing?.totalTax || 0) : 0;
-                              const taxDue = weightIncreaseTax || mileageTax;
-                              return taxDue > 0 ? (
-                                <span className="block mt-2 text-xs text-orange-700">
-                                  Note: You will also need to pay the IRS tax amount (${taxDue.toFixed(2)}) shown above.
-                                </span>
-                              ) : null;
-                            })()
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          Pay the platform service fee (${((pricing.serviceFee || 0) + (pricing.salesTax || 0)).toFixed(2)}) using a US payment method. This payment must be completed before your filing can be submitted.
-                        </>
-                      )}
-                    </p>
 
-                    {!serviceFeePaid ? (
-                      <div className="ml-0 sm:ml-10 space-y-4">
-                        <StripeWrapper
-                          amount={(() => {
-                            // For amendments with fixed $10 fee, ensure we use at least $10
-                            if (filingType === 'amendment' && (amendmentType === 'vin_correction' || amendmentType === 'mileage_exceeded' || amendmentType === 'weight_increase')) {
+                    <div className="p-4 sm:p-5">
+                      <p className="text-sm text-slate-600 mb-5">
+                        {filingType === 'amendment' && (amendmentType === 'vin_correction' || amendmentType === 'mileage_exceeded' || amendmentType === 'weight_increase') ? (
+                          <>
+                            Total service fee: <span className="font-bold text-midnight">${(() => {
+                              // For amendments with fixed $10 fee, calculate with sales tax
                               const baseFee = 10.00;
+                              // Estimate sales tax (typically 7-10%, we'll use 7% as conservative estimate)
+                              const estimatedSalesTax = baseFee * 0.07;
                               const fee = pricing.serviceFee > 0 ? pricing.serviceFee : baseFee;
-                              const tax = pricing.salesTax > 0 ? pricing.salesTax : (fee * 0.07); // Estimate 7% sales tax if not calculated
-                              return fee + tax;
-                            }
-                            return (pricing.serviceFee || 0) + (pricing.salesTax || 0);
-                          })()}
-                          metadata={{
-                            filingType: filingType,
-                            userId: user.uid,
-                            filingId: filingId,
-                            businessId: selectedBusinessId
-                          }}
+                              const tax = pricing.salesTax > 0 ? pricing.salesTax : estimatedSalesTax;
+                              return (fee + tax).toFixed(2);
+                            })()}</span>. This must be paid before submission.
+                            {(amendmentType === 'mileage_exceeded' || amendmentType === 'weight_increase') && (
+                              (() => {
+                                const weightIncreaseTax = amendmentType === 'weight_increase' ? (weightIncreaseData?.additionalTaxDue || 0) : 0;
+                                const mileageTax = amendmentType === 'mileage_exceeded' ? (pricing?.totalTax || 0) : 0;
+                                const taxDue = weightIncreaseTax || mileageTax;
+                                return taxDue > 0 ? (
+                                  <span className="block mt-2 text-xs text-emerald-600 bg-emerald-50 p-2 rounded border border-emerald-100">
+                                    <strong>Note:</strong> You will also need to pay the IRS tax amount (${taxDue.toFixed(2)}) shown above.
+                                  </span>
+                                ) : null;
+                              })()
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            Please pay the platform service fee of <span className="font-bold text-midnight">${((pricing.serviceFee || 0) + (pricing.salesTax || 0)).toFixed(2)}</span> to process your filing.
+                          </>
+                        )}
+                      </p>
 
-                          onSuccess={async (paymentIntent) => {
-                            console.log('Service Fee Payment Succeeded:', paymentIntent);
-                            setServiceFeePaid(true);
-                            setError('');
-                            // Only call handleSubmit if filingId is not already set (to prevent duplicate)
-                            // The webhook will handle the final update, but we need to ensure filingId exists
-                            if (!filingId) {
-                              await handleSubmit();
-                            } else {
-                              // Update existing filing with payment status
-                              const { updateFiling } = await import('@/lib/db');
-                              await updateFiling(filingId, {
-                                paymentStatus: 'paid',
-                                status: 'processing',
-                                updatedAt: new Date().toISOString()
-                              });
-                              router.push(`/dashboard/filings/${filingId}`);
-                            }
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="ml-0 sm:ml-10 bg-green-50 border border-green-200 rounded-lg p-4">
-                        <div className="flex items-center gap-2 text-green-700">
-                          <CheckCircle className="w-5 h-5" />
-                          <span className="font-semibold">Service fee payment completed successfully!</span>
+                      {!serviceFeePaid ? (
+                        <div className="max-w-xl">
+                          <StripeWrapper
+                            amount={(() => {
+                              // For amendments with fixed $10 fee, ensure we use at least $10
+                              if (filingType === 'amendment' && (amendmentType === 'vin_correction' || amendmentType === 'mileage_exceeded' || amendmentType === 'weight_increase')) {
+                                const baseFee = 10.00;
+                                const fee = pricing.serviceFee > 0 ? pricing.serviceFee : baseFee;
+                                const tax = pricing.salesTax > 0 ? pricing.salesTax : (fee * 0.07); // Estimate 7% sales tax if not calculated
+                                return fee + tax;
+                              }
+                              return (pricing.serviceFee || 0) + (pricing.salesTax || 0);
+                            })()}
+                            metadata={{
+                              filingType: filingType,
+                              userId: user.uid,
+                              filingId: filingId,
+                              businessId: selectedBusinessId
+                            }}
+
+                            onSuccess={async (paymentIntent) => {
+                              console.log('Service Fee Payment Succeeded:', paymentIntent);
+                              setServiceFeePaid(true);
+                              setError('');
+                              // Only call handleSubmit if filingId is not already set (to prevent duplicate)
+                              // The webhook will handle the final update, but we need to ensure filingId exists
+                              if (!filingId) {
+                                await handleSubmit();
+                              } else {
+                                // Update existing filing with payment status
+                                const { updateFiling } = await import('@/lib/db');
+                                await updateFiling(filingId, {
+                                  paymentStatus: 'paid',
+                                  status: 'processing',
+                                  updatedAt: new Date().toISOString()
+                                });
+                                router.push(`/dashboard/filings/${filingId}`);
+                              }
+                            }}
+                          />
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                            <CheckCircle className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-green-800">Payment Successful</p>
+                            <p className="text-xs text-green-700">Your service fee has been paid.</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
+                  </div>
 
-                    {/* Navigation Buttons */}
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 pt-4 border-t border-slate-200">
-                      <button
-                        onClick={() => setStep(5)}
-                        className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border border-slate-300 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-slate-50 active:bg-slate-100 transition font-medium touch-manipulation"
-                      >
-                        Previous Step
-                      </button>
-                      <button
-                        onClick={handleSubmit}
+                  {/* Navigation Buttons */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 pt-4 border-t border-slate-200">
+                    <button
+                      onClick={() => setStep(5)}
+                      className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border border-slate-300 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base text-[var(--color-text)] hover:bg-slate-50 active:bg-slate-100 transition font-medium touch-manipulation"
+                    >
+                      Previous Step
+                    </button>
+                    <button
+                      onClick={handleSubmit}
                       disabled={
                         loading ||
                         (!irsPaymentMethod && (() => {
                           // Check IRS tax due for weight increase amendments
-                          const weightIncreaseTax = (filingType === 'amendment' && amendmentType === 'weight_increase') 
-                            ? (weightIncreaseData?.additionalTaxDue || 0) 
+                          const weightIncreaseTax = (filingType === 'amendment' && amendmentType === 'weight_increase')
+                            ? (weightIncreaseData?.additionalTaxDue || 0)
                             : 0;
-                          const totalTaxDue = weightIncreaseTax > 0 
-                            ? weightIncreaseTax 
+                          const totalTaxDue = weightIncreaseTax > 0
+                            ? weightIncreaseTax
                             : (pricing?.totalTax || 0);
                           return totalTaxDue > 0;
                         })()) ||
@@ -5519,44 +5421,44 @@ function NewFilingContent() {
                         (irsPaymentMethod === 'efw' && (!bankDetails.routingNumber || !bankDetails.accountNumber || !bankDetails.confirmAccountNumber || !bankDetails.accountType || !bankDetails.phoneNumber || bankDetails.accountNumber !== bankDetails.confirmAccountNumber))
                       }
                       className="w-full sm:w-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 bg-[var(--color-orange)] text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg hover:bg-[var(--color-orange-hover)] active:scale-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-                      >
-                        {loading ? (
-                          <>
-                            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            <span className="hidden sm:inline">Processing...</span>
-                            <span className="sm:hidden">Processing</span>
-                          </>
-                        ) : (
-                          <>
+                    >
+                      {loading ? (
+                        <>
+                          <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span className="hidden sm:inline">Processing...</span>
+                          <span className="sm:hidden">Processing</span>
+                        </>
+                      ) : (
+                        <>
                           <span className="hidden sm:inline">Submit Filing</span>
                           <span className="sm:hidden">Submit</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
+                        </>
+                      )}
+                    </button>
                   </div>
+                </div>
               </div>
             )}
           </div>
 
           {/* Pricing Sidebar - Right Side (Only shown on Step 6 - Payment) */}
           {step === 6 && (
-          <div className="hidden xl:block sticky top-24 self-start h-fit">
-            <PricingSidebar
-              filingType={filingType}
-              filingData={filingData}
-              selectedVehicleIds={selectedVehicleIds}
-              vehicles={vehicles}
-              selectedBusinessId={selectedBusinessId}
-              businesses={businesses}
-              amendmentType={amendmentType}
-              weightIncreaseData={weightIncreaseData}
-              mileageExceededData={mileageExceededData}
-            step={step}
-            onContinue={handleContinue}
-            onSubmit={handleSubmit}
-            loading={loading}
-            hideSubmitButton={step === 5 || step === 6}
+            <div className="hidden xl:block sticky top-24 self-start h-fit">
+              <PricingSidebar
+                filingType={filingType}
+                filingData={filingData}
+                selectedVehicleIds={selectedVehicleIds}
+                vehicles={vehicles}
+                selectedBusinessId={selectedBusinessId}
+                businesses={businesses}
+                amendmentType={amendmentType}
+                weightIncreaseData={weightIncreaseData}
+                mileageExceededData={mileageExceededData}
+                step={step}
+                onContinue={handleContinue}
+                onSubmit={handleSubmit}
+                loading={loading}
+                hideSubmitButton={step === 5 || step === 6}
                 couponCode={couponCode}
                 couponApplied={couponApplied}
                 couponDiscount={couponDiscount}
@@ -5572,32 +5474,34 @@ function NewFilingContent() {
                   recalculatePricingWithCoupon('percentage', 0);
                 }}
                 onCouponCodeChange={(value) => setCouponCode(value.toUpperCase())}
-          />
-        </div>
+              />
+            </div>
           )}
         </div>
 
         {/* Mobile Pricing Summary - Sticky Bottom (Only shown on Step 6 - Payment) */}
-        {step === 6 && (
-        <div className="xl:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-slate-200 shadow-2xl safe-area-inset-bottom">
-          <MobilePricingSummary
-            filingType={filingType}
-            filingData={filingData}
-            selectedVehicleIds={selectedVehicleIds}
-            vehicles={vehicles}
-            selectedBusinessId={selectedBusinessId}
-            businesses={businesses}
-            amendmentType={amendmentType}
-            weightIncreaseData={weightIncreaseData}
-            mileageExceededData={mileageExceededData}
-            step={step}
-            onContinue={handleContinue}
-            onSubmit={handleSubmit}
-            loading={loading}
-            hideSubmitButton={step === 5 || step === 6}
-          />
-        </div>
-        )}
+        {
+          step === 6 && (
+            <div className="xl:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-slate-200 shadow-2xl safe-area-inset-bottom">
+              <MobilePricingSummary
+                filingType={filingType}
+                filingData={filingData}
+                selectedVehicleIds={selectedVehicleIds}
+                vehicles={vehicles}
+                selectedBusinessId={selectedBusinessId}
+                businesses={businesses}
+                amendmentType={amendmentType}
+                weightIncreaseData={weightIncreaseData}
+                mileageExceededData={mileageExceededData}
+                step={step}
+                onContinue={handleContinue}
+                onSubmit={handleSubmit}
+                loading={loading}
+                hideSubmitButton={step === 5 || step === 6}
+              />
+            </div>
+          )
+        }
 
         {/* Add Vehicle Modal */}
         <VehicleFormModal
@@ -5621,240 +5525,169 @@ function NewFilingContent() {
         />
 
         {/* Draft Warning Modal */}
-        {showDraftWarningModal && existingDraft && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-slate-200">
-                <div className="flex items-center justify-between">
+        {
+          showDraftWarningModal && existingDraft && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-midnight/40 backdrop-blur-sm animate-in fade-in duration-200">
+              <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto border border-white/20 animate-in zoom-in-95 duration-200">
+                <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
-                      <AlertCircle className="w-6 h-6 text-amber-600" />
-      </div>
+                    <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shadow-sm">
+                      <AlertCircle className="w-5 h-5 text-amber-600" />
+                    </div>
                     <div>
-                      <h2 className="text-xl font-bold text-slate-900">
+                      <h2 className="text-lg font-bold text-midnight leading-tight">
                         {existingDraft.isSubmitted ? 'Filing Already Submitted' : 'Draft Filing Found'}
                       </h2>
-                      <p className="text-sm text-slate-600">
-                        {existingDraft.isSubmitted 
-                          ? 'You have a return that is currently being processed' 
-                          : 'You have an incomplete filing in progress'}
+                      <p className="text-xs text-slate-500">
+                        {existingDraft.isSubmitted
+                          ? 'Return currently processing'
+                          : 'Incomplete filing in progress'}
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={() => setShowDraftWarningModal(false)}
-                    className="text-slate-400 hover:text-slate-600 transition-colors"
+                    className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-slate-100 rounded-full"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-              </div>
 
-              <div className="p-6 space-y-4">
-                {/* Draft Details */}
-                <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
-                  <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    {existingDraft.isSubmitted ? 'Submitted Filing Details' : 'Draft Filing Details'}
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-slate-500">Filing Type:</span>
-                      <span className="ml-2 font-medium text-slate-900">
-                        {existingDraft.filingType === 'amendment' 
-                          ? existingDraft.amendmentType === 'vin_correction' ? 'VIN Correction Amendment'
-                          : existingDraft.amendmentType === 'weight_increase' ? 'Weight Increase Amendment'
-                          : existingDraft.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded Amendment'
-                          : 'Amendment'
-                          : existingDraft.filingType === 'refund' ? 'Refund (8849)'
-                          : 'Form 2290'}
-                      </span>
+                <div className="p-5 space-y-4">
+                  {/* Draft Details */}
+                  <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 shadow-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                      <FileText className="w-24 h-24 text-slate-400" />
                     </div>
 
-                    {existingDraft.isSubmitted && (
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Filing Details</h3>
+
+                    <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm relative z-10">
                       <div>
-                        <span className="text-slate-500">Status:</span>
-                        <span className="ml-2 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase">
-                          {existingDraft.status === 'awaiting_schedule_1' ? 'Awaiting Schedule 1' : existingDraft.status}
+                        <span className="text-xs text-slate-500 block mb-0.5">Filing Type</span>
+                        <span className="font-semibold text-midnight">
+                          {existingDraft.filingType === 'amendment'
+                            ? existingDraft.amendmentType === 'vin_correction' ? 'VIN Correction'
+                              : existingDraft.amendmentType === 'weight_increase' ? 'Weight Increase'
+                                : existingDraft.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded'
+                                  : 'Amendment'
+                            : existingDraft.filingType === 'refund' ? 'Refund (8849)'
+                              : 'Form 2290'}
                         </span>
                       </div>
-                    )}
-                    
-                    {(existingDraft.filingData?.taxYear || existingDraft.taxYear) && (
-                      <div>
-                        <span className="text-slate-500">Tax Year:</span>
-                        <span className="ml-2 font-medium text-slate-900">
-                          {existingDraft.filingData?.taxYear || existingDraft.taxYear}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {(existingDraft.selectedBusinessId || existingDraft.businessId) && (
-                      <div className="md:col-span-2">
-                        <span className="text-slate-500">Business:</span>
-                        <span className="ml-2 font-medium text-slate-900">
-                          {businesses.find(b => b.id === (existingDraft.selectedBusinessId || existingDraft.businessId))?.businessName || 'Loading...'}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {(existingDraft.selectedVehicleIds || existingDraft.vehicleIds) && (existingDraft.selectedVehicleIds || existingDraft.vehicleIds).length > 0 && (
-                      <div className="md:col-span-2">
-                        <span className="text-slate-500">Vehicles:</span>
-                        <div className="mt-2 flex flex-wrap gap-3">
-                          {(existingDraft.selectedVehicleIds || existingDraft.vehicleIds).slice(0, 5).map((vehicleId, idx) => {
-                            const vehicle = vehicles.find(v => v.id === vehicleId);
-                            const typeLabel = vehicle ? (
-                              vehicle.vehicleType === 'suspended' ? 'Suspended' : 
-                              vehicle.vehicleType === 'credit' ? 'Credit' : 
-                              vehicle.vehicleType === 'priorYearSold' ? 'Prior Year Sold' : 'Taxable'
-                            ) : '';
-                            
-                            return (
-                              <div key={idx} className="flex flex-col p-2.5 rounded-xl bg-blue-50/50 border border-blue-100 shadow-sm min-w-[160px]">
-                                <span className="text-blue-800 text-xs font-mono font-bold mb-1.5 break-all">
-                                  {vehicle?.vin || vehicleId?.slice(-8) || 'Loading...'}
-                                </span>
-                                {vehicle ? (
-                                  <div className="flex flex-wrap gap-1.5">
-                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                                      vehicle.vehicleType === 'suspended' ? 'bg-amber-100 text-amber-700' :
-                                      vehicle.vehicleType === 'credit' ? 'bg-blue-100 text-blue-700' :
-                                      vehicle.vehicleType === 'priorYearSold' ? 'bg-purple-100 text-purple-700' :
-                                      'bg-emerald-100 text-emerald-700'
-                                    }`}>
-                                      {typeLabel}
-                                    </span>
-                                    <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px] font-bold">
-                                      Cat: {vehicle.grossWeightCategory || 'N/A'}
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <span className="text-[10px] text-slate-400 italic">Details loading...</span>
-                                )}
-                              </div>
-                            );
-                          })}
-                          {(existingDraft.selectedVehicleIds || existingDraft.vehicleIds).length > 5 && (
-                            <div className="flex items-center justify-center p-2 rounded-xl bg-slate-50 border border-slate-100 text-slate-500 text-xs font-medium">
-                              +{(existingDraft.selectedVehicleIds || existingDraft.vehicleIds).length - 5} more
-                            </div>
-                          )}
+
+                      {(existingDraft.filingData?.taxYear || existingDraft.taxYear) && (
+                        <div>
+                          <span className="text-xs text-slate-500 block mb-0.5">Tax Year</span>
+                          <span className="font-semibold text-midnight">
+                            {existingDraft.filingData?.taxYear || existingDraft.taxYear}
+                          </span>
                         </div>
-                      </div>
-                    )}
-                    
-                    {!existingDraft.isSubmitted && existingDraft.step && (
-                      <div>
-                        <span className="text-slate-500">Current Step:</span>
-                        <span className="ml-2 font-medium text-slate-900">
-                          Step {existingDraft.step === 4 ? 4 : existingDraft.step > 4 ? existingDraft.step - 1 : existingDraft.step} of 5
-                        </span>
-                      </div>
-                    )}
-                    
-                    {existingDraft.updatedAt && (
-                      <div>
-                        <span className="text-slate-500">{existingDraft.isSubmitted ? 'Submitted On:' : 'Last Updated:'}</span>
-                        <span className="ml-2 font-medium text-slate-900">
-                          {existingDraft.updatedAt instanceof Date 
-                            ? existingDraft.updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                            : new Date(existingDraft.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {existingDraft.pricing?.grandTotal > 0 && (
-                      <div className="md:col-span-2">
-                        <span className="text-slate-500">Total Amount:</span>
-                        <span className="ml-2 font-bold text-lg text-slate-900">
-                          ${existingDraft.pricing.grandTotal.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                      )}
 
-                {/* Warning Message */}
-                <div className={`${existingDraft.isSubmitted ? 'bg-blue-50 border-blue-200' : 'bg-amber-50 border-amber-200'} border rounded-xl p-4`}>
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className={`w-5 h-5 ${existingDraft.isSubmitted ? 'text-blue-600' : 'text-amber-600'} flex-shrink-0 mt-0.5`} />
-                    <div className="flex-1">
-                      <p className={`text-sm ${existingDraft.isSubmitted ? 'text-blue-800' : 'text-amber-800'} font-medium`}>
-                        {existingDraft.isSubmitted 
-                          ? 'You have already submitted a filing for this period. Are you sure you want to start a completely new filing? Your existing filing will not be affected.'
-                          : 'If you start a new filing, this draft will be deleted. You can continue with this draft or start fresh.'}
-                      </p>
+                      {(existingDraft.selectedBusinessId || existingDraft.businessId) && (
+                        <div className="col-span-2">
+                          <span className="text-xs text-slate-500 block mb-0.5">Business</span>
+                          <span className="font-semibold text-midnight truncate block">
+                            {businesses.find(b => b.id === (existingDraft.selectedBusinessId || existingDraft.businessId))?.businessName || 'Loading...'}
+                          </span>
+                        </div>
+                      )}
+
+                      {!existingDraft.isSubmitted && existingDraft.step && (
+                        <div>
+                          <span className="text-xs text-slate-500 block mb-0.5">Progress</span>
+                          <span className="font-semibold text-midnight">
+                            Step {existingDraft.step === 4 ? 4 : existingDraft.step > 4 ? existingDraft.step - 1 : existingDraft.step} of 5
+                          </span>
+                        </div>
+                      )}
+
+                      {existingDraft.updatedAt && (
+                        <div>
+                          <span className="text-xs text-slate-500 block mb-0.5">Last Updated</span>
+                          <span className="font-semibold text-midnight">
+                            {existingDraft.updatedAt instanceof Date
+                              ? existingDraft.updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                              : new Date(existingDraft.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
+
+                  {/* Warning Message */}
+                  <div className={`text-sm p-3 rounded-lg border ${existingDraft.isSubmitted ? 'bg-blue-50 border-blue-100 text-blue-800' : 'bg-amber-50 border-amber-100 text-amber-800'}`}>
+                    {existingDraft.isSubmitted
+                      ? 'You have already submitted a filing for this period. Starting a new filing will not affect this one.'
+                      : 'Starting a new filing will delete this draft.'}
+                  </div>
+                </div>
+
+                <div className="p-5 border-t border-slate-100 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end bg-slate-50/30">
+                  <button
+                    onClick={async () => {
+                      // Delete draft and start new (only for true drafts)
+                      try {
+                        if (!existingDraft.isSubmitted) {
+                          await deleteDraftFiling(existingDraft.id);
+                        }
+
+                        setShowDraftWarningModal(false);
+                        setExistingDraft(null);
+                        // Reset form state and proceed to Step 2
+                        setDraftId(null);
+                        setFilingId(null);
+                        setStep(2);
+                        setFilingType('standard');
+                        setSelectedBusinessId('');
+                        setSelectedVehicleIds([]);
+                        setAmendmentType('');
+                      } catch (error) {
+                        console.error('Error handling start new:', error);
+                        setError('Failed to process request. Please try again.');
+                      }
+                    }}
+                    className="px-4 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-50 hover:border-slate-400 transition-colors text-sm shadow-sm"
+                  >
+                    Start New Filing
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowDraftWarningModal(false);
+                      if (existingDraft.isSubmitted) {
+                        router.push(`/dashboard/filings/${existingDraft.id}`);
+                      } else {
+                        router.push(`/dashboard/new-filing?draft=${existingDraft.id}`);
+                      }
+                    }}
+                    className="px-4 py-2.5 bg-[var(--color-orange)] text-white rounded-lg font-semibold hover:bg-[var(--color-orange-hover)] transition-all shadow-lg shadow-orange-500/20 hover:shadow-xl text-sm flex items-center justify-center gap-2"
+                  >
+                    {existingDraft.isSubmitted ? 'View Existing Filing' : 'Continue Draft'}
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
-
-              <div className="p-6 border-t border-slate-200 flex flex-col sm:flex-row gap-3 justify-end">
-                <button
-                  onClick={async () => {
-                    // Delete draft and start new (only for true drafts)
-                    try {
-                      if (!existingDraft.isSubmitted) {
-                        await deleteDraftFiling(existingDraft.id);
-                      }
-                      
-                      setShowDraftWarningModal(false);
-                      setExistingDraft(null);
-                      // Reset form state and proceed to Step 2
-                      setDraftId(null);
-                      setFilingId(null);
-                      setStep(2); 
-                      setFilingType('standard');
-                      setSelectedBusinessId('');
-                      setSelectedVehicleIds([]);
-                      setAmendmentType('');
-                    } catch (error) {
-                      console.error('Error handling start new:', error);
-                      setError('Failed to process request. Please try again.');
-                    }
-                  }}
-                  className="px-6 py-3 bg-white border-2 border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 hover:border-slate-400 transition-colors"
-                >
-                  Start New Filing
-                </button>
-                <button
-                  onClick={() => {
-                    setShowDraftWarningModal(false);
-                    if (existingDraft.isSubmitted) {
-                      // Navigate to details if submitted
-                      router.push(`/dashboard/filings/${existingDraft.id}`);
-                    } else {
-                      // Continue with draft
-                      router.push(`/dashboard/new-filing?draft=${existingDraft.id}`);
-                    }
-                  }}
-                  className="px-6 py-3 bg-gradient-to-r from-[var(--color-orange)] to-orange-600 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-[var(--color-orange)] transition-all shadow-lg hover:shadow-xl"
-                >
-                  {existingDraft.isSubmitted ? 'View Existing Filing' : 'Continue Draft'}
-                </button>
             </div>
-          </div>
-          </div>
-        )}
-        </div>
-      </ProtectedRoute>
+          )
+        }
+      </div >
+    </ProtectedRoute >
   );
 }
 
 export default function NewFilingPage() {
   console.log('[PAGE] NewFilingPage component rendering');
-  
+
   return (
     <ProtectedRoute>
       <Suspense fallback={
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
-          <div className="w-12 h-12 border-4 border-slate-200 border-t-[var(--color-orange)] rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
         </div>
-    }>
-      <NewFilingContent />
-    </Suspense>
+      }>
+        <NewFilingContent />
+      </Suspense>
     </ProtectedRoute>
   );
 }

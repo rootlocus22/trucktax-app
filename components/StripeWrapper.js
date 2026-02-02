@@ -68,7 +68,7 @@ export default function StripeWrapper({ amount, metadata, onSuccess, onCancel })
 
     if (typeof window !== 'undefined' && !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
         return (
-            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg text-orange-700 text-sm">
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700 text-sm">
                 <strong>Stripe Configuration Missing:</strong> NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not defined in your environment.
             </div>
         );
