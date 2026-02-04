@@ -575,7 +575,24 @@ export default function DashboardPage() {
                               </div>
                               <div className="flex flex-col text-right">
                                 <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Fleet</span>
-                                <span className="text-slate-700 font-bold">{getVehiclesInfo(filing).length} Vehicles</span>
+                                <div className="flex flex-col items-end gap-0.5">
+                                  <span className="text-slate-700 font-bold">{getVehiclesInfo(filing).length} Vehicle{getVehiclesInfo(filing).length !== 1 ? 's' : ''}</span>
+                                  {getVehiclesInfo(filing).length > 0 && getVehiclesInfo(filing).length <= 2 && (
+                                    <div className="text-[9px] text-slate-500 font-mono">
+                                      {getVehiclesInfo(filing).map((v, i) => (
+                                        <span key={i}>{v.vin?.slice(-8) || 'N/A'}{i < getVehiclesInfo(filing).length - 1 ? ', ' : ''}</span>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {getVehiclesInfo(filing).length > 2 && (
+                                    <div className="text-[9px] text-slate-500 font-mono">
+                                      {getVehiclesInfo(filing).slice(0, 2).map((v, i) => (
+                                        <span key={i}>{v.vin?.slice(-8) || 'N/A'}{i < 1 ? ', ' : ''}</span>
+                                      ))}
+                                      <span className="text-slate-400"> +{getVehiclesInfo(filing).length - 2}</span>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
 
@@ -683,15 +700,29 @@ export default function DashboardPage() {
                                   </td>
                                   <td className="px-6 py-3 hidden lg:table-cell">
                                     {vehiclesInfo.length > 0 ? (
-                                      <div className="flex -space-x-2 overflow-hidden">
-                                        {vehiclesInfo.slice(0, 3).map((vehicle, idx) => (
-                                          <div key={idx} className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 border-2 border-white text-[8px] font-bold text-slate-600" title={vehicle.vin || 'Vehicle'}>
-                                            {vehicle.vin?.slice(-2) || 'V'}
+                                      <div className="flex flex-col gap-1 max-w-xs">
+                                        {vehiclesInfo.slice(0, 2).map((vehicle, idx) => (
+                                          <div key={idx} className="flex items-center gap-1.5 group relative">
+                                            <span className="text-[10px] font-mono font-bold text-slate-700 truncate max-w-[140px]" title={vehicle.vin || 'Vehicle'}>
+                                              {vehicle.vin || `Vehicle ${idx + 1}`}
+                                            </span>
+                                            {vehicle.vehicleType && (
+                                              <span className={`px-1 py-0.5 rounded text-[8px] font-bold uppercase flex-shrink-0 ${
+                                                vehicle.vehicleType === 'suspended' ? 'bg-amber-100 text-amber-700' :
+                                                vehicle.vehicleType === 'credit' ? 'bg-blue-100 text-blue-700' :
+                                                vehicle.vehicleType === 'priorYearSold' ? 'bg-purple-100 text-purple-700' :
+                                                'bg-emerald-100 text-emerald-700'
+                                              }`}>
+                                                {vehicle.vehicleType === 'suspended' ? 'S' :
+                                                 vehicle.vehicleType === 'credit' ? 'C' :
+                                                 vehicle.vehicleType === 'priorYearSold' ? 'P' : 'T'}
+                                              </span>
+                                            )}
                                           </div>
                                         ))}
-                                        {vehiclesInfo.length > 3 && (
-                                          <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 border-2 border-white text-[8px] font-bold text-slate-600">
-                                            +{vehiclesInfo.length - 3}
+                                        {vehiclesInfo.length > 2 && (
+                                          <div className="text-[10px] text-slate-500 font-medium">
+                                            +{vehiclesInfo.length - 2} more vehicle{vehiclesInfo.length - 2 !== 1 ? 's' : ''}
                                           </div>
                                         )}
                                       </div>
