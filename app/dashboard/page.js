@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { subscribeToUserFilings, getBusinessesByUser, getVehicle } from '@/lib/db';
-import { subscribeToDraftFilings } from '@/lib/draftHelpers';
+import { subscribeToUserFilings, getBusinessesByUser, getVehicle, deleteFiling } from '@/lib/db';
+import { subscribeToDraftFilings, deleteDraftFiling } from '@/lib/draftHelpers';
 import { getIncompleteFilings, formatIncompleteFiling } from '@/lib/filingIntelligence';
 import {
   Upload,
@@ -28,7 +28,8 @@ import {
   MoreVertical,
   Building2,
   RefreshCw,
-  FileCheck
+  FileCheck,
+  Trash2
 } from 'lucide-react';
 
 
@@ -280,6 +281,63 @@ export default function DashboardPage() {
     if (vehicleIds.length === 0) return [];
 
     return vehicleIds.map(id => vehiclesMap[id] || { id, vin: 'Loading...', vehicleType: null }).filter(v => v);
+  };
+
+  // Helper function to check if a draft/filing can be deleted
+  const canDeleteDraft = (filing) => {
+    const filingStatus = filing.status || 'submitted';
+    
+    // Cannot delete if status is 'processing' (Processing) or 'completed' (IRS Acceptance)
+    if (filingStatus === 'processing' || filingStatus === 'completed') {
+      return false;
+    }
+    
+    // Allow deletion of:
+    // 1. Drafts (isDraft: true or status: 'draft')
+    // 2. Filings with 'pending_payment' or 'awaiting_schedule_1' status (not yet submitted to IRS)
+    const isDraft = filing.isDraft || filingStatus === 'draft';
+    const isDeletableFiling = filingStatus === 'pending_payment' || filingStatus === 'awaiting_schedule_1';
+    
+    return isDraft || isDeletableFiling;
+  };
+
+  // Handler for deleting a draft or filing
+  const handleDeleteDraft = async (filing) => {
+    if (!canDeleteDraft(filing)) {
+      return;
+    }
+
+    const filingId = filing.id || filing.draftId;
+    if (!filingId) {
+      console.error('No filing/draft ID found');
+      return;
+    }
+
+    const isDraft = filing.isDraft || filing.status === 'draft';
+    const filingStatus = filing.status || 'submitted';
+    const isFiling = filingStatus === 'pending_payment' || filingStatus === 'awaiting_schedule_1';
+
+    // Confirm deletion
+    const confirmMessage = isDraft
+      ? `Are you sure you want to delete this draft filing? This action cannot be undone.`
+      : `Are you sure you want to delete this filing? This action cannot be undone.`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      if (isDraft) {
+        await deleteDraftFiling(filingId);
+        console.log('Draft deleted successfully');
+      } else if (isFiling) {
+        await deleteFiling(filingId);
+        console.log('Filing deleted successfully');
+      }
+    } catch (error) {
+      console.error('Error deleting:', error);
+      alert('Failed to delete. Please try again.');
+    }
   };
 
   // Load vehicles when filings change - DEFER to prevent blocking UI
@@ -540,6 +598,15 @@ export default function DashboardPage() {
                                   <FileCheck className="w-4 h-4" />
                                 </Link>
                               )}
+                              {canDeleteDraft(filing) && (
+                                <button
+                                  onClick={() => handleDeleteDraft(filing)}
+                                  className="w-9 h-9 flex items-center justify-center bg-white border border-red-200 text-red-500 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all shadow-sm active:scale-95"
+                                  title="Delete draft"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
                             </div>
                           </div>
                         );
@@ -667,6 +734,15 @@ export default function DashboardPage() {
                                         >
                                           <FileCheck className="w-3.5 h-3.5" />
                                         </Link>
+                                      )}
+                                      {canDeleteDraft(filing) && (
+                                        <button
+                                          onClick={() => handleDeleteDraft(filing)}
+                                          className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-red-200 bg-white text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all"
+                                          title="Delete draft"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
                                       )}
                                     </div>
                                   </td>

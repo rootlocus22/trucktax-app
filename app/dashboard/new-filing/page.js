@@ -1041,11 +1041,12 @@ function NewFilingContent() {
       dataLoaded,
       loadingRef: loadingRef.current,
       loadingDraftRef: loadingDraftRef.current,
-      selectedBusinessId
+      selectedBusinessId,
+      currentVehiclesCount: vehicles.length
     });
 
     // Skip if we're currently loading a draft to prevent conflicts
-    if (!user || !dataLoaded || loadingRef.current || loadingDraftRef.current) {
+    if (!user || loadingRef.current || loadingDraftRef.current) {
       console.log('[VEHICLE RELOAD] Early return - conditions not met');
       return;
     }
@@ -1056,12 +1057,19 @@ function NewFilingContent() {
       return;
     }
 
+    // If dataLoaded is false, wait for initial load to complete
+    if (!dataLoaded) {
+      console.log('[VEHICLE RELOAD] Waiting for initial data load');
+      return;
+    }
+
     console.log('[VEHICLE RELOAD] Proceeding with vehicle reload');
 
     if (selectedBusinessId) {
       const reloadVehicles = async () => {
         try {
           const filteredVehicles = await getVehiclesByUser(user.uid, selectedBusinessId);
+          console.log('[VEHICLE RELOAD] Loaded', filteredVehicles.length, 'vehicles for business:', selectedBusinessId);
           setVehicles(filteredVehicles);
           // Clear selected vehicles if they're not in the filtered list
           const filteredIds = filteredVehicles.map(v => v.id);
@@ -1076,6 +1084,7 @@ function NewFilingContent() {
       const reloadVehicles = async () => {
         try {
           const allVehicles = await getVehiclesByUser(user.uid);
+          console.log('[VEHICLE RELOAD] Loaded', allVehicles.length, 'vehicles (all businesses)');
           setVehicles(allVehicles);
         } catch (error) {
           console.error('Error reloading vehicles:', error);
@@ -1083,7 +1092,83 @@ function NewFilingContent() {
       };
       reloadVehicles();
     }
-  }, [selectedBusinessId, user, dataLoaded, draftParam]);
+  }, [selectedBusinessId, user, dataLoaded, draftParam, vehicles.length]);
+
+  // Ensure vehicles are loaded when user reaches Step 3
+  const step3LoadAttemptedRef = useRef(false);
+  useEffect(() => {
+    // Reset flag when step changes
+    if (step !== 3) {
+      step3LoadAttemptedRef.current = false;
+      return;
+    }
+
+    if (step === 3 && user && !draftParam) {
+      // If vehicles are already loaded, we're good
+      if (vehicles.length > 0) {
+        step3LoadAttemptedRef.current = false; // Reset for next time
+        return;
+      }
+      
+      // Prevent multiple simultaneous loads
+      if (loadingRef.current || loadingDraftRef.current) {
+        console.log('[STEP 3] Skipping - already loading');
+        return;
+      }
+      
+      // Prevent immediate retries
+      if (step3LoadAttemptedRef.current) {
+        console.log('[STEP 3] Already attempted load, waiting...');
+        return;
+      }
+      
+      console.log('[STEP 3] No vehicles found, loading vehicles...', {
+        selectedBusinessId,
+        dataLoaded,
+        currentVehiclesCount: vehicles.length
+      });
+      step3LoadAttemptedRef.current = true;
+      
+      const loadVehiclesForStep3 = async () => {
+        try {
+          loadingRef.current = true;
+          console.log('[STEP 3] Fetching vehicles...', { selectedBusinessId, userId: user.uid });
+          
+          const userVehicles = selectedBusinessId
+            ? await getVehiclesByUser(user.uid, selectedBusinessId)
+            : await getVehiclesByUser(user.uid);
+          
+          console.log('[STEP 3] Successfully loaded', userVehicles.length, 'vehicles for', selectedBusinessId || 'all businesses');
+          
+          if (userVehicles.length > 0) {
+            setVehicles(userVehicles);
+          } else {
+            console.log('[STEP 3] No vehicles found in database');
+          }
+          
+          // Also ensure businesses are loaded if not already
+          if (businesses.length === 0) {
+            console.log('[STEP 3] Loading businesses...');
+            const userBusinesses = await getBusinessesByUser(user.uid);
+            setBusinesses(userBusinesses);
+          }
+        } catch (error) {
+          console.error('[STEP 3] Error loading vehicles:', error);
+          step3LoadAttemptedRef.current = false; // Allow retry on error
+        } finally {
+          loadingRef.current = false;
+          // Reset flag after a delay to allow retry if needed
+          setTimeout(() => {
+            step3LoadAttemptedRef.current = false;
+          }, 3000);
+        }
+      };
+      
+      // Small delay to avoid race conditions with other effects
+      const timeoutId = setTimeout(loadVehiclesForStep3, 150);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [step, user, draftParam, vehicles.length, selectedBusinessId, businesses.length, dataLoaded]);
 
   // Scroll to top when error occurs
   useEffect(() => {
@@ -3930,8 +4015,25 @@ function NewFilingContent() {
                     </div>
                   </div>
 
+                  {/* Loading Vehicles State */}
+                  {vehicles.length === 0 && (loadingRef.current || loadingDraftRef.current) && (
+                    <div className="mb-4 sm:mb-6 md:mb-8">
+                      <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-6 sm:p-8 md:p-10 text-center">
+                        <div className="flex flex-col items-center gap-4">
+                          <Loader2 className="w-8 h-8 text-slate-500 animate-spin" />
+                          <div>
+                            <h3 className="text-lg sm:text-xl font-bold text-midnight mb-2">Loading Vehicles...</h3>
+                            <p className="text-sm sm:text-base text-slate-600">
+                              Please wait while we fetch your vehicles
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* No Vehicles - Show Add Vehicle Button */}
-                  {vehicles.length === 0 && (
+                  {vehicles.length === 0 && !loadingRef.current && !loadingDraftRef.current && (
                     <div className="mb-4 sm:mb-6 md:mb-8">
                       <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-6 sm:p-8 md:p-10 text-center">
                         <div className="flex flex-col items-center gap-4">
@@ -4994,15 +5096,16 @@ function NewFilingContent() {
                     <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--color-text)]">Payment Methods</h2>
                   </div>
                   <p className="text-sm sm:text-base text-[var(--color-muted)] ml-13">
-                    {(filingType === 'amendment' && amendmentType === 'vin_correction') ||
-                      (filingType === 'amendment' && amendmentType === 'mileage_exceeded' && (pricing?.totalTax || 0) === 0)
+                    {((filingType === 'amendment' && amendmentType === 'vin_correction') ||
+                      (filingType === 'amendment' && amendmentType === 'mileage_exceeded' && (pricing?.totalTax || 0) === 0) ||
+                      (filingType === 'standard' && (pricing?.totalTax || 0) === 0))
                       ? 'Complete the service fee payment below to proceed with your filing'
                       : 'Complete both payment sections to proceed with your filing'}
                   </p>
                 </div>
 
                 <div className="space-y-6 sm:space-y-8">
-                  {/* Section 1: IRS Payment Method - Only show if tax is due */}
+                  {/* Section 1: IRS Payment Method - Always show for standard filings, show for amendments with tax */}
                   {(() => {
                     // Calculate IRS tax due for weight increase amendments
                     const weightIncreaseTax = (filingType === 'amendment' && amendmentType === 'weight_increase')
@@ -5017,9 +5120,11 @@ function NewFilingContent() {
                     // Check if IRS payment is required
                     const isVinCorrection = filingType === 'amendment' && amendmentType === 'vin_correction';
                     const isMileageExceededNoTax = filingType === 'amendment' && amendmentType === 'mileage_exceeded' && totalTaxDue === 0;
+                    const isStandardFilingNoTax = filingType === 'standard' && totalTaxDue === 0;
                     const isIRSRequired = totalTaxDue > 0;
 
-                    if (isVinCorrection || isMileageExceededNoTax) {
+                    // Show "Not Required" section for amendments with no tax or standard filings with $0 tax
+                    if (isVinCorrection || isMileageExceededNoTax || isStandardFilingNoTax) {
                       return (
                         <div className="border-2 border-blue-200 rounded-xl p-4 sm:p-6 bg-blue-50/30">
                           <div className="flex items-center gap-2 mb-4">
@@ -5034,9 +5139,11 @@ function NewFilingContent() {
                                 <div>
                                   <p className="text-sm font-semibold text-green-900 mb-1">No IRS Payment Required</p>
                                   <p className="text-sm text-green-800">
-                                    {amendmentType === 'vin_correction'
+                                    {isVinCorrection
                                       ? 'VIN corrections are FREE with no additional HVUT tax due. You only need to pay the service fee below.'
-                                      : 'For this mileage exceeded amendment, no additional HVUT tax is due. You only need to pay the service fee below.'}
+                                      : isMileageExceededNoTax
+                                      ? 'For this mileage exceeded amendment, no additional HVUT tax is due. You only need to pay the service fee below.'
+                                      : `Your selected vehicles (suspended and/or prior year sold) have $0.00 IRS tax due. Total IRS Payment: $${totalTaxDue.toFixed(2)}. You only need to pay the service fee below.`}
                                   </p>
                                 </div>
                               </div>
