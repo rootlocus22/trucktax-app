@@ -21,9 +21,7 @@ export async function POST(req) {
             amount: Math.round(amount * 100), // Stripe expects amounts in cents
             currency: 'usd',
             metadata: metadata || {},
-            automatic_payment_methods: {
-                enabled: true,
-            },
+            payment_method_types: ['card', 'cashapp'],
         });
 
 

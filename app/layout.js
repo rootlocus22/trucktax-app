@@ -7,6 +7,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { LayoutRouter } from "@/components/LayoutRouter";
 import { NotificationToast } from "@/components/NotificationToast";
+import TrackingListener from "@/components/TrackingListener";
+import { Suspense } from "react";
 
 const golosText = Golos_Text({
   variable: "--font-golos-text",
@@ -125,6 +127,9 @@ export default function RootLayout({ children }) {
       >
         <AuthProvider>
           <NotificationProvider>
+            <Suspense fallback={null}>
+              <TrackingListener />
+            </Suspense>
             <LayoutRouter>{children}</LayoutRouter>
             <NotificationToast />
             <Analytics />

@@ -3,137 +3,237 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { getPaymentLogsByUser } from '@/lib/db';
 import Link from 'next/link';
+import { CreditCard, Calendar, FileText, Download, ArrowLeft, Loader2, DollarSign } from 'lucide-react';
 
 export default function PaymentHistoryPage() {
   const { user } = useAuth();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   useEffect(() => {
-    // TODO: Fetch payment history from Firestore
-    // For now, show empty state
-    setLoading(false);
+    async function fetchPayments() {
+      if (user?.uid) {
+        setLoading(true);
+        try {
+          const logs = await getPaymentLogsByUser(user.uid);
+          setPayments(logs);
+        } catch (error) {
+          console.error('Error fetching payments:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    }
+    fetchPayments();
   }, [user]);
+
+  const formatDate = (date) => {
+    if (!date) return 'N/A';
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+  const handleDownloadReceipt = async (payment) => {
+    setDownloadingId(payment.id);
+    try {
+      const { generateInvoicePDF } = await import('@/lib/invoice-generator');
+      const { getBusiness } = await import('@/lib/db');
+
+      let businessData = null;
+      if (payment.businessId) {
+        businessData = await getBusiness(payment.businessId);
+      }
+
+      const pdfBytes = await generateInvoicePDF(payment, businessData, user);
+
+      // Download the PDF
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Receipt-${payment.orderId || payment.id.slice(0, 8)}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating receipt:', error);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   return (
     <ProtectedRoute>
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <Link href="/dashboard" className="text-[var(--color-muted)] hover:text-[var(--color-text)] mb-4 inline-block">
-            ← Back to Dashboard
-          </Link>
-          <h1 className="text-3xl font-bold text-[var(--color-text)]">Payment History</h1>
-          <p className="mt-2 text-[var(--color-muted)]">
-            View your past transactions and invoices
-          </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <Link href="/dashboard" className="group flex items-center text-[var(--color-muted)] hover:text-[var(--color-navy)] mb-4 transition-colors">
+              <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+              Back to Dashboard
+            </Link>
+            <h1 className="text-3xl font-bold text-[var(--color-text)] tracking-tight">Payment History</h1>
+            <p className="mt-2 text-[var(--color-muted)] font-medium">
+              Track your service fees and IRS tax payments
+            </p>
+          </div>
+
+          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-6 py-4 flex items-center gap-4">
+            <div className="bg-emerald-500 p-2.5 rounded-xl text-white shadow-lg shadow-emerald-500/20">
+              <DollarSign className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-emerald-600/70">Total Fees</div>
+              <div className="text-xl font-black text-emerald-900">
+                ${payments.reduce((acc, curr) => acc + (curr.serviceFee || curr.amount || 0), 0).toFixed(2)}
+              </div>
+            </div>
+          </div>
         </div>
 
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-navy)] mx-auto"></div>
-            <p className="mt-4 text-[var(--color-muted)]">Loading payment history...</p>
+          <div className="bg-white rounded-3xl border border-slate-200 p-20 text-center shadow-sm">
+            <Loader2 className="w-10 h-10 animate-spin text-[var(--color-navy)] mx-auto mb-4" />
+            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Loading Secure Records...</p>
           </div>
         ) : payments.length === 0 ? (
-          <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-12 text-center">
-            <div className="text-5xl mb-4">💳</div>
-            <h2 className="text-2xl font-semibold text-[var(--color-text)] mb-4">
-              No payments yet
+          <div className="bg-white rounded-3xl border border-slate-200 p-16 text-center shadow-sm">
+            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CreditCard className="w-10 h-10 text-slate-300" />
+            </div>
+            <h2 className="text-2xl font-bold text-[var(--color-text)] mb-3">
+              No transactions found
             </h2>
-            <p className="text-[var(--color-muted)] mb-6">
-              Your payment history will appear here once you make your first transaction.
+            <p className="text-slate-500 mb-8 max-w-sm mx-auto font-medium">
+              Your payment history will appear here once you complete a filing payment.
             </p>
             <Link
-              href="/dashboard"
-              className="inline-block bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-navy-soft)] text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition shadow-md"
-              style={{ color: '#ffffff', fontWeight: '600' }}
+              href="/dashboard/new-filing"
+              className="inline-flex items-center bg-[var(--color-navy)] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[var(--color-navy-soft)] transition-all shadow-xl shadow-blue-900/10 active:scale-95"
+              style={{ color: '#ffffff' }}
             >
-              Go to Dashboard
+              Start New Filing
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
-            {/* Mobile Card Layout */}
-            <div className="sm:hidden space-y-3">
-              {payments.map((payment) => {
-                const statusConfig = payment.status === 'paid'
-                  ? { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100', dot: 'bg-emerald-500' }
-                  : payment.status === 'pending'
-                    ? { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100', dot: 'bg-amber-500' }
-                    : { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-100', dot: 'bg-red-500' };
-
-                return (
-                  <div key={payment.id} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="text-sm font-bold text-slate-900">{payment.date}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5 uppercase tracking-widest font-black">Transaction Date</div>
-                      </div>
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
-                        <div className={`w-1 h-1 rounded-full ${statusConfig.dot}`} />
-                        {payment.status}
-                      </span>
-                    </div>
-
-                    <div className="py-2 border-y border-slate-50">
-                      <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Description</div>
-                      <div className="text-sm font-medium text-slate-700 leading-relaxed">{payment.description}</div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-lg font-black text-slate-900">${payment.amount}</div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount Paid</div>
-                      </div>
-                      <Link
-                        href={payment.invoiceUrl}
-                        className="px-5 py-2 bg-[#14b8a6] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-all shadow-md shadow-teal-500/10 active:scale-95"
-                      >
-                        Invoice
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })}
+          <div className="space-y-6">
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 border-b border-slate-100">
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Transaction Details</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Filing Type</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Service Fee</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest hidden lg:table-cell">Source</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                    <th className="px-6 py-5 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {payments.map((payment) => (
+                    <tr key={payment.id} className="hover:bg-slate-50/30 transition-colors group">
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center group-hover:bg-[var(--color-navy)] group-hover:text-white transition-colors">
+                            <Calendar className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-900">{formatDate(payment.timestamp)}</div>
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{payment.orderId || 'Order #' + payment.id.slice(0, 8)}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100 italic">
+                          {payment.filingType || 'Standard 2290'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5 font-black text-slate-900 text-lg">
+                        ${(payment.serviceFee || payment.amount || 0).toFixed(2)}
+                      </td>
+                      <td className="px-6 py-5 hidden lg:table-cell">
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-slate-700 capitalize">{payment.acquisitionSource || 'Direct'}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">{payment.acquisitionMedium || 'organic'}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          Captured
+                        </span>
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                        <button
+                          onClick={() => handleDownloadReceipt(payment)}
+                          disabled={downloadingId === payment.id}
+                          className="inline-flex items-center text-[var(--color-navy)] font-bold text-[10px] uppercase tracking-widest hover:underline gap-1 transition-opacity disabled:opacity-50"
+                        >
+                          {downloadingId === payment.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Download className="w-3 h-3" />
+                          )}
+                          Receipt
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
-            {/* Desktop Table Layout */}
-            <div className="hidden sm:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-50 border-b border-slate-100">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</th>
-                      <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</th>
-                      <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount</th>
-                      <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                      <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Invoice</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {payments.map((payment) => (
-                      <tr key={payment.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-700">{payment.date}</td>
-                        <td className="px-6 py-4 text-sm text-slate-600 font-medium">{payment.description}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-slate-900">${payment.amount}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border ${payment.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                            payment.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                              'bg-red-50 text-red-700 border-red-100'
-                            }`}>
-                            {payment.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <Link href={payment.invoiceUrl} className="text-[#14b8a6] hover:text-[#0d9488] font-black text-[10px] uppercase tracking-widest hover:underline">
-                            Download
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            {/* Mobile List View */}
+            <div className="md:hidden space-y-4">
+              {payments.map((payment) => (
+                <div key={payment.id} className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center">
+                        <Calendar className="w-5 h-5 text-slate-400" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900">{formatDate(payment.timestamp)}</div>
+                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{payment.filingType || 'Standard 2290'}</div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className={`px-2.5 py-1 ${payment.acquisitionSource ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'} rounded-full text-[10px] font-black uppercase tracking-widest border border-current/10 whitespace-nowrap`}>
+                        {payment.acquisitionSource || 'Direct'}
+                      </span>
+                      <span className="text-[9px] text-slate-400 font-bold mt-1 uppercase tracking-tighter">
+                        {payment.acquisitionMedium || 'organic'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-50 flex items-end justify-between">
+                    <div>
+                      <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Service Fee</div>
+                      <div className="text-xl font-black text-slate-900">${(payment.serviceFee || payment.amount || 0).toFixed(2)}</div>
+                    </div>
+                    <button
+                      onClick={() => handleDownloadReceipt(payment)}
+                      disabled={downloadingId === payment.id}
+                      className="px-5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-[#173b63] active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {downloadingId === payment.id ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Download className="w-3 h-3" />
+                      )}
+                      Receipt
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

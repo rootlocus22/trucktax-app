@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { getBusinessesByUser, createBusiness, getVehiclesByUser, createVehicle, createFiling, getFilingsByUser, getVehicle } from '@/lib/db';
+import { getBusinessesByUser, createBusiness, getVehiclesByUser, createVehicle, createFiling, getFilingsByUser, getVehicle, logPayment } from '@/lib/db';
 import { saveDraftFiling, getDraftFiling, deleteDraftFiling, getDraftFilingsByUser } from '@/lib/draftHelpers';
 // Duplicate filing detection imports removed - functionality disabled
 import { uploadInputDocument } from '@/lib/storage';
@@ -5362,6 +5362,52 @@ function NewFilingContent() {
 
                             onSuccess={async (paymentIntent) => {
                               console.log('Service Fee Payment Succeeded:', paymentIntent);
+
+                              // Capture Acquisition & Analytics Data
+                              try {
+                                const acquisitionDataStr = localStorage.getItem('acquisition_data');
+                                const acquisitionData = acquisitionDataStr ? JSON.parse(acquisitionDataStr) : {};
+
+                                const pricingData = {
+                                  amount: pricing.grandTotal, // Actual paid amount
+                                  baseAmount: selectedVehicleIds.length > 1 ? (34.99 * selectedVehicleIds.length) : 34.99,
+                                  serviceFee: pricing.serviceFee,
+                                  salesTax: pricing.salesTax,
+                                  totalTax: pricing.totalTax,
+                                  discountAmount: pricing.bulkSavings + (pricing.couponDiscount || 0),
+                                  couponCode: filingData?.couponCode || null,
+                                  currency: 'USD',
+                                  status: 'success'
+                                };
+
+                                const userLogData = {
+                                  userId: user?.uid,
+                                  userInfo: {
+                                    email: user?.email,
+                                    name: user?.displayName || 'User',
+                                    phone: user?.phoneNumber || null
+                                  },
+                                  orderId: paymentIntent.id,
+                                  paymentId: paymentIntent.payment_method,
+                                  userAgent: navigator.userAgent,
+                                  filingId: filingId,
+                                  filingType: filingType,
+                                  businessId: selectedBusinessId
+                                };
+
+                                // Combine and Log
+                                await logPayment({
+                                  ...acquisitionData,
+                                  ...pricingData,
+                                  ...userLogData
+                                });
+
+                                // Clear acquisition data after successful payment (optional, usually better to keep until session ends)
+                                // localStorage.removeItem('acquisition_data');
+                              } catch (logErr) {
+                                console.error('Failed to log payment for analytics:', logErr);
+                              }
+
                               setServiceFeePaid(true);
                               setError('');
                               // Only call handleSubmit if filingId is not already set (to prevent duplicate)
