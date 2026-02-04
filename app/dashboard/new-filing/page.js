@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { getBusinessesByUser, createBusiness, getVehiclesByUser, createVehicle, createFiling, getFilingsByUser, getVehicle, logPayment } from '@/lib/db';
-import { saveDraftFiling, getDraftFiling, deleteDraftFiling, getDraftFilingsByUser } from '@/lib/draftHelpers';
+import { getBusinessesByUser, createBusiness, getVehiclesByUser, createVehicle, createFiling, getFilingsByUser, getVehicle, logPayment, deleteFiling, getFiling } from '@/lib/db';
+import { saveDraftFiling, getDraftFiling, deleteDraftFiling, getDraftFilingsByUser, getAllDraftFilingsByUser } from '@/lib/draftHelpers';
 // Duplicate filing detection imports removed - functionality disabled
 import { uploadInputDocument } from '@/lib/storage';
 import { calculateFilingCost } from '@/app/actions/pricing'; // Server Action
@@ -461,6 +461,7 @@ function NewFilingContent() {
   const draftSavingRef = useRef(false);
   const [showDraftWarningModal, setShowDraftWarningModal] = useState(false);
   const [existingDraft, setExistingDraft] = useState(null);
+  const [modalVehicles, setModalVehicles] = useState([]);
   const errorRef = useRef(null);
   const [dataLoaded, setDataLoaded] = useState(false);
   const loadingRef = useRef(false);
@@ -1220,6 +1221,30 @@ function NewFilingContent() {
     }
   }, [step, filingType]);
 
+  // Load vehicles for modal when existingDraft is set
+  useEffect(() => {
+    const loadModalVehicles = async () => {
+      if (!existingDraft || !user) return;
+      
+      const vehicleIds = existingDraft.selectedVehicleIds || existingDraft.vehicleIds || [];
+      if (vehicleIds.length === 0) {
+        setModalVehicles([]);
+        return;
+      }
+
+      try {
+        const vehiclePromises = vehicleIds.slice(0, 10).map(vehicleId => getVehicle(vehicleId));
+        const loadedVehicles = await Promise.all(vehiclePromises);
+        setModalVehicles(loadedVehicles.filter(v => v !== null));
+      } catch (error) {
+        console.error('Error loading vehicles for modal:', error);
+        setModalVehicles([]);
+      }
+    };
+
+    loadModalVehicles();
+  }, [existingDraft, user]);
+
   // Check for existing drafts (only for Standard 2290)
   const handleNextFromStep1 = async () => {
     if (filingType === 'amendment' && !amendmentType) {
@@ -1234,35 +1259,158 @@ function NewFilingContent() {
       try {
         setLoading(true);
 
-        // 1. Check for submitted/processing filings first (higher priority warning)
         const recentFilings = await getFilingsByUser(user.uid);
-        const processingFiling = recentFilings.find(f =>
+        // Get all drafts (not just status 'draft') to check for any deletable drafts
+        const allDrafts = await getAllDraftFilingsByUser(user.uid);
+
+        // 1. FIRST PRIORITY: Check for deletable drafts/filings (NOT processing/completed/submitted)
+        // These are drafts that can be deleted when starting a new filing
+        // Check filings collection for deletable statuses (pending_payment, draft, awaiting_schedule_1)
+        // Note: 'submitted' status means already submitted to IRS, so it's not deletable
+        const deletableFiling = recentFilings.find(f =>
           f.filingType === 'standard' &&
-          (f.status === 'processing' || f.status === 'awaiting_schedule_1' || f.status === 'submitted')
+          f.status !== 'processing' &&
+          f.status !== 'completed' &&
+          f.status !== 'submitted' &&
+          (f.status === 'pending_payment' || f.status === 'awaiting_schedule_1' || f.status === 'draft')
         );
 
-        if (processingFiling) {
-          console.log('[DRAFT CHECK] Found active processing filing:', processingFiling.id);
-          setExistingDraft({
-            ...processingFiling,
-            isSubmitted: true // Flag to distinguish from a true draft
-          });
+        // Check drafts collection for deletable drafts (exclude processing/completed)
+        // Also exclude drafts that have been paid (step 5+) or have a filingId (promoted to filing)
+        const deletableDrafts = allDrafts.filter(d => {
+          // Skip if not standard filing type
+          if (d.filingType !== 'standard') return false;
+          
+          // Skip if no business selected (not significant progress)
+          if (!d.selectedBusinessId && !d.businessId) return false;
+          
+          // Skip if status is processing/completed/submitted
+          if (d.status === 'processing' || d.status === 'completed' || d.status === 'submitted') return false;
+          
+          // Skip if draft has a filingId (it was promoted to a filing, check filings collection instead)
+          if (d.filingId) return false;
+          
+          // Skip if draft is at step 5 or higher (payment completed)
+          if (d.step >= 5) return false;
+          
+          return true;
+        });
+
+        // Prioritize filing over draft if both exist
+        const deletableDraft = deletableFiling || (deletableDrafts.length > 0 ? deletableDrafts[0] : null);
+
+        if (deletableDraft) {
+          // Verify the draft/filing still exists before showing modal (in case it was deleted)
+          let verifiedDraft = null;
+          
+          if (deletableFiling) {
+            // Verify filing still exists
+            verifiedDraft = await getFiling(deletableDraft.id);
+            if (!verifiedDraft) {
+              console.log('[DRAFT CHECK] Deletable filing was deleted, skipping modal');
+              // Continue to step 2
+              setStep(2);
+              setLoading(false);
+              return;
+            }
+          } else {
+            // Verify draft still exists
+            verifiedDraft = await getDraftFiling(deletableDraft.id || deletableDraft.draftId);
+            if (!verifiedDraft) {
+              console.log('[DRAFT CHECK] Deletable draft was deleted, skipping modal');
+              // Continue to step 2
+              setStep(2);
+              setLoading(false);
+              return;
+            }
+          }
+
+          // Check if this draft should actually be treated as processing/completed
+          // (has filingId or is at step 5+)
+          const isActuallyProcessing = verifiedDraft.filingId || verifiedDraft.step >= 5;
+          
+          if (isActuallyProcessing) {
+            // Treat as processing/completed, don't mark as deletable
+            console.log('[DRAFT CHECK] Draft has been paid (step 5+ or has filingId), treating as processing:', verifiedDraft.id);
+            setExistingDraft({
+              ...verifiedDraft,
+              isSubmitted: true,
+              isProcessingOrCompleted: true
+            });
+          } else {
+            console.log('[DRAFT CHECK] Found deletable draft/filing:', verifiedDraft.id, verifiedDraft.status);
+            setExistingDraft({
+              ...verifiedDraft,
+              isSubmitted: deletableFiling ? true : false, // Filings are "submitted", drafts are not
+              isDeletable: true, // Flag to indicate this can be deleted
+              isFromFilingsCollection: !!deletableFiling // Flag to track which collection it came from
+            });
+          }
           setShowDraftWarningModal(true);
           setLoading(false);
           return;
         }
 
-        // 2. Check for drafts if no processing filing found
-        const drafts = await getDraftFilingsByUser(user.uid);
-        // Filter to only drafts with selectedBusinessId (significant progress)
-        const draftsWithBusiness = drafts.filter(d => d.selectedBusinessId || d.businessId);
+        // 2. SECOND PRIORITY: Only if no deletable drafts exist, check for Processing/Completed/Submitted filings
+        // These cannot be deleted, only viewed (they've been paid and are being processed)
+        const processingOrCompletedFiling = recentFilings.find(f =>
+          f.filingType === 'standard' &&
+          (f.status === 'processing' || f.status === 'completed' || f.status === 'submitted')
+        );
 
-        if (draftsWithBusiness.length > 0) {
-          const mostRecentDraft = draftsWithBusiness[0];
-          setExistingDraft(mostRecentDraft);
+        // Also check drafts that have been paid (step 5+) or have filingId (promoted to filing)
+        const processingOrCompletedDraft = allDrafts.find(d => {
+          if (d.filingType !== 'standard') return false;
+          
+          // Check by status
+          if (d.status === 'processing' || d.status === 'completed' || d.status === 'submitted') return true;
+          
+          // Check if draft has filingId (promoted to filing)
+          if (d.filingId) return true;
+          
+          // Check if draft is at step 5 or higher (payment completed)
+          if (d.step >= 5) return true;
+          
+          return false;
+        });
+
+        const processingOrCompleted = processingOrCompletedFiling || processingOrCompletedDraft;
+
+        if (processingOrCompleted) {
+          // Verify the filing/draft still exists before showing modal (in case it was deleted)
+          let verifiedProcessing = null;
+          
+          if (processingOrCompletedFiling) {
+            // Verify filing still exists
+            verifiedProcessing = await getFiling(processingOrCompleted.id);
+            if (!verifiedProcessing) {
+              console.log('[DRAFT CHECK] Processing filing was deleted, skipping modal');
+              // Continue to step 2
+              setStep(2);
+              setLoading(false);
+              return;
+            }
+          } else {
+            // Verify draft still exists
+            verifiedProcessing = await getDraftFiling(processingOrCompleted.id || processingOrCompleted.draftId);
+            if (!verifiedProcessing) {
+              console.log('[DRAFT CHECK] Processing draft was deleted, skipping modal');
+              // Continue to step 2
+              setLoading(false);
+              setStep(2);
+              return;
+            }
+          }
+
+          console.log('[DRAFT CHECK] Found Processing/Completed/Submitted filing/draft:', verifiedProcessing.id, verifiedProcessing.status);
+          setExistingDraft({
+            ...verifiedProcessing,
+            isSubmitted: true,
+            isProcessingOrCompleted: true // Flag to indicate this blocks new filing creation and has been paid
+          });
           setShowDraftWarningModal(true);
           setLoading(false);
-          return; // Stop here, show modal
+          return;
         }
       } catch (error) {
         console.error('Error checking for existing drafts/filings:', error);
@@ -5689,12 +5837,24 @@ function NewFilingContent() {
                     </div>
                     <div>
                       <h2 className="text-lg font-bold text-midnight leading-tight">
-                        {existingDraft.isSubmitted ? 'Filing Already Submitted' : 'Draft Filing Found'}
+                        {existingDraft.isProcessingOrCompleted 
+                          ? 'Draft Order Already Available'
+                          : existingDraft.isDeletable
+                            ? 'Draft Filing Found'
+                            : existingDraft.isSubmitted 
+                              ? 'Filing Already Submitted' 
+                              : 'Draft Filing Found'}
                       </h2>
                       <p className="text-xs text-slate-500">
-                        {existingDraft.isSubmitted
-                          ? 'Return currently processing'
-                          : 'Incomplete filing in progress'}
+                        {existingDraft.isProcessingOrCompleted
+                          ? 'You have a draft order that is Processing or Completed'
+                          : existingDraft.isDeletable
+                            ? existingDraft.status === 'pending_payment' 
+                              ? 'Filing awaiting payment'
+                              : 'Incomplete filing in progress'
+                            : existingDraft.isSubmitted
+                              ? 'Return currently processing'
+                              : 'Incomplete filing in progress'}
                       </p>
                     </div>
                   </div>
@@ -5747,6 +5907,27 @@ function NewFilingContent() {
                         </div>
                       )}
 
+                      {existingDraft.status && (
+                        <div>
+                          <span className="text-xs text-slate-500 block mb-0.5">Status</span>
+                          <span className={`font-semibold ${
+                            existingDraft.status === 'processing' || existingDraft.status === 'completed'
+                              ? 'text-red-600'
+                              : existingDraft.status === 'pending_payment'
+                                ? 'text-orange-600'
+                                : 'text-midnight'
+                          }`}>
+                            {existingDraft.status === 'processing' ? 'Processing' :
+                             existingDraft.status === 'completed' ? 'Completed (IRS Acceptance)' :
+                             existingDraft.status === 'pending_payment' ? 'Awaiting Payment' :
+                             existingDraft.status === 'awaiting_schedule_1' ? 'Awaiting Schedule 1' :
+                             existingDraft.status === 'submitted' ? 'Submitted' :
+                             existingDraft.status === 'draft' ? 'Draft' :
+                             existingDraft.status}
+                          </span>
+                        </div>
+                      )}
+
                       {!existingDraft.isSubmitted && existingDraft.step && (
                         <div>
                           <span className="text-xs text-slate-500 block mb-0.5">Progress</span>
@@ -5766,25 +5947,145 @@ function NewFilingContent() {
                           </span>
                         </div>
                       )}
+
+                      {/* Vehicles Display */}
+                      {(existingDraft.selectedVehicleIds || existingDraft.vehicleIds) && (existingDraft.selectedVehicleIds || existingDraft.vehicleIds).length > 0 && (
+                        <div className="col-span-2">
+                          <span className="text-xs text-slate-500 block mb-2">Vehicles ({((existingDraft.selectedVehicleIds || existingDraft.vehicleIds) || []).length})</span>
+                          <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                            {((existingDraft.selectedVehicleIds || existingDraft.vehicleIds) || []).slice(0, 5).map((vehicleId, idx) => {
+                              const vehicle = modalVehicles.find(v => v.id === vehicleId);
+                              const typeLabel = vehicle ? (
+                                vehicle.vehicleType === 'suspended' ? 'Suspended' :
+                                vehicle.vehicleType === 'credit' ? 'Credit' :
+                                vehicle.vehicleType === 'priorYearSold' ? 'Prior Year Sold' : 'Taxable'
+                              ) : '';
+
+                              return (
+                                <div key={idx} className="flex flex-col p-2 rounded-lg bg-blue-50/50 border border-blue-100 shadow-sm min-w-[140px]">
+                                  <span className="text-blue-800 text-xs font-mono font-bold mb-1 break-all">
+                                    {vehicle?.vin || vehicleId?.slice(-8) || 'Loading...'}
+                                  </span>
+                                  {vehicle ? (
+                                    <div className="flex flex-wrap gap-1">
+                                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
+                                        vehicle.vehicleType === 'suspended' ? 'bg-amber-100 text-amber-700' :
+                                        vehicle.vehicleType === 'credit' ? 'bg-blue-100 text-blue-700' :
+                                        vehicle.vehicleType === 'priorYearSold' ? 'bg-purple-100 text-purple-700' :
+                                        'bg-emerald-100 text-emerald-700'
+                                      }`}>
+                                        {typeLabel}
+                                      </span>
+                                      {vehicle.grossWeightCategory && (
+                                        <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-[9px] font-bold">
+                                          Cat: {vehicle.grossWeightCategory}
+                                        </span>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span className="text-[9px] text-slate-400 italic">Loading...</span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                            {((existingDraft.selectedVehicleIds || existingDraft.vehicleIds) || []).length > 5 && (
+                              <div className="flex items-center justify-center p-2 rounded-lg bg-slate-50 border border-slate-100 text-slate-500 text-xs font-medium">
+                                +{((existingDraft.selectedVehicleIds || existingDraft.vehicleIds) || []).length - 5} more
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {/* Warning Message */}
-                  <div className={`text-sm p-3 rounded-lg border ${existingDraft.isSubmitted ? 'bg-blue-50 border-blue-100 text-blue-800' : 'bg-amber-50 border-amber-100 text-amber-800'}`}>
-                    {existingDraft.isSubmitted
-                      ? 'You have already submitted a filing for this period. Starting a new filing will not affect this one.'
-                      : 'Starting a new filing will delete this draft.'}
+                  <div className={`text-sm p-3 rounded-lg border ${
+                    existingDraft.isProcessingOrCompleted || 
+                    (existingDraft.status === 'processing' || existingDraft.status === 'completed' || existingDraft.status === 'submitted') ||
+                    existingDraft.filingId ||
+                    (existingDraft.step >= 5)
+                      ? 'bg-red-50 border-red-100 text-red-800' 
+                      : existingDraft.isDeletable && !existingDraft.isSubmitted
+                        ? 'bg-amber-50 border-amber-100 text-amber-800'
+                        : existingDraft.isSubmitted 
+                          ? 'bg-blue-50 border-blue-100 text-blue-800' 
+                          : 'bg-amber-50 border-amber-100 text-amber-800'
+                  }`}>
+                    {existingDraft.isProcessingOrCompleted || 
+                     (existingDraft.status === 'processing' || existingDraft.status === 'completed' || existingDraft.status === 'submitted') ||
+                     existingDraft.filingId ||
+                     (existingDraft.step >= 5)
+                      ? `You have a ${existingDraft.status === 'completed' ? 'completed' : existingDraft.status === 'submitted' ? 'submitted' : existingDraft.step >= 5 ? 'paid' : 'processing'} order for tax year ${existingDraft.filingData?.taxYear || existingDraft.taxYear || 'N/A'}. This order has already been paid and is being processed by our agent with the IRS. You can view this order or start a new filing for a different period.`
+                      : existingDraft.status === 'pending_payment' || existingDraft.status === 'awaiting_schedule_1' || (existingDraft.isDeletable && !existingDraft.isSubmitted)
+                        ? 'You have a draft filing that has not been paid. Starting a new filing will delete this draft filing.'
+                        : existingDraft.isSubmitted && existingDraft.status !== 'pending_payment' && existingDraft.status !== 'awaiting_schedule_1'
+                          ? 'You have already submitted a filing for this period. Starting a new filing will not affect this one.'
+                          : 'Starting a new filing will delete this draft.'}
                   </div>
                 </div>
 
                 <div className="p-5 border-t border-slate-100 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end bg-slate-50/30">
+                  {/* Show "Start New Filing" button for all cases */}
+                  {/* For processing/completed orders, it won't delete (just closes modal and starts new) */}
+                  {/* For deletable drafts, it will delete the draft */}
                   <button
                     onClick={async () => {
-                      // Delete draft and start new (only for true drafts)
                       try {
-                        if (!existingDraft.isSubmitted) {
-                          await deleteDraftFiling(existingDraft.id);
+                        // Delete if it's a deletable draft/filing (pending_payment, awaiting_schedule_1, draft status)
+                        // Don't delete if it's processing/completed/submitted or has been paid (step >= 5)
+                        const status = existingDraft.status || 'draft';
+                        const isDeletable = !existingDraft.isProcessingOrCompleted &&
+                                          status !== 'processing' &&
+                                          status !== 'completed' &&
+                                          status !== 'submitted' &&
+                                          !existingDraft.filingId &&
+                                          (existingDraft.step === undefined || existingDraft.step < 5) &&
+                                          (status === 'pending_payment' || 
+                                           status === 'awaiting_schedule_1' || 
+                                           status === 'draft' ||
+                                           existingDraft.isDeletable);
+
+                        console.log('[START NEW] Checking deletion:', {
+                          status,
+                          isSubmitted: existingDraft.isSubmitted,
+                          isDeletable,
+                          id: existingDraft.id,
+                          draftId: existingDraft.draftId,
+                          isFromFilingsCollection: existingDraft.isFromFilingsCollection,
+                          isProcessingOrCompleted: existingDraft.isProcessingOrCompleted,
+                          step: existingDraft.step
+                        });
+
+                        if (isDeletable) {
+                          // Use the flag to determine which collection to delete from
+                          if (existingDraft.isFromFilingsCollection || existingDraft.isSubmitted || status === 'pending_payment' || status === 'awaiting_schedule_1') {
+                            // It's a filing with deletable status, delete from filings collection
+                            const filingId = existingDraft.id;
+                            console.log('[START NEW] Deleting filing from filings collection, status:', status, 'ID:', filingId);
+                            try {
+                              await deleteFiling(filingId);
+                              console.log('[START NEW] Successfully deleted filing:', filingId);
+                            } catch (error) {
+                              console.error('[START NEW] Error deleting filing:', error);
+                              throw error; // Re-throw to show error to user
+                            }
+                          } else {
+                            // It's a draft, delete from draftFilings collection
+                            const draftIdToDelete = existingDraft.draftId || existingDraft.id;
+                            console.log('[START NEW] Deleting draft from draftFilings collection, ID:', draftIdToDelete);
+                            try {
+                              await deleteDraftFiling(draftIdToDelete);
+                              console.log('[START NEW] Successfully deleted draft:', draftIdToDelete);
+                            } catch (error) {
+                              console.error('[START NEW] Error deleting draft:', error);
+                              throw error; // Re-throw to show error to user
+                            }
+                          }
+                        } else {
+                          console.log('[START NEW] Not deletable, skipping deletion');
                         }
+                        // For processing/completed orders, just close modal and start new (don't delete)
 
                         setShowDraftWarningModal(false);
                         setExistingDraft(null);
@@ -5808,15 +6109,41 @@ function NewFilingContent() {
                   <button
                     onClick={() => {
                       setShowDraftWarningModal(false);
-                      if (existingDraft.isSubmitted) {
-                        router.push(`/dashboard/filings/${existingDraft.id}`);
-                      } else {
+                      // If it's processing/completed/submitted, or has filingId, or step >= 5, go to filings detail page
+                      if (existingDraft.isProcessingOrCompleted || 
+                          existingDraft.status === 'processing' || 
+                          existingDraft.status === 'completed' || 
+                          existingDraft.status === 'submitted' ||
+                          existingDraft.filingId ||
+                          existingDraft.step >= 5) {
+                        // If it has a filingId, use that; otherwise use the draft id
+                        const filingIdToUse = existingDraft.filingId || existingDraft.id;
+                        router.push(`/dashboard/filings/${filingIdToUse}`);
+                      } 
+                      // If it's a deletable filing (pending_payment, awaiting_schedule_1), resume the filing process
+                      else if (existingDraft.isDeletable && existingDraft.isSubmitted) {
+                        // It's a filing with deletable status, resume it
                         router.push(`/dashboard/new-filing?draft=${existingDraft.id}`);
+                      }
+                      // If it's a true draft, resume it
+                      else {
+                        router.push(`/dashboard/new-filing?draft=${existingDraft.id || existingDraft.draftId}`);
                       }
                     }}
                     className="px-4 py-2.5 bg-[var(--color-orange)] text-white rounded-lg font-semibold hover:bg-[var(--color-orange-hover)] transition-all shadow-lg shadow-orange-500/20 hover:shadow-xl text-sm flex items-center justify-center gap-2"
                   >
-                    {existingDraft.isSubmitted ? 'View Existing Filing' : 'Continue Draft'}
+                    {existingDraft.isProcessingOrCompleted || 
+                     existingDraft.status === 'processing' || 
+                     existingDraft.status === 'completed' || 
+                     existingDraft.status === 'submitted' ||
+                     existingDraft.filingId ||
+                     existingDraft.step >= 5
+                      ? 'View Existing Order'
+                      : existingDraft.isDeletable && existingDraft.isSubmitted
+                        ? 'Continue Filing'
+                        : existingDraft.isSubmitted 
+                          ? 'View Existing Filing' 
+                          : 'Continue Draft'}
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
