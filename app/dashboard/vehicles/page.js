@@ -24,7 +24,8 @@ import {
   Copy,
   Calendar,
   Shield,
-  Loader2
+  Loader2,
+  Sparkles
 } from 'lucide-react';
 import VehicleFormModal from '@/components/VehicleFormModal';
 
@@ -576,6 +577,14 @@ export default function VehiclesPage() {
                 )}
                 Import CSV
               </button>
+
+              <Link
+                href="/dashboard/upload-schedule1"
+                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-900/10 border border-white/10"
+              >
+                <Sparkles className="w-4 h-4 text-emerald-400" strokeWidth={3} />
+                AI-Powered Upload
+              </Link>
 
               <button
                 onClick={() => setShowAddModal(true)}

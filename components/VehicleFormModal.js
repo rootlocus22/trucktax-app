@@ -176,8 +176,8 @@ export default function VehicleFormModal({
             });
           } else {
             // Fallback to scrollIntoView
-            element.scrollIntoView({ 
-              behavior: 'smooth', 
+            element.scrollIntoView({
+              behavior: 'smooth',
               block: 'start',
               inline: 'nearest'
             });
@@ -201,7 +201,7 @@ export default function VehicleFormModal({
           creditDate: initialVehicle.creditDate || '',
           soldTo: initialVehicle.soldTo || '',
           soldDate: initialVehicle.soldDate || '',
-          businessId: initialVehicle.businessId || ''
+          businessId: initialVehicle.businessId || initialBusinessId || ''
         });
       } else {
         setVehicle({

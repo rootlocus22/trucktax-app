@@ -39,36 +39,42 @@ export async function POST(request) {
       ],
     });
 
-    const prompt = `You are an expert at extracting data from IRS Form 2290 Schedule 1 documents. 
+    const prompt = `You are an expert at extracting structured data from IRS Form 2290 Schedule 1 (Schedule of Heavy Highway Vehicles). 
 
-Extract the following information from this Schedule 1 PDF and return it as a JSON object:
+Extract the following information from this PDF and return it as a strictly formatted JSON object:
 
 {
-  "businessName": "Business name from the form",
-  "ein": "EIN (Employer Identification Number) in format XX-XXXXXXX",
-  "address": "Complete business address",
-  "phone": "Phone number if available",
-  "signingAuthorityName": "Name of person signing",
-  "signingAuthorityTitle": "Title of person signing",
-  "taxYear": "Tax year (e.g., 2025-2026)",
+  "businessName": "Full legal name as displayed in the Business Name box",
+  "ein": "EIN formatted as XX-XXXXXXX",
+  "address": {
+    "street": "Street address including Suite/Apt",
+    "city": "City name",
+    "state": "Two-letter state abbreviation",
+    "zip": "ZIP code (5 or 9 digits)",
+    "country": "United States of America"
+  },
+  "phone": "Phone number if found",
+  "signingAuthorityName": "Name of the person who signed or the title-holder",
+  "signingAuthorityTitle": "Official title (e.g., President, Owner)",
+  "taxYear": "Format YYYY-YYYY based on the form header",
+  "firstUsedMonth": "Month from the 'First Used Month' box",
+  "isLogging": "Boolean: true if the form is for LOGGING vehicles (check for marks in the Logging section)",
   "vehicles": [
     {
-      "vin": "17-character VIN",
-      "grossWeightCategory": "Weight category letter (A-W)",
+      "vin": "17-character VIN string",
+      "grossWeightCategory": "Single letter code A through W",
       "isSuspended": false,
-      "taxableGrossWeight": "Weight in pounds if available"
+      "taxableGrossWeight": "Weight in pounds"
     }
   ]
 }
 
-Important:
-- Extract ALL vehicles listed on the Schedule 1
-- VIN must be exactly 17 characters
-- Weight category should be the letter code (A through W)
-- isSuspended should be true if the vehicle qualifies for suspended status
-- Return ONLY valid JSON, no additional text or explanation
-- If a field is not found, use null or empty string
-- Ensure EIN format is XX-XXXXXXX`;
+Extraction Rules:
+1. VIN Integrity: VINs MUST be exactly 17 characters. If a VIN is distorted, correct obvious optical character recognition errors (e.g., '0' instead of 'O').
+2. Entity Rules: Split the address into street, city, state, and zip.
+3. Category A-W: Map the category exactly as circled or marked on the form.
+4. Completeness: Extract EVERY vehicle listed. If multiple pages exist, parse all.
+5. JSON Only: Return ONLY the JSON object. No intro, no outro.`;
 
     // Generate content with timeout
     const generatePromise = model.generateContent([
@@ -114,7 +120,7 @@ Important:
 
   } catch (error) {
     console.error('Error extracting Schedule 1 data:', error);
-    
+
     let errorMessage = 'Failed to extract data from PDF';
     if (error.message?.includes('timeout')) {
       errorMessage = 'Request timed out. The PDF might be too large.';

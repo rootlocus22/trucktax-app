@@ -8,7 +8,20 @@ import { createFiling, createBusiness, createVehicle, getBusinessesByUser, getVe
 import { saveDraftFiling, getDraftFiling, deleteDraftFiling } from '@/lib/draftHelpers';
 import { calculateFilingCost } from '@/app/actions/pricing';
 import { TruckLoader } from '@/components/TruckLoader';
-import { FileText, Edit, CreditCard, ShieldCheck, CheckCircle, ArrowRight, Building2, Truck } from 'lucide-react';
+import { AILoader } from '@/components/AILoader';
+import {
+  FileText,
+  CheckCircle,
+  ArrowRight,
+  Building2,
+  Plus,
+  ChevronUp,
+  ChevronDown,
+  Loader2,
+  X
+} from 'lucide-react';
+import BusinessFormModal from '@/components/BusinessFormModal';
+import VehicleFormModal from '@/components/VehicleFormModal';
 
 function UploadSchedule1Content() {
   const { user } = useAuth();
@@ -51,6 +64,9 @@ function UploadSchedule1Content() {
     grandTotal: 0
   });
   const [pricingLoading, setPricingLoading] = useState(false);
+  const [showBusinessModal, setShowBusinessModal] = useState(false);
+  const [showVehicleModal, setShowVehicleModal] = useState(false);
+  const [editingVehicleIndex, setEditingVehicleIndex] = useState(null);
 
   // Load draft if resuming
   useEffect(() => {
@@ -118,7 +134,7 @@ function UploadSchedule1Content() {
       // This ensures we only draft filings that have significant progress (2290 only)
       const hasBusiness = selectedBusinessId || extractedBusiness;
       const hasMinimumData = hasBusiness && selectedVehicleIds.length > 0;
-      
+
       if (step < 2 || !hasMinimumData) {
         return;
       }
@@ -131,7 +147,7 @@ function UploadSchedule1Content() {
           try {
             const existingDrafts = await getDraftFilingsByUser(user.uid);
             const sortedCurrentVehicles = [...selectedVehicleIds].sort().join(',');
-            
+
             const duplicateDraft = existingDrafts.find(d => {
               if (d.selectedBusinessId !== selectedBusinessId) return false;
               if (!d.selectedVehicleIds) return false;
@@ -380,23 +396,40 @@ function UploadSchedule1Content() {
         throw new Error('Failed to extract data from PDF. Please try again or use manual entry.');
       }
 
-      // Store extracted data (not yet saved to DB)
+      // Build extracted business object
       if (extracted.businessName && extracted.ein) {
-        setExtractedBusiness({
+        const busObj = {
           businessName: extracted.businessName,
           ein: extracted.ein,
-          address: extracted.address || '',
+          address: typeof extracted.address === 'object'
+            ? extracted.address.street
+            : extracted.address,
+          city: extracted.address?.city || '',
+          state: extracted.address?.state || '',
+          zip: extracted.address?.zip || '',
+          country: extracted.address?.country || 'United States of America',
           phone: extracted.phone || '',
           signingAuthorityName: extracted.signingAuthorityName || '',
-          signingAuthorityTitle: extracted.signingAuthorityTitle || ''
-        });
+          signingAuthorityPhone: extracted.signingAuthorityPhone || '',
+          signingAuthorityPIN: '',
+          hasThirdPartyDesignee: false
+        };
+        setExtractedBusiness(busObj);
+
+        // Auto-detect existing business
+        const existingBusiness = businesses.find(b => b.ein === busObj.ein);
+        if (existingBusiness) {
+          setSelectedBusinessId(existingBusiness.id);
+        }
       }
 
       if (extracted.vehicles && Array.isArray(extracted.vehicles) && extracted.vehicles.length > 0) {
         setExtractedVehicles(extracted.vehicles.map(v => ({
           vin: v.vin?.toUpperCase() || '',
           grossWeightCategory: v.grossWeightCategory || '',
-          isSuspended: v.isSuspended || false
+          isSuspended: !!v.isSuspended,
+          vehicleType: v.isSuspended ? 'suspended' : 'taxable',
+          logging: extracted.isLogging || false
         })));
       }
 
@@ -407,27 +440,6 @@ function UploadSchedule1Content() {
         taxYear: extracted.taxYear || filingData.taxYear,
         firstUsedMonth: extracted.firstUsedMonth || filingData.firstUsedMonth
       });
-
-      // Load existing businesses and vehicles to check for matches
-      await loadData();
-
-      // Auto-detect existing business
-      if (extractedBusiness) {
-        const existingBusiness = businesses.find(b => b.ein === extractedBusiness.ein);
-        if (existingBusiness) {
-          setSelectedBusinessId(existingBusiness.id);
-        }
-      }
-
-      // Auto-detect existing vehicles
-      if (extractedVehicles.length > 0) {
-        const matchingVehicleIds = vehicles
-          .filter(v => extractedVehicles.some(ev => ev.vin === v.vin))
-          .map(v => v.id);
-        if (matchingVehicleIds.length > 0) {
-          setSelectedVehicleIds(matchingVehicleIds);
-        }
-      }
 
       // Move to review step
       setStep(2);
@@ -444,112 +456,63 @@ function UploadSchedule1Content() {
     }
   };
 
-  const handleSaveBusiness = async () => {
-    if (!extractedBusiness || !user) return;
-
+  const handleBusinessSubmit = async (data) => {
     setLoading(true);
-    setError('');
     try {
-      // Check if business already exists
-      const existingBusiness = businesses.find(b => b.ein === extractedBusiness.ein);
-      if (existingBusiness) {
-        setSelectedBusinessId(existingBusiness.id);
-        setError('');
-        return;
-      }
-
-      const businessId = await createBusiness(user.uid, extractedBusiness);
+      const businessId = await createBusiness(user.uid, data);
       await loadData();
       setSelectedBusinessId(businessId);
-      setError('');
+      setExtractedBusiness(null);
+      setShowBusinessModal(false);
     } catch (error) {
       console.error('Error saving business:', error);
-      setError('Failed to create business. Please try again.');
+      setError('Failed to save business.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSaveVehicles = async () => {
-    if (!extractedVehicles.length || !user) return;
-
+  const handleVehicleSubmit = async (data) => {
     setLoading(true);
-    setError('');
     try {
-      const vehicleIds = [];
-      for (const vehicleData of extractedVehicles) {
-        if (vehicleData.vin && vehicleData.grossWeightCategory) {
-          // Check if vehicle already exists
-          const existingVehicle = vehicles.find(v => v.vin === vehicleData.vin);
-          if (existingVehicle) {
-            vehicleIds.push(existingVehicle.id);
-          } else {
-            const vehicleId = await createVehicle(user.uid, vehicleData);
-            vehicleIds.push(vehicleId);
-          }
+      const vehicleId = await createVehicle(user.uid, data);
+      await loadData();
+      setSelectedVehicleIds(prev => [...new Set([...prev, vehicleId])]);
+
+      if (editingVehicleIndex !== null) {
+        setExtractedVehicles(prev => prev.filter((_, i) => i !== editingVehicleIndex));
+        setEditingVehicleIndex(null);
+      }
+      setShowVehicleModal(false);
+    } catch (error) {
+      console.error('Error saving vehicle:', error);
+      setError('Failed to save vehicle.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveAllVehicles = async () => {
+    setLoading(true);
+    try {
+      const newIds = [];
+      for (const v of extractedVehicles) {
+        if (v.vin && v.grossWeightCategory) {
+          const id = await createVehicle(user.uid, v);
+          newIds.push(id);
         }
       }
-
-      if (vehicleIds.length === 0) {
-        setError('No valid vehicles to save. Please check VIN and weight category.');
-        return;
-      }
-
       await loadData();
-      setSelectedVehicleIds([...new Set([...selectedVehicleIds, ...vehicleIds])]); // Merge with existing selections
-      setError('');
+      setSelectedVehicleIds(prev => [...new Set([...prev, ...newIds])]);
+      setExtractedVehicles([]);
     } catch (error) {
       console.error('Error saving vehicles:', error);
-      setError('Failed to create vehicles. Please try again.');
+      setError('Failed to save some vehicles.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async () => {
-    if (!selectedBusinessId || selectedVehicleIds.length === 0) {
-      setError('Please select a business and at least one vehicle');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      // Create filing
-      const filingId = await createFiling({
-        userId: user.uid,
-        businessId: selectedBusinessId,
-        vehicleIds: selectedVehicleIds,
-        taxYear: filingData.taxYear,
-        firstUsedMonth: filingData.firstUsedMonth,
-        filingType: 'standard',
-        inputDocuments: pdfUrl ? [pdfUrl] : [],
-        pricing: pricing,
-        notes: `Schedule 1 PDF uploaded and data extracted automatically. Extracted ${selectedVehicleIds.length} vehicle(s).`
-      });
-
-      // Delete draft immediately after successful submission
-      if (draftId) {
-        try {
-          console.log('Deleting draft filing after successful submission:', draftId);
-          await deleteDraftFiling(draftId);
-          console.log('Draft filing deleted successfully');
-          setDraftId(null); // Clear draft ID from state
-        } catch (error) {
-          console.error('Error deleting draft:', error);
-          // Don't fail the whole submission if draft deletion fails
-        }
-      }
-
-      router.push(`/dashboard/filings/${filingId}`);
-    } catch (error) {
-      console.error('Error creating filing:', error);
-      setError('Failed to create filing. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <ProtectedRoute>
@@ -566,7 +529,7 @@ function UploadSchedule1Content() {
         {/* Step Indicator */}
         <div className="max-w-5xl mx-auto">
           <div className="mb-6 flex items-center justify-center gap-2">
-            {[1, 2, 3].map((s) => (
+            {[1, 2].map((s) => (
               <div key={s} className="flex items-center">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${step === s
@@ -578,7 +541,7 @@ function UploadSchedule1Content() {
                 >
                   {step > s ? <CheckCircle className="w-5 h-5" /> : s}
                 </div>
-                {s < 3 && (
+                {s < 2 && (
                   <div
                     className={`h-1 w-12 mx-1 ${step > s ? 'bg-green-500' : 'bg-gray-200'
                       }`}
@@ -638,8 +601,11 @@ function UploadSchedule1Content() {
               </div>
 
               {loading ? (
-                <div className="bg-[var(--color-page-alt)] rounded-xl p-8">
-                  <TruckLoader message={extractionProgress || 'Processing your Schedule 1 PDF...'} />
+                <div className="bg-slate-900 rounded-2xl p-4 mb-8 border border-blue-500/20 shadow-xl overflow-hidden relative">
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <Sparkles className="text-blue-400 w-20 h-20" />
+                  </div>
+                  <AILoader message={extractionProgress || 'AI is analyzing your Schedule 1 PDF...'} />
                 </div>
               ) : (
                 <>
@@ -730,164 +696,218 @@ function UploadSchedule1Content() {
             <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-8">
               <h2 className="text-xl font-semibold text-[var(--color-text)] mb-6">Step 2: Review & Edit Extracted Data</h2>
 
-              {/* Business Section */}
-              {extractedBusiness && (
-                <div className="mb-6 p-4 bg-[var(--color-page-alt)] rounded-lg border border-[var(--color-border)]">
-                  <div className="flex items-center gap-2 mb-4">
+              {/* Business Selection/Review */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
                     <Building2 className="w-5 h-5 text-[var(--color-orange)]" />
-                    <h3 className="font-semibold text-[var(--color-text)]">Business Information</h3>
+                    <h3 className="text-lg font-bold text-[var(--color-text)]">Business Entity</h3>
                   </div>
+                  {!selectedBusinessId && extractedBusiness && (
+                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full animate-pulse">
+                      Extracted from PDF
+                    </span>
+                  )}
+                </div>
 
-                  <div className="grid md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm text-[var(--color-muted)] mb-1">Business Name</label>
-                      <input
-                        type="text"
-                        value={extractedBusiness.businessName}
-                        onChange={(e) => setExtractedBusiness({ ...extractedBusiness, businessName: e.target.value })}
-                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-[var(--color-muted)] mb-1">EIN</label>
-                      <input
-                        type="text"
-                        value={extractedBusiness.ein}
-                        onChange={(e) => setExtractedBusiness({ ...extractedBusiness, ein: e.target.value })}
-                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm text-[var(--color-muted)] mb-1">Address</label>
-                      <input
-                        type="text"
-                        value={extractedBusiness.address}
-                        onChange={(e) => setExtractedBusiness({ ...extractedBusiness, address: e.target.value })}
-                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleSaveBusiness}
-                      disabled={loading}
-                      className="px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg hover:bg-[var(--color-orange-hover)] transition disabled:opacity-50"
-                    >
-                      {businesses.find(b => b.ein === extractedBusiness.ein) ? 'Update Business' : 'Save Business'}
-                    </button>
-
-                    {/* Select existing business */}
-                    {businesses.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Select Existing */}
+                  <div className="relative">
+                    <label className="block text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider mb-2">
+                      Select Existing Business
+                    </label>
+                    <div className="relative">
                       <select
                         value={selectedBusinessId}
-                        onChange={(e) => setSelectedBusinessId(e.target.value)}
-                        className="px-4 py-2 border border-[var(--color-border)] rounded-lg"
+                        onChange={(e) => {
+                          setSelectedBusinessId(e.target.value);
+                          if (e.target.value) setExtractedBusiness(null);
+                        }}
+                        className="w-full pl-10 pr-4 py-3 bg-white border border-[var(--color-border)] rounded-xl appearance-none focus:ring-2 focus:ring-[var(--color-orange)] font-semibold text-sm"
                       >
-                        <option value="">Or select existing business...</option>
+                        <option value="">-- Select Business --</option>
                         {businesses.map(b => (
                           <option key={b.id} value={b.id}>{b.businessName} ({b.ein})</option>
                         ))}
                       </select>
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-muted)]" />
+                    </div>
+                  </div>
+
+                  {/* Extracted or New */}
+                  <div className="flex flex-col justify-end">
+                    {extractedBusiness ? (
+                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <p className="font-bold text-sm text-[var(--color-text)]">{extractedBusiness.businessName}</p>
+                            <p className="font-mono text-xs text-blue-600">
+                              {extractedBusiness.ein}
+                              {selectedBusinessId && businesses.find(b => b.id === selectedBusinessId)?.ein === extractedBusiness.ein && (
+                                <span className="ml-2 px-1.5 py-0.5 bg-green-100 text-green-700 text-[10px] font-black rounded uppercase">Auto-Matched</span>
+                              )}
+                            </p>
+                          </div>
+                          {!selectedBusinessId && (
+                            <button
+                              onClick={() => setShowBusinessModal(true)}
+                              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition shadow-sm"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                              Review & Save
+                            </button>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            setExtractedBusiness(null);
+                            setSelectedBusinessId('');
+                            setShowBusinessModal(true);
+                          }}
+                          className="w-full py-1.5 text-[10px] font-bold text-blue-600 hover:text-blue-800 border border-dashed border-blue-300 rounded hover:bg-blue-100 transition"
+                        >
+                          Use Different Business Instead
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setExtractedBusiness(null);
+                          setShowBusinessModal(true);
+                        }}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-[var(--color-border)] rounded-xl text-[var(--color-muted)] hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] transition-all font-bold text-sm"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add New Business
+                      </button>
                     )}
                   </div>
                 </div>
-              )}
+              </div>
 
-              {/* Vehicles Section */}
-              {extractedVehicles.length > 0 && (
-                <div className="mb-6 p-4 bg-[var(--color-page-alt)] rounded-lg border border-[var(--color-border)]">
-                  <div className="flex items-center gap-2 mb-4">
+              {/* Vehicles Selection/Review */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
                     <Truck className="w-5 h-5 text-[var(--color-orange)]" />
-                    <h3 className="font-semibold text-[var(--color-text)]">Vehicles ({extractedVehicles.length})</h3>
+                    <h3 className="text-lg font-bold text-[var(--color-text)]">Vehicle Fleet</h3>
                   </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-bold text-[var(--color-muted)]">
+                      {selectedVehicleIds.length} Selected
+                    </span>
+                    {extractedVehicles.length > 0 && (
+                      <button
+                        onClick={handleSaveAllVehicles}
+                        disabled={loading}
+                        className="text-xs font-bold text-[var(--color-orange)] hover:underline flex items-center gap-1"
+                      >
+                        Save All Extracted ({extractedVehicles.length})
+                      </button>
+                    )}
+                  </div>
+                </div>
 
-                  <div className="space-y-3 mb-4">
-                    {extractedVehicles.map((vehicle, index) => (
-                      <div key={index} className="grid md:grid-cols-3 gap-3 p-3 bg-white rounded border border-[var(--color-border)]">
-                        <div>
-                          <label className="block text-xs text-[var(--color-muted)] mb-1">VIN</label>
-                          <input
-                            type="text"
-                            value={vehicle.vin}
-                            onChange={(e) => {
-                              const updated = [...extractedVehicles];
-                              updated[index].vin = e.target.value.toUpperCase();
-                              setExtractedVehicles(updated);
-                            }}
-                            className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg font-mono text-sm"
-                            maxLength="17"
-                          />
+                <div className="space-y-4">
+                  {/* Extracted Vehicles Preview */}
+                  {extractedVehicles.map((v, i) => (
+                    <div key={`extracted-${i}`} className="p-4 bg-orange-50/50 border border-orange-200 rounded-xl flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                          <Truck className="w-5 h-5 text-[var(--color-orange)]" />
                         </div>
                         <div>
-                          <label className="block text-xs text-[var(--color-muted)] mb-1">Weight Category</label>
-                          <input
-                            type="text"
-                            value={vehicle.grossWeightCategory}
-                            onChange={(e) => {
-                              const updated = [...extractedVehicles];
-                              updated[index].grossWeightCategory = e.target.value.toUpperCase();
-                              setExtractedVehicles(updated);
-                            }}
-                            className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm"
-                            maxLength="1"
-                          />
-                        </div>
-                        <div className="flex items-end">
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={vehicle.isSuspended}
-                              onChange={(e) => {
-                                const updated = [...extractedVehicles];
-                                updated[index].isSuspended = e.target.checked;
-                                setExtractedVehicles(updated);
-                              }}
-                              className="w-4 h-4"
-                            />
-                            <span className="text-sm text-[var(--color-text)]">Suspended</span>
-                          </label>
+                          <p className="font-mono font-bold text-sm text-[var(--color-text)]">{v.vin}</p>
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 bg-orange-100 text-[var(--color-orange)] text-[10px] font-black uppercase rounded">
+                              Category {v.grossWeightCategory}
+                            </span>
+                            {v.isSuspended && (
+                              <span className="px-2 py-0.5 bg-blue-100 text-blue-600 text-[10px] font-black uppercase rounded">
+                                Suspended
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                      <button
+                        onClick={() => {
+                          setEditingVehicleIndex(i);
+                          setShowVehicleModal(true);
+                        }}
+                        className="p-2 text-[var(--color-muted)] hover:text-[var(--color-orange)] transition"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
 
-                  <button
-                    onClick={handleSaveVehicles}
-                    disabled={loading}
-                    className="px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg hover:bg-[var(--color-orange-hover)] transition disabled:opacity-50"
-                  >
-                    Save All Vehicles
-                  </button>
-
-                  {/* Select existing vehicles */}
+                  {/* List of saved vehicles to select */}
                   {vehicles.length > 0 && (
-                    <div className="mt-4">
-                      <label className="block text-sm text-[var(--color-muted)] mb-2">Or select existing vehicles:</label>
-                      <div className="space-y-2 max-h-48 overflow-y-auto">
-                        {vehicles.map(v => (
-                          <label key={v.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={selectedVehicleIds.includes(v.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedVehicleIds([...selectedVehicleIds, v.id]);
-                                } else {
-                                  setSelectedVehicleIds(selectedVehicleIds.filter(id => id !== v.id));
-                                }
-                              }}
-                              className="w-4 h-4"
-                            />
-                            <span className="text-sm font-mono">{v.vin}</span>
-                            <span className="text-sm text-[var(--color-muted)]">({v.grossWeightCategory})</span>
-                          </label>
-                        ))}
-                      </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {vehicles.map(v => (
+                        <label
+                          key={v.id}
+                          className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${selectedVehicleIds.includes(v.id)
+                            ? 'border-[var(--color-orange)] bg-orange-50/20'
+                            : 'border-[var(--color-border)] bg-white hover:border-orange-200'
+                            }`}
+                        >
+                          <input
+                            type="checkbox"
+                            className="w-5 h-5 rounded text-[var(--color-orange)] focus:ring-[var(--color-orange)]"
+                            checked={selectedVehicleIds.includes(v.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) setSelectedVehicleIds([...selectedVehicleIds, v.id]);
+                              else setSelectedVehicleIds(selectedVehicleIds.filter(id => id !== v.id));
+                            }}
+                          />
+                          <div>
+                            <p className="font-mono font-bold text-sm text-[var(--color-text)]">{v.vin}</p>
+                            <p className="text-[10px] font-black text-[var(--color-muted)] uppercase tracking-tight">
+                              Category {v.grossWeightCategory} • {v.isSuspended ? 'Suspended' : 'Taxable'}
+                            </p>
+                          </div>
+                        </label>
+                      ))}
                     </div>
                   )}
+
+                  <button
+                    onClick={() => {
+                      setEditingVehicleIndex(null);
+                      setShowVehicleModal(true);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-4 border-2 border-dashed border-[var(--color-border)] rounded-xl text-[var(--color-muted)] hover:border-[var(--color-orange)] hover:text-[var(--color-orange)] transition-all font-bold text-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Another Vehicle
+                  </button>
                 </div>
-              )}
+              </div>
+
+              {/* Modal Components */}
+              <BusinessFormModal
+                isOpen={showBusinessModal}
+                onClose={() => setShowBusinessModal(false)}
+                onSubmit={handleBusinessSubmit}
+                initialBusiness={extractedBusiness}
+                loading={loading}
+                title={extractedBusiness ? "Review Business Details" : "Add New Business"}
+              />
+
+              <VehicleFormModal
+                isOpen={showVehicleModal}
+                onClose={() => {
+                  setShowVehicleModal(false);
+                  setEditingVehicleIndex(null);
+                }}
+                onSubmit={handleVehicleSubmit}
+                businesses={businesses}
+                initialBusinessId={selectedBusinessId}
+                initialVehicle={editingVehicleIndex !== null ? extractedVehicles[editingVehicleIndex] : null}
+                loading={loading}
+              />
 
               <div className="flex justify-between gap-4 pt-4 border-t border-[var(--color-border)]">
                 <button
@@ -901,10 +921,9 @@ function UploadSchedule1Content() {
                     setError('');
 
                     // Ensure business is saved and selected
-                    if (extractedBusiness) {
-                      if (!selectedBusinessId) {
-                        await handleSaveBusiness();
-                      }
+                    const currentSelectedBusinessId = selectedBusinessId;
+                    if (extractedBusiness && !currentSelectedBusinessId) {
+                      await handleSaveBusiness();
                     }
 
                     // Ensure vehicles are saved and selected
@@ -912,8 +931,8 @@ function UploadSchedule1Content() {
                       await handleSaveVehicles();
                     }
 
-                    // Validate before proceeding
-                    if (!selectedBusinessId) {
+                    // Final check for selection
+                    if (!selectedBusinessId && !currentSelectedBusinessId) {
                       setError('Please save or select a business before continuing.');
                       return;
                     }
@@ -923,206 +942,37 @@ function UploadSchedule1Content() {
                       return;
                     }
 
-                    // Save draft before moving to payment step
+                    // Save draft and hand off to comprehensive filing flow
                     if (user) {
                       try {
                         const draftData = {
-                          draftId,
                           workflowType: 'upload',
-                          step: 3,
+                          step: 5, // Hand off to Step 5 (Review) in NewFilingPage
                           filingData,
                           extractedBusiness,
                           extractedVehicles,
-                          selectedBusinessId,
+                          selectedBusinessId: selectedBusinessId || currentSelectedBusinessId,
                           selectedVehicleIds,
-                          pdfUrl,
-                          pricing: null // Will be calculated on step 3
+                          pdfUrl, // Pass the AI extraction source file
+                          pricing: null // NewFilingPage will recalculate
                         };
                         const savedDraftId = await saveDraftFiling(user.uid, draftData);
-                        if (!draftId) {
-                          setDraftId(savedDraftId);
-                        }
+                        router.push(`/dashboard/new-filing?draft=${savedDraftId}`);
                       } catch (error) {
-                        console.error('Error saving draft:', error);
+                        console.error('Error handoff to filing flow:', error);
+                        setError('Process failed. Please try again.');
                       }
                     }
-
-                    setStep(3);
                   }}
                   disabled={loading}
                   className="px-6 py-2 bg-[var(--color-orange)] text-white rounded-lg font-semibold hover:bg-[var(--color-orange-hover)] transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Continue to Payment
+                  Continue to Review & Pay
                 </button>
               </div>
             </div>
           )}
 
-          {/* Step 3: Review & Pay */}
-          {step === 3 && (
-            <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-8">
-              <h2 className="text-xl font-semibold text-[var(--color-text)] mb-6">Step 3: Review & Pay</h2>
-
-              <div className="grid md:grid-cols-3 gap-8 mb-8">
-                {/* Summary Column */}
-                <div className="md:col-span-2 space-y-6">
-                  {/* Business Information */}
-                  {(() => {
-                    const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
-                    if (!selectedBusiness && extractedBusiness) {
-                      // Show extracted business even if not saved yet
-                      return (
-                        <div className="bg-[var(--color-page-alt)] p-6 rounded-xl border border-[var(--color-border)]">
-                          <h3 className="font-bold text-[var(--color-text)] mb-4 flex items-center gap-2">
-                            <Building2 className="w-5 h-5 text-[var(--color-orange)]" />
-                            Business Information
-                          </h3>
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <p className="text-[var(--color-muted)]">Business Name</p>
-                              <p className="font-semibold">{extractedBusiness.businessName}</p>
-                            </div>
-                            <div>
-                              <p className="text-[var(--color-muted)]">EIN</p>
-                              <p className="font-semibold font-mono">{extractedBusiness.ein}</p>
-                            </div>
-                            {extractedBusiness.address && (
-                              <div className="col-span-2">
-                                <p className="text-[var(--color-muted)]">Address</p>
-                                <p className="font-semibold">{extractedBusiness.address}</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    } else if (selectedBusiness) {
-                      return (
-                        <div className="bg-[var(--color-page-alt)] p-6 rounded-xl border border-[var(--color-border)]">
-                          <h3 className="font-bold text-[var(--color-text)] mb-4 flex items-center gap-2">
-                            <Building2 className="w-5 h-5 text-[var(--color-orange)]" />
-                            Business Information
-                          </h3>
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <p className="text-[var(--color-muted)]">Business Name</p>
-                              <p className="font-semibold">{selectedBusiness.businessName}</p>
-                            </div>
-                            <div>
-                              <p className="text-[var(--color-muted)]">EIN</p>
-                              <p className="font-semibold font-mono">{selectedBusiness.ein}</p>
-                            </div>
-                            {selectedBusiness.address && (
-                              <div className="col-span-2">
-                                <p className="text-[var(--color-muted)]">Address</p>
-                                <p className="font-semibold">{selectedBusiness.address}</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
-
-                  <div className="bg-[var(--color-page-alt)] p-6 rounded-xl border border-[var(--color-border)]">
-                    <h3 className="font-bold text-[var(--color-text)] mb-4 flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-[var(--color-orange)]" />
-                      Filing Details
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-[var(--color-muted)]">Tax Year</p>
-                        <p className="font-semibold">{filingData.taxYear}</p>
-                      </div>
-                      <div>
-                        <p className="text-[var(--color-muted)]">First Used</p>
-                        <p className="font-semibold">{filingData.firstUsedMonth}</p>
-                      </div>
-                      <div>
-                        <p className="text-[var(--color-muted)]">Vehicles</p>
-                        <p className="font-semibold">{selectedVehicleIds.length}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Selected Vehicles */}
-                  <div className="bg-[var(--color-page-alt)] p-6 rounded-xl border border-[var(--color-border)]">
-                    <h3 className="font-bold text-[var(--color-text)] mb-4">Selected Vehicles</h3>
-                    <div className="space-y-2">
-                      {vehicles.filter(v => selectedVehicleIds.includes(v.id)).map(v => (
-                        <div key={v.id} className="flex items-center justify-between p-3 bg-white rounded border border-[var(--color-border)]">
-                          <div>
-                            <p className="font-mono font-semibold">{v.vin}</p>
-                            <p className="text-sm text-[var(--color-muted)]">Weight: {v.grossWeightCategory} {v.isSuspended && '(Suspended)'}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Payment Column */}
-                <div className="bg-gradient-to-br from-[var(--color-orange)] to-[var(--color-orange-soft)] rounded-xl p-6 text-white">
-                  <h3 className="text-lg font-bold mb-6">Order Summary</h3>
-
-                  {pricingLoading ? (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-                      <p className="mt-2 text-sm">Calculating...</p>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="space-y-3 mb-6">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-white/80">IRS Tax Amount</span>
-                          <span className="font-bold">${pricing.totalTax.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-white/80">Service Fee</span>
-                          <span className="font-bold">${pricing.serviceFee.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-white/80">Sales Tax (Est.)</span>
-                          <span className="font-bold">${pricing.salesTax.toFixed(2)}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-end mb-8 border-t border-white/20 pt-4">
-                        <span className="text-lg font-bold">Total</span>
-                        <span className="text-3xl font-bold">${pricing.grandTotal.toFixed(2)}</span>
-                      </div>
-                    </>
-                  )}
-
-                  <button
-                    onClick={handleSubmit}
-                    disabled={loading || pricingLoading}
-                    className="w-full bg-[var(--color-orange)] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#ff7a20] transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {loading ? 'Processing...' : (
-                      <>
-                        Pay & Submit <CreditCard className="w-5 h-5" />
-                      </>
-                    )}
-                  </button>
-
-                  <div className="mt-4 flex items-center justify-center gap-2 text-xs text-white/60">
-                    <ShieldCheck className="w-4 h-4" />
-                    Secure 256-bit SSL Encrypted
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-start pt-4">
-                <button
-                  onClick={() => setStep(2)}
-                  className="px-6 py-2 border border-[var(--color-border)] rounded-lg text-[var(--color-text)] hover:bg-[var(--color-page-alt)] transition"
-                >
-                  Back to Review
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </ProtectedRoute>

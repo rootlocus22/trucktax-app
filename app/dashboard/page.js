@@ -31,6 +31,7 @@ import {
   FileCheck,
   Trash2
 } from 'lucide-react';
+import { AIOnboarding } from '@/components/AIOnboarding';
 
 
 
@@ -42,6 +43,49 @@ export default function DashboardPage() {
   const [businesses, setBusinesses] = useState([]);
   const [vehiclesMap, setVehiclesMap] = useState({}); // Map of vehicleId -> vehicle data
   const [loading, setLoading] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Move dependencies of unconvertedDrafts up
+  const activeDrafts = useMemo(() => draftFilings.filter(d => d.status === 'draft' && (d.selectedBusinessId || d.businessId)), [draftFilings]);
+
+  const convertedDraftIds = useMemo(() => {
+    const ids = new Set();
+    filings.forEach(filing => {
+      if (filing.draftId) {
+        ids.add(filing.draftId);
+      }
+    });
+
+    draftFilings.forEach(draft => {
+      if (draft.filingId && filings.some(f => f.id === draft.filingId)) {
+        ids.add(draft.id || draft.draftId);
+      }
+    });
+
+    return ids;
+  }, [filings, draftFilings]);
+
+  const unconvertedDrafts = useMemo(() => {
+    return activeDrafts.filter(draft => {
+      if (!draft.selectedBusinessId && !draft.businessId) return false;
+      if (convertedDraftIds.has(draft.id || draft.draftId)) return false;
+      const hasMatchingFiling = filings.some(filing => {
+        const sameTaxYear = filing.taxYear === draft.taxYear;
+        const sameBusiness = filing.businessId === draft.selectedBusinessId ||
+          filing.businessId === draft.businessId;
+        return sameTaxYear && sameBusiness;
+      });
+      return !hasMatchingFiling;
+    });
+  }, [activeDrafts, convertedDraftIds, filings]);
+
+  useEffect(() => {
+    // Check if we should show onboarding
+    const onboardingDismissed = localStorage.getItem('onboarding_dismissed');
+    if (!onboardingDismissed && !loading && filings.length === 0 && unconvertedDrafts.length === 0) {
+      setShowOnboarding(true);
+    }
+  }, [loading, filings.length, unconvertedDrafts.length]);
 
   useEffect(() => {
     if (!authLoading && userData?.role === 'agent') {
@@ -112,62 +156,11 @@ export default function DashboardPage() {
 
   const incomplete = useMemo(() => getIncompleteFilings(filings), [filings]);
   // Filter drafts to only show those with selectedBusinessId (business selected)
-  const activeDrafts = useMemo(() => draftFilings.filter(d => d.status === 'draft' && (d.selectedBusinessId || d.businessId)), [draftFilings]);
+
   const allIncompleteFilings = useMemo(() => [
     ...activeDrafts.map(d => ({ ...d, isDraft: true })),
     ...incomplete.all.filter(f => f.status !== 'action_required')
   ], [activeDrafts, incomplete]);
-
-  // Filter out drafts that have been converted to actual filings
-  // A draft is considered "converted" if there's a filing with:
-  // 1. The same draftId reference, OR
-  // 2. The draft has a filingId reference, OR
-  // 3. Same tax year, business, and vehicles (likely the same filing)
-  const convertedDraftIds = useMemo(() => {
-    const ids = new Set();
-    filings.forEach(filing => {
-      if (filing.draftId) {
-        ids.add(filing.draftId);
-      }
-    });
-
-    // Also add drafts that have an explicit filingId reference
-    draftFilings.forEach(draft => {
-      if (draft.filingId && filings.some(f => f.id === draft.filingId)) {
-        ids.add(draft.id || draft.draftId);
-      }
-    });
-
-    return ids;
-  }, [filings, draftFilings]);
-
-  // Only include drafts that haven't been converted to filings AND have a business selected
-  const unconvertedDrafts = useMemo(() => {
-    return activeDrafts.filter(draft => {
-      // Only show drafts with selectedBusinessId (business must be selected)
-      if (!draft.selectedBusinessId && !draft.businessId) {
-        return false;
-      }
-
-      // Skip if this draft was converted to a filing
-      if (convertedDraftIds.has(draft.id || draft.draftId)) {
-        return false;
-      }
-
-      // Also check for duplicates based on tax year and business
-      // If there's a filing with same tax year and business, likely the same filing
-      const hasMatchingFiling = filings.some(filing => {
-        const sameTaxYear = filing.taxYear === draft.taxYear;
-        const sameBusiness = filing.businessId === draft.selectedBusinessId ||
-          filing.businessId === draft.businessId;
-        // If both match and filing exists (even without status), skip the draft
-        // A filing in the filings collection means it was submitted or is in payment flow
-        return sameTaxYear && sameBusiness;
-      });
-
-      return !hasMatchingFiling;
-    });
-  }, [activeDrafts, convertedDraftIds, filings]);
 
   // Combine all filings (completed, incomplete, drafts) for the table
   const allFilingsForTable = useMemo(() => [
@@ -405,6 +398,14 @@ export default function DashboardPage() {
     <ProtectedRoute>
       {/* Viewport layout - flex-1 to fill space between header and footer */}
       <div className="flex flex-col flex-1 h-full min-h-0">
+        {showOnboarding && (
+          <AIOnboarding
+            onDismiss={() => {
+              setShowOnboarding(false);
+              localStorage.setItem('onboarding_dismissed', 'true');
+            }}
+          />
+        )}
         {/* Professional Header */}
         <div className="bg-[#f8fafc] border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-8 lg:py-10 flex-shrink-0 relative overflow-hidden">
           {/* Subtle background glow */}
@@ -449,7 +450,7 @@ export default function DashboardPage() {
         {loading ? (
           <div className="flex items-center justify-center flex-1">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-8 h-8 border-2 border-[var(--color-orangeß)]/10 border-t-[var(--color-orangeß)] rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-2 border-[var(--color-orange)]/10 border-t-[var(--color-orange)] rounded-full animate-spin"></div>
               <p className="text-sm text-[var(--color-muted)]">Loading...</p>
             </div>
           </div>
@@ -600,8 +601,8 @@ export default function DashboardPage() {
                               <Link
                                 href={resumeUrl}
                                 className={`flex-1 py-2 rounded-lg text-center text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95 ${isIncomplete
-                                    ? 'bg-[#ff8b3d] text-white hover:bg-[#f07a2d] shadow-orange-500/10'
-                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 shadow-slate-200/50'
+                                  ? 'bg-[#ff8b3d] text-white hover:bg-[#f07a2d] shadow-orange-500/10'
+                                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 shadow-slate-200/50'
                                   }`}
                               >
                                 {isIncomplete ? 'Continue' : 'View'}

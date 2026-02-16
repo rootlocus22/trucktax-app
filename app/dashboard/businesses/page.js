@@ -26,8 +26,11 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
-  Info
+  Info,
+  Sparkles,
+  Upload
 } from 'lucide-react';
+import BusinessFormModal from '@/components/BusinessFormModal';
 
 export default function BusinessesPage() {
   const { user } = useAuth();
@@ -38,23 +41,6 @@ export default function BusinessesPage() {
   const [editingBusiness, setEditingBusiness] = useState(null);
   const [deletingBusiness, setDeletingBusiness] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newBusiness, setNewBusiness] = useState({
-    businessName: '',
-    ein: '',
-    address: '',
-    city: '',
-    state: '',
-    zip: '',
-    country: 'United States of America', // Default to United States
-    phone: '',
-    signingAuthorityName: '',
-    signingAuthorityPhone: '',
-    signingAuthorityPIN: '',
-    hasThirdPartyDesignee: false,
-    thirdPartyDesigneeName: '',
-    thirdPartyDesigneePhone: '',
-    thirdPartyDesigneePIN: ''
-  });
   const [businessErrors, setBusinessErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
@@ -134,172 +120,17 @@ export default function BusinessesPage() {
   };
 
   const handleEdit = (business) => {
-    setEditingBusiness({
-      ...business,
-      city: business.city || '',
-      state: business.state || '',
-      zip: business.zip || '',
-      country: business.country || '',
-      signingAuthorityName: business.signingAuthorityName || '',
-      signingAuthorityPhone: business.signingAuthorityPhone || '',
-      signingAuthorityPIN: business.signingAuthorityPIN || '',
-      hasThirdPartyDesignee: business.hasThirdPartyDesignee || false,
-      thirdPartyDesigneeName: business.thirdPartyDesigneeName || '',
-      thirdPartyDesigneePhone: business.thirdPartyDesigneePhone || '',
-      thirdPartyDesigneePIN: business.thirdPartyDesigneePIN || '',
-      country: business.country || 'United States of America'
-    });
-    setBusinessErrors({});
+    setEditingBusiness(business);
   };
 
-  const handleBusinessChange = (field, value, isEdit = false) => {
-    let formattedValue = value;
-    if (field === 'ein') {
-      formattedValue = formatEIN(value);
-    }
-    if (field === 'zip') {
-      // Format ZIP: allow 5 digits or 5+4 format
-      formattedValue = value.replace(/\D/g, '');
-      if (formattedValue.length > 5) {
-        formattedValue = formattedValue.slice(0, 5) + '-' + formattedValue.slice(5, 9);
-      }
-    }
-    if (field === 'state') {
-      // Convert to uppercase for state codes
-      formattedValue = value.toUpperCase().trim();
-    }
-    if (field === 'phone' || field === 'signingAuthorityPhone' || field === 'thirdPartyDesigneePhone') {
-      // Format phone number: (XXX) XXX-XXXX
-      const cleanPhone = value.replace(/\D/g, '');
-      if (cleanPhone.length <= 3) {
-        formattedValue = cleanPhone;
-      } else if (cleanPhone.length <= 6) {
-        formattedValue = `(${cleanPhone.slice(0, 3)}) ${cleanPhone.slice(3)}`;
-      } else if (cleanPhone.length <= 10) {
-        formattedValue = `(${cleanPhone.slice(0, 3)}) ${cleanPhone.slice(3, 6)}-${cleanPhone.slice(6, 10)}`;
-      } else {
-        // Handle 11 digits (with country code 1)
-        formattedValue = `+1 (${cleanPhone.slice(1, 4)}) ${cleanPhone.slice(4, 7)}-${cleanPhone.slice(7, 11)}`;
-      }
-    }
-    if (field === 'signingAuthorityPIN' || field === 'thirdPartyDesigneePIN') {
-      // Format PIN: only allow 5 digits
-      formattedValue = value.replace(/\D/g, '').slice(0, 5);
-    }
-
-    if (isEdit) {
-      setEditingBusiness(prev => ({ ...prev, [field]: formattedValue }));
-    } else {
-      setNewBusiness(prev => ({ ...prev, [field]: formattedValue }));
-    }
-
-    // Real-time validation
-    let validation;
-    if (field === 'businessName') validation = validateBusinessName(formattedValue);
-    if (field === 'ein') validation = validateEIN(formattedValue);
-    if (field === 'address') validation = validateAddress(formattedValue, true);
-    if (field === 'city') validation = validateCity(formattedValue, true);
-    if (field === 'state') validation = validateState(formattedValue, true);
-    if (field === 'zip') validation = validateZip(formattedValue, true);
-    if (field === 'country') validation = validateCountry(formattedValue, true);
-    if (field === 'phone') validation = validatePhone(formattedValue, true);
-    if (field === 'signingAuthorityName') {
-      validation = formattedValue && formattedValue.trim().length >= 2
-        ? { isValid: true, error: '' }
-        : { isValid: false, error: 'Signing Authority Name is required and must be at least 2 characters' };
-    }
-    if (field === 'signingAuthorityPhone') validation = validatePhone(formattedValue, true);
-    if (field === 'signingAuthorityPIN') validation = validatePIN(formattedValue, true);
-    if (field === 'thirdPartyDesigneeName') {
-      const hasThirdParty = isEdit ? editingBusiness?.hasThirdPartyDesignee : newBusiness.hasThirdPartyDesignee;
-      validation = hasThirdParty
-        ? (formattedValue && formattedValue.trim().length >= 2
-          ? { isValid: true, error: '' }
-          : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
-        : { isValid: true, error: '' };
-    }
-    if (field === 'thirdPartyDesigneePhone') validation = validatePhone(formattedValue, isEdit ? editingBusiness?.hasThirdPartyDesignee : newBusiness.hasThirdPartyDesignee);
-    if (field === 'thirdPartyDesigneePIN') validation = validatePIN(formattedValue, isEdit ? editingBusiness?.hasThirdPartyDesignee : newBusiness.hasThirdPartyDesignee);
-
-    if (validation) {
-      setBusinessErrors(prev => ({
-        ...prev,
-        [field]: validation.isValid ? '' : validation.error
-      }));
-    }
-  };
-
-  const handleAddBusiness = async () => {
-    // Run all validations
-    const nameVal = validateBusinessName(newBusiness.businessName);
-    const einVal = validateEIN(newBusiness.ein);
-    const addrVal = validateAddress(newBusiness.address, true);
-    const cityVal = validateCity(newBusiness.city, true);
-    const stateVal = validateState(newBusiness.state, true);
-    const zipVal = validateZip(newBusiness.zip, true);
-    const countryVal = validateCountry(newBusiness.country, true);
-    const phoneVal = validatePhone(newBusiness.phone, true);
-    // Validate signing authority name (required, but simpler than business name)
-    const signingAuthorityNameVal = newBusiness.signingAuthorityName && newBusiness.signingAuthorityName.trim().length >= 2
-      ? { isValid: true, error: '' }
-      : { isValid: false, error: 'Signing Authority Name is required and must be at least 2 characters' };
-    const signingAuthorityPhoneVal = validatePhone(newBusiness.signingAuthorityPhone, true);
-    const signingAuthorityPINVal = validatePIN(newBusiness.signingAuthorityPIN, true);
-    // Validate third party designee name (required if Third Party Designee is Yes)
-    const thirdPartyDesigneeNameVal = newBusiness.hasThirdPartyDesignee
-      ? (newBusiness.thirdPartyDesigneeName && newBusiness.thirdPartyDesigneeName.trim().length >= 2
-        ? { isValid: true, error: '' }
-        : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
-      : { isValid: true, error: '' };
-    const thirdPartyDesigneePhoneVal = validatePhone(newBusiness.thirdPartyDesigneePhone, newBusiness.hasThirdPartyDesignee);
-    const thirdPartyDesigneePINVal = validatePIN(newBusiness.thirdPartyDesigneePIN, newBusiness.hasThirdPartyDesignee);
-
-    if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !cityVal.isValid || !stateVal.isValid || !zipVal.isValid || !countryVal.isValid || !phoneVal.isValid ||
-      !signingAuthorityNameVal.isValid || !signingAuthorityPhoneVal.isValid || !signingAuthorityPINVal.isValid ||
-      !thirdPartyDesigneeNameVal.isValid || !thirdPartyDesigneePhoneVal.isValid || !thirdPartyDesigneePINVal.isValid) {
-      setBusinessErrors({
-        businessName: nameVal.error,
-        ein: einVal.error,
-        address: addrVal.error,
-        city: cityVal.error,
-        state: stateVal.error,
-        zip: zipVal.error,
-        country: countryVal.error,
-        phone: phoneVal.error,
-        signingAuthorityName: signingAuthorityNameVal.error,
-        signingAuthorityPhone: signingAuthorityPhoneVal.error,
-        signingAuthorityPIN: signingAuthorityPINVal.error,
-        thirdPartyDesigneeName: thirdPartyDesigneeNameVal.error,
-        thirdPartyDesigneePhone: thirdPartyDesigneePhoneVal.error,
-        thirdPartyDesigneePIN: thirdPartyDesigneePINVal.error
-      });
-      return;
-    }
-
+  const handleAddBusiness = async (data) => {
     setSaving(true);
     setBusinessErrors({});
 
     try {
-      await createBusiness(user.uid, newBusiness);
+      await createBusiness(user.uid, data);
       await loadBusinesses();
       setShowAddModal(false);
-      setNewBusiness({
-        businessName: '',
-        ein: '',
-        address: '',
-        city: '',
-        state: '',
-        zip: '',
-        country: '',
-        phone: '',
-        signingAuthorityName: '',
-        signingAuthorityPhone: '',
-        signingAuthorityPIN: '',
-        hasThirdPartyDesignee: false,
-        thirdPartyDesigneeName: '',
-        thirdPartyDesigneePhone: '',
-        thirdPartyDesigneePIN: ''
-      });
     } catch (error) {
       console.error('Error creating business:', error);
       setBusinessErrors({ general: 'Failed to create business. Please try again.' });
@@ -308,75 +139,30 @@ export default function BusinessesPage() {
     }
   };
 
-  const handleSaveEdit = async () => {
+  const handleSaveEdit = async (data) => {
     if (!editingBusiness) return;
-
-    // Run all validations
-    const nameVal = validateBusinessName(editingBusiness.businessName);
-    const einVal = validateEIN(editingBusiness.ein);
-    const addrVal = validateAddress(editingBusiness.address, true);
-    const cityVal = validateCity(editingBusiness.city, true);
-    const stateVal = validateState(editingBusiness.state, true);
-    const zipVal = validateZip(editingBusiness.zip, true);
-    const countryVal = validateCountry(editingBusiness.country, true);
-    const phoneVal = validatePhone(editingBusiness.phone, true);
-    // Validate signing authority name (required, but simpler than business name)
-    const signingAuthorityNameVal = editingBusiness.signingAuthorityName && editingBusiness.signingAuthorityName.trim().length >= 2
-      ? { isValid: true, error: '' }
-      : { isValid: false, error: 'Signing Authority Name is required and must be at least 2 characters' };
-    const signingAuthorityPhoneVal = validatePhone(editingBusiness.signingAuthorityPhone, true);
-    const signingAuthorityPINVal = validatePIN(editingBusiness.signingAuthorityPIN, true);
-    // Validate third party designee name (required if Third Party Designee is Yes)
-    const thirdPartyDesigneeNameVal = editingBusiness.hasThirdPartyDesignee
-      ? (editingBusiness.thirdPartyDesigneeName && editingBusiness.thirdPartyDesigneeName.trim().length >= 2
-        ? { isValid: true, error: '' }
-        : { isValid: false, error: 'Third Party Designee Name is required and must be at least 2 characters' })
-      : { isValid: true, error: '' };
-    const thirdPartyDesigneePhoneVal = validatePhone(editingBusiness.thirdPartyDesigneePhone, editingBusiness.hasThirdPartyDesignee);
-    const thirdPartyDesigneePINVal = validatePIN(editingBusiness.thirdPartyDesigneePIN, editingBusiness.hasThirdPartyDesignee);
-
-    if (!nameVal.isValid || !einVal.isValid || !addrVal.isValid || !cityVal.isValid || !stateVal.isValid || !zipVal.isValid || !countryVal.isValid || !phoneVal.isValid ||
-      !signingAuthorityNameVal.isValid || !signingAuthorityPhoneVal.isValid || !signingAuthorityPINVal.isValid ||
-      !thirdPartyDesigneeNameVal.isValid || !thirdPartyDesigneePhoneVal.isValid || !thirdPartyDesigneePINVal.isValid) {
-      setBusinessErrors({
-        businessName: nameVal.error,
-        ein: einVal.error,
-        address: addrVal.error,
-        city: cityVal.error,
-        state: stateVal.error,
-        zip: zipVal.error,
-        country: countryVal.error,
-        phone: phoneVal.error,
-        signingAuthorityName: signingAuthorityNameVal.error,
-        signingAuthorityPhone: signingAuthorityPhoneVal.error,
-        signingAuthorityPIN: signingAuthorityPINVal.error,
-        thirdPartyDesigneeName: thirdPartyDesigneeNameVal.error,
-        thirdPartyDesigneePhone: thirdPartyDesigneePhoneVal.error,
-        thirdPartyDesigneePIN: thirdPartyDesigneePINVal.error
-      });
-      return;
-    }
 
     setSaving(true);
     setBusinessErrors({});
 
     try {
       await updateBusiness(editingBusiness.id, {
-        businessName: editingBusiness.businessName.trim(),
-        ein: editingBusiness.ein?.trim() || '',
-        address: editingBusiness.address?.trim() || '',
-        city: editingBusiness.city?.trim() || '',
-        state: editingBusiness.state?.trim() || '',
-        zip: editingBusiness.zip?.trim() || '',
-        country: editingBusiness.country?.trim() || 'United States of America',
-        phone: editingBusiness.phone?.trim() || '',
-        signingAuthorityName: editingBusiness.signingAuthorityName?.trim() || '',
-        signingAuthorityPhone: editingBusiness.signingAuthorityPhone?.trim() || '',
-        signingAuthorityPIN: editingBusiness.signingAuthorityPIN?.trim() || '',
-        hasThirdPartyDesignee: editingBusiness.hasThirdPartyDesignee || false,
-        thirdPartyDesigneeName: editingBusiness.hasThirdPartyDesignee ? (editingBusiness.thirdPartyDesigneeName?.trim() || '') : '',
-        thirdPartyDesigneePhone: editingBusiness.hasThirdPartyDesignee ? (editingBusiness.thirdPartyDesigneePhone?.trim() || '') : '',
-        thirdPartyDesigneePIN: editingBusiness.hasThirdPartyDesignee ? (editingBusiness.thirdPartyDesigneePIN?.trim() || '') : ''
+        ...data,
+        businessName: data.businessName.trim(),
+        ein: data.ein?.trim() || '',
+        address: data.address?.trim() || '',
+        city: data.city?.trim() || '',
+        state: data.state?.trim() || '',
+        zip: data.zip?.trim() || '',
+        country: data.country?.trim() || 'United States of America',
+        phone: data.phone?.trim() || '',
+        signingAuthorityName: data.signingAuthorityName?.trim() || '',
+        signingAuthorityPhone: data.signingAuthorityPhone?.trim() || '',
+        signingAuthorityPIN: data.signingAuthorityPIN?.trim() || '',
+        hasThirdPartyDesignee: data.hasThirdPartyDesignee || false,
+        thirdPartyDesigneeName: data.hasThirdPartyDesignee ? (data.thirdPartyDesigneeName?.trim() || '') : '',
+        thirdPartyDesigneePhone: data.hasThirdPartyDesignee ? (data.thirdPartyDesigneePhone?.trim() || '') : '',
+        thirdPartyDesigneePIN: data.hasThirdPartyDesignee ? (data.thirdPartyDesigneePIN?.trim() || '') : ''
       });
 
       await loadBusinesses();
@@ -425,27 +211,17 @@ export default function BusinessesPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/dashboard/upload-schedule1"
+                className="inline-flex items-center justify-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-900/10 border border-white/10"
+              >
+                <Sparkles className="w-4 h-4 text-emerald-400" strokeWidth={3} />
+                AI-Powered Upload
+              </Link>
               <button
                 onClick={() => {
                   setShowAddModal(true);
-                  setNewBusiness({
-                    businessName: '',
-                    ein: '',
-                    address: '',
-                    city: '',
-                    state: '',
-                    zip: '',
-                    country: 'United States of America',
-                    phone: '',
-                    signingAuthorityName: '',
-                    signingAuthorityPhone: '',
-                    signingAuthorityPIN: '',
-                    hasThirdPartyDesignee: false,
-                    thirdPartyDesigneeName: '',
-                    thirdPartyDesigneePhone: '',
-                    thirdPartyDesigneePIN: ''
-                  });
                   setBusinessErrors({});
                 }}
                 className="inline-flex items-center justify-center gap-2 bg-[#14b8a6] text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#0d9488] transition-all active:scale-95 shadow-lg shadow-teal-500/20"
@@ -529,23 +305,6 @@ export default function BusinessesPage() {
                 <button
                   onClick={() => {
                     setShowAddModal(true);
-                    setNewBusiness({
-                      businessName: '',
-                      ein: '',
-                      address: '',
-                      city: '',
-                      state: '',
-                      zip: '',
-                      country: 'United States of America',
-                      phone: '',
-                      signingAuthorityName: '',
-                      signingAuthorityPhone: '',
-                      signingAuthorityPIN: '',
-                      hasThirdPartyDesignee: false,
-                      thirdPartyDesigneeName: '',
-                      thirdPartyDesigneePhone: '',
-                      thirdPartyDesigneePIN: ''
-                    });
                     setBusinessErrors({});
                   }}
                   className="inline-flex items-center justify-center gap-2 bg-[#14b8a6] text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#0d9488] shadow-xl shadow-teal-500/20 transition-all active:scale-95"
@@ -665,800 +424,25 @@ export default function BusinessesPage() {
           )}
 
           {/* Add Business Modal */}
-          {showAddModal && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => !saving && setShowAddModal(false)}>
-              <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-slate-900">Add New Business</h2>
-                  <button
-                    onClick={() => setShowAddModal(false)}
-                    disabled={saving}
-                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {businessErrors.general && (
-                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                    {businessErrors.general}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <label className="block text-sm font-semibold text-slate-700">
-                        Business Name <span className="text-[#14b8a6]">*</span>
-                      </label>
-                      <div className="group relative">
-                        <Info className="w-4 h-4 text-slate-400 cursor-help" />
-                        <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
-                          <strong>IRS Rule:</strong> Only letters, numbers, spaces, "&" and "-" are allowed. Do not use commas, periods, or other symbols.
-                        </div>
-                      </div>
-                    </div>
-                    <input
-                      type="text"
-                      value={newBusiness.businessName}
-                      onChange={(e) => handleBusinessChange('businessName', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] placeholder:text-slate-400 ${businessErrors.businessName ? 'border-red-500' : 'border-slate-200'}`}
-                      placeholder="ABC Trucking LLC"
-                    />
-                    {businessErrors.businessName && (
-                      <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.businessName}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      EIN (Employer Identification Number) <span className="text-[#14b8a6]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newBusiness.ein}
-                      onChange={(e) => handleBusinessChange('ein', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] font-mono ${businessErrors.ein ? 'border-red-500' : 'border-slate-200'}`}
-                      placeholder="12-3456789"
-                      maxLength="10"
-                    />
-                    {businessErrors.ein && (
-                      <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.ein}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Business Address <span className="text-[#14b8a6]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newBusiness.address}
-                      onChange={(e) => handleBusinessChange('address', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] ${businessErrors.address ? 'border-red-500' : 'border-slate-200'}`}
-                      placeholder="123 Main St"
-                    />
-                    {businessErrors.address && (
-                      <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.address}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      City <span className="text-[#14b8a6]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newBusiness.city}
-                      onChange={(e) => handleBusinessChange('city', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] ${businessErrors.city ? 'border-red-500' : 'border-slate-200'}`}
-                      placeholder="Los Angeles"
-                    />
-                    {businessErrors.city && (
-                      <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.city}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      State <span className="text-[#14b8a6]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newBusiness.state}
-                      onChange={(e) => handleBusinessChange('state', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] uppercase ${businessErrors.state ? 'border-red-500' : 'border-slate-200'}`}
-                      placeholder="CA"
-                      maxLength="2"
-                    />
-                    {businessErrors.state && (
-                      <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.state}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      ZIP Code <span className="text-[#14b8a6]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newBusiness.zip}
-                      onChange={(e) => handleBusinessChange('zip', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] font-mono ${businessErrors.zip ? 'border-red-500' : 'border-slate-200'}`}
-                      placeholder="12345"
-                      maxLength="10"
-                    />
-                    {businessErrors.zip && (
-                      <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.zip}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Country <span className="text-[#14b8a6]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newBusiness.country}
-                      readOnly
-                      disabled
-                      className="w-full px-4 py-3 border rounded-xl bg-slate-50 text-slate-600 cursor-not-allowed border-slate-200"
-                      placeholder="United States of America"
-                    />
-                    <p className="mt-1 text-xs text-slate-500">
-                      Only United States is allowed for Form 2290 filings
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Phone <span className="text-[#14b8a6]">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      value={newBusiness.phone}
-                      onChange={(e) => handleBusinessChange('phone', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] placeholder:text-slate-400 ${businessErrors.phone ? 'border-red-500' : 'border-slate-200'}`}
-                      placeholder="(555) 123-4567"
-                    />
-                    {businessErrors.phone && (
-                      <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.phone}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Signing Authority Section */}
-                  <div className="md:col-span-2 border-t border-slate-200 pt-4 mt-2">
-                    <div className="flex items-center gap-2 mb-4">
-                      <h3 className="text-base font-semibold text-slate-700">Signing Authority</h3>
-                      <div className="group relative">
-                        <Info className="w-4 h-4 text-slate-400 cursor-help" />
-                        <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
-                          The person authorized to sign Form 2290 on behalf of the business. This person must have the legal authority to sign tax returns.
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
-                          Name <span className="text-[#14b8a6]">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={newBusiness.signingAuthorityName}
-                          onChange={(e) => handleBusinessChange('signingAuthorityName', e.target.value)}
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] placeholder:text-slate-400 ${businessErrors.signingAuthorityName ? 'border-red-500' : 'border-slate-200'}`}
-                          placeholder="John Doe"
-                        />
-                        {businessErrors.signingAuthorityName && (
-                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityName}</span>
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
-                          Phone <span className="text-[#14b8a6]">*</span>
-                        </label>
-                        <input
-                          type="tel"
-                          value={newBusiness.signingAuthorityPhone}
-                          onChange={(e) => handleBusinessChange('signingAuthorityPhone', e.target.value)}
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] placeholder:text-slate-400 ${businessErrors.signingAuthorityPhone ? 'border-red-500' : 'border-slate-200'}`}
-                          placeholder="(555) 123-4567"
-                        />
-                        {businessErrors.signingAuthorityPhone && (
-                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityPhone}</span>
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
-                          PIN <span className="text-[#14b8a6]">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={newBusiness.signingAuthorityPIN}
-                          onChange={(e) => handleBusinessChange('signingAuthorityPIN', e.target.value)}
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] font-mono placeholder:text-slate-400 ${businessErrors.signingAuthorityPIN ? 'border-red-500' : 'border-slate-200'}`}
-                          placeholder="12345"
-                          maxLength="5"
-                        />
-                        {businessErrors.signingAuthorityPIN && (
-                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityPIN}</span>
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Third Party Designee */}
-                    <div className="mt-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <label className="block text-sm font-semibold text-slate-700">
-                          Third Party Designee
-                        </label>
-                        <div className="group relative">
-                          <Info className="w-4 h-4 text-slate-400 cursor-help" />
-                          <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
-                            A third party designee is someone you authorize to discuss your Form 2290 with the IRS. This is optional.
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setNewBusiness({ ...newBusiness, hasThirdPartyDesignee: false, thirdPartyDesigneeName: '', thirdPartyDesigneePhone: '', thirdPartyDesigneePIN: '' })}
-                          className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${newBusiness.hasThirdPartyDesignee === false
-                            ? 'border-[#14b8a6] bg-orange-50 shadow-md scale-[1.02]'
-                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
-                            }`}
-                        >
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${newBusiness.hasThirdPartyDesignee === false
-                            ? 'border-[#14b8a6] bg-[#14b8a6]'
-                            : 'border-slate-300 bg-white'
-                            }`}>
-                            {newBusiness.hasThirdPartyDesignee === false && (
-                              <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                            )}
-                          </div>
-                          <span className={`text-sm font-semibold ${newBusiness.hasThirdPartyDesignee === false
-                            ? 'text-[#14b8a6]'
-                            : 'text-slate-600'
-                            }`}>
-                            No
-                          </span>
-                          {newBusiness.hasThirdPartyDesignee === false && (
-                            <CheckCircle className="w-4 h-4 text-[#14b8a6] absolute top-2 right-2" />
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setNewBusiness({ ...newBusiness, hasThirdPartyDesignee: true })}
-                          className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${newBusiness.hasThirdPartyDesignee === true
-                            ? 'border-[#14b8a6] bg-orange-50 shadow-md scale-[1.02]'
-                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
-                            }`}
-                        >
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${newBusiness.hasThirdPartyDesignee === true
-                            ? 'border-[#14b8a6] bg-[#14b8a6]'
-                            : 'border-slate-300 bg-white'
-                            }`}>
-                            {newBusiness.hasThirdPartyDesignee === true && (
-                              <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                            )}
-                          </div>
-                          <span className={`text-sm font-semibold ${newBusiness.hasThirdPartyDesignee === true
-                            ? 'text-[#14b8a6]'
-                            : 'text-slate-600'
-                            }`}>
-                            Yes
-                          </span>
-                          {newBusiness.hasThirdPartyDesignee === true && (
-                            <CheckCircle className="w-4 h-4 text-[#14b8a6] absolute top-2 right-2" />
-                          )}
-                        </button>
-                      </div>
-
-                      {newBusiness.hasThirdPartyDesignee && (
-                        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                          <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">
-                              Name <span className="text-[#14b8a6]">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={newBusiness.thirdPartyDesigneeName}
-                              onChange={(e) => handleBusinessChange('thirdPartyDesigneeName', e.target.value)}
-                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] placeholder:text-slate-400 ${businessErrors.thirdPartyDesigneeName ? 'border-red-500' : 'border-blue-300'}`}
-                              placeholder="Jane Smith"
-                            />
-                            {businessErrors.thirdPartyDesigneeName && (
-                              <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneeName}</span>
-                              </p>
-                            )}
-                          </div>
-                          <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">
-                              Phone <span className="text-[#14b8a6]">*</span>
-                            </label>
-                            <input
-                              type="tel"
-                              value={newBusiness.thirdPartyDesigneePhone}
-                              onChange={(e) => handleBusinessChange('thirdPartyDesigneePhone', e.target.value)}
-                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] placeholder:text-slate-400 ${businessErrors.thirdPartyDesigneePhone ? 'border-red-500' : 'border-blue-300'}`}
-                              placeholder="(555) 123-4567"
-                            />
-                            {businessErrors.thirdPartyDesigneePhone && (
-                              <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneePhone}</span>
-                              </p>
-                            )}
-                          </div>
-                          <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">
-                              PIN <span className="text-[#14b8a6]">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={newBusiness.thirdPartyDesigneePIN}
-                              onChange={(e) => handleBusinessChange('thirdPartyDesigneePIN', e.target.value)}
-                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] font-mono placeholder:text-slate-400 ${businessErrors.thirdPartyDesigneePIN ? 'border-red-500' : 'border-blue-300'}`}
-                              placeholder="12345"
-                              maxLength="5"
-                            />
-                            {businessErrors.thirdPartyDesigneePIN && (
-                              <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneePIN}</span>
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 mt-6">
-                  <button
-                    onClick={() => setShowAddModal(false)}
-                    disabled={saving}
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAddBusiness}
-                    disabled={saving}
-                    className="flex-1 px-4 py-3 bg-[#14b8a6] text-white rounded-xl font-semibold hover:bg-[#0d9488] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {saving ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Adding...
-                      </>
-                    ) : (
-                      'Add Business'
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <BusinessFormModal
+            isOpen={showAddModal}
+            onClose={() => setShowAddModal(false)}
+            onSubmit={handleAddBusiness}
+            loading={saving}
+            externalErrors={businessErrors}
+          />
 
           {/* Edit Modal */}
-          {editingBusiness && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => !saving && setEditingBusiness(null)}>
-              <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-slate-900">Edit Business</h2>
-                  <button
-                    onClick={() => setEditingBusiness(null)}
-                    disabled={saving}
-                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {businessErrors.general && (
-                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                    {businessErrors.general}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <label className="block text-sm font-semibold text-slate-700">
-                        Business Name <span className="text-[#14b8a6]">*</span>
-                      </label>
-                      <div className="group relative">
-                        <Info className="w-4 h-4 text-slate-400 cursor-help" />
-                        <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
-                          <strong>IRS Rule:</strong> Only letters, numbers, spaces, "&" and "-" are allowed. Do not use commas, periods, or other symbols.
-                        </div>
-                      </div>
-                    </div>
-                    <input
-                      type="text"
-                      value={editingBusiness.businessName || ''}
-                      onChange={(e) => handleBusinessChange('businessName', e.target.value, true)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] placeholder:text-slate-400 ${businessErrors.businessName ? 'border-red-500' : 'border-slate-200'}`}
-                      placeholder="ABC Trucking LLC"
-                    />
-                    {businessErrors.businessName && (
-                      <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.businessName}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      EIN (Employer Identification Number) <span className="text-[#14b8a6]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={editingBusiness.ein || ''}
-                      onChange={(e) => handleBusinessChange('ein', e.target.value, true)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] font-mono ${businessErrors.ein ? 'border-red-500' : 'border-slate-200'}`}
-                      placeholder="12-3456789"
-                      maxLength="10"
-                    />
-                    {businessErrors.ein && (
-                      <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.ein}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Business Address <span className="text-[#14b8a6]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={editingBusiness.address || ''}
-                      onChange={(e) => handleBusinessChange('address', e.target.value, true)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] ${businessErrors.address ? 'border-red-500' : 'border-slate-200'}`}
-                      placeholder="123 Main St"
-                    />
-                    {businessErrors.address && (
-                      <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.address}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      City <span className="text-[#14b8a6]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={editingBusiness.city || ''}
-                      onChange={(e) => handleBusinessChange('city', e.target.value, true)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] ${businessErrors.city ? 'border-red-500' : 'border-slate-200'}`}
-                      placeholder="Los Angeles"
-                    />
-                    {businessErrors.city && (
-                      <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.city}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      State <span className="text-[#14b8a6]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={editingBusiness.state || ''}
-                      onChange={(e) => handleBusinessChange('state', e.target.value, true)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] uppercase ${businessErrors.state ? 'border-red-500' : 'border-slate-200'}`}
-                      placeholder="CA"
-                      maxLength="2"
-                    />
-                    {businessErrors.state && (
-                      <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.state}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      ZIP Code <span className="text-[#14b8a6]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={editingBusiness.zip || ''}
-                      onChange={(e) => handleBusinessChange('zip', e.target.value, true)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] font-mono ${businessErrors.zip ? 'border-red-500' : 'border-slate-200'}`}
-                      placeholder="12345"
-                      maxLength="10"
-                    />
-                    {businessErrors.zip && (
-                      <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.zip}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Country <span className="text-[#14b8a6]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={editingBusiness.country || 'United States of America'}
-                      readOnly
-                      disabled
-                      className="w-full px-4 py-3 border rounded-xl bg-slate-50 text-slate-600 cursor-not-allowed border-slate-200"
-                      placeholder="United States of America"
-                    />
-                    <p className="mt-1 text-xs text-slate-500">
-                      Only United States is allowed for Form 2290 filings
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Phone <span className="text-[#14b8a6]">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      value={editingBusiness.phone || ''}
-                      onChange={(e) => handleBusinessChange('phone', e.target.value, true)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] placeholder:text-slate-400 ${businessErrors.phone ? 'border-red-500' : 'border-slate-200'}`}
-                      placeholder="(555) 123-4567"
-                    />
-                    {businessErrors.phone && (
-                      <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.phone}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Signing Authority Section */}
-                  <div className="md:col-span-2 border-t border-slate-200 pt-4 mt-2">
-                    <div className="flex items-center gap-2 mb-4">
-                      <h3 className="text-base font-semibold text-slate-700">Signing Authority</h3>
-                      <div className="group relative">
-                        <Info className="w-4 h-4 text-slate-400 cursor-help" />
-                        <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
-                          The person authorized to sign Form 2290 on behalf of the business. This person must have the legal authority to sign tax returns.
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
-                          Name <span className="text-[#14b8a6]">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={editingBusiness.signingAuthorityName || ''}
-                          onChange={(e) => handleBusinessChange('signingAuthorityName', e.target.value, true)}
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] placeholder:text-slate-400 ${businessErrors.signingAuthorityName ? 'border-red-500' : 'border-slate-200'}`}
-                          placeholder="John Doe"
-                        />
-                        {businessErrors.signingAuthorityName && (
-                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityName}</span>
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
-                          Phone <span className="text-[#14b8a6]">*</span>
-                        </label>
-                        <input
-                          type="tel"
-                          value={editingBusiness.signingAuthorityPhone || ''}
-                          onChange={(e) => handleBusinessChange('signingAuthorityPhone', e.target.value, true)}
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] placeholder:text-slate-400 ${businessErrors.signingAuthorityPhone ? 'border-red-500' : 'border-slate-200'}`}
-                          placeholder="(555) 123-4567"
-                        />
-                        {businessErrors.signingAuthorityPhone && (
-                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityPhone}</span>
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
-                          PIN <span className="text-[#14b8a6]">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={editingBusiness.signingAuthorityPIN || ''}
-                          onChange={(e) => handleBusinessChange('signingAuthorityPIN', e.target.value, true)}
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] font-mono placeholder:text-slate-400 ${businessErrors.signingAuthorityPIN ? 'border-red-500' : 'border-slate-200'}`}
-                          placeholder="12345"
-                          maxLength="5"
-                        />
-                        {businessErrors.signingAuthorityPIN && (
-                          <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.signingAuthorityPIN}</span>
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Third Party Designee */}
-                    <div className="mt-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <label className="block text-sm font-semibold text-slate-700">
-                          Third Party Designee
-                        </label>
-                        <div className="group relative">
-                          <Info className="w-4 h-4 text-slate-400 cursor-help" />
-                          <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-10">
-                            A third party designee is someone you authorize to discuss your Form 2290 with the IRS. This is optional.
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setEditingBusiness({ ...editingBusiness, hasThirdPartyDesignee: false, thirdPartyDesigneeName: '', thirdPartyDesigneePhone: '', thirdPartyDesigneePIN: '' })}
-                          className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${editingBusiness.hasThirdPartyDesignee === false
-                            ? 'border-[#14b8a6] bg-orange-50 shadow-md scale-[1.02]'
-                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
-                            }`}
-                        >
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${editingBusiness.hasThirdPartyDesignee === false
-                            ? 'border-[#14b8a6] bg-[#14b8a6]'
-                            : 'border-slate-300 bg-white'
-                            }`}>
-                            {editingBusiness.hasThirdPartyDesignee === false && (
-                              <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                            )}
-                          </div>
-                          <span className={`text-sm font-semibold ${editingBusiness.hasThirdPartyDesignee === false
-                            ? 'text-[#14b8a6]'
-                            : 'text-slate-600'
-                            }`}>
-                            No
-                          </span>
-                          {editingBusiness.hasThirdPartyDesignee === false && (
-                            <CheckCircle className="w-4 h-4 text-[#14b8a6] absolute top-2 right-2" />
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingBusiness({ ...editingBusiness, hasThirdPartyDesignee: true })}
-                          className={`relative flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all duration-200 touch-manipulation w-fit ${editingBusiness.hasThirdPartyDesignee === true
-                            ? 'border-[#14b8a6] bg-orange-50 shadow-md scale-[1.02]'
-                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]'
-                            }`}
-                        >
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${editingBusiness.hasThirdPartyDesignee === true
-                            ? 'border-[#14b8a6] bg-[#14b8a6]'
-                            : 'border-slate-300 bg-white'
-                            }`}>
-                            {editingBusiness.hasThirdPartyDesignee === true && (
-                              <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                            )}
-                          </div>
-                          <span className={`text-sm font-semibold ${editingBusiness.hasThirdPartyDesignee === true
-                            ? 'text-[#14b8a6]'
-                            : 'text-slate-600'
-                            }`}>
-                            Yes
-                          </span>
-                          {editingBusiness.hasThirdPartyDesignee === true && (
-                            <CheckCircle className="w-4 h-4 text-[#14b8a6] absolute top-2 right-2" />
-                          )}
-                        </button>
-                      </div>
-
-                      {editingBusiness.hasThirdPartyDesignee && (
-                        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                          <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">
-                              Name <span className="text-[#14b8a6]">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={editingBusiness.thirdPartyDesigneeName || ''}
-                              onChange={(e) => handleBusinessChange('thirdPartyDesigneeName', e.target.value, true)}
-                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] placeholder:text-slate-400 ${businessErrors.thirdPartyDesigneeName ? 'border-red-500' : 'border-blue-300'}`}
-                              placeholder="Jane Smith"
-                            />
-                            {businessErrors.thirdPartyDesigneeName && (
-                              <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneeName}</span>
-                              </p>
-                            )}
-                          </div>
-                          <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">
-                              Phone <span className="text-[#14b8a6]">*</span>
-                            </label>
-                            <input
-                              type="tel"
-                              value={editingBusiness.thirdPartyDesigneePhone || ''}
-                              onChange={(e) => handleBusinessChange('thirdPartyDesigneePhone', e.target.value, true)}
-                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] placeholder:text-slate-400 ${businessErrors.thirdPartyDesigneePhone ? 'border-red-500' : 'border-blue-300'}`}
-                              placeholder="(555) 123-4567"
-                            />
-                            {businessErrors.thirdPartyDesigneePhone && (
-                              <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneePhone}</span>
-                              </p>
-                            )}
-                          </div>
-                          <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">
-                              PIN <span className="text-[#14b8a6]">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={editingBusiness.thirdPartyDesigneePIN || ''}
-                              onChange={(e) => handleBusinessChange('thirdPartyDesigneePIN', e.target.value, true)}
-                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#14b8a6] font-mono placeholder:text-slate-400 ${businessErrors.thirdPartyDesigneePIN ? 'border-red-500' : 'border-blue-300'}`}
-                              placeholder="12345"
-                              maxLength="5"
-                            />
-                            {businessErrors.thirdPartyDesigneePIN && (
-                              <p className="mt-1 w-full text-xs text-red-600 flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3 flex-shrink-0" /> <span className="flex-1">{businessErrors.thirdPartyDesigneePIN}</span>
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 mt-6">
-                  <button
-                    onClick={() => setEditingBusiness(null)}
-                    disabled={saving}
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSaveEdit}
-                    disabled={saving}
-                    className="flex-1 px-4 py-3 bg-[#14b8a6] text-white rounded-xl font-semibold hover:bg-[#0d9488] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {saving ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      'Save Changes'
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <BusinessFormModal
+            isOpen={!!editingBusiness}
+            onClose={() => setEditingBusiness(null)}
+            onSubmit={handleSaveEdit}
+            initialBusiness={editingBusiness}
+            loading={saving}
+            submitButtonText="Save Changes"
+            title="Edit Business"
+            externalErrors={businessErrors}
+          />
 
           {/* Delete Confirmation Modal */}
           {deletingBusiness && (
