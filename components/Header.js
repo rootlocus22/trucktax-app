@@ -82,17 +82,17 @@ export function Header() {
                 <Link href="/insights" className="px-4 py-2 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition">
                   Insights
                 </Link>
-                <Link href="/pricing" className="px-4 py-2 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition">
-                  Pricing
+                <Link href="/resources" className="px-4 py-2 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition">
+                  Resources
                 </Link>
                 <Link href="/faq" className="px-4 py-2 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition">
                   FAQ
                 </Link>
                 <Link
-                  href="/signup"
+                  href="/resources"
                   className="ml-4 px-5 py-2 bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white rounded-lg font-semibold transition shadow-md hover:shadow-lg"
                 >
-                  File Now
+                  Explore Resources
                 </Link>
               </>
             ) : (
@@ -440,12 +440,12 @@ export function Header() {
                         <span style={{ color: '#1b2838' }}>Insights</span>
                       </Link>
                       <Link
-                        href="/pricing"
+                        href="/resources"
                         onClick={() => setMobileMenuOpen(false)}
                         className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition"
                         style={{ color: '#1b2838', textDecoration: 'none' }}
                       >
-                        <span style={{ color: '#1b2838' }}>Pricing</span>
+                        <span style={{ color: '#1b2838' }}>Resources</span>
                       </Link>
                       <Link
                         href="/faq"
@@ -457,11 +457,11 @@ export function Header() {
                       </Link>
                       <div className="px-6 py-4 border-t border-gray-200 mt-4">
                         <Link
-                          href="/signup"
+                          href="/resources"
                           onClick={() => setMobileMenuOpen(false)}
                           className="block w-full text-center bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white px-6 py-3 rounded-lg font-semibold transition shadow-md hover:shadow-lg"
                         >
-                          File Now
+                          Explore Resources
                         </Link>
                       </div>
                     </>

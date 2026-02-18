@@ -143,24 +143,18 @@ export default function HowItWorksPage() {
       {/* CTA Section */}
       <div className="text-center">
         <h2 className="text-2xl font-semibold text-[var(--color-text)] mb-3">
-          Ready to Get Started?
+          Explore Our Resources
         </h2>
         <p className="text-sm text-[var(--color-muted)] mb-6 max-w-2xl mx-auto">
-          Join thousands of owner-operators who trust QuickTruckTax for their Form 2290 filing needs.
+          Guides, checklists, and tools for Form 2290 and trucking compliance.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            href="/signup"
+            href="/resources"
             className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white px-6 py-3 rounded-lg font-semibold text-sm transition shadow-md hover:shadow-lg"
           >
-            Start Filing Now
+            Explore Resources
             <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link
-            href="/pricing"
-            className="inline-flex items-center justify-center gap-2 border border-[var(--color-border)] text-[var(--color-text)] px-6 py-3 rounded-lg font-semibold text-sm transition hover:bg-[var(--color-page-alt)]"
-          >
-            View Pricing
           </Link>
         </div>
       </div>

@@ -59,7 +59,7 @@ export default function IftaIrpServicePage() {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
-                                href="/early-access"
+                                href="/resources"
                                 className="bg-purple-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-purple-600 transition shadow-lg shadow-purple-900/20 flex items-center justify-center gap-2"
                             >
                                 Guides Coming 2026 <ArrowRight className="w-5 h-5" />

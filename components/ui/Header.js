@@ -35,7 +35,6 @@ export default function Header() {
 
     const navLinks = [
         { href: "/", label: "Home" },
-        { href: "/pricing", label: "Pricing" },
         { href: "/services", label: "Services" },
         { href: "/insights", label: "Guides" },
         { href: "/resources", label: "Resources" },
@@ -96,14 +95,14 @@ export default function Header() {
                         {/* CTA Button */}
                         <div className="hidden md:block">
                             <Link
-                                href="/early-access"
+                                href="/resources"
                                 className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition shadow-lg ${isScrolled
                                     ? 'bg-blue-900 !text-white hover:bg-blue-800 shadow-blue-900/10'
                                     : 'bg-white !text-blue-900 hover:bg-blue-50 shadow-white/10'
                                     }`}
                             >
-                                <Rocket className="w-4 h-4" />
-                                Get Early Access
+                                <FileText className="w-4 h-4" />
+                                Explore Resources
                             </Link>
                         </div>
 
@@ -182,12 +181,12 @@ export default function Header() {
 
                         <div className="p-5 border-t border-slate-100 shrink-0">
                             <Link
-                                href="/early-access"
+                                href="/resources"
                                 onClick={() => setIsMenuOpen(false)}
                                 className="w-full bg-[var(--color-orange)] text-white px-4 py-4 rounded-xl text-center font-bold shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2 hover:bg-[#ff7a20] transition"
                             >
-                                <Rocket className="w-5 h-5" />
-                                Get Early Access
+                                <FileText className="w-5 h-5" />
+                                Explore Resources
                             </Link>
                         </div>
                     </div>

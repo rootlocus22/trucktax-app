@@ -79,14 +79,14 @@ export function ConsumerLayout({ children }) {
               <div>
                 <h3 className="font-semibold mb-4">QuickTruckTax</h3>
                 <p className="text-sm text-white/70">
-                  The Done-For-You Form 2290 filing service for owner-operators.
+                  Form 2290 and trucking compliance guides and resources.
                 </p>
               </div>
               <div>
                 <h3 className="font-semibold mb-4">Company</h3>
                 <ul className="space-y-2 text-sm text-white/70">
                   <li><Link href="/how-it-works" className="hover:text-white transition">How it Works</Link></li>
-                  <li><Link href="/pricing" className="hover:text-white transition">Pricing</Link></li>
+                  <li><Link href="/resources" className="hover:text-white transition">Resources</Link></li>
                   <li><Link href="/faq" className="hover:text-white transition">FAQ</Link></li>
                 </ul>
               </div>
@@ -108,11 +108,8 @@ export function ConsumerLayout({ children }) {
               </div>
             </div>
             <div className="border-t border-white/10 mt-12 pt-8 text-center text-sm text-white/50">
-              &copy; {new Date().getFullYear()} QuickTruckTax. All rights reserved.
+              &copy; 2026 QuickTruckTax. All rights reserved.
             </div>
-            <p className="text-xs text-center text-white/50 mt-2">
-              Delaware, USA • Secure & Compliant Tax Filing
-            </p>
           </div>
         )}
       </footer>

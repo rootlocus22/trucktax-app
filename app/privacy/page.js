@@ -11,7 +11,7 @@ export default function PrivacyPolicyPage() {
                 <section>
                     <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Introduction</h2>
                     <p>
-                        Vendax System Labs LLC, doing business as QuickTruckTax ("we," "our," or "us"), is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our tax filing services.
+                        QuickTruckTax ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our tax filing services.
                     </p>
                 </section>
 

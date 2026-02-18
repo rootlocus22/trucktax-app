@@ -62,10 +62,10 @@ export default function MCS150ServicePage() {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
-                                href="/early-access"
+                                href="/resources"
                                 className="bg-teal-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-teal-600 transition shadow-lg shadow-teal-900/20 flex items-center justify-center gap-2"
                             >
-                                Launching Jan 2026 <ArrowRight className="w-5 h-5" />
+                                Explore Resources <ArrowRight className="w-5 h-5" />
                             </Link>
                         </div>
                         <div className="mt-8 flex items-center gap-6 text-sm text-blue-200">
@@ -196,7 +196,7 @@ export default function MCS150ServicePage() {
                 <div className="inline-block bg-teal-800/50 rounded-xl p-6 backdrop-blur-sm border border-teal-500/30">
                     <p className="text-xl mb-4 text-teal-200">Services launching January 2026</p>
                     <Link
-                        href="/early-access"
+                        href="/resources"
                         className="inline-flex bg-teal-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-teal-600 transition shadow-lg shadow-teal-900/20 items-center gap-2"
                     >
                         Join Waitlist <ArrowRight className="w-5 h-5" />

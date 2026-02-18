@@ -74,16 +74,10 @@ export default function FeaturesPage() {
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
-                            href="/signup"
+                            href="/resources"
                             className="px-8 py-4 bg-[var(--color-orange)] text-white rounded-full font-bold text-lg hover:bg-[#ff7a20] transition shadow-lg hover:shadow-xl hover:scale-105 transform duration-200"
                         >
-                            Get Started for Free
-                        </Link>
-                        <Link
-                            href="/pricing"
-                            className="px-8 py-4 bg-white/10 backdrop-blur-md border border-white/30 text-white rounded-full font-bold text-lg hover:bg-white/20 transition"
-                        >
-                            View Pricing
+                            Explore Resources
                         </Link>
                     </div>
                 </div>

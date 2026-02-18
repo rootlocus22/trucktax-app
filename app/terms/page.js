@@ -14,16 +14,16 @@ export default function TermsPage() {
                     <section>
                         <h2 className="text-xl font-bold text-slate-900 mb-4">1. Acceptance of Terms</h2>
                         <p>
-                            By accessing and using QuickTruckTax (the "Service"), a product of <strong>Vendax Systems LLC</strong> ("we," "us," or "our"), you agree to comply with and be bound by these Terms of Service. If you do not agree, you must not use our Service.
+                            By accessing and using QuickTruckTax (the "Service") ("we," "us," or "our"), you agree to comply with and be bound by these Terms of Service. If you do not agree, you must not use our Service.
                         </p>
                     </section>
 
                     <section className="bg-blue-50 p-6 rounded-xl border border-blue-100">
                         <h2 className="text-xl font-bold text-blue-900 mb-4">2. Important Disclaimer: Not a Government Agency</h2>
                         <ul className="list-disc pl-5 space-y-2 text-blue-800">
-                            <li><strong>QuickTruckTax is a private, third-party technology provider.</strong> We are <strong>NOT</strong> the Internal Revenue Service (IRS), the Federal Motor Carrier Safety Administration (FMCSA), or any other government agency.</li>
-                            <li>We are an unauthorized e-file provider that transmits data to the IRS and other agencies on your behalf.</li>
-                            <li>The fees you pay to us include our service fees for usage of our software and support. Any government tax liabilities (e.g., HVUT tax amounts) are calculated by us but are your sole responsibility to pay directly to the Treasury or via our facilitated payment methods.</li>
+                            <li><strong>QuickTruckTax is a private concierge and technology service.</strong> We are <strong>NOT</strong> the Internal Revenue Service (IRS), the Federal Motor Carrier Safety Administration (FMCSA), or any other government agency.</li>
+                            <li>We assist you in preparing and submitting your returns; transmission to the IRS and other agencies is carried out in accordance with applicable regulatory requirements.</li>
+                            <li>The fees you pay to us are for our concierge service, software, and support. Any government tax liabilities (e.g., HVUT tax amounts) are calculated by us but are your sole responsibility to pay directly to the Treasury or via our facilitated payment methods.</li>
                         </ul>
                     </section>
 
@@ -74,7 +74,7 @@ export default function TermsPage() {
                     <section>
                         <h2 className="text-xl font-bold text-slate-900 mb-4">6. Limitation of Liability</h2>
                         <p>
-                            To the maximum extent permitted by law, Vendax Systems LLC shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues. Our total liability for any claim arising out of these terms or the service shall not exceed the amount you paid us for the specific service in question.
+                            To the maximum extent permitted by law, QuickTruckTax shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues. Our total liability for any claim arising out of these terms or the service shall not exceed the amount you paid us for the specific service in question.
                         </p>
                     </section>
 
@@ -84,7 +84,7 @@ export default function TermsPage() {
                             For questions about these Terms, please contact us at:
                         </p>
                         <address className="mt-4 not-italic bg-slate-100 p-4 rounded-lg">
-                            <strong>Vendax Systems LLC</strong><br />
+                            <strong>QuickTruckTax</strong><br />
                             28 Geary St STE 650 Suite #500<br />
                             San Francisco, California 94108<br />
                             United States<br />

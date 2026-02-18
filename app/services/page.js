@@ -86,7 +86,7 @@ export default function ServicesPage() {
                 <div className="max-w-7xl mx-auto text-center">
                     <h1 className="text-4xl md:text-5xl font-bold mb-6">Trucking Compliance Services</h1>
                     <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-                        Everything you need to keep your fleet legal and on the road. Fast, secure, and IRS-authorized solutions coming soon.
+                        Everything you need to keep your fleet legal and on the road. Fast, secure expert concierge solutions.
                     </p>
                 </div>
             </div>
@@ -126,15 +126,15 @@ export default function ServicesPage() {
             {/* Bottom CTA */}
             <div className="py-20 px-6 bg-white border-t border-slate-100">
                 <div className="max-w-4xl mx-auto text-center">
-                    <h2 className="text-3xl font-bold text-[var(--color-navy)] mb-6">Don't wait for the deadline</h2>
+                    <h2 className="text-3xl font-bold text-[var(--color-navy)] mb-6">Guides &amp; tools for trucking compliance</h2>
                     <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">
-                        Join our early access list to get notified when filing opens. Early birds get 20% off their first filing.
+                        Free checklists, due-date guides, and calculators to help you stay compliant.
                     </p>
                     <Link
-                        href="/early-access"
+                        href="/resources"
                         className="inline-flex bg-[var(--color-orange)] text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-[#ff7a20] transition shadow-lg shadow-orange-900/20 items-center gap-2"
                     >
-                        Get Early Access <ArrowRight className="w-5 h-5" />
+                        Explore Resources <ArrowRight className="w-5 h-5" />
                     </Link>
                 </div>
             </div>

@@ -75,8 +75,8 @@ const faqs = [
     answer: "In most cases, you will receive your IRS-stamped Schedule 1 within minutes of submitting your return. The IRS processes e-filed returns very quickly."
   },
   {
-    question: "Is QuickTruckTax IRS authorized?",
-    answer: "Yes, we are an IRS-authorized e-file provider. Your data is transmitted directly to the IRS using secure, encrypted channels."
+    question: "Is QuickTruckTax a legitimate service?",
+    answer: "Yes. We are a private concierge and technology service. Your data is transmitted securely using encrypted channels. We are not the IRS or any government agency."
   },
   {
     question: "Can I file for multiple vehicles?",

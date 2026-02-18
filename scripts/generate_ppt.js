@@ -30,7 +30,7 @@ const SLATE = 'F8FAFC';
         fontSize: 18, color: WHITE, fontFace: 'Arial', italic: true
     });
 
-    slide.addText('Presented by: [Your Name] | Founder, Vendax Systems LLC', {
+    slide.addText('Presented by: [Your Name] | QuickTruckTax', {
         x: 0.5, y: 4.8, w: 5, h: 0.5,
         fontSize: 12, color: WHITE, fontFace: 'Arial'
     });
@@ -100,7 +100,7 @@ const SLATE = 'F8FAFC';
     const risks = [
         { title: 'Risk: Financial Liability?', text: 'Reality: No. You are not liable for individual trucker taxes. Operational integrity is managed by our PTIN expert.' },
         { title: 'Risk: Compliance Errors?', text: 'Reality: Our in-house PTIN holder anchors the technical filing. You act as the "Gatekeeper" with power to pause operations.' },
-        { title: 'Risk: Software Errors?', text: 'Reality: Signed Indemnification Agreement. Vendax LLC assumes all technical and software liability.' }
+        { title: 'Risk: Software Errors?', text: 'Reality: Signed Indemnification Agreement. QuickTruckTax assumes all technical and software liability.' }
     ];
 
     risks.forEach((r, i) => {
@@ -135,7 +135,7 @@ const SLATE = 'F8FAFC';
 
     const steps = [
         'Identity Verification: Create account on IRS e-Services (via ID.me).',
-        'Application Link: I list Vendax LLC; you accept the invite as the RO.',
+        'Application Link: I list QuickTruckTax; you accept the invite as the RO.',
         'Suitability: IRS conducts a background check (~45 days).',
         'EFIN Issuance: IRS grants the license to the firm.',
         'Launch: We flip the switch on QuickTruckTax.com and start generating revenue.'

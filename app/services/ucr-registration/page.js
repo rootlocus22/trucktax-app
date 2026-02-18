@@ -62,10 +62,10 @@ export default function UCRServicePage() {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
-                                href="/early-access"
+                                href="/resources"
                                 className="bg-indigo-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-indigo-600 transition shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2"
                             >
-                                Launching Jan 2026 <ArrowRight className="w-5 h-5" />
+                                Explore Resources <ArrowRight className="w-5 h-5" />
                             </Link>
                         </div>
                         <div className="mt-8 flex items-center gap-6 text-sm text-blue-200">
@@ -156,7 +156,7 @@ export default function UCRServicePage() {
                 <div className="inline-block bg-indigo-50 p-6 rounded-xl border border-indigo-100">
                     <p className="text-indigo-800 font-medium mb-4">Registration opens Jan 2026</p>
                     <Link
-                        href="/early-access"
+                        href="/resources"
                         className="inline-flex bg-indigo-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-indigo-600 transition shadow-lg shadow-indigo-900/20 items-center gap-2"
                     >
                         UCR Waitlist <ArrowRight className="w-5 h-5" />

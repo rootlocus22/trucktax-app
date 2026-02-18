@@ -79,20 +79,20 @@ export default function Home() {
 
   const productJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: 'IRS Form 2290 E-Filing Service (2025-2026)',
-    image: 'https://www.quicktrucktax.com/quicktrucktax-logo-new.png',
-    description: 'Secure, IRS-authorized E-file provider for Form 2290 (HVUT). Get your Schedule 1 in minutes.',
+    '@type': 'WebApplication',
+    name: 'QuickTruckTax Form 2290 Guides & Resources',
+    url: 'https://www.quicktrucktax.com',
+    description: 'Free Form 2290 guides, checklists, due-date tools, and HVUT resources for trucking compliance.',
     brand: {
       '@type': 'Brand',
       name: 'QuickTruckTax'
     },
+    applicationCategory: 'ReferenceApplication',
     offers: {
       '@type': 'Offer',
-      url: 'https://www.quicktrucktax.com/services/form-2290-filing',
+      url: 'https://www.quicktrucktax.com/resources',
+      price: '0',
       priceCurrency: 'USD',
-      price: '34.99',
-      priceValidUntil: '2026-12-31',
       availability: 'https://schema.org/InStock'
     },
     aggregateRating: {
@@ -112,7 +112,7 @@ export default function Home() {
         name: 'How to file Form 2290?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'File Form 2290 online in 3 steps: 1) Enter your business and vehicle information, 2) We review and submit to the IRS, 3) Receive your IRS-stamped Schedule 1 via email in minutes. E-filing costs $34.99 and takes about 2 minutes to complete.'
+          text: 'QuickTruckTax provides free Form 2290 guides, checklists, due-date tools, and HVUT calculators. Use our resources to understand filing steps, deadlines, and compliance requirements.'
         }
       },
       {
@@ -120,7 +120,7 @@ export default function Home() {
         name: 'How much does it cost to file Form 2290?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'QuickTruckTax charges a flat fee of $34.99 to e-file Form 2290. This includes IRS submission, error checking, and instant delivery of your Schedule 1. Free VIN corrections are included if you make a mistake.'
+          text: 'QuickTruckTax is a content and resource site. We offer free guides, checklists, and tools for Form 2290 and trucking compliance. Filing services may be offered in the future.'
         }
       },
       {
@@ -198,21 +198,21 @@ export default function Home() {
           <div className="relative z-10 px-6 py-20 sm:px-12 lg:px-16 grid gap-12 lg:grid-cols-2 items-center">
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 border border-blue-500/20 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-blue-400">
-                <ShieldCheck className="w-4 h-4" /> IRS-Authorized Smart E-Filing
+                <FileText className="w-4 h-4" /> Guides &amp; Resources
               </div>
               <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl text-white">
-                File Form 2290 <span className="block text-blue-200">for 2025-2026</span> for Just <span className="text-[var(--color-orange)]">$34.99</span>.
+                Form 2290 <span className="block text-blue-200">Guides &amp; Tools</span> for 2025-2026
               </h1>
               <p className="text-lg leading-8 text-slate-300 max-w-xl">
-                Get your IRS-stamped Schedule 1 for the 2025-2026 tax year in minutes. Save 40% vs leading competitors. Smart, secure, and no phone calls required.
+                Free checklists, due-date guides, HVUT calculators, and step-by-step resources. Stay compliant with the latest Form 2290 and trucking tax info.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
-                  href="/services/form-2290-filing"
+                  href="/resources"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-orange)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-orange-500/20 transition hover:bg-[#e66a15] hover:scale-105 transform duration-200"
                 >
-                  Start Secure Filing
+                  Explore Resources
                   <ChevronRight className="w-5 h-5" />
                 </Link>
                 <Link
@@ -226,32 +226,32 @@ export default function Home() {
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 text-sm font-medium text-slate-400 pt-4">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" /> Free VIN Corrections
+                  <CheckCircle className="w-5 h-5 text-green-400" /> Free Guides
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" /> Instant SMS Alerts
+                  <CheckCircle className="w-5 h-5 text-green-400" /> Due-Date Tools
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" /> Fast Schedule 1
+                  <CheckCircle className="w-5 h-5 text-green-400" /> HVUT Calculator
                 </div>
               </div>
             </div>
 
-            {/* Hero Stats/Trust Card */}
+            {/* Hero Stats Card - content focus */}
             <div className="hidden lg:block relative">
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl transform rotate-2 hover:rotate-0 transition duration-500">
                 <div className="grid grid-cols-2 gap-8">
                   <div>
-                    <p className="text-4xl font-bold text-white mb-1"><span className="text-2xl align-top">$</span>34<span className="text-2xl">.99</span></p>
-                    <p className="text-sm text-slate-400">Flat Filing Fee</p>
+                    <p className="text-4xl font-bold text-[var(--color-orange)]">230+</p>
+                    <p className="text-sm text-slate-400">Guides &amp; Topics</p>
                   </div>
                   <div>
-                    <p className="text-4xl font-bold text-[var(--color-orange)]">2m</p>
-                    <p className="text-sm text-slate-400">Average Filing Time</p>
+                    <p className="text-4xl font-bold text-white">Free</p>
+                    <p className="text-sm text-slate-400">Tools &amp; Checklists</p>
                   </div>
                   <div className="col-span-2 border-t border-white/10 pt-6">
-                    <p className="text-sm text-slate-300 italic">"Why pay $60 elsewhere? QuickTruckTax got my Schedule 1 instantly for half the price. The SMS updates were a nice touch."</p>
-                    <p className="text-xs text-slate-500 mt-2 font-bold uppercase">– Mike T., Owner-Operator</p>
+                    <p className="text-sm text-slate-300 italic">"Clear due dates and checklists. Exactly what I needed before filing."</p>
+                    <p className="text-xs text-slate-500 mt-2 font-bold uppercase">– Owner-Operator</p>
                   </div>
                 </div>
               </div>
@@ -388,25 +388,22 @@ export default function Home() {
 
             {/* Sidebar / CTA Box */}
             <div className="lg:w-1/3 bg-[var(--color-midnight)] text-white p-8 rounded-2xl sticky top-24 shadow-xl ring-1 ring-white/10">
-              <h3 className="text-2xl font-bold mb-4">Ready to File?</h3>
+              <h3 className="text-2xl font-bold mb-4">Free Resources</h3>
               <p className="text-slate-300 mb-8">
-                Get your Schedule 1 in minutes for as low as <strong>$34.99</strong>.
+                Guides, checklists, and tools for Form 2290 and trucking compliance.
               </p>
               <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> Instant IRS Audit Check</li>
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> Secure Data Encryption</li>
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> Free Re-files for Rejections</li>
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> US-Based Support</li>
+                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> Due-Date Calendar</li>
+                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> HVUT Calculator</li>
+                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> Filing Checklists</li>
+                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> State-by-State Guides</li>
               </ul>
               <Link
-                href="/services/form-2290-filing"
+                href="/resources"
                 className="flex w-full items-center justify-center rounded-xl bg-[var(--color-orange)] py-4 font-bold text-white transition hover:bg-[#e66a15] hover:shadow-lg hover:scale-[1.02]"
               >
-                Start Smart Filing
+                Explore Resources
               </Link>
-              <p className="text-xs text-center mt-4 text-slate-500">
-                Terms & Conditions apply.
-              </p>
             </div>
           </div>
         </section>

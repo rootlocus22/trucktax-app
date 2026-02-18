@@ -14,7 +14,7 @@ export default function PrivacyPage() {
                     <section>
                         <h2 className="text-xl font-bold text-slate-900 mb-4">1. Introduction</h2>
                         <p>
-                            Vendax Systems LLC ("we," "us," or "our") operates QuickTruckTax. We respect your privacy and are committed to protecting the sensitive personal and business information you trust us with. This Privacy Policy explains how we collect, use, disclosure, and safeguard your information when you use our website and services.
+                            QuickTruckTax ("we," "us," or "our") We respect your privacy and are committed to protecting the sensitive personal and business information you trust us with. This Privacy Policy explains how we collect, use, disclosure, and safeguard your information when you use our website and services.
                         </p>
                     </section>
 
@@ -51,12 +51,26 @@ export default function PrivacyPage() {
                         <ul className="list-disc pl-5 space-y-2 mt-2">
                             <li><strong>Encryption:</strong> All data transmitted between your browser and our servers is encrypted using SSL/TLS. Sensitive data stored in our databases is also encrypted.</li>
                             <li><strong>Access Control:</strong> Access to your personal data is restricted to authorized personnel who need it to perform their job duties.</li>
-                            <li><strong>IRS Standards:</strong> As an e-file provider, we adhere to security and privacy standards mandated by the IRS.</li>
+                            <li><strong>Industry Standards:</strong> We follow industry-standard and regulatory security and privacy practices for handling tax and personal data.</li>
                         </ul>
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-bold text-slate-900 mb-4">5. Sharing of Information</h2>
+                        <h2 className="text-xl font-bold text-slate-900 mb-4">5. Data Retention</h2>
+                        <p>
+                            We retain your account and filing data for at least seven (7) years, or as long as required by tax and regulatory requirements, to support audits, customer service, and legal compliance. You may request deletion of certain personal data subject to our retention obligations.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-bold text-slate-900 mb-4">6. Cookies and Tracking</h2>
+                        <p>
+                            We use essential cookies for session management and security. We do not sell cookie or tracking data to third parties. You can control cookies through your browser settings.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-bold text-slate-900 mb-4">7. Sharing of Information</h2>
                         <p>
                             We do <strong>not</strong> sell your personal information to third parties. We typically only share your information in the following circumstances:
                         </p>
@@ -68,12 +82,19 @@ export default function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-bold text-slate-900 mb-4">6. Contact Us</h2>
+                        <h2 className="text-xl font-bold text-slate-900 mb-4">8. Your Rights (Including California)</h2>
+                        <p>
+                            We do not sell your personal information. California residents may have additional rights to request access, correction, or deletion of personal information—contact us using the details below.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-bold text-slate-900 mb-4">9. Contact Us</h2>
                         <p>
                             If you have any questions about this Privacy Policy, please contact us:
                         </p>
                         <address className="mt-4 not-italic bg-slate-100 p-4 rounded-lg">
-                            <strong>Vendax Systems LLC</strong><br />
+                            <strong>QuickTruckTax</strong><br />
                             28 Geary St STE 650 Suite #500<br />
                             San Francisco, California 94108<br />
                             United States<br />
