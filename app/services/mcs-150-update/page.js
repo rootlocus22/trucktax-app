@@ -3,9 +3,9 @@ import { RefreshCw, CheckCircle, AlertTriangle, ShieldCheck, ArrowRight, FileTex
 import SchemaMarkup from '@/components/seo/SchemaMarkup';
 
 export const metadata = {
-    title: 'MCS-150 Biennial Update Service | FMCSA Compliance',
-    description: 'Update your USDOT number (MCS-150) quickly and correctly. Stay compliant with FMCSA biennial update requirements. Avoid fines and deactivation.',
-    keywords: 'mcs 150 update, usdot update, biennial update fmcsa, mcs-150 filing, dot number update',
+    title: 'MCS-150 Biennial Update & USDOT Reinstatement Guide | FMCSA Compliance',
+    description: 'Learn how to update your USDOT number (MCS-150) or reinstate an Out-of-Service DOT number. Comprehensive guide on MCSA-5889 filing and reactivation.',
+    keywords: 'mcs 150 update guide, usdot reinstatement, reactivate usdot number, biennial update fmcsa, mcs-150 filing instructions, dot number out of service, mcsa-5889 form guide',
     alternates: {
         canonical: 'https://www.quicktrucktax.com/services/mcs-150-update',
     },
@@ -155,8 +155,35 @@ export default function MCS150ServicePage() {
                 </div>
             </div>
 
-            {/* Info Section */}
+            {/* USDOT Reinstatement Section */}
             <div className="bg-white py-20 px-6 border-y border-slate-200">
+                <div className="max-w-4xl mx-auto">
+                    <div className="flex gap-6 items-start">
+                        <div className="shrink-0 p-3 bg-red-50 rounded-lg">
+                            <AlertTriangle className="w-6 h-6 text-red-600" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-bold text-[var(--color-navy)] mb-4">USDOT Reinstatement Guide (Out-of-Service)</h2>
+                            <p className="text-slate-600 mb-4 leading-relaxed">
+                                If your USDOT number is inactive or Out-of-Service due to a missed biennial update, insurance lapse, or safety audit issues, you must follow specific reinstatement procedures.
+                            </p>
+                            <div className="grid md:grid-cols-2 gap-6 mt-8">
+                                <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">
+                                    <h3 className="font-bold text-[var(--color-navy)] mb-2">MCSA-5889 Procedures</h3>
+                                    <p className="text-sm text-slate-600">The official motor carrier records change form required to reactivate your authority and USDOT number.</p>
+                                </div>
+                                <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">
+                                    <h3 className="font-bold text-[var(--color-navy)] mb-2">Reactivation Process</h3>
+                                    <p className="text-sm text-slate-600">Reactivation typically requires updating your MCS-150 and ensuring all compliance documents (like insurance) are active with the FMCSA.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Info Section */}
+            <div className="bg-slate-50 py-20 px-6">
                 <div className="max-w-4xl mx-auto">
                     <div className="flex gap-6 items-start">
                         <div className="shrink-0 p-3 bg-blue-50 rounded-lg">

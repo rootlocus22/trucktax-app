@@ -120,7 +120,7 @@ export default function Home() {
         name: 'How much does it cost to file Form 2290?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'QuickTruckTax is a content and resource site. We offer free guides, checklists, and tools for Form 2290 and trucking compliance. Filing services may be offered in the future.'
+          text: 'QuickTruckTax is a content and resource site. We offer free guides, checklists, and tools for Form 2290 and trucking compliance.'
         }
       },
       {
@@ -128,7 +128,7 @@ export default function Home() {
         name: 'How long does it take to get Schedule 1 after filing Form 2290?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'With QuickTruckTax e-filing, you receive your IRS-stamped Schedule 1 within minutes of IRS acceptance. Most filings are accepted instantly, and we email your Schedule 1 immediately. Paper filings can take 2-4 weeks.'
+          text: 'QuickTruckTax provides information on how to obtain your IRS-stamped Schedule 1. E-filing is generally the fastest method, often resulting in approval within minutes, while paper filings can take several weeks.'
         }
       },
       {

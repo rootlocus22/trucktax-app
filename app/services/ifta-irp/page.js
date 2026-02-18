@@ -101,8 +101,33 @@ export default function IftaIrpServicePage() {
                 </div>
             </div>
 
+            {/* IFTA Deadlines Section */}
+            <div className="py-20 px-6 bg-white border-b border-slate-200">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl font-bold text-[var(--color-navy)] mb-4">IFTA Quarterly Deadlines 2026</h2>
+                        <p className="text-lg text-slate-600 max-w-2xl mx-auto">Quarterly fuel tax reports must be filed by the last day of the month following the end of the quarter.</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                            { quarter: "Q1", range: "Jan - Mar", due: "April 30" },
+                            { quarter: "Q2", range: "Apr - Jun", due: "July 31" },
+                            { quarter: "Q3", range: "Jul - Sep", due: "October 31" },
+                            { quarter: "Q4", range: "Oct - Dec", due: "January 31" }
+                        ].map((q, i) => (
+                            <div key={i} className="bg-slate-50 p-6 rounded-xl border border-slate-100 text-center">
+                                <div className="text-sm font-bold text-orange-600 mb-1">{q.quarter}</div>
+                                <div className="text-lg font-bold text-[var(--color-navy)] mb-1">{q.due}</div>
+                                <div className="text-xs text-slate-500">{q.range}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
             {/* Comparison Grid */}
-            <div className="py-20 px-6">
+            <div className="py-20 px-6 bg-slate-50">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16">
                         <h2 className="text-3xl font-bold text-[var(--color-navy)] mb-4">Understanding the Difference</h2>

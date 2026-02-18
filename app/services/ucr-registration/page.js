@@ -3,9 +3,9 @@ import { Files, CheckCircle, Map, ShieldCheck, ArrowRight, DollarSign } from 'lu
 import SchemaMarkup from '@/components/seo/SchemaMarkup';
 
 export const metadata = {
-    title: 'UCR Registration & Renewal | Unified Carrier Registration | QuickTruckTax',
-    description: 'File your annual UCR registration online. Mandatory for interstate carriers. Instant processing receipt. Simple bracket-based fee structure.',
-    keywords: 'ucr registration, ucr renewal, unified carrier registration, file ucr online, interstate carrier registration',
+    title: 'UCR Registration & Renewal Guide | Unified Carrier Registration',
+    description: 'Learn how to file your annual UCR registration online. Comprehensive guide for interstate carriers on bracket-based fee structures and compliance.',
+    keywords: 'ucr registration guide, ucr renewal, unified carrier registration, file ucr online instructions, interstate carrier registration info',
     alternates: {
         canonical: 'https://www.quicktrucktax.com/services/ucr-registration',
     },
@@ -120,15 +120,16 @@ export default function UCRServicePage() {
 
                     <div className="grid md:grid-cols-4 gap-6">
                         {[
-                            { range: "0 - 2", fee: "Lowest", desc: "Small Fleets" },
-                            { range: "3 - 5", fee: "Tier 2", desc: "Growing Fleets" },
-                            { range: "6 - 20", fee: "Tier 3", desc: "Mid-Size" },
-                            { range: "21 - 100", fee: "Tier 4", desc: "Large Fleets" }
+                            { range: "0 - 2", fee: "$46.00", desc: "Small Fleets" },
+                            { range: "3 - 5", fee: "$144.00", desc: "Growing Fleets" },
+                            { range: "6 - 20", fee: "$359.00", desc: "Mid-Size" },
+                            { range: "21 - 100", fee: "$1,224.00", desc: "Large Fleets" }
                         ].map((tier, i) => (
                             <div key={i} className="bg-white p-6 rounded-xl border border-slate-200 text-center hover:border-indigo-400 transition">
                                 <div className="text-sm font-bold text-indigo-500 uppercase tracking-widest mb-2">{tier.desc}</div>
                                 <div className="text-3xl font-bold text-[var(--color-navy)] mb-2">{tier.range}</div>
-                                <div className="text-slate-500 text-sm">Power Units</div>
+                                <div className="text-xl font-bold text-indigo-600 mb-2">{tier.fee}</div>
+                                <div className="text-slate-500 text-xs text-center">Power Units</div>
                             </div>
                         ))}
                     </div>
