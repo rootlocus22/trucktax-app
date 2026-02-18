@@ -1,198 +1,284 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu, X, ChevronDown, Rocket, FileText, Calendar, Truck, ShieldCheck } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Menu, X, FileText, Calendar, Truck, ShieldCheck, LogIn, UserPlus, LayoutDashboard, ChevronDown, User, CreditCard, LogOut } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import Logo from '@/components/Logo';
+
+const FILING_ROUTES = ['/ucr/file', '/login', '/signup'];
+const DASHBOARD_ROUTES = ['/dashboard'];
+
+function isMinimalHeader(pathname) {
+  if (!pathname) return false;
+  return FILING_ROUTES.some(r => pathname.startsWith(r)) || DASHBOARD_ROUTES.some(r => pathname.startsWith(r));
+}
 
 export default function Header() {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isScrolled, setIsScrolled] = useState(false);
-    const [mounted, setMounted] = useState(false);
-    const pathname = usePathname();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const userMenuRef = useRef(null);
 
-    useEffect(() => {
-        setMounted(true);
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 10);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, userData, loading: authLoading, signOut } = useAuth();
+  const minimal = isMinimalHeader(pathname);
 
-    // Prevent scrolling when menu is open
-    useEffect(() => {
-        if (isMenuOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
-        }
-        return () => { document.body.style.overflow = 'unset'; };
-    }, [isMenuOpen]);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-    const isActive = (path) => pathname === path;
+  useEffect(() => {
+    if (isMenuOpen) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isMenuOpen]);
 
-    const navLinks = [
-        { href: "/", label: "Home" },
-        { href: "/services", label: "Services" },
-        { href: "/insights", label: "Guides" },
-        { href: "/resources", label: "Resources" },
-        { href: "/tools", label: "Tools" },
-        { href: "/blog", label: "Blog" },
-    ];
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    const quickLinks = [
-        { href: "/services/form-2290-filing", label: "File Form 2290", icon: FileText },
-        { href: "/services/mcs-150-update", label: "MCS-150 Update", icon: Truck },
-        { href: "/services/ucr-registration", label: "UCR Registration", icon: ShieldCheck },
-        { href: "/insights/trucking-compliance-calendar", label: "Compliance Calendar", icon: Calendar },
-    ];
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserDropdownOpen(false);
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
+  const handleSignOut = async () => {
+    setUserDropdownOpen(false);
+    await signOut();
+    router.push('/');
+  };
+
+  const isActive = (path) => pathname === path;
+  const headerDark = !minimal && !isScrolled;
+
+  const navLinks = [
+    { href: '/', label: 'Home' },
+    { href: '/services', label: 'Services' },
+    { href: '/insights', label: 'Guides' },
+    { href: '/resources', label: 'Resources' },
+    { href: '/tools', label: 'Tools' },
+    { href: '/blog', label: 'Blog' },
+  ];
+
+  const quickLinks = [
+    { href: '/services/form-2290-filing', label: 'File Form 2290', icon: FileText },
+    { href: '/services/mcs-150-update', label: 'MCS-150 Update', icon: Truck },
+    { href: '/services/ucr-registration', label: 'UCR Registration', icon: ShieldCheck },
+    { href: '/insights/trucking-compliance-calendar', label: 'Compliance Calendar', icon: Calendar },
+  ];
+
+  const redirectQuery = pathname?.startsWith('/ucr') ? '?redirect=' + encodeURIComponent(pathname || '/ucr/file') : '';
+
+  // ----- Minimal header (filing / login / signup / dashboard)
+  if (minimal) {
     return (
-        <>
-            <header className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled
-                ? 'bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm py-3'
-                : 'bg-[var(--color-midnight)] border-b border-white/10 py-4'
-                }`}>
-                <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between">
-                        {/* Logo */}
-                        <Link href="/" className="flex items-center gap-4 group">
-                            <div className="bg-white p-1.5 rounded-lg shadow-sm transition-transform group-hover:scale-105">
-                                <img
-                                    src="/logofinal.svg"
-                                    alt="QuickTruckTax Logo"
-                                    className="h-10 md:h-12 w-auto"
-                                />
-                            </div>
-                            <div className="flex flex-col">
-                                <span className={`text-xl md:text-2xl font-bold tracking-tight ${isScrolled ? 'text-[var(--color-navy)]' : 'text-white'}`}>
-                                    QuickTruckTax
-                                </span>
-                                <span className={`text-[11px] font-bold uppercase tracking-[0.3em] ${isScrolled ? 'text-slate-500' : 'text-blue-200'}`}>
-                                    Compliance Simplified
-                                </span>
-                            </div>
-                        </Link>
-
-                        {/* Desktop Navigation */}
-                        <nav className="hidden md:flex items-center gap-8">
-                            {navLinks.map((link) => (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className={`text-sm font-medium transition-colors ${isScrolled
-                                        ? (isActive(link.href) ? 'text-[var(--color-orange)] font-bold' : 'text-slate-600 hover:text-[var(--color-navy)]')
-                                        : (isActive(link.href) ? '!text-white font-bold' : '!text-white opacity-90 hover:opacity-100')
-                                        }`}
-                                >
-                                    {link.label}
-                                </Link>
-                            ))}
-                        </nav>
-
-                        {/* CTA Button */}
-                        <div className="hidden md:block">
-                            <Link
-                                href="/resources"
-                                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition shadow-lg ${isScrolled
-                                    ? 'bg-blue-900 !text-white hover:bg-blue-800 shadow-blue-900/10'
-                                    : 'bg-white !text-blue-900 hover:bg-blue-50 shadow-white/10'
-                                    }`}
-                            >
-                                <FileText className="w-4 h-4" />
-                                Explore Resources
-                            </Link>
+      <>
+        <header className="sticky top-0 z-50 bg-white border-b border-slate-200 py-2 shadow-sm">
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between gap-4 min-h-[44px]">
+              <Link href="/" className="flex items-center gap-2 shrink-0">
+                <Logo dark={false} compact />
+              </Link>
+              <div className="flex items-center gap-2">
+                {!authLoading && (
+                  user ? (
+                    <div className="relative" ref={userMenuRef}>
+                      <button
+                        onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                        className="inline-flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100 transition border border-slate-200"
+                      >
+                        {userData?.photoURL ? (
+                          <img src={userData.photoURL} alt="" className="w-7 h-7 rounded-full object-cover" />
+                        ) : (
+                          <span className="w-7 h-7 rounded-full bg-[var(--color-navy)] text-white flex items-center justify-center text-xs font-bold">
+                            {(userData?.displayName || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                        <span className="hidden sm:inline max-w-[120px] truncate">{userData?.displayName || user?.email?.split('@')[0] || 'Account'}</span>
+                        <ChevronDown className={`w-4 h-4 text-slate-500 transition ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      {userDropdownOpen && (
+                        <div className="absolute right-0 top-full mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
+                          <Link href="/dashboard" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                            <LayoutDashboard className="w-4 h-4" /> Dashboard
+                          </Link>
+                          <Link href="/dashboard/profile" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                            <User className="w-4 h-4" /> Profile
+                          </Link>
+                          <Link href="/dashboard/payment-history" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                            <CreditCard className="w-4 h-4" /> Billing & Payments
+                          </Link>
+                          <hr className="my-1 border-slate-100" />
+                          <button onClick={handleSignOut} className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">
+                            <LogOut className="w-4 h-4" /> Log out
+                          </button>
                         </div>
-
-                        {/* Mobile Menu Button */}
-                        <button
-                            className="md:hidden p-2 rounded-lg transition"
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        >
-                            {isMenuOpen ? (
-                                <X className={`w-6 h-6 ${isScrolled ? 'text-slate-900' : 'text-white'}`} />
-                            ) : (
-                                <Menu className={`w-6 h-6 ${isScrolled ? 'text-slate-900' : 'text-white'}`} />
-                            )}
-                        </button>
+                      )}
                     </div>
-                </div>
-            </header>
-
-            {/* Mobile Menu Portal */}
-            {mounted && isMenuOpen && createPortal(
-                <div className="fixed inset-0 z-[100] md:hidden">
-                    {/* Backdrop */}
-                    <div
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-                        onClick={() => setIsMenuOpen(false)}
-                    ></div>
-
-                    {/* Slide-over Drawer */}
-                    <div className="absolute top-0 right-0 h-full w-[85%] max-w-[320px] bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 ease-out">
-                        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
-                            <span className="font-bold text-lg text-slate-900">Menu</span>
-                            <button
-                                onClick={() => setIsMenuOpen(false)}
-                                className="p-2 rounded-full bg-slate-200 text-slate-600 hover:bg-slate-300 transition"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto">
-                            <div className="p-5 flex flex-col gap-2">
-                                {navLinks.map((link) => (
-                                    <Link
-                                        key={link.href}
-                                        href={link.href}
-                                        onClick={() => setIsMenuOpen(false)}
-                                        className={`px-4 py-3 rounded-xl text-base font-medium transition ${isActive(link.href)
-                                            ? 'bg-blue-50 text-blue-700 font-bold'
-                                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                                            }`}
-                                    >
-                                        {link.label}
-                                    </Link>
-                                ))}
-                            </div>
-
-                            <div className="bg-slate-50 p-5 border-t border-slate-100">
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Quick Services</h4>
-                                <div className="grid grid-cols-1 gap-3">
-                                    {quickLinks.map((link) => (
-                                        <Link
-                                            key={link.href}
-                                            href={link.href}
-                                            onClick={() => setIsMenuOpen(false)}
-                                            className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:border-blue-300 transition shadow-sm"
-                                        >
-                                            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                                                <link.icon className="w-4 h-4 text-blue-600" />
-                                            </div>
-                                            <span className="text-sm font-semibold text-slate-700">{link.label}</span>
-                                        </Link>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-5 border-t border-slate-100 shrink-0">
-                            <Link
-                                href="/resources"
-                                onClick={() => setIsMenuOpen(false)}
-                                className="w-full bg-[var(--color-orange)] text-white px-4 py-4 rounded-xl text-center font-bold shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2 hover:bg-[#ff7a20] transition"
-                            >
-                                <FileText className="w-5 h-5" />
-                                Explore Resources
-                            </Link>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
-        </>
+                  ) : (
+                    <>
+                      <Link href={`/login${redirectQuery}`} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">
+                        <LogIn className="w-4 h-4" /> Log in
+                      </Link>
+                      <Link href={`/signup${redirectQuery}`} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy-soft)] transition">
+                        <UserPlus className="w-4 h-4" /> Sign up
+                      </Link>
+                    </>
+                  )
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+      </>
     );
+  }
+
+  // ----- Full header (marketing pages)
+  return (
+    <>
+      <header className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm py-2' : 'bg-[var(--color-midnight)] border-b border-white/10 py-2'}`}>
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-4 min-h-[48px]">
+            <Link href="/" className="flex items-center gap-2 shrink-0">
+              <Logo dark={headerDark} compact={false} />
+            </Link>
+
+            <nav className="hidden md:flex items-center gap-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`text-sm font-medium transition-colors ${isScrolled ? (isActive(link.href) ? 'text-[var(--color-orange)] font-bold' : 'text-slate-600 hover:text-[var(--color-navy)]') : (isActive(link.href) ? '!text-white font-bold' : '!text-white opacity-90 hover:opacity-100')}`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="hidden md:flex items-center gap-3">
+              {!authLoading && (
+                user ? (
+                  <div className="relative" ref={userMenuRef}>
+                    <button
+                      onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                      className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition ${isScrolled ? 'text-slate-700 hover:bg-slate-100' : 'text-white hover:bg-white/10'}`}
+                    >
+                      {userData?.photoURL ? (
+                        <img src={userData.photoURL} alt="" className="w-8 h-8 rounded-full object-cover" />
+                      ) : (
+                        <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isScrolled ? 'bg-[var(--color-navy)] text-white' : 'bg-white/20 text-white'}`}>
+                          {(userData?.displayName || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      <span className="max-w-[140px] truncate">{userData?.displayName || user?.email?.split('@')[0] || 'Account'}</span>
+                      <ChevronDown className={`w-4 h-4 transition ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {userDropdownOpen && (
+                      <div className="absolute right-0 top-full mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
+                        <Link href="/dashboard" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                          <LayoutDashboard className="w-4 h-4" /> Dashboard
+                        </Link>
+                        <Link href="/dashboard/profile" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                          <User className="w-4 h-4" /> Profile
+                        </Link>
+                        <Link href="/dashboard/payment-history" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                          <CreditCard className="w-4 h-4" /> Billing & Payments
+                        </Link>
+                        <hr className="my-1 border-slate-100" />
+                        <button onClick={handleSignOut} className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">
+                          <LogOut className="w-4 h-4" /> Log out
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <Link href="/login" className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition ${isScrolled ? 'text-slate-600 hover:bg-slate-100' : 'text-white/90 hover:bg-white/10'}`}>
+                      <LogIn className="w-4 h-4" /> Log in
+                    </Link>
+                    <Link href="/signup" className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition shadow-md ${isScrolled ? 'bg-[var(--color-orange)] text-white hover:bg-[#e66a15]' : 'bg-white text-[var(--color-navy)] hover:bg-blue-50'}`}>
+                      <UserPlus className="w-4 h-4" /> Sign up
+                    </Link>
+                  </>
+                )
+              )}
+              {!user && (
+                <Link href="/ucr/file" className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold ${isScrolled ? 'bg-[var(--color-orange)] text-white hover:bg-[#e66a15]' : 'bg-white/20 text-white hover:bg-white/30'}`}>
+                  <FileText className="w-4 h-4" /> Start UCR Filing
+                </Link>
+              )}
+            </div>
+
+            <button className="md:hidden p-2 rounded-lg transition" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Menu">
+              {isMenuOpen ? <X className={`w-6 h-6 ${isScrolled ? 'text-slate-900' : 'text-white'}`} /> : <Menu className={`w-6 h-6 ${isScrolled ? 'text-slate-900' : 'text-white'}`} />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {mounted && isMenuOpen && createPortal(
+        <div className="fixed inset-0 z-[100] md:hidden">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
+          <div className="absolute top-0 right-0 h-full w-[85%] max-w-[320px] bg-white shadow-2xl flex flex-col">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
+              <span className="font-bold text-slate-900">Menu</span>
+              <button onClick={() => setIsMenuOpen(false)} className="p-2 rounded-full bg-slate-200 text-slate-600 hover:bg-slate-300 transition">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
+              {navLinks.map((link) => (
+                <Link key={link.href} href={link.href} onClick={() => setIsMenuOpen(false)} className={`px-4 py-3 rounded-xl text-base font-medium transition ${isActive(link.href) ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 hover:bg-slate-50'}`}>
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+            <div className="bg-slate-50 p-4 border-t border-slate-100 space-y-2">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Account</h4>
+              {user ? (
+                <>
+                  <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl font-semibold text-slate-700">
+                    <LayoutDashboard className="w-5 h-5 text-[var(--color-navy)]" /> Dashboard
+                  </Link>
+                  <Link href="/dashboard/profile" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl font-semibold text-slate-700">
+                    <User className="w-5 h-5" /> Profile
+                  </Link>
+                  <Link href="/dashboard/payment-history" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl font-semibold text-slate-700">
+                    <CreditCard className="w-5 h-5" /> Billing & Payments
+                  </Link>
+                  <button onClick={() => { setIsMenuOpen(false); handleSignOut(); }} className="flex w-full items-center gap-3 p-3 rounded-xl font-semibold text-red-600 hover:bg-red-50">
+                    <LogOut className="w-5 h-5" /> Log out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl font-semibold text-slate-700">
+                    <LogIn className="w-5 h-5" /> Log in
+                  </Link>
+                  <Link href="/signup" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 p-3 bg-[var(--color-navy)] text-white rounded-xl font-semibold">
+                    <UserPlus className="w-5 h-5" /> Sign up
+                  </Link>
+                </>
+              )}
+              <Link href="/ucr/file" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center gap-2 w-full bg-[var(--color-orange)] text-white py-3 rounded-xl font-bold mt-2">
+                <FileText className="w-5 h-5" /> Start UCR Filing
+              </Link>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
 }

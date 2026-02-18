@@ -114,25 +114,28 @@ export default function UCRServicePage() {
             <div className="py-20 px-6">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold text-[var(--color-navy)] mb-4">UCR Fee Brackets</h2>
-                        <p className="text-lg text-slate-600 max-w-2xl mx-auto">Fees are determined by the number of power units (trucks) in your fleet.</p>
+                        <h2 className="text-3xl font-bold text-[var(--color-navy)] mb-4">UCR Fee Brackets (2025/2026)</h2>
+                        <p className="text-lg text-slate-600 max-w-2xl mx-auto">Fees are determined by the number of power units (trucks) in your fleet as per official UCR Plan regulations.</p>
                     </div>
 
-                    <div className="grid md:grid-cols-4 gap-6">
+                    <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4">
                         {[
                             { range: "0 - 2", fee: "$46.00", desc: "Small Fleets" },
-                            { range: "3 - 5", fee: "$144.00", desc: "Growing Fleets" },
+                            { range: "3 - 5", fee: "$144.00", desc: "Growing" },
                             { range: "6 - 20", fee: "$359.00", desc: "Mid-Size" },
-                            { range: "21 - 100", fee: "$1,224.00", desc: "Large Fleets" }
+                            { range: "21 - 100", fee: "$1,224.00", desc: "Large" },
+                            { range: "101 - 1k", fee: "$5,835.00", desc: "Hub" },
+                            { range: "1,001+", fee: "$56,977.00", desc: "Enterprise" }
                         ].map((tier, i) => (
-                            <div key={i} className="bg-white p-6 rounded-xl border border-slate-200 text-center hover:border-indigo-400 transition">
-                                <div className="text-sm font-bold text-indigo-500 uppercase tracking-widest mb-2">{tier.desc}</div>
-                                <div className="text-3xl font-bold text-[var(--color-navy)] mb-2">{tier.range}</div>
-                                <div className="text-xl font-bold text-indigo-600 mb-2">{tier.fee}</div>
-                                <div className="text-slate-500 text-xs text-center">Power Units</div>
+                            <div key={i} className="bg-white p-6 rounded-xl border border-slate-200 text-center hover:border-indigo-400 transition shadow-sm hover:shadow-md">
+                                <div className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-2">{tier.desc}</div>
+                                <div className="text-xl font-bold text-[var(--color-navy)] mb-1">{tier.range}</div>
+                                <div className="text-lg font-bold text-indigo-600 mb-1">{tier.fee}</div>
+                                <div className="text-slate-400 text-[10px] text-center">Power Units</div>
                             </div>
                         ))}
                     </div>
+                    <p className="text-center text-slate-400 text-xs mt-8">* Official UCR government fees. Service filing fees apply separately.</p>
                 </div>
             </div>
 
@@ -152,15 +155,21 @@ export default function UCRServicePage() {
             </div>
 
             {/* CTA */}
-            <div className="py-16 px-6 bg-slate-50 text-center">
-                <h2 className="text-2xl font-bold text-[var(--color-navy)] mb-6">Ready to file your 2026 UCR?</h2>
-                <div className="inline-block bg-indigo-50 p-6 rounded-xl border border-indigo-100">
-                    <p className="text-indigo-800 font-medium mb-4">Registration opens Jan 2026</p>
+            <div className="py-20 px-6 bg-slate-50 text-center">
+                <h2 className="text-3xl font-bold text-[var(--color-navy)] mb-4">Ready to file your 2026 UCR?</h2>
+                <p className="text-lg text-slate-600 mb-10 max-w-xl mx-auto">Join thousands of carriers who use QuickTruckTax for simple, fast, and compliant UCR filings.</p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <Link
-                        href="/resources"
-                        className="inline-flex bg-indigo-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-indigo-600 transition shadow-lg shadow-indigo-900/20 items-center gap-2"
+                        href="/ucr/file"
+                        className="inline-flex bg-indigo-600 text-white px-10 py-5 rounded-full font-bold text-xl hover:bg-indigo-700 transition shadow-xl shadow-indigo-200 items-center gap-2 transform hover:-translate-y-1"
                     >
-                        UCR Waitlist <ArrowRight className="w-5 h-5" />
+                        Start Filing Now <ArrowRight className="w-5 h-5" />
+                    </Link>
+                    <Link
+                        href="/tools/ucr-calculator"
+                        className="inline-flex bg-white border border-slate-200 text-slate-700 px-10 py-5 rounded-full font-bold text-xl hover:bg-slate-50 transition items-center gap-2"
+                    >
+                        Check My Fee
                     </Link>
                 </div>
             </div>

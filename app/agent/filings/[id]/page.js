@@ -23,6 +23,7 @@ export default function AgentWorkStationPage() {
   const [agentNotes, setAgentNotes] = useState('');
   const [schedule1File, setSchedule1File] = useState(null);
   const [mcsConfirmationFile, setMcsConfirmationFile] = useState(null);
+  const [certificateUrlInput, setCertificateUrlInput] = useState('');
   const [error, setError] = useState('');
 
   // Rejection State
@@ -46,6 +47,7 @@ export default function AgentWorkStationPage() {
       setStatus(filingData.status);
       setMcsStatus(filingData.mcs150Status || '');
       setAgentNotes(filingData.agentNotes || '');
+      setCertificateUrlInput(filingData.certificateUrl || '');
 
       // Load rejection state if exists
       if (filingData.rejectionReasonId) setRejectionReasonId(filingData.rejectionReasonId);
@@ -161,6 +163,29 @@ export default function AgentWorkStationPage() {
       await updateFiling(params.id, updateData);
     } catch (error) {
       setError('Failed to save notes');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUcrComplete = async () => {
+    const url = (certificateUrlInput || '').trim();
+    if (!url) {
+      setError('Enter the UCR certificate URL (from ucr.gov or your upload).');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      await updateFiling(params.id, {
+        status: 'completed',
+        certificateUrl: url,
+        completedAt: new Date().toISOString()
+      });
+      setStatus('completed');
+      setFiling({ ...filing, status: 'completed', certificateUrl: url, completedAt: new Date().toISOString() });
+    } catch (err) {
+      setError(err.message || 'Failed to mark UCR as completed.');
     } finally {
       setSaving(false);
     }
@@ -1509,34 +1534,63 @@ export default function AgentWorkStationPage() {
                   </button>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                    Upload Stamped Schedule 1
-                  </label>
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => setSchedule1File(e.target.files[0])}
-                    className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-navy)]"
-                  />
-                  {schedule1File && (
-                    <p className="mt-2 text-sm text-[var(--color-muted)]">
-                      Selected: {schedule1File.name}
-                    </p>
-                  )}
-                  <button
-                    onClick={handleUploadSchedule1}
-                    disabled={saving || !schedule1File || status === 'completed'}
-                    className="mt-2 w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {saving ? 'Uploading...' : 'Upload Schedule 1 & Mark Complete'}
-                  </button>
-                  {status === 'completed' && filing.finalSchedule1Url && (
-                    <p className="mt-2 text-sm text-green-600">
-                      Schedule 1 already uploaded. <a href={filing.finalSchedule1Url} target="_blank" rel="noopener noreferrer" className="underline">View current file</a>
-                    </p>
-                  )}
-                </div>
+                {filing.filingType === 'ucr' ? (
+                  <div className="space-y-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                    <h3 className="font-semibold text-emerald-900 text-sm">UCR – Complete Filing</h3>
+                    <p className="text-xs text-emerald-800">After filing on ucr.gov, add the certificate URL (or your uploaded PDF link) and mark the filing complete. The customer will see this on their dashboard.</p>
+                    <div>
+                      <label className="block text-sm font-medium text-emerald-900 mb-1">Certificate URL</label>
+                      <input
+                        type="url"
+                        value={certificateUrlInput}
+                        onChange={(e) => setCertificateUrlInput(e.target.value)}
+                        placeholder="https://..."
+                        className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+                      />
+                    </div>
+                    <button
+                      onClick={handleUcrComplete}
+                      disabled={saving || status === 'completed'}
+                      className="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-semibold hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {saving ? 'Saving...' : status === 'completed' ? 'Completed' : 'Mark Complete & Set Certificate'}
+                    </button>
+                    {status === 'completed' && filing.certificateUrl && (
+                      <p className="text-sm text-emerald-700">
+                        Certificate set. <a href={filing.certificateUrl} target="_blank" rel="noopener noreferrer" className="underline">View link</a>
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                      Upload Stamped Schedule 1
+                    </label>
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => setSchedule1File(e.target.files[0])}
+                      className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-navy)]"
+                    />
+                    {schedule1File && (
+                      <p className="mt-2 text-sm text-[var(--color-muted)]">
+                        Selected: {schedule1File.name}
+                      </p>
+                    )}
+                    <button
+                      onClick={handleUploadSchedule1}
+                      disabled={saving || !schedule1File || status === 'completed'}
+                      className="mt-2 w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {saving ? 'Uploading...' : 'Upload Schedule 1 & Mark Complete'}
+                    </button>
+                    {status === 'completed' && filing.finalSchedule1Url && (
+                      <p className="mt-2 text-sm text-green-600">
+                        Schedule 1 already uploaded. <a href={filing.finalSchedule1Url} target="_blank" rel="noopener noreferrer" className="underline">View current file</a>
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

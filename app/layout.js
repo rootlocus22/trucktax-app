@@ -22,11 +22,11 @@ const geistMono = Geist_Mono({
 export const metadata = {
   metadataBase: new URL("https://www.quicktrucktax.com"),
   title: {
-    default: "Form 2290 Guides & Resources | HVUT, Trucking Compliance | QuickTruckTax",
+    default: "QuickTruckTax – The Smart UCR Filing & Compliance Platform for Truckers",
     template: "%s | QuickTruckTax",
   },
   description:
-    "Free Form 2290 guides, checklists, due-date tools, and HVUT resources. Expert information on UCR, MCS-150, USDOT reactivation, and IFTA compliance.",
+    "Simple. Fast. Smart UCR filing. Calculate your fee, file in minutes, and stay compliant. The best UCR-focused platform for truckers.",
   keywords: [
     "form 2290 guides",
     "e-file form 2290",
@@ -100,6 +100,8 @@ export const metadata = {
 };
 
 import Header from "@/components/ui/Header";
+import StickyUcrCta from "@/components/StickyUcrCta";
+import Providers from "@/components/Providers";
 
 // JSON-LD for WebSite
 const websiteJsonLd = {
@@ -141,14 +143,16 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-[var(--color-page)] text-[var(--color-text)] antialiased`}
       >
-        <div className="flex min-h-screen flex-col">
-          <Header />
-          <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8 sm:py-16">
-            {children}
-            <Analytics />
-            <FirebaseAnalytics />
+        <Providers>
+          <div className="flex min-h-screen flex-col">
+            <Header />
+            <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8 sm:py-16">
+              {children}
+              <StickyUcrCta />
+              <Analytics />
+              <FirebaseAnalytics />
 
-          </main>
+            </main>
           <footer className="border-t border-[var(--color-border)] bg-[var(--color-midnight)] text-white pt-12 pb-8">
             <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 border-b border-white/10 pb-8">
@@ -167,8 +171,14 @@ export default function RootLayout({ children }) {
 
                 {/* Quick Links */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Resources</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Resources</h3>
                   <div className="flex flex-col gap-3">
+                    <Link href="/ucr/file" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 font-medium">
+                      UCR Filing
+                    </Link>
+                    <Link href="/tools/ucr-calculator" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2">
+                      UCR Fee Calculator
+                    </Link>
                     <Link href="/insights/trucking-compliance-calendar" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2">
                       Compliance Calendar
                     </Link>
@@ -181,7 +191,7 @@ export default function RootLayout({ children }) {
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Legal</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Legal</h3>
                   <div className="flex flex-col gap-3">
                     <Link href="/privacy-policy" className="text-sm text-slate-300 hover:text-white transition">Privacy Policy</Link>
                     <Link href="/terms" className="text-sm text-slate-300 hover:text-white transition">Terms of Service</Link>
@@ -198,7 +208,8 @@ export default function RootLayout({ children }) {
               </div>
             </div>
           </footer>
-        </div>
+          </div>
+        </Providers>
       </body>
     </html >
   );

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { complianceGuides } from "@/lib/guides";
-import { ShieldCheck, ChevronRight, Calculator, CheckCircle, Lock, Award, FileText, Download, Clock, Edit3, Users, LayoutGrid, ArrowRight } from "lucide-react";
+import { ShieldCheck, ChevronRight, Calculator, CheckCircle, Lock, Award, FileText, Download, Clock, Edit3, Users, LayoutGrid, ArrowRight, Search } from "lucide-react";
 
 const spotlightSlugs = [
   "form-2290-ultimate-guide",
@@ -200,60 +200,60 @@ export default function Home() {
 
           <div className="relative z-10 px-6 py-20 sm:px-12 lg:px-16 grid gap-12 lg:grid-cols-2 items-center">
             <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 border border-blue-500/20 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-blue-400">
-                <FileText className="w-4 h-4" /> Guides &amp; Resources
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 border border-emerald-400/30 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-300">
+                UCR Specialist
               </div>
               <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl text-white">
-                Form 2290 <span className="block text-blue-200">Guides &amp; Tools</span> for 2025-2026
+                The Smart <span className="block text-blue-200">UCR Filing &amp; Compliance</span> Platform for Truckers
               </h1>
               <p className="text-lg leading-8 text-slate-300 max-w-xl">
-                Free checklists, due-date guides, HVUT calculators, and step-by-step resources. Stay compliant with the latest Form 2290 and trucking tax info.
+                Simple. Fast. Smart UCR filing. Calculate your fee, file in minutes, and stay compliant. The best UCR-focused platform in the market.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
-                  href="/resources"
+                  href="/ucr/file"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-orange)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-orange-500/20 transition hover:bg-[#e66a15] hover:scale-105 transform duration-200"
                 >
-                  Explore Resources
+                  Start UCR Filing
                   <ChevronRight className="w-5 h-5" />
                 </Link>
                 <Link
-                  href="/tools/hvut-calculator"
+                  href="/tools/ucr-calculator"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-8 py-4 text-lg font-semibold text-white transition hover:bg-white/20"
                 >
                   <Calculator className="w-5 h-5" />
-                  Tax Calculator
+                  UCR Fee Calculator
                 </Link>
               </div>
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 text-sm font-medium text-slate-400 pt-4">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" /> Free Guides
+                  <CheckCircle className="w-5 h-5 text-green-400" /> Fee calculation
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" /> Due-Date Tools
+                  <CheckCircle className="w-5 h-5 text-green-400" /> Guided filing
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" /> HVUT Calculator
+                  <CheckCircle className="w-5 h-5 text-green-400" /> Compliance dashboard
                 </div>
               </div>
             </div>
 
-            {/* Hero Stats Card - content focus */}
+            {/* Hero Stats Card - UCR focus */}
             <div className="hidden lg:block relative">
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl transform rotate-2 hover:rotate-0 transition duration-500">
                 <div className="grid grid-cols-2 gap-8">
                   <div>
-                    <p className="text-4xl font-bold text-[var(--color-orange)]">230+</p>
-                    <p className="text-sm text-slate-400">Guides &amp; Topics</p>
+                    <p className="text-4xl font-bold text-[var(--color-orange)]">$79</p>
+                    <p className="text-sm text-slate-400">UCR Filing Service</p>
                   </div>
                   <div>
-                    <p className="text-4xl font-bold text-white">Free</p>
-                    <p className="text-sm text-slate-400">Tools &amp; Checklists</p>
+                    <p className="text-4xl font-bold text-white">2026</p>
+                    <p className="text-sm text-slate-400">Registration open</p>
                   </div>
                   <div className="col-span-2 border-t border-white/10 pt-6">
-                    <p className="text-sm text-slate-300 italic">"Clear due dates and checklists. Exactly what I needed before filing."</p>
+                    <p className="text-sm text-slate-300 italic">"Finally, UCR that doesn't confuse me. Fee calculator and wizard in one place."</p>
                     <p className="text-xs text-slate-500 mt-2 font-bold uppercase">– Owner-Operator</p>
                   </div>
                 </div>
@@ -261,6 +261,11 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* UCR Urgency Banner */}
+        <div className="bg-amber-500 text-white py-3 px-4 text-center text-sm font-semibold">
+          🚛 2026 UCR registration is open. File before Dec 31 to stay compliant. <Link href="/ucr/file" className="underline ml-1">Start UCR Filing →</Link>
+        </div>
 
         {/* TRUST BANNER */}
         <div className="bg-white border-y border-slate-100 py-8">
@@ -324,12 +329,12 @@ export default function Home() {
             <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-1 bg-slate-100 -z-10"></div>
 
             {[
-              { title: "1. Submit Info", desc: "Send us your business and vehicle details via our secure form. It takes 2 minutes.", icon: FileText },
-              { title: "2. We File For You", desc: "Our experts review your data for errors and transmit it to the IRS on your behalf.", icon: Users },
-              { title: "3. Get Schedule 1", desc: "We email you the official IRS-stamped Schedule 1 as soon as it's accepted.", icon: Download }
+              { title: "1. Lookup USDOT", desc: "Enter your DOT number and our AI will instantly pull your latest FMCSA business details.", icon: Search },
+              { title: "2. Verify Fleet", desc: "We'll calculate your UCR bracket (0-2, 3-5, etc.) and service fee based on your fleet size.", icon: Calculator },
+              { title: "3. Get Certificate", desc: "We file your registration instantly and store your UCR certificate in our secure portal.", icon: Download }
             ].map((step, idx) => (
               <div key={idx} className="flex flex-col items-center text-center bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition">
-                <div className="w-24 h-24 rounded-full bg-blue-50 border-4 border-white shadow-sm flex items-center justify-center mb-6 text-[var(--color-navy)]">
+                <div className="w-24 h-24 rounded-full bg-blue-50 border-4 border-white shadow-sm flex items-center justify-center mb-6 text-[var(--color-navy)] text-indigo-600">
                   <step.icon className="w-10 h-10" />
                 </div>
                 <h3 className="text-xl font-bold text-[var(--color-text)] mb-3">{step.title}</h3>
@@ -347,12 +352,12 @@ export default function Home() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { title: "Fast Schedule 1", desc: "We monitor your filing status constantly and forward your Schedule 1 the moment it arrives.", icon: Clock },
-              { title: "Error-Free Guarantee", desc: "Our experts manually review your VINs. Plus, we offer FREE VIN Corrections if you make a mistake.", icon: ShieldCheck },
-              { title: "Instant SMS Alerts", desc: "Stay in the loop without checking email. We text you immediately when your Schedule 1 is ready.", icon: Users },
-              { title: "Secure Transmission", desc: "We use authorized channels to transmit your data securely to government agencies.", icon: Lock },
-              { title: "Smart Tax Calculator", desc: "Don't overpay. We calculate the exact HVUT amount for you based on IRS rules.", icon: Calculator },
-              { title: "All-in-One Compliance", desc: "We can handle your 2290s, UCR registrations, and MCS-150 updates for you completely.", icon: LayoutGrid },
+              { title: "Official UCR Proof", desc: "We deliver and store your official UCR registration receipt the moment it's processed.", icon: Clock },
+              { title: "FMCSA Sync", desc: "Our platform syncs directly with FMCSA records to ensure your fleet count and business data are always accurate.", icon: ShieldCheck },
+              { title: "Status Monitoring", desc: "We monitor your UCR status year-round and notify you of any administrative changes to your DOT status.", icon: Users },
+              { title: "Secure Portal", desc: "Access your UCR certificates, receipts, and filing history anytime through your secure dashboard.", icon: Lock },
+              { title: "Smart Fee Calculator", desc: "Avoid overpaying. Our calculator uses real-time brackets to determine your exact UCR and service fees.", icon: Calculator },
+              { title: "Compliance Pro", desc: "Upgrade to UCR Pro for automated annual renewals, deadline reminders, and DOT status monitoring.", icon: LayoutGrid },
             ].map((feature, idx) => (
               <div key={idx} className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition border border-slate-100 group">
                 <feature.icon className="w-10 h-10 text-[var(--color-orange)] mb-6 group-hover:scale-110 transition-transform" />

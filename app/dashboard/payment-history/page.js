@@ -23,7 +23,7 @@ export default function PaymentHistoryPage() {
           <Link href="/dashboard" className="text-[var(--color-muted)] hover:text-[var(--color-text)] mb-4 inline-block">
             ← Back to Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-[var(--color-text)]">Payment History</h1>
+          <h1 className="text-3xl font-bold text-[var(--color-text)]">Billing & Payments</h1>
           <p className="mt-2 text-[var(--color-muted)]">
             View your past transactions and invoices
           </p>

@@ -19,13 +19,16 @@ import {
   ArrowRight,
   RotateCcw,
   Plus,
-  TrendingUp,
   Calendar,
   ChevronRight,
   CreditCard,
   Search,
   Filter,
-  MoreVertical
+  MoreVertical,
+  ShieldCheck,
+  Download,
+  Calculator,
+  HelpCircle
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -77,7 +80,7 @@ export default function DashboardPage() {
     completed: filings.filter(f => f.status === 'completed').length,
     processing: filings.filter(f => f.status === 'processing' || f.status === 'submitted').length,
     actionRequired: filings.filter(f => f.status === 'action_required').length,
-    totalVehicles: filings.reduce((sum, f) => sum + (f.vehicleIds?.length || 0), 0),
+    totalVehicles: filings.reduce((sum, f) => sum + (f.vehicleIds?.length || 0) + (Number(f.powerUnits) || 0), 0),
   };
 
   const incomplete = getIncompleteFilings(filings);
@@ -92,18 +95,16 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      {/* Viewport layout - flex-1 to fill space between header and footer */}
       <div className="flex flex-col flex-1 h-full min-h-0">
-        {/* Compact Header - Mobile Responsive */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3 bg-[var(--color-page)] border-b border-[var(--color-border)] flex-shrink-0">
+        {/* Compact Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3 bg-white border-b border-slate-200 flex-shrink-0">
           <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-            <h1 className="text-xl sm:text-2xl font-bold text-[var(--color-text)] tracking-tight">Dashboard</h1>
-            {/* Compact User Badge - Hidden on very small screens */}
-            <div className="hidden xs:inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-full px-2 sm:px-3 py-1.5">
-              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-xs">
+            <h1 className="text-xl sm:text-2xl font-bold text-[var(--color-navy)] tracking-tight">Dashboard</h1>
+            <div className="hidden xs:inline-flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-full px-2 sm:px-3 py-1.5">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[var(--color-navy)] flex items-center justify-center text-white font-semibold text-xs">
                 {(userData?.displayName || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
               </div>
-              <span className="text-xs sm:text-sm font-semibold text-[var(--color-navy)] hidden sm:inline">
+              <span className="text-xs sm:text-sm font-semibold text-slate-700 hidden sm:inline">
                 {userData?.displayName || user?.email?.split('@')[0] || 'User'}
               </span>
             </div>
@@ -111,15 +112,15 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
             {hasFilings && (
               <>
-                <button className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 active:bg-slate-100 flex items-center justify-center transition-colors touch-manipulation">
-                  <Search className="w-4 h-4 text-slate-600" />
+                <button className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition-colors text-slate-600" aria-label="Search">
+                  <Search className="w-4 h-4" />
                 </button>
-                <button className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 active:bg-slate-100 flex items-center justify-center transition-colors touch-manipulation">
-                  <Filter className="w-4 h-4 text-slate-600" />
+                <button className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition-colors text-slate-600" aria-label="Filter">
+                  <Filter className="w-4 h-4" />
                 </button>
                 <Link
                   href="/dashboard/new-filing"
-                  className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-[var(--color-orange)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] active:scale-95 transition-all touch-manipulation whitespace-nowrap"
+                  className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-[var(--color-navy)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] active:scale-95 transition-all whitespace-nowrap"
                 >
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">New Filing</span>
@@ -131,382 +132,229 @@ export default function DashboardPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center flex-1">
+          <div className="flex items-center justify-center flex-1 bg-slate-50">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-8 h-8 border-2 border-[var(--color-orangeß)]/10 border-t-[var(--color-orangeß)] rounded-full animate-spin"></div>
-              <p className="text-sm text-[var(--color-muted)]">Loading...</p>
+              <div className="w-8 h-8 border-2 border-slate-200 border-t-[var(--color-navy)] rounded-full animate-spin"></div>
+              <p className="text-sm text-slate-500">Loading...</p>
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex overflow-hidden">
-            {/* Main Content Area - Scrollable if needed */}
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex-1 flex overflow-hidden bg-slate-50/80">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
               <div className="max-w-6xl mx-auto">
-                {/* Stats Row - Compact - Mobile Responsive */}
+                {/* Welcome Message */}
+                <div className="mb-8">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-navy)] tracking-tight">
+                    Welcome back, {userData?.displayName || user?.email?.split('@')[0] || 'Trucker'}
+                  </h2>
+                  <p className="text-slate-600 mt-1">
+                    Manage your fleet and stay compliant with your UCR registrations.
+                  </p>
+                </div>
+
+                {/* UCR Compliance Section */}
+                {(() => {
+                  const activeUcr = filings.find(f => f.filingType === 'ucr' && f.filingYear === 2026) ||
+                    draftFilings.find(d => d.filingType === 'ucr' && d.filingYear === 2026);
+                  const status = activeUcr?.status || 'none';
+                  const isCompleted = status === 'completed';
+                  const historicalFilings = filings.filter(f => f.filingType === 'ucr' && f.filingYear < 2026);
+
+                  return (
+                    <div className="space-y-4 mb-8">
+                      <div className={`rounded-xl p-5 sm:p-6 border transition-all ${isCompleted ? 'bg-white border-teal-200 shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                          <div className="flex items-start gap-4">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${isCompleted ? 'bg-teal-100 text-teal-600' : 'bg-[var(--color-navy)]/10 text-[var(--color-navy)]'}`}>
+                              <ShieldCheck className="w-6 h-6" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-lg font-bold text-slate-800">UCR Compliance 2026</h3>
+                                {activeUcr && (
+                                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${isCompleted ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-700'}`}>
+                                    {status === 'draft' ? 'In Progress' : status}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-slate-600 leading-relaxed">Annual registration required for interstate motor carriers.</p>
+                              <div className="flex items-center gap-4 mt-2">
+                                <span className="flex items-center gap-1 text-xs text-slate-500">
+                                  <Calendar className="w-3.5 h-3.5" /> Year: 2026
+                                </span>
+                                <span className="flex items-center gap-1 text-xs text-slate-500">
+                                  <Clock className="w-3.5 h-3.5" /> Renewal: Dec 31, 2026
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-3 flex-shrink-0">
+                            {isCompleted ? (
+                              <button
+                                onClick={() => window.open(activeUcr.certificateUrl || '#', '_blank')}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700 transition active:scale-95"
+                              >
+                                <Download className="w-4 h-4" /> Download Certificate
+                              </button>
+                            ) : (
+                              <>
+                                <Link
+                                  href={status === 'draft' ? `/ucr/file?draft=${activeUcr.id || activeUcr.draftId}` : "/ucr/file"}
+                                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-navy)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] transition active:scale-95"
+                                >
+                                  {status === 'draft' ? 'Continue Filing' : 'Start 2026 Filing'}
+                                </Link>
+                                {(status === 'submitted' || status === 'processing') && (
+                                  <div className="flex flex-col gap-2">
+                                    <p className="text-xs text-slate-600">An agent is processing your filing. You’ll see your certificate here when it’s ready.</p>
+                                    <Link
+                                      href={`/dashboard/filings/${activeUcr.id}`}
+                                      className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold hover:bg-slate-200 transition w-fit"
+                                    >
+                                      <Clock className="w-3.5 h-3.5" /> View status
+                                    </Link>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {historicalFilings.length > 0 && (
+                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                          <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between">
+                            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Historical Records</h4>
+                            <span className="text-[10px] text-slate-400">{historicalFilings.length} years</span>
+                          </div>
+                          <div className="divide-y divide-slate-100">
+                            {historicalFilings.map(hist => (
+                              <div key={hist.id} className="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+                                    <FileText className="w-5 h-5" />
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-semibold text-slate-800">UCR {hist.filingYear}</div>
+                                    <div className="text-xs text-slate-500">Completed {hist.completedAt ? new Date(hist.completedAt).toLocaleDateString() : '—'}</div>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => window.open(hist.certificateUrl || '#', '_blank')}
+                                  className="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-200 transition flex items-center gap-1.5"
+                                >
+                                  <Download className="w-3.5 h-3.5" /> Certificate
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Stats Row */}
                 {(hasFilings || hasIncomplete) && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 flex-shrink-0">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
                     {[
-                      { label: 'Total', value: stats.total, color: 'slate', icon: FileText },
-                      { label: 'Completed', value: stats.completed, color: 'emerald', icon: CheckCircle },
-                      { label: 'Active', value: stats.processing, color: 'amber', icon: Clock },
-                      { label: 'Vehicles', value: stats.totalVehicles, color: 'blue', icon: Truck },
+                      { label: 'Total Filings', value: stats.total, color: 'slate', icon: FileText },
+                      { label: 'Completed', value: stats.completed, color: 'teal', icon: CheckCircle },
+                      { label: 'In Progress', value: stats.processing, color: 'amber', icon: Clock },
+                      { label: 'Fleet Units', value: stats.totalVehicles, color: 'navy', icon: Truck },
                     ].map((stat, idx) => {
                       const Icon = stat.icon;
                       const colors = {
-                        slate: 'bg-slate-50 border-slate-200 text-slate-700',
-                        emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700',
-                        amber: 'bg-amber-50 border-amber-200 text-amber-700',
-                        blue: 'bg-blue-50 border-blue-200 text-blue-700',
+                        slate: 'text-slate-600 bg-slate-100',
+                        teal: 'text-teal-600 bg-teal-100',
+                        amber: 'text-amber-600 bg-amber-100',
+                        navy: 'text-[var(--color-navy)] bg-[var(--color-navy)]/10',
                       };
                       return (
-                        <div key={idx} className={`bg-white border rounded-xl p-3 sm:p-4 ${colors[stat.color]}`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <Icon className="w-4 h-4 opacity-60" />
+                        <div key={idx} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow transition-shadow">
+                          <div className={`w-10 h-10 rounded-lg ${colors[stat.color]} flex items-center justify-center mb-3`}>
+                            <Icon className="w-5 h-5" />
                           </div>
-                          <div className="text-xl sm:text-2xl font-bold mb-0.5">{stat.value}</div>
-                          <div className="text-xs font-medium opacity-70">{stat.label}</div>
+                          <div className="text-2xl font-bold text-slate-800">{stat.value}</div>
+                          <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{stat.label}</div>
                         </div>
                       );
                     })}
                   </div>
                 )}
 
-                {/* Incomplete Filings - Compact Banner */}
-                {hasIncomplete && (
-                  <div className="flex-shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-                        <RotateCcw className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-semibold text-[var(--color-text)]">Continue Filing</h3>
-                        <p className="text-xs text-[var(--color-muted)]">{allIncompleteFilings.length} in progress</p>
-                      </div>
-                      <Link href="/dashboard/filings" className="text-xs font-medium text-blue-600 hover:text-blue-700">
-                        View all →
-                      </Link>
+                {/* Filings List or Empty State */}
+                {hasFilings ? (
+                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="flex items-center justify-between p-4 border-b border-slate-100">
+                      <h3 className="text-sm font-bold text-slate-800">Recent Activity</h3>
+                      <Link href="/dashboard/filings" className="text-xs font-semibold text-[var(--color-navy)] hover:underline">View History →</Link>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {allIncompleteFilings.slice(0, 2).map(filing => {
-                        const formatted = formatIncompleteFiling(filing) || {
-                          id: filing.id || filing.draftId,
-                          description: filing.workflowType === 'upload' ? 'Schedule 1 Upload' : (filing.filingType || 'Standard Filing'),
-                          taxYear: filing.taxYear || filing.filingData?.taxYear || 'Unknown',
-                          progress: filing.step === 3 ? 75 : filing.step === 2 ? 50 : 25,
-                        };
-                        const resumeUrl = filing.isDraft || filing.status === 'draft'
-                          ? filing.workflowType === 'upload'
-                            ? `/dashboard/upload-schedule1?draft=${filing.id || filing.draftId}`
-                            : `/dashboard/new-filing?draft=${filing.id || filing.draftId}`
-                          : `/dashboard/filings/${filing.id}`;
+                    <div className="divide-y divide-slate-100">
+                      {filings.slice(0, 5).map((filing) => {
+                        const statusConfig = getStatusConfig(filing.status);
+                        const StatusIcon = statusConfig.icon;
                         return (
-                          <Link
-                            key={filing.id || filing.draftId}
-                            href={resumeUrl}
-                            className="bg-white border border-blue-200 rounded-lg p-3 hover:border-blue-300 hover:shadow-sm transition-all"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs font-medium text-[var(--color-text)] truncate">{formatted.description}</span>
-                              <span className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">{formatted.taxYear}</span>
+                          <Link key={filing.id} href={`/dashboard/filings/${filing.id}`} className="flex items-center gap-4 p-4 hover:bg-slate-50/80 transition-colors">
+                            <div className={`w-11 h-11 rounded-lg ${statusConfig.bg} border ${statusConfig.border} flex items-center justify-center shrink-0`}>
+                              <StatusIcon className={`w-5 h-5 ${statusConfig.color}`} />
                             </div>
-                            <div className="h-1 bg-blue-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${formatted.progress}%` }} />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span className="text-sm font-semibold text-slate-800">{filing.filingType === 'ucr' ? `UCR ${filing.filingYear}` : `Form 2290 ${filing.taxYear}`}</span>
+                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase ${statusConfig.bg} ${statusConfig.color} border ${statusConfig.border}`}>
+                                  {statusConfig.label}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3 text-xs text-slate-500">
+                                <span className="flex items-center gap-1"><Truck className="w-3.5 h-3.5" /> {filing.vehicleIds?.length || filing.powerUnits || 0} units</span>
+                                <span>·</span>
+                                <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {filing.createdAt?.toLocaleDateString()}</span>
+                              </div>
                             </div>
+                            <ChevronRight className="w-5 h-5 text-slate-400" />
                           </Link>
                         );
                       })}
                     </div>
                   </div>
-                )}
-
-                {/* Empty State - Beautiful & Engaging */}
-                {!hasFilings && !hasIncomplete && (
-                  <div className="flex items-start justify-center py-4">
-                    <div className="text-center max-w-4xl px-6 w-full">
-                      {/* Hero Illustration - Smaller */}
-                      <div className="relative mb-6">
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-indigo-500/10 blur-3xl rounded-full"></div>
-                        <img
-                          src="/dashboard-empty-state.png"
-                          alt="Welcome to Dashboard"
-                          className="w-40 h-40 mx-auto relative z-10 object-contain animate-[fadeIn_0.6s_ease-out]"
-                          style={{ animation: 'fadeIn 0.6s ease-out, float 3s ease-in-out infinite' }}
-                        />
-                      </div>
-
-                      {/* Welcome Message - More Compact */}
-                      <div className="mb-6">
-                        <h2 className="text-3xl font-bold text-[var(--color-text)] mb-3 bg-gradient-to-r from-[var(--color-orangeß)] via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                          Welcome to Your Dashboard
-                        </h2>
-                        <p className="text-base text-[var(--color-muted)] max-w-2xl mx-auto leading-relaxed">
-                          Get started with your first Form 2290 filing in minutes. Choose the method that works best for you.
-                        </p>
-                      </div>
-
-                      {/* Filing Method Cards - More Compact - Mobile Optimized */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 max-w-3xl mx-auto">
-                        <Link
-                          href="/dashboard/upload-schedule1"
-                          className="group relative bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-blue-400 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
-                        >
-                          {/* Gradient Background on Hover */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                          <div className="relative z-10">
-                            {/* Icon */}
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                              <Upload className="w-8 h-8 text-white" />
-                            </div>
-
-                            {/* Content */}
-                            <h3 className="text-lg font-bold text-[var(--color-text)] mb-2">Upload Schedule 1 PDF</h3>
-                            <p className="text-sm text-[var(--color-muted)] mb-3 leading-relaxed">
-                              Let our AI extract vehicle information from your existing Schedule 1 PDF automatically
-                            </p>
-
-                            {/* Features */}
-                            <div className="space-y-1.5 mb-4">
-                              <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                                <span>AI-powered data extraction</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                                <span>Save time on data entry</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                                <span>Instant verification</span>
-                              </div>
-                            </div>
-
-                            {/* CTA */}
-                            <div className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 group-hover:gap-3 transition-all">
-                              <span>Get Started</span>
-                              <ArrowRight className="w-4 h-4" />
-                            </div>
-                          </div>
-
-                          {/* Decorative Elements */}
-                          <div className="absolute top-4 right-4 w-12 h-12 bg-blue-100 rounded-full opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                          <div className="absolute bottom-4 left-4 w-10 h-10 bg-indigo-100 rounded-full opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                        </Link>
-
-                        <Link
-                          href="/dashboard/new-filing"
-                          className="group relative bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-[var(--color-orangeß)] hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
-                        >
-                          {/* Gradient Background on Hover */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                          <div className="relative z-10">
-                            {/* Icon */}
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--color-orangeß)] to-slate-700 flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                              <Edit className="w-8 h-8 text-white" />
-                            </div>
-
-                            {/* Content */}
-                            <h3 className="text-lg font-bold text-[var(--color-text)] mb-2">Manual Entry</h3>
-                            <p className="text-sm text-[var(--color-muted)] mb-3 leading-relaxed">
-                              Fill out your Form 2290 step-by-step with our guided filing process
-                            </p>
-
-                            {/* Features */}
-                            <div className="space-y-1.5 mb-4">
-                              <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-[var(--color-orange)] flex-shrink-0" />
-                                <span>Step-by-step guidance</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-[var(--color-orange)] flex-shrink-0" />
-                                <span>Real-time validation</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                                <CheckCircle className="w-3.5 h-3.5 text-[var(--color-orange)] flex-shrink-0" />
-                                <span>Save progress anytime</span>
-                              </div>
-                            </div>
-
-                            {/* CTA */}
-                            <div className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-orange)] group-hover:gap-3 transition-all">
-                              <span>Get Started</span>
-                              <ArrowRight className="w-4 h-4" />
-                            </div>
-                          </div>
-
-                          {/* Decorative Elements */}
-                          <div className="absolute top-4 right-4 w-12 h-12 bg-slate-200 rounded-full opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                          <div className="absolute bottom-4 left-4 w-10 h-10 bg-blue-200 rounded-full opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                        </Link>
-                      </div>
-
-                      {/* Trust Indicators & Features - More Compact */}
-                      <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto mb-5">
-                        <div className="text-center p-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center mx-auto mb-2">
-                            <CheckCircle className="w-5 h-5 text-emerald-600" />
-                          </div>
-                          <h4 className="text-xs font-semibold text-[var(--color-text)] mb-0.5">IRS Approved</h4>
-                          <p className="text-xs text-[var(--color-muted)]">Authorized e-file provider</p>
-                        </div>
-                        <div className="text-center p-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center mx-auto mb-2">
-                            <Clock className="w-5 h-5 text-blue-600" />
-                          </div>
-                          <h4 className="text-xs font-semibold text-[var(--color-text)] mb-0.5">Fast Processing</h4>
-                          <p className="text-xs text-[var(--color-muted)]">File in under 10 minutes</p>
-                        </div>
-                        <div className="text-center p-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center mx-auto mb-2">
-                            <TrendingUp className="w-5 h-5 text-purple-600" />
-                          </div>
-                          <h4 className="text-xs font-semibold text-[var(--color-text)] mb-0.5">Easy to Use</h4>
-                          <p className="text-xs text-[var(--color-muted)]">No tax expertise needed</p>
-                        </div>
-                      </div>
-
-
+                ) : !hasIncomplete && (
+                  <div className="bg-white border border-dashed border-slate-200 rounded-xl p-10 text-center">
+                    <div className="w-16 h-16 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-4 text-slate-600">
+                      <Plus className="w-8 h-8" />
                     </div>
-                  </div>
-                )}
-
-                {/* Filings Table - Scrollable */}
-                {hasFilings && (
-                  <div className="flex-1 flex flex-col min-h-0 bg-white border border-slate-200 rounded-xl overflow-hidden">
-                    <div className="flex items-center justify-between p-4 border-b border-slate-100 flex-shrink-0">
-                      <h3 className="text-sm font-semibold text-[var(--color-text)]">Recent Filings</h3>
-                      <Link href="/dashboard/filings" className="text-xs font-medium text-[var(--color-muted)] hover:text-[var(--color-text)]">
-                        View all →
-                      </Link>
-                    </div>
-                    <div className="flex-1 overflow-y-auto">
-                      <div className="divide-y divide-slate-100">
-                        {filings.slice(0, 10).map((filing) => {
-                          const statusConfig = getStatusConfig(filing.status);
-                          const StatusIcon = statusConfig.icon;
-                          return (
-                            <Link
-                              key={filing.id}
-                              href={`/dashboard/filings/${filing.id}`}
-                              className="group flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors"
-                            >
-                              <div className={`w-10 h-10 rounded-lg ${statusConfig.bg} border ${statusConfig.border} flex items-center justify-center flex-shrink-0`}>
-                                <StatusIcon className={`w-4 h-4 ${statusConfig.color}`} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-sm font-semibold text-[var(--color-text)]">Tax Year {filing.taxYear}</span>
-                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${statusConfig.bg} ${statusConfig.color} border ${statusConfig.border}`}>
-                                    <span className={`w-1 h-1 rounded-full ${statusConfig.dot}`}></span>
-                                    {statusConfig.label}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-3 text-xs text-[var(--color-muted)]">
-                                  <span className="flex items-center gap-1">
-                                    <Truck className="w-3 h-3" />
-                                    {filing.vehicleIds?.length || 0}
-                                  </span>
-                                  <span>·</span>
-                                  <span className="flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" />
-                                    {filing.createdAt?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) || 'N/A'}
-                                  </span>
-                                </div>
-                              </div>
-                              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[var(--color-text)] transition-colors flex-shrink-0" />
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </div>
+                    <h3 className="text-lg font-bold text-slate-800 mb-1">No filings yet</h3>
+                    <p className="text-slate-500 mb-6 max-w-sm mx-auto text-sm">Start your 2026 UCR registration or Form 2290 filing.</p>
+                    <Link href="/dashboard/new-filing" className="inline-flex items-center gap-2 bg-[var(--color-navy)] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[var(--color-navy-soft)] transition active:scale-95">
+                      New Filing <ArrowRight className="w-4 h-4" />
+                    </Link>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Right Sidebar - Fixed, Scrollable */}
-            <div className="hidden xl:block w-80 border-l border-[var(--color-border)] bg-white overflow-y-auto flex-shrink-0">
-              <div className="p-4 space-y-4">
-                {/* Action Required - Compact */}
-                {stats.actionRequired > 0 && (
-                  <div className="flex-shrink-0 bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
-                        <AlertCircle className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-orange-900">Action Required</h3>
-                        <p className="text-xs text-orange-800">{stats.actionRequired} filing{stats.actionRequired !== 1 ? 's' : ''}</p>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      {filings.filter(f => f.status === 'action_required').slice(0, 2).map(filing => (
-                        <Link
-                          key={filing.id}
-                          href={`/dashboard/filings/${filing.id}`}
-                          className="block px-3 py-2 bg-white border border-orange-200 text-orange-700 rounded-lg text-xs font-medium hover:bg-orange-50 transition-colors"
-                        >
-                          Review {filing.taxYear} →
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Quick Actions - Compact Grid */}
-                <div className="flex-shrink-0 bg-white border border-slate-200 rounded-xl p-4">
-                  <h3 className="text-xs font-semibold text-[var(--color-text)] mb-3 uppercase tracking-wide">Quick Actions</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { href: '/dashboard/new-filing', icon: Plus, label: 'New', color: 'blue' },
-                      { href: '/dashboard/upload-schedule1', icon: Upload, label: 'Upload', color: 'purple' },
-                      { href: '/dashboard/new-filing?type=refund', icon: CreditCard, label: 'Refund', color: 'emerald' },
-                      { href: '/dashboard/new-filing?type=amendment', icon: Edit, label: 'Amend', color: 'amber' },
-                    ].map((action, idx) => {
-                      const Icon = action.icon;
-                      const colors = {
-                        blue: 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100',
-                        purple: 'bg-purple-50 border-purple-200 text-purple-600 hover:bg-purple-100',
-                        emerald: 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100',
-                        amber: 'bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100',
-                      };
-                      return (
-                        <Link
-                          key={idx}
-                          href={action.href}
-                          className={`group border rounded-lg p-3 hover:shadow-sm transition-all ${colors[action.color]}`}
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-white border border-current/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          <div className="text-xs font-semibold">{action.label}</div>
-                        </Link>
-                      );
-                    })}
+            {/* Right Sidebar - Quick Actions */}
+            <div className="hidden xl:block w-72 bg-white border-l border-slate-200 p-5 overflow-y-auto">
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Quick Links</h4>
+                  <div className="grid grid-cols-1 gap-2">
+                    <Link href="/tools/ucr-calculator" className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 hover:border-slate-200 transition">
+                      <Calculator className="w-5 h-5 text-[var(--color-navy)]" />
+                      <span className="text-sm font-semibold text-slate-700">Fee Calculator</span>
+                    </Link>
+                    <Link href="/services/ucr-registration" className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 hover:border-slate-200 transition">
+                      <HelpCircle className="w-5 h-5 text-teal-600" />
+                      <span className="text-sm font-semibold text-slate-700">Compliance Info</span>
+                    </Link>
                   </div>
                 </div>
-
-                {/* Help Section - Compact */}
-                <div className="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-xl p-4">
-                  <h3 className="text-xs font-semibold text-[var(--color-text)] mb-2">Need Help?</h3>
-                  <p className="text-xs text-[var(--color-muted)] mb-3">Our support team is here to help with Form 2290 filing questions.</p>
-                  <div className="space-y-2">
-                    <Link
-                      href="/faq"
-                      className="flex items-center justify-between px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-[var(--color-text)] hover:bg-slate-50 hover:border-slate-300 transition-all"
-                    >
-                      <span>Visit FAQ</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </Link>
-                    <Link
-                      href="/how-it-works"
-                      className="flex items-center justify-between px-3 py-2 bg-[var(--color-orange)] text-white rounded-lg text-xs font-semibold hover:bg-[var(--color-navy-soft)] transition-all"
-                    >
-                      <span>How It Works</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </Link>
-                  </div>
+                <div className="bg-[var(--color-navy)] rounded-xl p-5 text-white">
+                  <h4 className="font-bold mb-1">Need Help?</h4>
+                  <p className="text-xs text-white/80 mb-4">Our compliance team can assist with your registrations.</p>
+                  <a href="mailto:support@quicktrucktax.com" className="block w-full bg-white text-[var(--color-navy)] py-2.5 rounded-lg text-sm font-semibold text-center hover:bg-slate-100 transition">
+                    Contact support
+                  </a>
                 </div>
               </div>
             </div>

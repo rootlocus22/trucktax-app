@@ -8,15 +8,18 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { subscribeToAgentQueue } from '@/lib/db';
 import { getAmendmentTypeConfig } from '@/lib/amendmentHelpers';
 import {
+  ShieldCheck,
+  Bell,
+  Check,
+  Play,
+  FileText,
   CheckCircle,
   Clock,
   AlertCircle,
-  FileText,
   User,
   Building2,
   Truck,
-  ArrowRight,
-  ShieldCheck
+  ArrowRight
 } from 'lucide-react';
 
 export default function AgentQueuePage() {
@@ -25,6 +28,18 @@ export default function AgentQueuePage() {
   const [filings, setFilings] = useState([]);
   const [activeTab, setActiveTab] = useState('eforms');
   const [loading, setLoading] = useState(true);
+  const [alarm, setAlarm] = useState(null);
+
+  useEffect(() => {
+    if (filings.length > 0) {
+      const newHighPriority = filings.find(f => f.priority === 'high' && f.status === 'submitted');
+      if (newHighPriority && (!alarm || alarm.id !== newHighPriority.id)) {
+        setAlarm(newHighPriority);
+        // Reset alarm after 10 seconds
+        setTimeout(() => setAlarm(null), 10000);
+      }
+    }
+  }, [filings, alarm]);
 
   useEffect(() => {
     if (!userData || userData.role !== 'agent') {
@@ -153,6 +168,29 @@ export default function AgentQueuePage() {
             </div>
           </button>
         </div>
+
+        {/* Alarm Notification */}
+        {alarm && (
+          <div className="mb-6 bg-orange-600 text-white p-4 rounded-xl shadow-lg flex items-center justify-between animate-pulse">
+            <div className="flex items-center gap-3">
+              <Bell className="w-6 h-6" />
+              <div>
+                <div className="font-bold text-lg">URGENT: New UCR Filing</div>
+                <div className="text-sm opacity-90">{alarm.business?.businessName || 'New Customer'} - ${alarm.total?.toLocaleString() || '0'}</div>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                const { updateFiling } = require('@/lib/db');
+                updateFiling(alarm.id, { status: 'processing', priority: 'normal' });
+                setAlarm(null);
+              }}
+              className="bg-white text-orange-600 px-4 py-2 rounded-lg font-bold hover:bg-orange-50"
+            >
+              Take Action
+            </button>
+          </div>
+        )}
 
         {loading ? (
           <div className="text-center py-12">
@@ -331,13 +369,41 @@ export default function AgentQueuePage() {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <Link
-                            href={`/agent/filings/${filing.id}`}
-                            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-navy)] hover:text-[var(--color-orange)] transition"
-                          >
-                            Work on this
-                            <ArrowRight className="w-4 h-4" />
-                          </Link>
+                          <div className="flex items-center gap-2 justify-center">
+                            {filing.status === 'submitted' && (
+                              <button
+                                onClick={async () => {
+                                  const { updateFiling } = require('@/lib/db');
+                                  await updateFiling(filing.id, { status: 'processing' });
+                                }}
+                                className="p-1 px-2 text-[10px] font-bold bg-amber-100 text-amber-700 rounded hover:bg-amber-200 flex items-center gap-1"
+                              >
+                                <Play className="w-3 h-3" /> Process
+                              </button>
+                            )}
+                            {filing.status === 'processing' && (
+                              <button
+                                onClick={async () => {
+                                  const { updateFiling } = require('@/lib/db');
+                                  await updateFiling(filing.id, {
+                                    status: 'completed',
+                                    certificateUrl: 'https://ucr.gov/mock/cert.pdf',
+                                    completedAt: new Date().toISOString()
+                                  });
+                                }}
+                                className="p-1 px-2 text-[10px] font-bold bg-green-100 text-green-700 rounded hover:bg-green-200 flex items-center gap-1"
+                              >
+                                <Check className="w-3 h-3" /> Complete
+                              </button>
+                            )}
+                            <Link
+                              href={`/agent/filings/${filing.id}`}
+                              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-navy)] hover:text-[var(--color-orange)] transition"
+                            >
+                              View
+                              <ArrowRight className="w-4 h-4" />
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     );
