@@ -57,13 +57,15 @@ export default function FeaturesPage() {
         <div className="flex flex-col min-h-screen bg-[var(--color-page)]">
             {/* Hero Section */}
             <section className="relative overflow-hidden bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] text-white py-20 px-4 sm:px-6 lg:px-8">
-                <div className="absolute inset-0 z-0 opacity-20">
+                <div className="absolute inset-0 z-0">
                     <Image
-                        src="/hero-truck-sunset.png"
-                        alt="Background"
+                        src="https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=1920&q=80"
+                        alt="Truck on the highway - built for truckers"
                         fill
-                        className="object-cover"
+                        className="object-cover opacity-35"
+                        sizes="100vw"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[var(--color-midnight)]/60 via-transparent to-[var(--color-midnight)]/80" />
                 </div>
                 <div className="relative z-10 max-w-7xl mx-auto text-center">
                     <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-[4.25rem] font-bold mb-6 drop-shadow-lg tracking-tight leading-[1.1]">
@@ -163,8 +165,11 @@ export default function FeaturesPage() {
 
             {/* CTA Section */}
             <section className="py-20 px-4 sm:px-6 lg:px-8 text-center">
-                <div className="max-w-4xl mx-auto bg-[var(--color-navy)] rounded-3xl p-12 text-white shadow-2xl relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[url('/hero-truck.svg')] opacity-10 bg-center bg-cover mix-blend-overlay"></div>
+                <div className="max-w-4xl mx-auto rounded-3xl p-12 text-white shadow-2xl relative overflow-hidden min-h-[280px] flex items-center justify-center">
+                    <div className="absolute inset-0 z-0">
+                        <Image src="https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=800&q=60" alt="" fill className="object-cover opacity-30" sizes="800px" />
+                    </div>
+                    <div className="absolute inset-0 z-[1] bg-[var(--color-navy)]/85" />
                     <div className="relative z-10">
                         <h2 className="text-3xl font-bold mb-6">Ready to Get Started?</h2>
                         <p className="text-xl text-white/80 mb-10">

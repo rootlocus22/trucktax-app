@@ -186,13 +186,16 @@ export default function Home() {
         <section className="relative overflow-hidden rounded-3xl bg-[var(--color-midnight)] text-white shadow-2xl">
           <div className="absolute inset-0 z-0">
             <Image
-              src="/hero-truck-sunset.png"
-              alt="Heavy-duty truck on highway at sunset representing fast Form 2290 filing"
+              src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1920&q=85"
+              alt="Highway and trucks at golden hour - life on the road"
               fill
               priority
-              className="object-cover opacity-60"
+              className="object-cover opacity-50"
+              sizes="100vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-midnight)]/90 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-midnight)]/85 to-[var(--color-midnight)]/40" />
+            {/* Subtle road stripe accent */}
+            <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-[var(--color-orange)]/60 to-transparent opacity-80" />
           </div>
 
           <div className="relative z-10 px-6 py-20 sm:px-12 lg:px-16 grid gap-12 lg:grid-cols-2 items-center">
@@ -264,7 +267,6 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-6 text-center">
             <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-6">Trusted by Industry Leaders & Independent Truckers</p>
             <div className="flex flex-wrap justify-center gap-12 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-              {/* Placeholders for logos - replace with SVGs or text for now */}
               <span className="text-2xl font-black text-slate-800 flex items-center gap-2"><ShieldCheck className="w-6 h-6" /> McAfee SECURE</span>
               <span className="text-2xl font-black text-slate-800 flex items-center gap-2"><Lock className="w-6 h-6" /> 256-Bit SSL</span>
               <span className="text-2xl font-black text-slate-800 flex items-center gap-2"><Award className="w-6 h-6" /> Expert CPA Review</span>
@@ -272,13 +274,52 @@ export default function Home() {
           </div>
         </div>
 
+        {/* LIFE ON THE ROAD - Trucker imagery */}
+        <section className="relative py-16 sm:py-20 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-50/80 to-white pointer-events-none" />
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold text-[var(--color-text)] mb-3">Built for Life on the Road</h2>
+              <p className="text-lg text-[var(--color-muted)] max-w-2xl mx-auto">Highways, deadlines, and compliance—we get it. Our guides and tools are made for truckers, by people who care about the industry.</p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+              <div className="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 aspect-[4/3]">
+                <Image src="https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=600&q=80" alt="Heavy truck on the highway" fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 33vw" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                  <p className="font-bold text-lg">Highway Ready</p>
+                  <p className="text-sm text-white/90">Stay compliant so you can stay on the road.</p>
+                </div>
+              </div>
+              <div className="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 aspect-[4/3]">
+                <Image src="https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=600&q=80" alt="Open road at golden hour" fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 33vw" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                  <p className="font-bold text-lg">Miles Ahead</p>
+                  <p className="text-sm text-white/90">Clear deadlines and checklists—no guesswork.</p>
+                </div>
+              </div>
+              <div className="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 aspect-[4/3]">
+                <Image src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&q=80" alt="Truck on the road" fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 33vw" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                  <p className="font-bold text-lg">Your Fleet, Your Way</p>
+                  <p className="text-sm text-white/90">From one truck to hundreds—we’ve got you.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* HOW IT WORKS */}
-        <section className="py-12">
-          <div className="text-center max-w-3xl mx-auto mb-16">
+        <section className="relative py-16 sm:py-20">
+          <div className="absolute inset-0 bg-[var(--color-page)]" />
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-amber-50/50 to-transparent pointer-events-none" />
+          <div className="relative text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl font-bold text-[var(--color-text)] sm:text-4xl mb-4">Get Compliant in 3 Simple Steps</h2>
             <p className="text-lg text-[var(--color-muted)]">No complicated software. We do the heavy lifting for you.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-12 relative">
+          <div className="relative grid md:grid-cols-3 gap-12">
             {/* Connecting Line (Desktop) */}
             <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-1 bg-slate-100 -z-10"></div>
 

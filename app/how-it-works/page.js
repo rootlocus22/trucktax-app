@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { UserPlus, LogIn, Upload, Sparkles, FileCheck, Clock, ArrowRight, CheckCircle } from 'lucide-react';
 
 export const metadata = {
@@ -57,8 +58,29 @@ export default function HowItWorksPage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="text-center mb-12">
+      {/* Hero with truck/highway vibe */}
+      <div className="relative rounded-2xl overflow-hidden mb-16 h-56 sm:h-72">
+        <Image
+          src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=85"
+          alt="Highway and trucks - life on the road"
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 1200px"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)]/80 via-[var(--color-midnight)]/50 to-transparent" />
+        <div className="absolute inset-0 flex flex-col justify-center px-6 sm:px-12">
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 drop-shadow-lg">
+            How QuickTruckTax Works
+          </h1>
+          <p className="text-white/90 max-w-xl text-sm sm:text-base">
+            From upload to stamped Schedule 1—we handle everything so you can focus on the road.
+          </p>
+        </div>
+      </div>
+
+      {/* Header (for accessibility, minimal duplicate) */}
+      <div className="text-center mb-12 sr-only">
         <h1 className="text-3xl sm:text-4xl font-semibold text-[var(--color-text)] mb-3">
           How QuickTruckTax Works
         </h1>

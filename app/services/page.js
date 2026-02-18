@@ -1,5 +1,5 @@
-
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Truck, FileText, BadgeCheck, DollarSign, Map, Calculator, Tractor } from 'lucide-react';
 
 export const metadata = {
@@ -81,10 +81,20 @@ export default function ServicesPage() {
 
     return (
         <div className="min-h-screen bg-slate-50">
-            {/* Hero */}
-            <div className="bg-[var(--color-navy)] text-white py-20 px-6">
-                <div className="max-w-7xl mx-auto text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-6">Trucking Compliance Services</h1>
+            {/* Hero with highway/truck imagery */}
+            <div className="relative text-white py-24 px-6 overflow-hidden">
+                <div className="absolute inset-0">
+                    <Image
+                        src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1920&q=80"
+                        alt="Trucks on the road - compliance made simple"
+                        fill
+                        className="object-cover"
+                        sizes="100vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[var(--color-navy)]/90 via-[var(--color-navy)]/75 to-[var(--color-navy)]/90" />
+                </div>
+                <div className="relative max-w-7xl mx-auto text-center">
+                    <h1 className="text-4xl md:text-5xl font-bold mb-6 drop-shadow-lg">Trucking Compliance Services</h1>
                     <p className="text-xl text-blue-100 max-w-3xl mx-auto">
                         Everything you need to keep your fleet legal and on the road. Fast, secure expert concierge solutions.
                     </p>
