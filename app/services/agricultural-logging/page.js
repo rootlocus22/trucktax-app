@@ -73,7 +73,7 @@ export default function AgLoggingPage() {
 
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
-                                href="/dashboard/new-filing?type=ag"
+                                href="/ucr/file"
                                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-green-900/40 transition hover:bg-green-500 hover:scale-105"
                             >
                                 File Ag/Logging Return
@@ -143,7 +143,7 @@ export default function AgLoggingPage() {
                         Our smart system asks simple questions to determine if you qualify for Ag or Logging benefits automatically.
                     </p>
                     <Link
-                        href="/dashboard/new-filing"
+                        href="/ucr/file"
                         className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-900 px-10 py-4 text-lg font-bold !text-white shadow-lg transition hover:scale-105"
                     >
                         Start Compliance Check

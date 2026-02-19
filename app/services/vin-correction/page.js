@@ -73,7 +73,7 @@ export default function VinCorrectionPage() {
 
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
-                                href="/dashboard/new-filing?type=amendment"
+                                href="/ucr/file"
                                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-orange)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-orange-900/20 transition hover:bg-[#e66a15] hover:scale-105"
                             >
                                 Start Free Correction
@@ -157,7 +157,7 @@ export default function VinCorrectionPage() {
                                 <li className="flex items-center gap-3 text-lg"><CheckCircle className="w-6 h-6 text-green-400" /> Free for Members</li>
                             </ul>
                             <Link
-                                href="/dashboard/new-filing?type=amendment"
+                                href="/ucr/file"
                                 className="block w-full py-4 bg-white text-blue-900 text-center font-bold rounded-xl hover:bg-slate-100 transition"
                             >
                                 Fix My VIN Now

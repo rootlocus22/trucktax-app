@@ -28,11 +28,17 @@ export const metadata = {
   description:
     "Simple. Fast. Smart UCR filing. Calculate your fee, file in minutes, and stay compliant. The best UCR-focused platform for truckers.",
   keywords: [
+    "ucr filing",
+    "ucr registration",
+    "ucr renewal 2026",
+    "ucr fee calculator",
+    "ucr filing in texas",
+    "ucr for brokers",
+    "ucr penalty",
     "form 2290 guides",
     "e-file form 2290",
     "HVUT tax help",
     "reactivate usdot number",
-    "ucr renewal 2026",
     "ifta reporting",
     "mcs-150 biennial update",
     "heavy vehicle use tax",
@@ -63,9 +69,9 @@ export const metadata = {
     },
   },
   icons: {
-    icon: "/quicktrucktax-logo-new.png",
-    shortcut: "/quicktrucktax-logo-new.png",
-    apple: "/quicktrucktax-logo-new.png",
+    icon: "/quicktrucktax-favicon.png",
+    shortcut: "/quicktrucktax-favicon.png",
+    apple: "/quicktrucktax-favicon.png",
   },
   verification: {
     google: "-95Bq4XHD66PIeHdHG3cDSad9_yp6kTmOVeUtUKUIc0",
@@ -153,7 +159,7 @@ export default function RootLayout({ children }) {
               <FirebaseAnalytics />
 
             </main>
-          <footer className="border-t border-[var(--color-border)] bg-[var(--color-midnight)] text-white pt-12 pb-8">
+          <footer className="border-t border-[var(--color-border)] bg-[var(--color-midnight)] text-white pt-10 sm:pt-12 pb-8 pb-safe">
             <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 border-b border-white/10 pb-8">
                 {/* Brand */}
@@ -172,35 +178,42 @@ export default function RootLayout({ children }) {
                 {/* Quick Links */}
                 <div className="space-y-4">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Resources</h3>
-                  <div className="flex flex-col gap-3">
-                    <Link href="/ucr/file" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 font-medium">
+                  <div className="flex flex-col gap-1">
+                    <Link href="/ucr/file" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 font-medium min-h-[44px] py-2 touch-manipulation">
                       UCR Filing
                     </Link>
-                    <Link href="/tools/ucr-calculator" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2">
+                    <Link href="/tools/ucr-calculator" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
                       UCR Fee Calculator
                     </Link>
-                    <Link href="/insights/trucking-compliance-calendar" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2">
+                    <Link href="/insights/trucking-compliance-calendar" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
                       Compliance Calendar
                     </Link>
-                    <Link href="/insights/form-2290-checklist-download" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2">
+                    <Link href="/insights/form-2290-checklist-download" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
                       Form 2290 Checklist
                     </Link>
-                    <Link href="/resources/2290-tax-directory" className="text-sm text-[#f97316] hover:text-[#fbbf24] transition flex items-center gap-2 font-bold">
+                    <Link href="/resources/2290-tax-directory" className="text-sm text-[#f97316] hover:text-[#fbbf24] transition flex items-center gap-2 font-bold min-h-[44px] py-2 touch-manipulation">
                       Tax Guide Directory <span className="text-[10px] bg-white/10 px-1 rounded">NEW</span>
                     </Link>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Legal</h3>
-                  <div className="flex flex-col gap-3">
-                    <Link href="/privacy-policy" className="text-sm text-slate-300 hover:text-white transition">Privacy Policy</Link>
-                    <Link href="/terms" className="text-sm text-slate-300 hover:text-white transition">Terms of Service</Link>
+                  <div className="flex flex-col gap-1">
+                    <Link href="/privacy-policy" className="text-sm text-slate-300 hover:text-white transition min-h-[44px] flex items-center touch-manipulation">Privacy Policy</Link>
+                    <Link href="/terms" className="text-sm text-slate-300 hover:text-white transition min-h-[44px] flex items-center touch-manipulation">Terms of Service</Link>
                   </div>
                 </div>
               </div>
 
+              {/* Disclaimer & copyright */}
+              <div className="space-y-4 mb-8">
+                <div className="text-xs text-slate-400 leading-relaxed space-y-2">
+                  <p>The information and images on this website are the property of QuickTruckTax and may not be reproduced, reused, or appropriated without the express written consent of the owner.</p>
+                  <p>QuickTruckTax is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement. We are not affiliated with any government authority such as the IRS, USDOT, or FMCSA.</p>
+                </div>
+              </div>
               <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-                <p>&copy; 2026 QuickTruckTax. All rights reserved.</p>
+                <p>&copy; 2026 QuickTruckTax, All Rights Reserved.</p>
                 <div className="flex gap-6">
                   <Link href="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link>
                   <Link href="/terms" className="hover:text-white transition">Terms of Service</Link>

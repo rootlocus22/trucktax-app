@@ -314,7 +314,7 @@ export function Header() {
                                 onClick={async () => {
                                   setUserMenuOpen(false);
                                   await signOut();
-                                  router.push('/');
+                                  window.location.href = '/';
                                 }}
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-red-50 transition"
                                 style={{ color: '#dc2626', textDecoration: 'none' }}
@@ -686,7 +686,7 @@ export function Header() {
                         onClick={async () => {
                           await signOut();
                           setMobileMenuOpen(false);
-                          router.push('/');
+                          window.location.href = '/';
                         }}
                         className="w-full flex items-center gap-4 px-6 py-3 hover:bg-red-50 active:bg-red-100 transition touch-manipulation min-h-[48px]"
                         style={{ color: '#dc2626', textDecoration: 'none' }}
@@ -704,14 +704,14 @@ export function Header() {
                       <Link
                         href="/login"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block w-full px-4 py-3 text-center border-2 border-[var(--color-navy)] text-[var(--color-navy)] rounded-lg font-semibold hover:bg-[var(--color-navy)] hover:text-white active:scale-95 transition touch-manipulation min-h-[48px] flex items-center justify-center"
+                        className="block w-full px-4 py-3 text-center border-2 border-[var(--color-navy)] text-[var(--color-navy)] rounded-lg font-semibold hover:bg-[var(--color-navy)] hover:!text-white active:scale-95 transition touch-manipulation min-h-[48px] flex items-center justify-center"
                       >
                         Login
                       </Link>
                       <Link
                         href="/signup"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block w-full px-4 py-3 text-center bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white rounded-lg font-semibold hover:shadow-lg active:scale-95 transition touch-manipulation min-h-[48px] flex items-center justify-center"
+                        className="block w-full px-4 py-3 text-center bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] !text-white rounded-lg font-semibold hover:shadow-lg active:scale-95 transition touch-manipulation min-h-[48px] flex items-center justify-center"
                       >
                         Sign Up
                       </Link>

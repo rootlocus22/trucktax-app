@@ -178,7 +178,7 @@ export default async function StateCompliancePage({ params }) {
             <div className="py-16 px-6 bg-slate-50 text-center">
                 <h2 className="text-2xl font-bold text-[var(--color-navy)] mb-6">Stay Compliant in {name}</h2>
                 <Link
-                    href="/dashboard/new-filing"
+                    href="/ucr/file"
                     className="inline-flex bg-blue-900 !text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-800 transition shadow-lg items-center gap-2"
                 >
                     Start Compliance Check <ArrowRight className="w-5 h-5" />

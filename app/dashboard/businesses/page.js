@@ -72,7 +72,7 @@ export default function BusinessesPage() {
             </p>
           </div>
           <Link
-            href="/dashboard/new-filing"
+            href="/ucr/file"
             className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-4 sm:px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-lg active:scale-95 transition-all duration-200 shadow-md touch-manipulation w-full sm:w-auto"
           >
             <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -103,7 +103,7 @@ export default function BusinessesPage() {
               Add your business details to get started with your tax filings. You can manage multiple businesses from here.
             </p>
             <Link
-              href="/dashboard/new-filing"
+              href="/ucr/file"
               className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
             >
               Add Your First Business
@@ -191,7 +191,7 @@ export default function BusinessesPage() {
                       Edit Details
                     </button>
                     <Link
-                      href={`/dashboard/new-filing?businessId=${business.id}`}
+                      href="/ucr/file"
                       className="flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--color-orange)] text-white font-semibold text-sm hover:bg-[var(--color-orange-soft)] active:scale-95 shadow-md hover:shadow-lg transition-all duration-200 touch-manipulation"
                     >
                       <FileText className="w-4 h-4" />

@@ -19,7 +19,7 @@ export default function PricingPage() {
                 </p>
                 <Link
                     href="/resources"
-                    className="inline-flex items-center justify-center gap-2 bg-[var(--color-navy)] text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition"
+                    className="inline-flex items-center justify-center gap-2 bg-[var(--color-navy)] !text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition"
                 >
                     <FileText className="w-5 h-5" />
                     Explore Resources

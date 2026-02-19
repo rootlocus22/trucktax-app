@@ -112,19 +112,19 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
             {hasFilings && (
               <>
-                <button className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition-colors text-slate-600" aria-label="Search">
+                <button className="min-w-[44px] min-h-[44px] rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition-colors text-slate-600 touch-manipulation" aria-label="Search">
                   <Search className="w-4 h-4" />
                 </button>
-                <button className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition-colors text-slate-600" aria-label="Filter">
+                <button className="min-w-[44px] min-h-[44px] rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition-colors text-slate-600 touch-manipulation" aria-label="Filter">
                   <Filter className="w-4 h-4" />
                 </button>
                 <Link
-                  href="/dashboard/new-filing"
-                  className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-[var(--color-navy)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] active:scale-95 transition-all whitespace-nowrap"
+                  href="/ucr/file"
+                  className="inline-flex items-center justify-center gap-2 min-h-[44px] px-3 sm:px-4 py-2 bg-[var(--color-navy)] !text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] active:scale-95 transition-all whitespace-nowrap touch-manipulation"
                 >
                   <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">New Filing</span>
-                  <span className="sm:hidden">New</span>
+                  <span className="hidden sm:inline">New UCR Filing</span>
+                  <span className="sm:hidden">UCR</span>
                 </Link>
               </>
             )}
@@ -147,7 +147,7 @@ export default function DashboardPage() {
                   <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-navy)] tracking-tight">
                     Welcome back, {userData?.displayName || user?.email?.split('@')[0] || 'Trucker'}
                   </h2>
-                  <p className="text-slate-600 mt-1">
+                  <p className="text-slate-600 mt-2 text-base">
                     Manage your fleet and stay compliant with your UCR registrations.
                   </p>
                 </div>
@@ -158,72 +158,85 @@ export default function DashboardPage() {
                     draftFilings.find(d => d.filingType === 'ucr' && d.filingYear === 2026);
                   const status = activeUcr?.status || 'none';
                   const isCompleted = status === 'completed';
+                  const isSubmittedOrProcessing = status === 'submitted' || status === 'processing';
                   const historicalFilings = filings.filter(f => f.filingType === 'ucr' && f.filingYear < 2026);
 
                   return (
                     <div className="space-y-4 mb-8">
-                      <div className={`rounded-xl p-5 sm:p-6 border transition-all ${isCompleted ? 'bg-white border-teal-200 shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                          <div className="flex items-start gap-4">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${isCompleted ? 'bg-teal-100 text-teal-600' : 'bg-[var(--color-navy)]/10 text-[var(--color-navy)]'}`}>
-                              <ShieldCheck className="w-6 h-6" />
+                      <div className={`rounded-2xl p-6 sm:p-8 border-2 transition-all shadow-sm ${
+                        isCompleted ? 'bg-white border-teal-200' :
+                        isSubmittedOrProcessing ? 'bg-gradient-to-br from-white to-blue-50/30 border-blue-200' :
+                        'bg-white border-slate-200'
+                      }`}>
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                          <div className="flex items-start gap-4 min-w-0">
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${
+                              isCompleted ? 'bg-teal-100 text-teal-600' :
+                              isSubmittedOrProcessing ? 'bg-blue-100 text-blue-600' :
+                              'bg-[var(--color-navy)]/10 text-[var(--color-navy)]'
+                            }`}>
+                              <ShieldCheck className="w-7 h-7" />
                             </div>
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="text-lg font-bold text-slate-800">UCR Compliance 2026</h3>
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <h3 className="text-xl font-bold text-slate-800">UCR Compliance 2026</h3>
                                 {activeUcr && (
-                                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${isCompleted ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-700'}`}>
+                                  <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${
+                                    isCompleted ? 'bg-teal-100 text-teal-700' :
+                                    isSubmittedOrProcessing ? 'bg-blue-100 text-blue-700' :
+                                    'bg-slate-100 text-slate-700'
+                                  }`}>
                                     {status === 'draft' ? 'In Progress' : status}
                                   </span>
                                 )}
                               </div>
-                              <p className="text-sm text-slate-600 leading-relaxed">Annual registration required for interstate motor carriers.</p>
-                              <div className="flex items-center gap-4 mt-2">
-                                <span className="flex items-center gap-1 text-xs text-slate-500">
-                                  <Calendar className="w-3.5 h-3.5" /> Year: 2026
+                              <p className="text-sm text-slate-600 leading-relaxed mt-1">Annual registration required for interstate motor carriers.</p>
+                              <div className="flex flex-wrap items-center gap-4 mt-3">
+                                <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                                  <Calendar className="w-4 h-4 text-slate-400" /> Year: 2026
                                 </span>
-                                <span className="flex items-center gap-1 text-xs text-slate-500">
-                                  <Clock className="w-3.5 h-3.5" /> Renewal: Dec 31, 2026
+                                <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                                  <Clock className="w-4 h-4 text-slate-400" /> Renewal: Dec 31, 2026
                                 </span>
                               </div>
                             </div>
                           </div>
-                          <div className="flex gap-3 flex-shrink-0">
+                          <div className="flex flex-col sm:flex-row gap-4 flex-shrink-0 lg:w-auto w-full">
                             {isCompleted ? (
                               <button
+                                type="button"
                                 onClick={() => window.open(activeUcr.certificateUrl || '#', '_blank')}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700 transition active:scale-95"
+                                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 py-3 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 transition active:scale-[0.98] touch-manipulation shadow-sm"
                               >
-                                <Download className="w-4 h-4" /> Download Certificate
+                                <Download className="w-5 h-5" /> Download Certificate
                               </button>
-                            ) : (
-                              <>
+                            ) : isSubmittedOrProcessing ? (
+                              <div className="flex flex-col gap-4 min-w-0 max-w-sm">
+                                <p className="text-sm text-slate-600 leading-relaxed">
+                                  An agent is processing your filing. You’ll see your certificate here when it’s ready.
+                                </p>
                                 <Link
-                                  href={status === 'draft' ? `/ucr/file?draft=${activeUcr.id || activeUcr.draftId}` : "/ucr/file"}
-                                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-navy)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] transition active:scale-95"
+                                  href={`/dashboard/filings/${activeUcr.id}`}
+                                  className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 py-3 bg-[var(--color-navy)] !text-white rounded-xl text-sm font-semibold hover:bg-[var(--color-navy-soft)] transition active:scale-[0.98] touch-manipulation shadow-sm w-full sm:w-auto"
                                 >
-                                  {status === 'draft' ? 'Continue Filing' : 'Start 2026 Filing'}
+                                  <Clock className="w-5 h-5" /> View status
                                 </Link>
-                                {(status === 'submitted' || status === 'processing') && (
-                                  <div className="flex flex-col gap-2">
-                                    <p className="text-xs text-slate-600">An agent is processing your filing. You’ll see your certificate here when it’s ready.</p>
-                                    <Link
-                                      href={`/dashboard/filings/${activeUcr.id}`}
-                                      className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold hover:bg-slate-200 transition w-fit"
-                                    >
-                                      <Clock className="w-3.5 h-3.5" /> View status
-                                    </Link>
-                                  </div>
-                                )}
-                              </>
+                              </div>
+                            ) : (
+                              <Link
+                                href={status === 'draft' ? `/ucr/file?draft=${activeUcr.id || activeUcr.draftId}` : '/ucr/file'}
+                                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 py-3 bg-[var(--color-navy)] !text-white rounded-xl text-sm font-semibold hover:bg-[var(--color-navy-soft)] transition active:scale-[0.98] touch-manipulation shadow-sm w-full sm:w-auto"
+                              >
+                                {status === 'draft' ? 'Continue Filing' : 'Start 2026 Filing'}
+                              </Link>
                             )}
                           </div>
                         </div>
                       </div>
 
                       {historicalFilings.length > 0 && (
-                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                          <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between">
+                        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                          <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between">
                             <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Historical Records</h4>
                             <span className="text-[10px] text-slate-400">{historicalFilings.length} years</span>
                           </div>
@@ -270,13 +283,19 @@ export default function DashboardPage() {
                         amber: 'text-amber-600 bg-amber-100',
                         navy: 'text-[var(--color-navy)] bg-[var(--color-navy)]/10',
                       };
+                      const valueColors = {
+                        slate: 'text-slate-800',
+                        teal: 'text-teal-700',
+                        amber: 'text-amber-700',
+                        navy: 'text-[var(--color-navy)]',
+                      };
                       return (
-                        <div key={idx} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow transition-shadow">
-                          <div className={`w-10 h-10 rounded-lg ${colors[stat.color]} flex items-center justify-center mb-3`}>
+                        <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-slate-300/50 transition-all">
+                          <div className={`w-11 h-11 rounded-xl ${colors[stat.color]} flex items-center justify-center mb-3`}>
                             <Icon className="w-5 h-5" />
                           </div>
-                          <div className="text-2xl font-bold text-slate-800">{stat.value}</div>
-                          <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{stat.label}</div>
+                          <div className={`text-2xl font-bold ${valueColors[stat.color]}`}>{stat.value}</div>
+                          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">{stat.label}</div>
                         </div>
                       );
                     })}
@@ -285,10 +304,10 @@ export default function DashboardPage() {
 
                 {/* Filings List or Empty State */}
                 {hasFilings ? (
-                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                    <div className="flex items-center justify-between p-4 border-b border-slate-100">
-                      <h3 className="text-sm font-bold text-slate-800">Recent Activity</h3>
-                      <Link href="/dashboard/filings" className="text-xs font-semibold text-[var(--color-navy)] hover:underline">View History →</Link>
+                  <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+                      <h3 className="text-base font-bold text-slate-800">Recent Activity</h3>
+                      <Link href="/dashboard/filings" className="text-sm font-semibold text-[var(--color-navy)] hover:underline">View History →</Link>
                     </div>
                     <div className="divide-y divide-slate-100">
                       {filings.slice(0, 5).map((filing) => {
@@ -324,9 +343,9 @@ export default function DashboardPage() {
                       <Plus className="w-8 h-8" />
                     </div>
                     <h3 className="text-lg font-bold text-slate-800 mb-1">No filings yet</h3>
-                    <p className="text-slate-500 mb-6 max-w-sm mx-auto text-sm">Start your 2026 UCR registration or Form 2290 filing.</p>
-                    <Link href="/dashboard/new-filing" className="inline-flex items-center gap-2 bg-[var(--color-navy)] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[var(--color-navy-soft)] transition active:scale-95">
-                      New Filing <ArrowRight className="w-4 h-4" />
+                    <p className="text-slate-500 mb-6 max-w-sm mx-auto text-sm">Start your 2026 UCR registration.</p>
+                    <Link href="/ucr/file" className="inline-flex items-center gap-2 bg-[var(--color-navy)] !text-white px-6 py-3 rounded-lg font-semibold hover:bg-[var(--color-navy-soft)] transition active:scale-95">
+                      New UCR Filing <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
                 )}
@@ -334,25 +353,25 @@ export default function DashboardPage() {
             </div>
 
             {/* Right Sidebar - Quick Actions */}
-            <div className="hidden xl:block w-72 bg-white border-l border-slate-200 p-5 overflow-y-auto">
+            <div className="hidden xl:block w-80 bg-slate-50/50 border-l border-slate-200 p-6 overflow-y-auto">
               <div className="space-y-6">
                 <div>
-                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Quick Links</h4>
-                  <div className="grid grid-cols-1 gap-2">
-                    <Link href="/tools/ucr-calculator" className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 hover:border-slate-200 transition">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Quick Links</h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    <Link href="/tools/ucr-calculator" className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-[var(--color-navy)]/30 hover:shadow-md transition-all">
                       <Calculator className="w-5 h-5 text-[var(--color-navy)]" />
                       <span className="text-sm font-semibold text-slate-700">Fee Calculator</span>
                     </Link>
-                    <Link href="/services/ucr-registration" className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 hover:border-slate-200 transition">
+                    <Link href="/services/ucr-registration" className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-teal-300 hover:shadow-md transition-all">
                       <HelpCircle className="w-5 h-5 text-teal-600" />
                       <span className="text-sm font-semibold text-slate-700">Compliance Info</span>
                     </Link>
                   </div>
                 </div>
-                <div className="bg-[var(--color-navy)] rounded-xl p-5 text-white">
-                  <h4 className="font-bold mb-1">Need Help?</h4>
-                  <p className="text-xs text-white/80 mb-4">Our compliance team can assist with your registrations.</p>
-                  <a href="mailto:support@quicktrucktax.com" className="block w-full bg-white text-[var(--color-navy)] py-2.5 rounded-lg text-sm font-semibold text-center hover:bg-slate-100 transition">
+                <div className="bg-[var(--color-navy)] rounded-2xl p-6 text-white shadow-lg">
+                  <h4 className="font-bold text-lg mb-2">Need Help?</h4>
+                  <p className="text-sm text-white/90 mb-5">Our compliance team can assist with your registrations.</p>
+                  <a href="mailto:support@quicktrucktax.com" className="block w-full bg-white !text-[var(--color-navy)] py-3 rounded-xl text-sm font-semibold text-center hover:bg-slate-100 transition">
                     Contact support
                   </a>
                 </div>

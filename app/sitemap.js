@@ -3,6 +3,7 @@ import { blogPosts } from "./blog/blogData";
 import usStates from '@/data/us-states.json';
 import { getPseoRoutes } from "@/lib/pseo/data";
 import { errorCodes } from "@/lib/error-codes";
+import { UCR_STATE_SLUGS, UCR_FLEET_SIZES, UCR_OPERATOR_TYPES } from "@/lib/ucr-seo-data";
 
 const baseUrl = "https://www.quicktrucktax.com";
 
@@ -34,6 +35,9 @@ export default function sitemap() {
     { path: "/tools/ifta-calculator", priority: 0.8, changeFrequency: "monthly" },
     { path: "/ucr/file", priority: 0.95, changeFrequency: "weekly" },
     { path: "/ucr/pricing", priority: 0.9, changeFrequency: "weekly" },
+    { path: "/terms", priority: 0.7, changeFrequency: "monthly" },
+    { path: "/refund-policy", priority: 0.7, changeFrequency: "monthly" },
+    { path: "/privacy-policy", priority: 0.7, changeFrequency: "monthly" },
     { path: "/error-codes", priority: 0.8, changeFrequency: "weekly" },
     { path: "/comparisons", priority: 0.8, changeFrequency: "weekly" },
     { path: "/comparisons/vs-express-truck-tax", priority: 0.8, changeFrequency: "monthly" },
@@ -84,5 +88,39 @@ export default function sitemap() {
     priority: 0.7,
   }));
 
-  return [...coreRoutes, ...stateRoutes, ...guideRoutes, ...blogRoutes, ...errorRoutes, ...pseoRoutes];
+  // UCR programmatic SEO: state pages (ucr-filing/texas, etc.)
+  const ucrStateRoutes = UCR_STATE_SLUGS.map((stateSlug) => ({
+    url: `${baseUrl}/ucr-filing/${stateSlug}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.85,
+  }));
+
+  // UCR fleet-size pages (ucr-fee/for/1-truck, 2-trucks, ...)
+  const ucrFleetRoutes = UCR_FLEET_SIZES.map((n) => ({
+    url: `${baseUrl}/ucr-fee/for/${n === 1 ? "1-truck" : `${n}-trucks`}`,
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
+
+  // UCR operator-type pages (ucr-for/brokers, etc.)
+  const ucrOperatorRoutes = UCR_OPERATOR_TYPES.map((t) => ({
+    url: `${baseUrl}/ucr-for/${t.slug}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.85,
+  }));
+
+  return [
+    ...coreRoutes,
+    ...stateRoutes,
+    ...ucrStateRoutes,
+    ...ucrFleetRoutes,
+    ...ucrOperatorRoutes,
+    ...guideRoutes,
+    ...blogRoutes,
+    ...errorRoutes,
+    ...pseoRoutes,
+  ];
 }

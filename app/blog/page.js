@@ -181,7 +181,7 @@ export default function BlogPage() {
                     setSelectedCategory('All');
                     setSearchQuery('');
                   }}
-                  className="bg-[var(--color-navy)] text-white px-6 py-3 rounded-lg font-bold hover:bg-[var(--color-navy)]/90 transition-colors"
+                  className="bg-[var(--color-navy)] !text-white px-6 py-3 rounded-lg font-bold hover:bg-[var(--color-navy)]/90 transition-colors"
                 >
                   Clear All Filters
                 </button>

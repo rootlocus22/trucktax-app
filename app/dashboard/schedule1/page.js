@@ -162,7 +162,7 @@ export default function Schedule1ListPage() {
               Your stamped Schedule 1 forms will appear here automatically once your filings are approved by the IRS.
             </p>
             <Link
-              href="/dashboard/new-filing"
+              href="/ucr/file"
               className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
             >
               Start New Filing

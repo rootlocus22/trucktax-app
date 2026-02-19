@@ -24,6 +24,7 @@ export default function AgentWorkStationPage() {
   const [schedule1File, setSchedule1File] = useState(null);
   const [mcsConfirmationFile, setMcsConfirmationFile] = useState(null);
   const [certificateUrlInput, setCertificateUrlInput] = useState('');
+  const [ucrCertificateFile, setUcrCertificateFile] = useState(null);
   const [error, setError] = useState('');
 
   // Rejection State
@@ -186,6 +187,49 @@ export default function AgentWorkStationPage() {
       setFiling({ ...filing, status: 'completed', certificateUrl: url, completedAt: new Date().toISOString() });
     } catch (err) {
       setError(err.message || 'Failed to mark UCR as completed.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUcrCertificateUpload = async () => {
+    if (!ucrCertificateFile) {
+      setError('Please select a PDF file to upload.');
+      return;
+    }
+    if (ucrCertificateFile.type !== 'application/pdf') {
+      setError('Only PDF files are allowed.');
+      return;
+    }
+    if (!user) {
+      setError('You must be logged in to upload.');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      const idToken = await user.getIdToken(true);
+      const formData = new FormData();
+      formData.append('file', ucrCertificateFile);
+      formData.append('filingId', params.id);
+      formData.append('type', 'ucr_certificate');
+      const res = await fetch('/api/upload-schedule1', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${idToken}` },
+        body: formData,
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || res.statusText || 'Upload failed');
+      }
+      const data = await res.json();
+      const publicUrl = data.url;
+      setStatus('completed');
+      setFiling(prev => ({ ...prev, status: 'completed', certificateUrl: publicUrl, completedAt: new Date().toISOString() }));
+      setCertificateUrlInput(publicUrl);
+      setUcrCertificateFile(null);
+    } catch (err) {
+      setError(err.message || 'Failed to upload UCR certificate.');
     } finally {
       setSaving(false);
     }
@@ -891,7 +935,10 @@ export default function AgentWorkStationPage() {
           <Link href="/agent" className="text-[var(--color-navy)] hover:underline mb-4 inline-block">
             ← Back to Queue
           </Link>
-          <h1 className="text-3xl font-bold text-[var(--color-text)]">Work Station</h1>
+          <h1 className="text-3xl font-bold text-[var(--color-text)]">
+            Work Station
+            {filing.filingType === 'ucr' && <span className="text-lg font-normal text-slate-500 ml-2">UCR Registration {filing.filingYear ?? new Date().getFullYear()}</span>}
+          </h1>
         </div>
 
         {error && (
@@ -1291,7 +1338,10 @@ export default function AgentWorkStationPage() {
                 <h2 className="text-xl font-semibold text-[var(--color-text)]">Customer Data</h2>
                 <button
                   onClick={() => {
-                    const data = `Business: ${business?.businessName || ''}\nEIN: ${business?.ein || ''}\nAddress: ${business?.address || ''}\n\nVehicles:\n${vehicles.map(v => `VIN: ${v.vin}, Weight: ${v.grossWeightCategory}`).join('\n')}`;
+                    const isUcr = filing.filingType === 'ucr';
+                    const data = isUcr
+                      ? `Legal Name: ${filing.legalName || ''}\nDBA: ${filing.dba || ''}\nUSDOT: ${filing.dotNumber || ''}\nState: ${filing.state || ''}\nRegistrant: ${filing.registrantName || ''}\nEmail: ${filing.email || ''}\nPhone: ${filing.phone || ''}\nPower Units: ${filing.powerUnits ?? ''}\nFiling Year: ${filing.filingYear ?? ''}`
+                      : `Business: ${business?.businessName || ''}\nEIN: ${business?.ein || ''}\nAddress: ${business?.address || ''}\n\nVehicles:\n${vehicles.map(v => `VIN: ${v.vin}, Weight: ${v.grossWeightCategory}`).join('\n')}`;
                     handleCopyToClipboard(data);
                   }}
                   className="text-sm bg-[var(--color-navy)] text-white px-4 py-2 rounded-lg hover:bg-[var(--color-navy-soft)] transition"
@@ -1304,7 +1354,54 @@ export default function AgentWorkStationPage() {
                 <div>
                   <h3 className="font-semibold text-[var(--color-text)] mb-2">Business Information</h3>
                   <div className="bg-[var(--color-page-alt)] p-4 rounded-lg space-y-2.5 text-sm">
-                    {business ? (
+                    {filing.filingType === 'ucr' ? (
+                      <>
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-[var(--color-muted)] min-w-[120px]">Legal Name:</span>
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-[var(--color-text)] font-medium truncate">{filing.legalName || '—'}</span>
+                            {filing.legalName && <button onClick={() => handleCopyToClipboard(filing.legalName)} className="text-[var(--color-navy)] hover:underline text-xs flex-shrink-0">Copy</button>}
+                          </div>
+                        </div>
+                        {(filing.dba != null && filing.dba !== '') && (
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-[var(--color-muted)] min-w-[120px]">DBA:</span>
+                            <span className="text-[var(--color-text)] font-medium">{filing.dba}</span>
+                          </div>
+                        )}
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-[var(--color-muted)] min-w-[120px]">USDOT:</span>
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-[var(--color-text)] font-medium font-mono">{filing.dotNumber || '—'}</span>
+                            {filing.dotNumber && <button onClick={() => handleCopyToClipboard(filing.dotNumber)} className="text-[var(--color-navy)] hover:underline text-xs flex-shrink-0">Copy</button>}
+                          </div>
+                        </div>
+                        {filing.state && (
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-[var(--color-muted)] min-w-[120px]">State:</span>
+                            <span className="text-[var(--color-text)] font-medium">{filing.state}</span>
+                          </div>
+                        )}
+                        {filing.registrantName && (
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-[var(--color-muted)] min-w-[120px]">Registrant:</span>
+                            <span className="text-[var(--color-text)] font-medium">{filing.registrantName}</span>
+                          </div>
+                        )}
+                        {filing.email && (
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-[var(--color-muted)] min-w-[120px]">Email:</span>
+                            <span className="text-[var(--color-text)] truncate text-right">{filing.email}</span>
+                          </div>
+                        )}
+                        {filing.phone && (
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-[var(--color-muted)] min-w-[120px]">Phone:</span>
+                            <span className="text-[var(--color-text)] font-medium">{filing.phone}</span>
+                          </div>
+                        )}
+                      </>
+                    ) : business ? (
                       <>
                         <div className="flex items-start justify-between gap-2">
                           <span className="text-[var(--color-muted)] min-w-[120px]">Business Name:</span>
@@ -1364,9 +1461,24 @@ export default function AgentWorkStationPage() {
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-[var(--color-text)] mb-2">Vehicles ({vehicles.length})</h3>
+                  <h3 className="font-semibold text-[var(--color-text)] mb-2">
+                    {filing.filingType === 'ucr' ? 'Fleet / Power Units' : `Vehicles (${vehicles.length})`}
+                  </h3>
                   <div className="bg-[var(--color-page-alt)] p-4 rounded-lg">
-                    {vehicles.length > 0 ? (
+                    {filing.filingType === 'ucr' ? (
+                      <div className="space-y-2.5 text-sm">
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-[var(--color-muted)] min-w-[120px]">Power units:</span>
+                          <span className="text-[var(--color-text)] font-semibold">{filing.powerUnits != null ? Number(filing.powerUnits) : '—'}</span>
+                        </div>
+                        {filing.entityType != null && filing.entityType !== '' && (
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-[var(--color-muted)] min-w-[120px]">Entity type:</span>
+                            <span className="text-[var(--color-text)] font-medium capitalize">{String(filing.entityType).replace(/_/g, ' ')}</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : vehicles.length > 0 ? (
                       <div className="space-y-3">
                         {vehicles.map((vehicle) => (
                           <div key={vehicle.id} className="border-b border-[var(--color-border)] pb-3 last:border-0 last:pb-0">
@@ -1425,14 +1537,75 @@ export default function AgentWorkStationPage() {
                 <div>
                   <h3 className="font-semibold text-[var(--color-text)] mb-2">Filing Details</h3>
                   <div className="bg-[var(--color-page-alt)] p-4 rounded-lg space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-[var(--color-muted)]">Tax Year:</span>
-                      <span className="text-[var(--color-text)] font-medium">{filing.taxYear}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[var(--color-muted)]">First Used Month:</span>
-                      <span className="text-[var(--color-text)] font-medium">{filing.firstUsedMonth}</span>
-                    </div>
+                    {filing.filingType === 'ucr' ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-[var(--color-muted)]">Filing Type:</span>
+                          <span className="text-[var(--color-text)] font-medium">UCR Registration</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[var(--color-muted)]">Filing Year:</span>
+                          <span className="text-[var(--color-text)] font-medium">{filing.filingYear ?? new Date().getFullYear()}</span>
+                        </div>
+                        {filing.state && (
+                          <div className="flex justify-between">
+                            <span className="text-[var(--color-muted)]">State:</span>
+                            <span className="text-[var(--color-text)] font-medium">{filing.state}</span>
+                          </div>
+                        )}
+                        {(filing.plan != null && filing.plan !== '') && (
+                          <div className="flex justify-between">
+                            <span className="text-[var(--color-muted)]">Plan:</span>
+                            <span className="text-[var(--color-text)] font-medium capitalize">{String(filing.plan).replace(/_/g, ' ')}</span>
+                          </div>
+                        )}
+                        {filing.ucrFee != null && (
+                          <div className="flex justify-between">
+                            <span className="text-[var(--color-muted)]">UCR Fee:</span>
+                            <span className="text-[var(--color-text)] font-medium">${Number(filing.ucrFee).toLocaleString()}</span>
+                          </div>
+                        )}
+                        {filing.servicePrice != null && (
+                          <div className="flex justify-between">
+                            <span className="text-[var(--color-muted)]">Service Fee:</span>
+                            <span className="text-[var(--color-text)] font-medium">${Number(filing.servicePrice).toLocaleString()}</span>
+                          </div>
+                        )}
+                        {filing.total != null && (
+                          <div className="flex justify-between pt-1 border-t border-slate-200">
+                            <span className="text-[var(--color-muted)]">Total Paid:</span>
+                            <span className="text-[var(--color-text)] font-bold">${Number(filing.total).toLocaleString()}</span>
+                          </div>
+                        )}
+                        {(filing.createdAt || filing.updatedAt) && (
+                          <>
+                            {filing.createdAt && (
+                              <div className="flex justify-between">
+                                <span className="text-[var(--color-muted)]">Submitted:</span>
+                                <span className="text-[var(--color-text)]">{(filing.createdAt?.toDate?.() || filing.createdAt)?.toLocaleDateString?.('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) ?? '—'}</span>
+                              </div>
+                            )}
+                            {filing.updatedAt && (
+                              <div className="flex justify-between">
+                                <span className="text-[var(--color-muted)]">Last Updated:</span>
+                                <span className="text-[var(--color-text)]">{(filing.updatedAt?.toDate?.() || filing.updatedAt)?.toLocaleDateString?.('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) ?? '—'}</span>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-[var(--color-muted)]">Tax Year:</span>
+                          <span className="text-[var(--color-text)] font-medium">{filing.taxYear ?? '—'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[var(--color-muted)]">First Used Month:</span>
+                          <span className="text-[var(--color-text)] font-medium">{filing.firstUsedMonth ?? '—'}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1537,7 +1710,32 @@ export default function AgentWorkStationPage() {
                 {filing.filingType === 'ucr' ? (
                   <div className="space-y-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
                     <h3 className="font-semibold text-emerald-900 text-sm">UCR – Complete Filing</h3>
-                    <p className="text-xs text-emerald-800">After filing on ucr.gov, add the certificate URL (or your uploaded PDF link) and mark the filing complete. The customer will see this on their dashboard.</p>
+                    <p className="text-xs text-emerald-800">Upload the UCR certificate PDF (stored in Firebase Storage) or paste a certificate URL. The customer will see this link on their dashboard to view or download the PDF.</p>
+
+                    {/* Upload certificate PDF */}
+                    <div>
+                      <label className="block text-sm font-medium text-emerald-900 mb-1">Upload UCR certificate (PDF)</label>
+                      <input
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        onChange={(e) => setUcrCertificateFile(e.target.files?.[0] || null)}
+                        className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-emerald-600 file:text-white file:text-sm file:font-medium"
+                        disabled={status === 'completed'}
+                      />
+                      {ucrCertificateFile && (
+                        <p className="mt-1 text-xs text-emerald-700">Selected: {ucrCertificateFile.name}</p>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleUcrCertificateUpload}
+                        disabled={saving || !ucrCertificateFile || status === 'completed'}
+                        className="mt-2 w-full bg-emerald-600 text-white py-2.5 rounded-lg font-semibold hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {saving ? 'Uploading...' : status === 'completed' ? 'Completed' : 'Upload PDF & Mark Complete'}
+                      </button>
+                    </div>
+
+                    <div className="text-xs text-emerald-700 border-t border-emerald-200 pt-3">Or paste a URL (e.g. from ucr.gov):</div>
                     <div>
                       <label className="block text-sm font-medium text-emerald-900 mb-1">Certificate URL</label>
                       <input
@@ -1546,19 +1744,25 @@ export default function AgentWorkStationPage() {
                         onChange={(e) => setCertificateUrlInput(e.target.value)}
                         placeholder="https://..."
                         className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+                        disabled={status === 'completed'}
                       />
+                      <button
+                        type="button"
+                        onClick={handleUcrComplete}
+                        disabled={saving || status === 'completed'}
+                        className="mt-2 w-full bg-emerald-500 text-white py-2 rounded-lg font-semibold hover:bg-emerald-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {saving ? 'Saving...' : 'Mark Complete & Set URL'}
+                      </button>
                     </div>
-                    <button
-                      onClick={handleUcrComplete}
-                      disabled={saving || status === 'completed'}
-                      className="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-semibold hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {saving ? 'Saving...' : status === 'completed' ? 'Completed' : 'Mark Complete & Set Certificate'}
-                    </button>
+
                     {status === 'completed' && filing.certificateUrl && (
-                      <p className="text-sm text-emerald-700">
-                        Certificate set. <a href={filing.certificateUrl} target="_blank" rel="noopener noreferrer" className="underline">View link</a>
-                      </p>
+                      <div className="pt-2 border-t border-emerald-200">
+                        <p className="text-sm font-medium text-emerald-900 mb-1">Certificate set – customer sees this link:</p>
+                        <a href={filing.certificateUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-emerald-700 underline break-all">
+                          {filing.certificateUrl}
+                        </a>
+                      </div>
                     )}
                   </div>
                 ) : (

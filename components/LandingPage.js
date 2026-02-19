@@ -754,7 +754,7 @@ export function LandingPage() {
               </div>
 
               <div className="mt-16 text-center">
-                <Link href="/signup" className="inline-flex items-center justify-center px-8 py-4 bg-[var(--color-navy)] text-white font-bold rounded-full hover:bg-[var(--color-midnight)] transition shadow-lg hover:shadow-xl hover:-translate-y-1">
+                <Link href="/signup" className="inline-flex items-center justify-center px-8 py-4 bg-[var(--color-navy)] !text-white font-bold rounded-full hover:bg-[var(--color-midnight)] transition shadow-lg hover:shadow-xl hover:-translate-y-1">
                   Start Your Filing <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </div>
@@ -829,7 +829,7 @@ export function LandingPage() {
 
                   <Link
                     href="/signup"
-                    className="block w-full py-5 bg-[var(--color-navy)] text-white text-center font-bold text-xl rounded-xl hover:bg-[var(--color-midnight)] transition shadow-lg hover:shadow-xl hover:scale-[1.02] transform duration-200"
+                    className="block w-full py-5 bg-[var(--color-navy)] !text-white text-center font-bold text-xl rounded-xl hover:bg-[var(--color-midnight)] transition shadow-lg hover:shadow-xl hover:scale-[1.02] transform duration-200"
                   >
                     Get Started Now
                   </Link>

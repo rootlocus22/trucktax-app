@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -141,10 +141,10 @@ export default function LoginPage() {
       </div>
 
       {/* Right Panel - Login Form */}
-      <div className="w-full lg:w-1/2 bg-gradient-to-br from-white via-[var(--color-page)] to-white flex flex-col p-6 lg:p-12">
-        <div className="w-full max-w-md mx-auto">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-[var(--color-text)] mb-2">Welcome Back!</h1>
+      <div className="w-full lg:w-1/2 bg-gradient-to-br from-white via-[var(--color-page)] to-white flex flex-col p-4 sm:p-6 lg:p-12 pb-safe">
+        <div className="w-full max-w-md mx-auto flex-1">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-3xl sm:text-4xl font-bold text-[var(--color-text)] mb-2">Welcome Back!</h1>
             <p className="text-[var(--color-muted)]">
               New to QuickTruckTax?{' '}
               <Link href="/signup" className="text-[var(--color-navy)] font-semibold hover:text-[var(--color-orange)] transition">
@@ -162,7 +162,7 @@ export default function LoginPage() {
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 border-2 border-[var(--color-border)] bg-white py-3.5 rounded-xl font-semibold text-[var(--color-text)] hover:bg-[var(--color-page-alt)] transition disabled:opacity-50 mb-6 shadow-sm"
+            className="w-full flex items-center justify-center gap-3 min-h-[52px] border-2 border-[var(--color-border)] bg-white py-3.5 rounded-xl font-semibold text-[var(--color-text)] hover:bg-[var(--color-page-alt)] transition disabled:opacity-50 mb-6 shadow-sm touch-manipulation"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -248,7 +248,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-navy-soft)] text-white py-3.5 rounded-xl font-semibold hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full min-h-[52px] bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-navy-soft)] text-white py-3.5 rounded-xl font-semibold hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation"
             >
               {loading ? 'Signing in...' : 'Sign In to Your Account'}
               {!loading && (
@@ -286,21 +286,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="mt-8 p-4 bg-[var(--color-page-alt)] rounded-xl border border-[var(--color-border)]">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl">✨</span>
-              <p className="text-sm font-semibold text-[var(--color-text)]">
-                Are you a tax professional or PTIN holder?
-              </p>
-            </div>
-            <Link href="/agent" className="text-sm text-[var(--color-navy)] font-semibold hover:text-[var(--color-orange)] transition flex items-center gap-1">
-              Sign in to Agent Portal
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-
           <p className="mt-6 text-xs text-center text-[var(--color-muted)]">
             By signing in, you agree to our{' '}
             <Link href="#" className="text-[var(--color-navy)] hover:underline">Terms of Service</Link>
@@ -310,5 +295,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-navy)]" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

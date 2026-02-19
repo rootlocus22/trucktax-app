@@ -18,7 +18,8 @@ import {
   Calendar,
   Truck,
   FileCheck,
-  ChevronDown
+  ChevronDown,
+  ShieldCheck
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -50,6 +51,8 @@ export default function FilingsListPage() {
 
   const getStatusConfig = (status) => {
     switch (status) {
+      case 'draft':
+        return { color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-200', icon: FileText, label: 'Draft' };
       case 'submitted':
         return { color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', icon: Clock, label: 'Submitted' };
       case 'processing':
@@ -59,32 +62,40 @@ export default function FilingsListPage() {
       case 'completed':
         return { color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', icon: CheckCircle, label: 'Completed' };
       default:
-        return { color: 'text-slate-700', bg: 'bg-slate-50', border: 'border-slate-200', icon: FileText, label: status };
+        return { color: 'text-slate-700', bg: 'bg-slate-50', border: 'border-slate-200', icon: FileText, label: status || '—' };
     }
   };
 
   const getFilingTypeInfo = (filing) => {
+    if (filing.filingType === 'ucr') {
+      const year = filing.filingYear || new Date().getFullYear();
+      return { label: `UCR ${year}`, icon: ShieldCheck, image: null, color: 'text-teal-700', bg: 'bg-teal-50' };
+    }
     if (filing.filingType === 'amendment') {
       const type = filing.amendmentType === 'vin_correction' ? 'VIN Correction' :
         filing.amendmentType === 'weight_increase' ? 'Weight Increase' :
           filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded' : 'Amendment';
-      return { label: type, image: '/assets/icons/amendment.png', color: 'text-purple-600', bg: 'bg-purple-50' };
+      return { label: type, icon: null, image: '/assets/icons/amendment.png', color: 'text-purple-600', bg: 'bg-purple-50' };
     }
     if (filing.filingType === 'refund') {
-      return { label: 'Refund (8849)', image: '/assets/icons/refund.png', color: 'text-green-600', bg: 'bg-green-50' };
+      return { label: 'Refund (8849)', icon: null, image: '/assets/icons/refund.png', color: 'text-green-600', bg: 'bg-green-50' };
     }
-    return { label: 'Form 2290', image: '/assets/icons/form2290.png', color: 'text-blue-600', bg: 'bg-blue-50' };
+    return { label: 'Form 2290', icon: null, image: '/assets/icons/form2290.png', color: 'text-blue-600', bg: 'bg-blue-50' };
   };
 
   const filteredFilings = filings.filter((filing) => {
     if (statusFilter !== 'all' && filing.status !== statusFilter) return false;
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      const matchesTaxYear = filing.taxYear?.toLowerCase().includes(searchLower);
+      const matchesTaxYear = filing.taxYear?.toString().toLowerCase().includes(searchLower);
+      const matchesFilingYear = filing.filingYear?.toString().toLowerCase().includes(searchLower);
       const matchesStatus = filing.status?.toLowerCase().includes(searchLower);
       const matchesBusiness = filing.business?.businessName?.toLowerCase().includes(searchLower);
+      const matchesLegalName = filing.legalName?.toLowerCase().includes(searchLower);
+      const matchesDotNumber = filing.dotNumber?.toString().toLowerCase().includes(searchLower);
+      const matchesState = filing.state?.toLowerCase().includes(searchLower);
       const matchesId = filing.id?.toLowerCase().includes(searchLower);
-      return matchesTaxYear || matchesStatus || matchesBusiness || matchesId;
+      return matchesTaxYear || matchesFilingYear || matchesStatus || matchesBusiness || matchesLegalName || matchesDotNumber || matchesState || matchesId;
     }
     return true;
   });
@@ -106,7 +117,7 @@ export default function FilingsListPage() {
     return acc;
   }, {});
 
-  // Define preferred order
+  // Define preferred order (UCR first for ucr-pivot)
   const categoryOrder = [
     'Form 2290',
     'VIN Correction',
@@ -115,10 +126,15 @@ export default function FilingsListPage() {
     'Amendment',
     'Refund (8849)'
   ];
+  // UCR categories (e.g. "UCR 2026") sort first, newest year first
+  const ucrCategories = Object.keys(groupedFilings).filter(k => k.startsWith('UCR')).sort((a, b) => b.localeCompare(a));
+  const categoryOrderWithUcr = [...ucrCategories, ...categoryOrder];
 
   const sortedCategories = Object.keys(groupedFilings).sort((a, b) => {
-    const indexA = categoryOrder.indexOf(a);
-    const indexB = categoryOrder.indexOf(b);
+    const order = categoryOrderWithUcr;
+    const indexA = order.indexOf(a);
+    const indexB = order.indexOf(b);
+    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
     return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
   });
 
@@ -147,14 +163,14 @@ export default function FilingsListPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">Your Filings</h1>
-            <p className="text-slate-500">Track and manage all your Form 2290 submissions</p>
+            <p className="text-slate-500">Track and manage your UCR and filing history</p>
           </div>
           <Link
-            href="/dashboard/new-filing"
+            href="/ucr/file"
             className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 shadow-md"
           >
             <Plus className="w-5 h-5" />
-            New Filing
+            New UCR Filing
           </Link>
         </div>
 
@@ -174,13 +190,13 @@ export default function FilingsListPage() {
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-3">No Filings Yet</h2>
             <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">
-              Start your first Form 2290 filing today. It only takes a few minutes and we'll guide you through every step.
+              Start your first UCR registration. It only takes a few minutes and we'll guide you through every step.
             </p>
             <Link
-              href="/dashboard/new-filing"
+              href="/ucr/file"
               className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
             >
-              Start Your First Filing <ArrowRight className="w-4 h-4" />
+              Start UCR Filing <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         ) : (
@@ -228,6 +244,7 @@ export default function FilingsListPage() {
                   className="w-full pl-3 sm:pl-4 pr-8 sm:pr-10 py-2.5 sm:py-3 bg-transparent border-none focus:ring-0 text-sm sm:text-base font-medium text-slate-700 cursor-pointer hover:bg-slate-50 active:bg-slate-100 rounded-lg transition-colors appearance-none touch-manipulation"
                 >
                   <option value="all">All Statuses</option>
+                  <option value="draft">Draft</option>
                   <option value="submitted">Submitted</option>
                   <option value="processing">Processing</option>
                   <option value="action_required">Action Required</option>
@@ -283,7 +300,14 @@ export default function FilingsListPage() {
                             const status = getStatusConfig(filing.status);
                             const typeInfo = getFilingTypeInfo(filing);
                             const StatusIcon = status.icon;
-                            const date = filing.createdAt ? new Date(filing.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+                            const createdAt = filing.createdAt?.toDate?.() || filing.createdAt;
+                            const date = createdAt ? new Date(createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+                            const isUcr = filing.filingType === 'ucr';
+                            const displayName = isUcr ? (filing.legalName || filing.registrantName || 'UCR Registration') : (filing.business?.businessName || 'Unnamed Business');
+                            const yearLabel = isUcr ? `Filing Year ${filing.filingYear ?? new Date().getFullYear()}` : `Tax Year ${filing.taxYear ?? '—'}`;
+                            const unitsLabel = isUcr
+                              ? `${filing.powerUnits != null ? Number(filing.powerUnits) : 0} Power unit${filing.powerUnits !== 1 ? 's' : ''}`
+                              : `${filing.vehicleIds?.length || 0} Vehicle${filing.vehicleIds?.length !== 1 ? 's' : ''}`;
 
                             return (
                               <Link
@@ -292,30 +316,47 @@ export default function FilingsListPage() {
                                 className="group block bg-white rounded-xl border border-slate-200 p-5 hover:border-[var(--color-orange)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden"
                               >
                                 {/* Status Stripe */}
-                                <div className={`absolute left-0 top-0 bottom-0 w-1 ${status.bg.replace('bg-', 'bg-').replace('50', '500')}`}></div>
+                                <div className={`absolute left-0 top-0 bottom-0 w-1 ${status.bg.replace('bg-', 'bg-').replace('50', '500').replace('100', '400')}`}></div>
 
                                 <div className="flex flex-col md:flex-row md:items-center gap-4 sm:gap-6 pl-2">
-                                  {/* Icon Section - Show on mobile too but smaller */}
-                                  <div className="flex md:hidden flex-col items-center gap-2 min-w-[60px] mb-2">
-                                    <div className="relative w-12 h-12 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
-                                      <Image
-                                        src={typeInfo.image}
-                                        alt={typeInfo.label}
-                                        fill
-                                        className="object-contain"
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="hidden md:flex flex-col items-center gap-2 min-w-[80px]">
-                                    <div className="relative w-16 h-16 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
-                                      <Image
-                                        src={typeInfo.image}
-                                        alt={typeInfo.label}
-                                        fill
-                                        className="object-contain"
-                                      />
-                                    </div>
-                                  </div>
+                                  {/* Icon Section */}
+                                  {typeInfo.icon ? (
+                                    <>
+                                      <div className="flex md:hidden flex-col items-center justify-center min-w-[60px] mb-2">
+                                        <div className={`w-12 h-12 rounded-xl ${typeInfo.bg} border border-slate-200 flex items-center justify-center`}>
+                                          <typeInfo.icon className={`w-6 h-6 ${typeInfo.color}`} />
+                                        </div>
+                                      </div>
+                                      <div className="hidden md:flex flex-col items-center justify-center min-w-[80px]">
+                                        <div className={`w-16 h-16 rounded-xl ${typeInfo.bg} border border-slate-200 flex items-center justify-center`}>
+                                          <typeInfo.icon className={`w-8 h-8 ${typeInfo.color}`} />
+                                        </div>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="flex md:hidden flex-col items-center gap-2 min-w-[60px] mb-2">
+                                        <div className="relative w-12 h-12 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
+                                          <Image
+                                            src={typeInfo.image}
+                                            alt={typeInfo.label}
+                                            fill
+                                            className="object-contain"
+                                          />
+                                        </div>
+                                      </div>
+                                      <div className="hidden md:flex flex-col items-center gap-2 min-w-[80px]">
+                                        <div className="relative w-16 h-16 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
+                                          <Image
+                                            src={typeInfo.image}
+                                            alt={typeInfo.label}
+                                            fill
+                                            className="object-contain"
+                                          />
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
 
                                   {/* Main Info */}
                                   <div className="flex-1 min-w-0">
@@ -329,25 +370,31 @@ export default function FilingsListPage() {
 
                                     <div className="flex items-baseline gap-2 mb-1">
                                       <h3 className="text-lg font-bold text-slate-900 group-hover:text-[var(--color-orange)] transition-colors truncate">
-                                        {filing.business?.businessName || 'Unnamed Business'}
+                                        {displayName}
                                       </h3>
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
                                       <div className="flex items-center gap-2">
                                         <Calendar className="w-4 h-4 text-slate-400" />
-                                        <span className="font-medium">Tax Year {filing.taxYear}</span>
+                                        <span className="font-medium">{yearLabel}</span>
                                       </div>
+                                      {isUcr && filing.state && (
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-slate-400 font-medium">State:</span>
+                                          <span>{filing.state}</span>
+                                        </div>
+                                      )}
                                       <div className="flex items-center gap-2">
                                         <FileText className="w-4 h-4 text-slate-400" />
                                         <span>{typeInfo.label}</span>
                                       </div>
                                       <div className="flex items-center gap-2">
                                         <Truck className="w-4 h-4 text-slate-400" />
-                                        <span>{filing.vehicleIds?.length || 0} Vehicle{filing.vehicleIds?.length !== 1 ? 's' : ''}</span>
+                                        <span>{unitsLabel}</span>
                                       </div>
                                       <div className="flex items-center gap-2 text-slate-500 text-xs">
-                                        <span>Filed {date}</span>
+                                        <span>{filing.status === 'draft' ? 'Started' : 'Filed'} {date}</span>
                                       </div>
                                     </div>
                                   </div>

@@ -163,7 +163,9 @@ export default function FilingDetailPage() {
   useEffect(() => {
     if (filing?.status === 'submitted' || filing?.status === 'processing') {
       // Calculate initial elapsed time based on createdAt
-      const startTime = filing.createdAt ? new Date(filing.createdAt).getTime() : Date.now();
+      const startTime = filing.createdAt
+        ? (filing.createdAt.toDate ? filing.createdAt.toDate() : new Date(filing.createdAt)).getTime()
+        : Date.now();
 
       const timer = setInterval(() => {
         const now = Date.now();
@@ -399,7 +401,17 @@ export default function FilingDetailPage() {
 
               {/* Dynamic Action Area */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
-                {filing.status === 'completed' && filing.finalSchedule1Url ? (
+                {filing.status === 'completed' && filing.filingType === 'ucr' && filing.certificateUrl ? (
+                  <a
+                    href={filing.certificateUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-green-700 hover:shadow-xl transition transform hover:-translate-y-0.5 w-full sm:w-auto justify-center"
+                  >
+                    <Download className="w-5 h-5" />
+                    Download UCR Certificate
+                  </a>
+                ) : filing.status === 'completed' && filing.finalSchedule1Url ? (
                   <a
                     href={filing.finalSchedule1Url}
                     target="_blank"
@@ -608,27 +620,74 @@ export default function FilingDetailPage() {
         {/* Main Content Grid */}
         <div className="grid md:grid-cols-2 gap-4 mt-6">
           {/* Business Information */}
-          <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5">
+            <div className="flex items-center gap-2 mb-4">
               <Building2 className="w-4 h-4 text-[var(--color-orange)]" />
               <h2 className="text-sm font-semibold text-[var(--color-text)]">Business Information</h2>
             </div>
-            {business && (
+            {filing.filingType === 'ucr' ? (
+              <div className="space-y-3 text-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[var(--color-muted)] min-w-[120px]">Legal name:</span>
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+                    <span className="text-[var(--color-text)] font-medium text-right">{filing.legalName || '—'}</span>
+                    {filing.legalName && (
+                      <button onClick={() => handleCopy(filing.legalName, 'legalName')} className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)]" title="Copy">
+                        {copied === 'legalName' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {(filing.dba != null && filing.dba !== '') && (
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[120px]">DBA:</span>
+                    <span className="text-[var(--color-text)] font-medium">{filing.dba}</span>
+                  </div>
+                )}
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[var(--color-muted)] min-w-[120px]">USDOT:</span>
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+                    <span className="text-[var(--color-text)] font-medium font-mono">{filing.dotNumber || '—'}</span>
+                    {filing.dotNumber && (
+                      <button onClick={() => handleCopy(filing.dotNumber, 'dotNumber')} className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)]" title="Copy">
+                        {copied === 'dotNumber' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {filing.state && (
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[120px]">State:</span>
+                    <span className="text-[var(--color-text)] font-medium">{filing.state}</span>
+                  </div>
+                )}
+                {filing.registrantName && (
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[120px]">Registrant:</span>
+                    <span className="text-[var(--color-text)] font-medium">{filing.registrantName}</span>
+                  </div>
+                )}
+                {filing.email && (
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[120px]">Email:</span>
+                    <span className="text-[var(--color-text)] truncate text-right">{filing.email}</span>
+                  </div>
+                )}
+                {filing.phone && (
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[120px]">Phone:</span>
+                    <span className="text-[var(--color-text)] font-medium">{filing.phone}</span>
+                  </div>
+                )}
+              </div>
+            ) : business ? (
               <div className="space-y-2.5 text-xs">
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-[var(--color-muted)] min-w-[100px]">Name:</span>
                   <div className="flex items-center gap-1.5 flex-1 min-w-0">
                     <span className="text-[var(--color-text)] font-medium truncate">{business.businessName}</span>
-                    <button
-                      onClick={() => handleCopy(business.businessName, 'businessName')}
-                      className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)] transition"
-                      title="Copy"
-                    >
-                      {copied === 'businessName' ? (
-                        <Check className="w-3 h-3" />
-                      ) : (
-                        <Copy className="w-3 h-3" />
-                      )}
+                    <button onClick={() => handleCopy(business.businessName, 'businessName')} className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)] transition" title="Copy">
+                      {copied === 'businessName' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                     </button>
                   </div>
                 </div>
@@ -636,16 +695,8 @@ export default function FilingDetailPage() {
                   <span className="text-[var(--color-muted)] min-w-[100px]">EIN:</span>
                   <div className="flex items-center gap-1.5 flex-1 min-w-0">
                     <span className="text-[var(--color-text)] font-medium font-mono">{business.ein}</span>
-                    <button
-                      onClick={() => handleCopy(business.ein, 'ein')}
-                      className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)] transition"
-                      title="Copy"
-                    >
-                      {copied === 'ein' ? (
-                        <Check className="w-3 h-3" />
-                      ) : (
-                        <Copy className="w-3 h-3" />
-                      )}
+                    <button onClick={() => handleCopy(business.ein, 'ein')} className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)] transition" title="Copy">
+                      {copied === 'ein' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                     </button>
                   </div>
                 </div>
@@ -671,43 +722,86 @@ export default function FilingDetailPage() {
                   </div>
                 )}
               </div>
+            ) : (
+              <p className="text-sm text-[var(--color-muted)]">No business information for this filing.</p>
             )}
           </div>
 
           {/* Filing Details */}
-          <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5">
+            <div className="flex items-center gap-2 mb-4">
               <Calendar className="w-4 h-4 text-[var(--color-orange)]" />
               <h2 className="text-sm font-semibold text-[var(--color-text)]">Filing Details</h2>
             </div>
-            <div className="space-y-2.5 text-xs">
+            <div className="space-y-3 text-sm">
               <div className="flex items-start justify-between gap-2">
                 <span className="text-[var(--color-muted)] min-w-[120px]">Filing Type:</span>
-                <span className="text-[var(--color-text)] font-medium capitalize">
-                  {filing.filingType === 'amendment' && filing.amendmentType
-                    ? (filing.amendmentType === 'vin_correction' ? 'VIN Correction Amendment'
-                      : filing.amendmentType === 'weight_increase' ? 'Weight Increase Amendment'
-                        : filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded Amendment'
-                          : 'Amendment')
-                    : filing.filingType === 'refund' ? 'Refund (Form 8849)'
-                      : 'Standard Filing'}
+                <span className="text-[var(--color-text)] font-medium">
+                  {filing.filingType === 'ucr' ? 'UCR Registration' : filing.filingType === 'amendment' && filing.amendmentType
+                    ? (filing.amendmentType === 'vin_correction' ? 'VIN Correction Amendment' : filing.amendmentType === 'weight_increase' ? 'Weight Increase Amendment' : filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded Amendment' : 'Amendment')
+                    : filing.filingType === 'refund' ? 'Refund (Form 8849)' : 'Standard Filing'}
                 </span>
               </div>
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-[var(--color-muted)] min-w-[120px]">Tax Year:</span>
-                <span className="text-[var(--color-text)] font-medium">{filing.taxYear}</span>
-              </div>
-              {filing.filingType !== 'amendment' && (
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-[var(--color-muted)] min-w-[120px]">First Used:</span>
-                  <span className="text-[var(--color-text)] font-medium">{filing.firstUsedMonth}</span>
-                </div>
+              {filing.filingType === 'ucr' ? (
+                <>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[120px]">Filing Year:</span>
+                    <span className="text-[var(--color-text)] font-medium">{filing.filingYear ?? 2026}</span>
+                  </div>
+                  {filing.state && (
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[var(--color-muted)] min-w-[120px]">State:</span>
+                      <span className="text-[var(--color-text)] font-medium">{filing.state}</span>
+                    </div>
+                  )}
+                  {(filing.plan != null && filing.plan !== '') && (
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[var(--color-muted)] min-w-[120px]">Plan:</span>
+                      <span className="text-[var(--color-text)] font-medium capitalize">{String(filing.plan).replace(/_/g, ' ')}</span>
+                    </div>
+                  )}
+                  {(filing.ucrFee != null || filing.servicePrice != null) && (
+                    <>
+                      {filing.ucrFee != null && (
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-[var(--color-muted)] min-w-[120px]">UCR fee:</span>
+                          <span className="text-[var(--color-text)] font-medium">${Number(filing.ucrFee).toLocaleString()}</span>
+                        </div>
+                      )}
+                      {filing.servicePrice != null && (
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-[var(--color-muted)] min-w-[120px]">Service fee:</span>
+                          <span className="text-[var(--color-text)] font-medium">${Number(filing.servicePrice).toLocaleString()}</span>
+                        </div>
+                      )}
+                      {filing.total != null && (
+                        <div className="flex items-start justify-between gap-2 pt-1 border-t border-slate-100">
+                          <span className="text-[var(--color-muted)] min-w-[120px]">Total paid:</span>
+                          <span className="text-[var(--color-text)] font-bold">${Number(filing.total).toLocaleString()}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[120px]">Tax Year:</span>
+                    <span className="text-[var(--color-text)] font-medium">{filing.taxYear ?? '—'}</span>
+                  </div>
+                  {filing.filingType !== 'amendment' && (
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[var(--color-muted)] min-w-[120px]">First Used:</span>
+                      <span className="text-[var(--color-text)] font-medium">{filing.firstUsedMonth ?? '—'}</span>
+                    </div>
+                  )}
+                </>
               )}
               {filing.createdAt && (
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-[var(--color-muted)] min-w-[120px]">Submitted:</span>
                   <span className="text-[var(--color-text)]">
-                    {filing.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {(filing.createdAt?.toDate?.() || filing.createdAt).toLocaleDateString?.('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) ?? '—'}
                   </span>
                 </div>
               )}
@@ -715,7 +809,7 @@ export default function FilingDetailPage() {
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-[var(--color-muted)] min-w-[120px]">Last Updated:</span>
                   <span className="text-[var(--color-text)]">
-                    {filing.updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {(filing.updatedAt?.toDate?.() || filing.updatedAt).toLocaleDateString?.('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) ?? '—'}
                   </span>
                 </div>
               )}
@@ -823,18 +917,33 @@ export default function FilingDetailPage() {
           </div>
         )}
 
-        {/* Vehicles */}
-        <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
-          <div className="flex items-center gap-2 mb-3">
+        {/* Vehicles / Fleet (UCR uses power units) */}
+        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5">
+          <div className="flex items-center gap-2 mb-4">
             <Truck className="w-4 h-4 text-[var(--color-orange)]" />
             <h2 className="text-sm font-semibold text-[var(--color-text)]">
-              {filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction'
-                ? 'VIN Information'
-                : `Vehicles (${vehicles.length})`}
+              {filing.filingType === 'ucr'
+                ? 'Fleet / Power Units'
+                : filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction'
+                  ? 'VIN Information'
+                  : `Vehicles (${vehicles.length})`}
             </h2>
           </div>
 
-          {filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction' ? (
+          {filing.filingType === 'ucr' ? (
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-[var(--color-muted)] min-w-[120px]">Power units:</span>
+                <span className="text-[var(--color-text)] font-semibold">{filing.powerUnits != null ? Number(filing.powerUnits) : '—'}</span>
+              </div>
+              {filing.entityType != null && filing.entityType !== '' && (
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[var(--color-muted)] min-w-[120px]">Entity type:</span>
+                  <span className="text-[var(--color-text)] font-medium capitalize">{String(filing.entityType).replace(/_/g, ' ')}</span>
+                </div>
+              )}
+            </div>
+          ) : filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction' ? (
             // For VIN corrections, show VINs from amendment details
             <div className="grid sm:grid-cols-2 gap-2.5">
               <div className="bg-red-50 border border-red-200 rounded p-3">

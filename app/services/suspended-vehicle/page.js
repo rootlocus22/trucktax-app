@@ -73,7 +73,7 @@ export default function SuspendedVehiclePage() {
 
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
-                                href="/dashboard/new-filing?type=suspended"
+                                href="/ucr/file"
                                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-orange)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-orange-900/20 transition hover:bg-[#e66a15] hover:scale-105"
                             >
                                 File Exempt Return
@@ -153,7 +153,7 @@ export default function SuspendedVehiclePage() {
                         It takes less than 5 minutes. Select "Suspended/Exempt" effectively skipping the payment screen.
                     </p>
                     <Link
-                        href="/dashboard/new-filing?type=suspended"
+                        href="/ucr/file"
                         className="inline-flex items-center justify-center gap-2 rounded-xl bg-white text-blue-900 px-10 py-4 text-lg font-bold shadow-lg transition hover:bg-slate-100 relative z-10"
                     >
                         File Now - $34.99

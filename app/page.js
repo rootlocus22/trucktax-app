@@ -2,6 +2,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { complianceGuides } from "@/lib/guides";
 import { ShieldCheck, ChevronRight, Calculator, CheckCircle, Lock, Award, FileText, Download, Clock, Edit3, Users, LayoutGrid, ArrowRight, Search } from "lucide-react";
+import HomepageUcrCalculator from "@/components/HomepageUcrCalculator";
+import RedirectLoggedInToDashboard from "@/components/RedirectLoggedInToDashboard";
+
+export const metadata = {
+  title: "UCR Filing & Renewal Service – Fast, Simple & Compliant | QuickTruckTax",
+  description: "File your UCR registration online. Instant fee calculator, guided filing, and compliance dashboard. Start your UCR filing in minutes.",
+  openGraph: {
+    title: "UCR Filing & Renewal Service – Fast, Simple & Compliant | QuickTruckTax",
+    description: "File your UCR registration online. Instant fee calculator, guided filing, and compliance dashboard. Start your UCR filing in minutes.",
+    url: "https://www.quicktrucktax.com",
+  },
+};
 
 const spotlightSlugs = [
   "form-2290-ultimate-guide",
@@ -175,13 +187,14 @@ export default function Home() {
   };
 
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, productJsonLd, faqJsonLd]) }}
-      />
+    <RedirectLoggedInToDashboard>
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, productJsonLd, faqJsonLd]) }}
+        />
 
-      <div className="flex flex-col gap-20 sm:gap-24">
+        <div className="flex flex-col gap-20 sm:gap-24">
         {/* HERO SECTION */}
         <section className="relative overflow-hidden rounded-3xl bg-[var(--color-midnight)] text-white shadow-2xl">
           <div className="absolute inset-0 z-0">
@@ -198,29 +211,29 @@ export default function Home() {
             <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-[var(--color-orange)]/60 to-transparent opacity-80" />
           </div>
 
-          <div className="relative z-10 px-6 py-20 sm:px-12 lg:px-16 grid gap-12 lg:grid-cols-2 items-center">
-            <div className="space-y-8">
+          <div className="relative z-10 px-4 sm:px-6 py-14 sm:py-20 lg:px-16 grid gap-10 sm:gap-12 lg:grid-cols-2 items-center">
+            <div className="space-y-6 sm:space-y-8">
               <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 border border-emerald-400/30 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-300">
                 UCR Specialist
               </div>
-              <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl text-white">
+              <h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl text-white">
                 The Smart <span className="block text-blue-200">UCR Filing &amp; Compliance</span> Platform for Truckers
               </h1>
               <p className="text-lg leading-8 text-slate-300 max-w-xl">
-                Simple. Fast. Smart UCR filing. Calculate your fee, file in minutes, and stay compliant. The best UCR-focused platform in the market.
+                File your UCR registration online. Instant fee calculator, guided filing, and compliance dashboard. Start your UCR filing in minutes.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <Link
                   href="/ucr/file"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-orange)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-orange-500/20 transition hover:bg-[#e66a15] hover:scale-105 transform duration-200"
+                  className="inline-flex items-center justify-center gap-2 min-h-[52px] rounded-full bg-[var(--color-orange)] px-6 sm:px-8 py-4 text-base sm:text-lg font-bold !text-white shadow-lg shadow-orange-500/20 transition hover:bg-[#e66a15] hover:scale-[1.02] active:scale-[0.98] transform duration-200 touch-manipulation w-full sm:w-auto"
                 >
-                  Start UCR Filing
+                  Start UCR Filing – $79
                   <ChevronRight className="w-5 h-5" />
                 </Link>
                 <Link
                   href="/tools/ucr-calculator"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-8 py-4 text-lg font-semibold text-white transition hover:bg-white/20"
+                  className="inline-flex items-center justify-center gap-2 min-h-[52px] rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-6 sm:px-8 py-4 text-base sm:text-lg font-semibold !text-white transition hover:bg-white/20 touch-manipulation w-full sm:w-auto"
                 >
                   <Calculator className="w-5 h-5" />
                   UCR Fee Calculator
@@ -240,31 +253,20 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Hero Stats Card - UCR focus */}
-            <div className="hidden lg:block relative">
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl transform rotate-2 hover:rotate-0 transition duration-500">
-                <div className="grid grid-cols-2 gap-8">
-                  <div>
-                    <p className="text-4xl font-bold text-[var(--color-orange)]">$79</p>
-                    <p className="text-sm text-slate-400">UCR Filing Service</p>
-                  </div>
-                  <div>
-                    <p className="text-4xl font-bold text-white">2026</p>
-                    <p className="text-sm text-slate-400">Registration open</p>
-                  </div>
-                  <div className="col-span-2 border-t border-white/10 pt-6">
-                    <p className="text-sm text-slate-300 italic">"Finally, UCR that doesn't confuse me. Fee calculator and wizard in one place."</p>
-                    <p className="text-xs text-slate-500 mt-2 font-bold uppercase">– Owner-Operator</p>
-                  </div>
-                </div>
-              </div>
+            {/* UCR Calculator above the fold + CTA */}
+            <div className="hidden lg:block relative max-w-md">
+              <HomepageUcrCalculator />
+            </div>
+            <div className="lg:hidden mt-8 max-w-sm mx-auto">
+              <HomepageUcrCalculator />
             </div>
           </div>
         </section>
 
         {/* UCR Urgency Banner */}
         <div className="bg-amber-500 text-white py-3 px-4 text-center text-sm font-semibold">
-          🚛 2026 UCR registration is open. File before Dec 31 to stay compliant. <Link href="/ucr/file" className="underline ml-1">Start UCR Filing →</Link>
+          🚛 2026 UCR registration is open. File before Dec 31 to stay compliant.{' '}
+          <Link href="/ucr/file" className="underline ml-1 inline-block py-2 touch-manipulation font-bold">Start UCR Filing →</Link>
         </div>
 
         {/* TRUST BANNER */}
@@ -535,5 +537,6 @@ export default function Home() {
         </section>
       </div>
     </>
+    </RedirectLoggedInToDashboard>
   );
 }
