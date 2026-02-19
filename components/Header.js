@@ -86,10 +86,21 @@ export function Header() {
                 <Link href="/features" className="px-3 py-1.5 text-sm font-bold text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all">
                   Features
                 </Link>
-                <Link href="/pricing" className="px-3 py-1.5 text-sm font-bold text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all">
-                  Pricing
+                <Link href="/insights" className="px-4 py-2 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition">
+                  Insights
                 </Link>
-                <div className="h-4 w-px bg-white/10 mx-2"></div>
+                <Link href="/resources" className="px-4 py-2 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition">
+                  Resources
+                </Link>
+                <Link href="/faq" className="px-4 py-2 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition">
+                  FAQ
+                </Link>
+                <Link
+                  href="/resources"
+                  className="ml-4 px-5 py-2 bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white rounded-lg font-semibold transition shadow-md hover:shadow-lg"
+                >
+                  Explore Resources
+                </Link>
               </>
             ) : (
               // Logged in navigation
@@ -251,9 +262,79 @@ export function Header() {
                               }}
                               className="w-full flex items-center gap-3 px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 transition"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                              Sign Out
-                            </button>
+                              <svg className="w-5 h-5" style={{ color: '#6b7280' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                              </svg>
+                              <span style={{ color: '#1b2838' }}>Dashboard</span>
+                            </Link>
+
+                            <Link
+                              href="/dashboard/profile"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 transition"
+                              style={{ color: '#1b2838', textDecoration: 'none' }}
+                            >
+                              <svg className="w-5 h-5" style={{ color: '#6b7280' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              <span style={{ color: '#1b2838' }}>Profile</span>
+                            </Link>
+
+                            <Link
+                              href="/dashboard/payment-history"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 transition"
+                              style={{ color: '#1b2838', textDecoration: 'none' }}
+                            >
+                              <svg className="w-5 h-5" style={{ color: '#6b7280' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                              </svg>
+                              <span style={{ color: '#1b2838' }}>Payment History</span>
+                            </Link>
+
+                            <Link
+                              href="/dashboard/settings"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 transition"
+                              style={{ color: '#1b2838', textDecoration: 'none' }}
+                            >
+                              <svg className="w-5 h-5" style={{ color: '#6b7280' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <span style={{ color: '#1b2838' }}>Settings</span>
+                            </Link>
+
+                            {userData?.role === 'agent' && (
+                              <Link
+                                href="/agent"
+                                onClick={() => setUserMenuOpen(false)}
+                                className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 transition border-t border-gray-100 mt-2 pt-2"
+                                style={{ color: '#1b2838', textDecoration: 'none' }}
+                              >
+                                <svg className="w-5 h-5" style={{ color: '#6b7280' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                                <span style={{ color: '#1b2838' }}>Agent Portal</span>
+                              </Link>
+                            )}
+
+                            <div className="border-t border-gray-100 mt-2 pt-2">
+                              <button
+                                onClick={async () => {
+                                  setUserMenuOpen(false);
+                                  await signOut();
+                                  window.location.href = '/';
+                                }}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-red-50 transition"
+                                style={{ color: '#dc2626', textDecoration: 'none' }}
+                              >
+                                <svg className="w-5 h-5" style={{ color: '#dc2626' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                                <span style={{ color: '#dc2626' }}>Sign Out</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -342,11 +423,69 @@ export function Header() {
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto px-6 py-8 space-y-10">
                   {!user ? (
-                    /* Guest Navigation */
-                    <div className="space-y-2">
-                      <Link href="/how-it-works" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-4 py-3 group">
-                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                          <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    // Landing page mobile menu (not logged in)
+                    <>
+                      <Link
+                        href="/features"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition"
+                        style={{ color: '#1b2838', textDecoration: 'none' }}
+                      >
+                        <span style={{ color: '#1b2838' }}>Features</span>
+                      </Link>
+                      <Link
+                        href="/how-it-works"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition"
+                        style={{ color: '#1b2838', textDecoration: 'none' }}
+                      >
+                        <span style={{ color: '#1b2838' }}>How it Works</span>
+                      </Link>
+                      <Link
+                        href="/insights"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition"
+                        style={{ color: '#1b2838', textDecoration: 'none' }}
+                      >
+                        <span style={{ color: '#1b2838' }}>Insights</span>
+                      </Link>
+                      <Link
+                        href="/resources"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition"
+                        style={{ color: '#1b2838', textDecoration: 'none' }}
+                      >
+                        <span style={{ color: '#1b2838' }}>Resources</span>
+                      </Link>
+                      <Link
+                        href="/faq"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition"
+                        style={{ color: '#1b2838', textDecoration: 'none' }}
+                      >
+                        <span style={{ color: '#1b2838' }}>FAQ</span>
+                      </Link>
+                      <div className="px-6 py-4 border-t border-gray-200 mt-4">
+                        <Link
+                          href="/resources"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block w-full text-center bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white px-6 py-3 rounded-lg font-semibold transition shadow-md hover:shadow-lg"
+                        >
+                          Explore Resources
+                        </Link>
+                      </div>
+                    </>
+                  ) : (
+                    // Logged in mobile menu
+                    <>
+                      {/* TRANSACTIONS Section */}
+                      <div className="mt-2">
+                        <div className="flex items-center gap-2 px-6 py-2 mb-2">
+                          <div className="w-1 h-4 bg-[var(--color-orange)] rounded"></div>
+                          <svg className="w-4 h-4 text-[var(--color-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <span className="text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider">TRANSACTIONS</span>
                         </div>
                         <span className="font-bold text-white text-base">How it Works</span>
                       </Link>
@@ -366,6 +505,80 @@ export function Header() {
                         <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="block w-full py-3.5 text-center text-white font-bold bg-white/5 rounded-xl border border-white/10 transition">Login</Link>
                         <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="block w-full py-3.5 text-center text-white font-black bg-[#ff8b3d] rounded-xl shadow-xl shadow-orange-500/20 transition">File Now</Link>
                       </div>
+
+                      {/* COMPLIANCE Section */}
+                      <div className="mt-6">
+                        <div className="flex items-center gap-2 px-6 py-2 mb-2">
+                          <div className="w-1 h-4 bg-[var(--color-cyan)] rounded"></div>
+                          <svg className="w-4 h-4 text-[var(--color-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                          </svg>
+                          <span className="text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider">COMPLIANCE</span>
+                        </div>
+                        {navigation.compliance.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation min-h-[48px] ${isActive(item.href) ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-cyan)]' : ''
+                              }`}
+                            style={{ color: '#1b2838', textDecoration: 'none' }}
+                          >
+                            <svg className="w-6 h-6" style={{ color: '#6b7280' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            <span style={{ color: '#1b2838' }}>{item.label}</span>
+                          </Link>
+                        ))}
+                      </div>
+
+                      {/* TOOLS Section */}
+                      <div className="mt-6">
+                        <div className="flex items-center gap-2 px-6 py-2 mb-2">
+                          <div className="w-1 h-4 bg-[var(--color-orange)] rounded"></div>
+                          <svg className="w-4 h-4 text-[var(--color-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <span className="text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider">TOOLS</span>
+                        </div>
+                        {navigation.tools.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`flex items-center gap-4 px-6 py-3 hover:bg-[var(--color-page-alt)] active:bg-[var(--color-page-alt)] transition touch-manipulation min-h-[48px] ${isActive(item.href) ? 'bg-[var(--color-page-alt)] border-l-4 border-[var(--color-orange)]' : ''
+                              }`}
+                            style={{ color: '#1b2838', textDecoration: 'none' }}
+                          >
+                            <svg className="w-6 h-6" style={{ color: '#6b7280' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span style={{ color: '#1b2838' }}>{item.label}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Sign Out / Auth */}
+                  {user && (
+                    <div className="mt-6 border-t border-[var(--color-border)] pt-4">
+                      <button
+                        onClick={async () => {
+                          await signOut();
+                          setMobileMenuOpen(false);
+                          window.location.href = '/';
+                        }}
+                        className="w-full flex items-center gap-4 px-6 py-3 hover:bg-red-50 active:bg-red-100 transition touch-manipulation min-h-[48px]"
+                        style={{ color: '#dc2626', textDecoration: 'none' }}
+                      >
+                        <svg className="w-6 h-6" style={{ color: '#dc2626' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span className="font-medium" style={{ color: '#dc2626' }}>Sign Out</span>
+                      </button>
                     </div>
                   ) : (
                     /* App Navigation */
@@ -385,41 +598,22 @@ export function Header() {
                         </div>
                       </div>
 
-                      <div>
-                        <p className="text-[10px] font-black text-[#60a5fa] uppercase tracking-[0.2em] mb-4">Compliance</p>
-                        <div className="space-y-3 pl-4 border-l border-white/5">
-                          {navigation.compliance.map(item => (
-                            <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-white/50 hover:text-white transition-colors">{item.label}</Link>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <p className="text-[10px] font-black text-[#10b981] uppercase tracking-[0.2em] mb-4">Resources</p>
-                        <div className="space-y-3 pl-4 border-l border-white/5">
-                          {navigation.resources.map(item => (
-                            <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-white/50 hover:text-white transition-colors">{item.label}</Link>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="pt-6 border-t border-white/10 space-y-4">
-                        <Link href="/dashboard/settings" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-4 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition">
-                          <svg className="w-5 h-5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                          <span className="font-bold">Settings</span>
-                        </Link>
-                        <button
-                          onClick={async () => {
-                            await signOut();
-                            setMobileMenuOpen(false);
-                            router.push('/');
-                          }}
-                          className="w-full flex items-center gap-4 px-4 py-4 bg-red-500/10 text-red-500 rounded-2xl hover:bg-red-500/20 transition font-black"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                          Sign Out
-                        </button>
-                      </div>
+                  {!user && (
+                    <div className="mt-6 px-6 space-y-3">
+                      <Link
+                        href="/login"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block w-full px-4 py-3 text-center border-2 border-[var(--color-navy)] text-[var(--color-navy)] rounded-lg font-semibold hover:bg-[var(--color-navy)] hover:!text-white active:scale-95 transition touch-manipulation min-h-[48px] flex items-center justify-center"
+                      >
+                        Login
+                      </Link>
+                      <Link
+                        href="/signup"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block w-full px-4 py-3 text-center bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] !text-white rounded-lg font-semibold hover:shadow-lg active:scale-95 transition touch-manipulation min-h-[48px] flex items-center justify-center"
+                      >
+                        Sign Up
+                      </Link>
                     </div>
                   )}
                 </div>

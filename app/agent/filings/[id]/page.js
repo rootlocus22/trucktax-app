@@ -23,7 +23,8 @@ export default function AgentWorkStationPage() {
   const [agentNotes, setAgentNotes] = useState('');
   const [schedule1File, setSchedule1File] = useState(null);
   const [mcsConfirmationFile, setMcsConfirmationFile] = useState(null);
-  const [mcs150SubmissionPdfUrl, setMcs150SubmissionPdfUrl] = useState(null);
+  const [certificateUrlInput, setCertificateUrlInput] = useState('');
+  const [ucrCertificateFile, setUcrCertificateFile] = useState(null);
   const [error, setError] = useState('');
 
   // Rejection State
@@ -47,6 +48,7 @@ export default function AgentWorkStationPage() {
       setStatus(filingData.status);
       setMcsStatus(filingData.mcs150Status || '');
       setAgentNotes(filingData.agentNotes || '');
+      setCertificateUrlInput(filingData.certificateUrl || '');
 
       // Load rejection state if exists
       if (filingData.rejectionReasonId) setRejectionReasonId(filingData.rejectionReasonId);
@@ -189,6 +191,72 @@ export default function AgentWorkStationPage() {
       await updateFiling(params.id, updateData);
     } catch (error) {
       setError('Failed to save notes');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUcrComplete = async () => {
+    const url = (certificateUrlInput || '').trim();
+    if (!url) {
+      setError('Enter the UCR certificate URL (from ucr.gov or your upload).');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      await updateFiling(params.id, {
+        status: 'completed',
+        certificateUrl: url,
+        completedAt: new Date().toISOString()
+      });
+      setStatus('completed');
+      setFiling({ ...filing, status: 'completed', certificateUrl: url, completedAt: new Date().toISOString() });
+    } catch (err) {
+      setError(err.message || 'Failed to mark UCR as completed.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUcrCertificateUpload = async () => {
+    if (!ucrCertificateFile) {
+      setError('Please select a PDF file to upload.');
+      return;
+    }
+    if (ucrCertificateFile.type !== 'application/pdf') {
+      setError('Only PDF files are allowed.');
+      return;
+    }
+    if (!user) {
+      setError('You must be logged in to upload.');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      const idToken = await user.getIdToken(true);
+      const formData = new FormData();
+      formData.append('file', ucrCertificateFile);
+      formData.append('filingId', params.id);
+      formData.append('type', 'ucr_certificate');
+      const res = await fetch('/api/upload-schedule1', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${idToken}` },
+        body: formData,
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || res.statusText || 'Upload failed');
+      }
+      const data = await res.json();
+      const publicUrl = data.url;
+      setStatus('completed');
+      setFiling(prev => ({ ...prev, status: 'completed', certificateUrl: publicUrl, completedAt: new Date().toISOString() }));
+      setCertificateUrlInput(publicUrl);
+      setUcrCertificateFile(null);
+    } catch (err) {
+      setError(err.message || 'Failed to upload UCR certificate.');
     } finally {
       setSaving(false);
     }
@@ -909,7 +977,10 @@ export default function AgentWorkStationPage() {
           <Link href="/agent" className="text-[var(--color-navy)] hover:underline mb-4 inline-block">
             ← Back to Queue
           </Link>
-          <h1 className="text-3xl font-bold text-[var(--color-text)]">Work Station</h1>
+          <h1 className="text-3xl font-bold text-[var(--color-text)]">
+            Work Station
+            {filing.filingType === 'ucr' && <span className="text-lg font-normal text-slate-500 ml-2">UCR Registration {filing.filingYear ?? new Date().getFullYear()}</span>}
+          </h1>
         </div>
 
         {error && (
@@ -1309,7 +1380,10 @@ export default function AgentWorkStationPage() {
                 <h2 className="text-xl font-semibold text-[var(--color-text)]">Customer Data</h2>
                 <button
                   onClick={() => {
-                    const data = `Business: ${business?.businessName || ''}\nEIN: ${business?.ein || ''}\nAddress: ${business?.address || ''}\n\nVehicles:\n${vehicles.map(v => `VIN: ${v.vin}, Weight: ${v.grossWeightCategory}`).join('\n')}`;
+                    const isUcr = filing.filingType === 'ucr';
+                    const data = isUcr
+                      ? `Legal Name: ${filing.legalName || ''}\nDBA: ${filing.dba || ''}\nUSDOT: ${filing.dotNumber || ''}\nState: ${filing.state || ''}\nRegistrant: ${filing.registrantName || ''}\nEmail: ${filing.email || ''}\nPhone: ${filing.phone || ''}\nPower Units: ${filing.powerUnits ?? ''}\nFiling Year: ${filing.filingYear ?? ''}`
+                      : `Business: ${business?.businessName || ''}\nEIN: ${business?.ein || ''}\nAddress: ${business?.address || ''}\n\nVehicles:\n${vehicles.map(v => `VIN: ${v.vin}, Weight: ${v.grossWeightCategory}`).join('\n')}`;
                     handleCopyToClipboard(data);
                   }}
                   className="text-sm bg-[var(--color-navy)] text-white px-4 py-2 rounded-lg hover:bg-[var(--color-navy-soft)] transition"
@@ -1322,7 +1396,54 @@ export default function AgentWorkStationPage() {
                 <div>
                   <h3 className="font-semibold text-[var(--color-text)] mb-2">Business Information</h3>
                   <div className="bg-[var(--color-page-alt)] p-4 rounded-lg space-y-2.5 text-sm">
-                    {business ? (
+                    {filing.filingType === 'ucr' ? (
+                      <>
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-[var(--color-muted)] min-w-[120px]">Legal Name:</span>
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-[var(--color-text)] font-medium truncate">{filing.legalName || '—'}</span>
+                            {filing.legalName && <button onClick={() => handleCopyToClipboard(filing.legalName)} className="text-[var(--color-navy)] hover:underline text-xs flex-shrink-0">Copy</button>}
+                          </div>
+                        </div>
+                        {(filing.dba != null && filing.dba !== '') && (
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-[var(--color-muted)] min-w-[120px]">DBA:</span>
+                            <span className="text-[var(--color-text)] font-medium">{filing.dba}</span>
+                          </div>
+                        )}
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-[var(--color-muted)] min-w-[120px]">USDOT:</span>
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-[var(--color-text)] font-medium font-mono">{filing.dotNumber || '—'}</span>
+                            {filing.dotNumber && <button onClick={() => handleCopyToClipboard(filing.dotNumber)} className="text-[var(--color-navy)] hover:underline text-xs flex-shrink-0">Copy</button>}
+                          </div>
+                        </div>
+                        {filing.state && (
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-[var(--color-muted)] min-w-[120px]">State:</span>
+                            <span className="text-[var(--color-text)] font-medium">{filing.state}</span>
+                          </div>
+                        )}
+                        {filing.registrantName && (
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-[var(--color-muted)] min-w-[120px]">Registrant:</span>
+                            <span className="text-[var(--color-text)] font-medium">{filing.registrantName}</span>
+                          </div>
+                        )}
+                        {filing.email && (
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-[var(--color-muted)] min-w-[120px]">Email:</span>
+                            <span className="text-[var(--color-text)] truncate text-right">{filing.email}</span>
+                          </div>
+                        )}
+                        {filing.phone && (
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-[var(--color-muted)] min-w-[120px]">Phone:</span>
+                            <span className="text-[var(--color-text)] font-medium">{filing.phone}</span>
+                          </div>
+                        )}
+                      </>
+                    ) : business ? (
                       <>
                         <div className="flex items-start justify-between gap-2">
                           <span className="text-[var(--color-muted)] min-w-[120px]">Business Name:</span>
@@ -1459,37 +1580,34 @@ export default function AgentWorkStationPage() {
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-[var(--color-text)] mb-2">Vehicles ({vehicles.length})</h3>
+                  <h3 className="font-semibold text-[var(--color-text)] mb-2">
+                    {filing.filingType === 'ucr' ? 'Fleet / Power Units' : `Vehicles (${vehicles.length})`}
+                  </h3>
                   <div className="bg-[var(--color-page-alt)] p-4 rounded-lg">
-                    {vehicles.length > 0 ? (
-                      <div className="space-y-4">
-                        {vehicles.map((vehicle) => {
-                          const vehicleType = vehicle.vehicleType || (vehicle.isSuspended ? 'suspended' : 'taxable');
-                          const getVehicleTypeLabel = (type) => {
-                            switch(type) {
-                              case 'taxable': return 'Taxable Vehicle';
-                              case 'suspended': return 'Suspended Vehicle';
-                              case 'credit': return 'Credit Vehicle';
-                              case 'priorYearSold': return 'Prior Year Sold Suspended Vehicle';
-                              default: return vehicle.isSuspended ? 'Suspended Vehicle' : 'Taxable Vehicle';
-                            }
-                          };
-                          const getVehicleTypeColor = (type) => {
-                            switch(type) {
-                              case 'taxable': return 'bg-green-100 text-green-700 border-green-200';
-                              case 'suspended': return 'bg-amber-100 text-amber-700 border-amber-200';
-                              case 'credit': return 'bg-blue-100 text-blue-700 border-blue-200';
-                              case 'priorYearSold': return 'bg-purple-100 text-purple-700 border-purple-200';
-                              default: return 'bg-slate-100 text-slate-700 border-slate-200';
-                            }
-                          };
-                          
-                          return (
-                            <div key={vehicle.id} className="border border-[var(--color-border)] rounded-lg p-3 bg-white">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className={`px-2 py-1 rounded text-xs font-semibold border ${getVehicleTypeColor(vehicleType)}`}>
-                                  {getVehicleTypeLabel(vehicleType)}
-                                </span>
+                    {filing.filingType === 'ucr' ? (
+                      <div className="space-y-2.5 text-sm">
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-[var(--color-muted)] min-w-[120px]">Power units:</span>
+                          <span className="text-[var(--color-text)] font-semibold">{filing.powerUnits != null ? Number(filing.powerUnits) : '—'}</span>
+                        </div>
+                        {filing.entityType != null && filing.entityType !== '' && (
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-[var(--color-muted)] min-w-[120px]">Entity type:</span>
+                            <span className="text-[var(--color-text)] font-medium capitalize">{String(filing.entityType).replace(/_/g, ' ')}</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : vehicles.length > 0 ? (
+                      <div className="space-y-3">
+                        {vehicles.map((vehicle) => (
+                          <div key={vehicle.id} className="border-b border-[var(--color-border)] pb-3 last:border-0 last:pb-0">
+                            <div className="space-y-1.5 text-sm">
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="text-[var(--color-muted)] min-w-[80px]">VIN:</span>
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <span className="text-[var(--color-text)] font-mono font-medium truncate">{vehicle.vin}</span>
+                                  <button onClick={() => handleCopyToClipboard(vehicle.vin)} className="text-[var(--color-navy)] hover:underline text-xs flex-shrink-0">Copy</button>
+                                </div>
                               </div>
                               <div className="space-y-1.5 text-sm">
                                 <div className="flex items-start justify-between gap-2">
@@ -1604,100 +1722,74 @@ export default function AgentWorkStationPage() {
                 <div>
                   <h3 className="font-semibold text-[var(--color-text)] mb-2">Filing Details</h3>
                   <div className="bg-[var(--color-page-alt)] p-4 rounded-lg space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-[var(--color-muted)]">Filing Type:</span>
-                      <span className="text-[var(--color-text)] font-medium capitalize">
-                        {filing.filingType === 'amendment' ? 'Amendment' : filing.filingType === 'refund' ? 'Refund (8849)' : 'Standard 2290'}
-                      </span>
-                    </div>
-                    {filing.filingType === 'amendment' && filing.amendmentType && (
-                      <div className="flex justify-between">
-                        <span className="text-[var(--color-muted)]">Amendment Type:</span>
-                        <span className="text-[var(--color-text)] font-medium capitalize">
-                          {filing.amendmentType === 'vin_correction' ? 'VIN Correction' :
-                           filing.amendmentType === 'weight_increase' ? 'Weight Increase' :
-                           filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded' :
-                           filing.amendmentType}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-[var(--color-muted)]">Tax Year:</span>
-                      <span className="text-[var(--color-text)] font-medium">{filing.taxYear}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[var(--color-muted)]">First Used Month:</span>
-                      <span className="text-[var(--color-text)] font-medium">{filing.firstUsedMonth}</span>
-                    </div>
-                    
-                    {/* Payment Details */}
-                    {filing.paymentDetails && (
-                      <div className="pt-2 border-t border-[var(--color-border)]">
-                        <div className="text-xs font-semibold text-[var(--color-muted)] uppercase mb-2">Payment Information</div>
-                        {filing.paymentDetails.irsPaymentMethod && (
-                          <div className="flex justify-between mb-1">
-                            <span className="text-[var(--color-muted)]">IRS Payment Method:</span>
-                            <span className="text-[var(--color-text)] font-medium capitalize">
-                              {filing.paymentDetails.irsPaymentMethod === 'efw' ? 'EFW (Electronic Fund Withdrawal)' :
-                               filing.paymentDetails.irsPaymentMethod === 'eftps' ? 'EFTPS' :
-                               filing.paymentDetails.irsPaymentMethod === 'credit_card' ? 'Credit/Debit Card' :
-                               filing.paymentDetails.irsPaymentMethod === 'check' ? 'Check/Money Order' :
-                               filing.paymentDetails.irsPaymentMethod}
-                            </span>
-                          </div>
-                        )}
-                        {filing.paymentDetails.bankDetails && (
-                          <div className="space-y-1 mt-2">
-                            <div className="flex justify-between">
-                              <span className="text-[var(--color-muted)]">Account Type:</span>
-                              <span className="text-[var(--color-text)] font-medium capitalize">{filing.paymentDetails.bankDetails.accountType}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-[var(--color-muted)]">Routing Number:</span>
-                              <span className="text-[var(--color-text)] font-mono font-medium">{filing.paymentDetails.bankDetails.routingNumber}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-[var(--color-muted)]">Account Number:</span>
-                              <span className="text-[var(--color-text)] font-mono font-medium">****{filing.paymentDetails.bankDetails.accountNumber?.slice(-4)}</span>
-                            </div>
-                          </div>
-                        )}
-                        {filing.paymentDetails.couponCode && (
-                          <div className="flex justify-between mt-2">
-                            <span className="text-[var(--color-muted)]">Coupon Applied:</span>
-                            <span className="text-[var(--color-text)] font-medium">
-                              {filing.paymentDetails.couponCode} ({filing.paymentDetails.couponDiscount > 0 ? `-$${filing.paymentDetails.couponDiscount.toFixed(2)}` : 'N/A'})
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    
-                    {/* Pricing Breakdown */}
-                    {filing.pricing && (
-                      <div className="pt-2 border-t border-[var(--color-border)]">
-                        <div className="text-xs font-semibold text-[var(--color-muted)] uppercase mb-2">Pricing Breakdown</div>
-                        <div className="space-y-1">
+                    {filing.filingType === 'ucr' ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-[var(--color-muted)]">Filing Type:</span>
+                          <span className="text-[var(--color-text)] font-medium">UCR Registration</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[var(--color-muted)]">Filing Year:</span>
+                          <span className="text-[var(--color-text)] font-medium">{filing.filingYear ?? new Date().getFullYear()}</span>
+                        </div>
+                        {filing.state && (
                           <div className="flex justify-between">
-                            <span className="text-[var(--color-muted)]">IRS Tax Amount:</span>
-                            <span className="text-[var(--color-text)] font-medium">${(filing.pricing.totalTax || 0).toFixed(2)}</span>
+                            <span className="text-[var(--color-muted)]">State:</span>
+                            <span className="text-[var(--color-text)] font-medium">{filing.state}</span>
                           </div>
+                        )}
+                        {(filing.plan != null && filing.plan !== '') && (
+                          <div className="flex justify-between">
+                            <span className="text-[var(--color-muted)]">Plan:</span>
+                            <span className="text-[var(--color-text)] font-medium capitalize">{String(filing.plan).replace(/_/g, ' ')}</span>
+                          </div>
+                        )}
+                        {filing.ucrFee != null && (
+                          <div className="flex justify-between">
+                            <span className="text-[var(--color-muted)]">UCR Fee:</span>
+                            <span className="text-[var(--color-text)] font-medium">${Number(filing.ucrFee).toLocaleString()}</span>
+                          </div>
+                        )}
+                        {filing.servicePrice != null && (
                           <div className="flex justify-between">
                             <span className="text-[var(--color-muted)]">Service Fee:</span>
-                            <span className="text-[var(--color-text)] font-medium">${(filing.pricing.serviceFee || 0).toFixed(2)}</span>
+                            <span className="text-[var(--color-text)] font-medium">${Number(filing.servicePrice).toLocaleString()}</span>
                           </div>
-                          {filing.pricing.salesTax > 0 && (
-                            <div className="flex justify-between">
-                              <span className="text-[var(--color-muted)]">Sales Tax:</span>
-                              <span className="text-[var(--color-text)] font-medium">${(filing.pricing.salesTax || 0).toFixed(2)}</span>
-                            </div>
-                          )}
-                          <div className="flex justify-between pt-1 border-t border-[var(--color-border)] font-semibold">
-                            <span className="text-[var(--color-text)]">Total:</span>
-                            <span className="text-[var(--color-text)]">${(filing.pricing.grandTotal || 0).toFixed(2)}</span>
+                        )}
+                        {filing.total != null && (
+                          <div className="flex justify-between pt-1 border-t border-slate-200">
+                            <span className="text-[var(--color-muted)]">Total Paid:</span>
+                            <span className="text-[var(--color-text)] font-bold">${Number(filing.total).toLocaleString()}</span>
                           </div>
+                        )}
+                        {(filing.createdAt || filing.updatedAt) && (
+                          <>
+                            {filing.createdAt && (
+                              <div className="flex justify-between">
+                                <span className="text-[var(--color-muted)]">Submitted:</span>
+                                <span className="text-[var(--color-text)]">{(filing.createdAt?.toDate?.() || filing.createdAt)?.toLocaleDateString?.('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) ?? '—'}</span>
+                              </div>
+                            )}
+                            {filing.updatedAt && (
+                              <div className="flex justify-between">
+                                <span className="text-[var(--color-muted)]">Last Updated:</span>
+                                <span className="text-[var(--color-text)]">{(filing.updatedAt?.toDate?.() || filing.updatedAt)?.toLocaleDateString?.('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) ?? '—'}</span>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-[var(--color-muted)]">Tax Year:</span>
+                          <span className="text-[var(--color-text)] font-medium">{filing.taxYear ?? '—'}</span>
                         </div>
-                      </div>
+                        <div className="flex justify-between">
+                          <span className="text-[var(--color-muted)]">First Used Month:</span>
+                          <span className="text-[var(--color-text)] font-medium">{filing.firstUsedMonth ?? '—'}</span>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -1800,34 +1892,94 @@ export default function AgentWorkStationPage() {
                   </button>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                    Upload Stamped Schedule 1
-                  </label>
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => setSchedule1File(e.target.files[0])}
-                    className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-navy)]"
-                  />
-                  {schedule1File && (
-                    <p className="mt-2 text-sm text-[var(--color-muted)]">
-                      Selected: {schedule1File.name}
-                    </p>
-                  )}
-                  <button
-                    onClick={handleUploadSchedule1}
-                    disabled={saving || !schedule1File || status === 'completed'}
-                    className="mt-2 w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {saving ? 'Uploading...' : 'Upload Schedule 1 & Mark Complete'}
-                  </button>
-                  {status === 'completed' && filing.finalSchedule1Url && (
-                    <p className="mt-2 text-sm text-green-600">
-                      Schedule 1 already uploaded. <a href={filing.finalSchedule1Url} target="_blank" rel="noopener noreferrer" className="underline">View current file</a>
-                    </p>
-                  )}
-                </div>
+                {filing.filingType === 'ucr' ? (
+                  <div className="space-y-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                    <h3 className="font-semibold text-emerald-900 text-sm">UCR – Complete Filing</h3>
+                    <p className="text-xs text-emerald-800">Upload the UCR certificate PDF (stored in Firebase Storage) or paste a certificate URL. The customer will see this link on their dashboard to view or download the PDF.</p>
+
+                    {/* Upload certificate PDF */}
+                    <div>
+                      <label className="block text-sm font-medium text-emerald-900 mb-1">Upload UCR certificate (PDF)</label>
+                      <input
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        onChange={(e) => setUcrCertificateFile(e.target.files?.[0] || null)}
+                        className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-emerald-600 file:text-white file:text-sm file:font-medium"
+                        disabled={status === 'completed'}
+                      />
+                      {ucrCertificateFile && (
+                        <p className="mt-1 text-xs text-emerald-700">Selected: {ucrCertificateFile.name}</p>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleUcrCertificateUpload}
+                        disabled={saving || !ucrCertificateFile || status === 'completed'}
+                        className="mt-2 w-full bg-emerald-600 text-white py-2.5 rounded-lg font-semibold hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {saving ? 'Uploading...' : status === 'completed' ? 'Completed' : 'Upload PDF & Mark Complete'}
+                      </button>
+                    </div>
+
+                    <div className="text-xs text-emerald-700 border-t border-emerald-200 pt-3">Or paste a URL (e.g. from ucr.gov):</div>
+                    <div>
+                      <label className="block text-sm font-medium text-emerald-900 mb-1">Certificate URL</label>
+                      <input
+                        type="url"
+                        value={certificateUrlInput}
+                        onChange={(e) => setCertificateUrlInput(e.target.value)}
+                        placeholder="https://..."
+                        className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+                        disabled={status === 'completed'}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleUcrComplete}
+                        disabled={saving || status === 'completed'}
+                        className="mt-2 w-full bg-emerald-500 text-white py-2 rounded-lg font-semibold hover:bg-emerald-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {saving ? 'Saving...' : 'Mark Complete & Set URL'}
+                      </button>
+                    </div>
+
+                    {status === 'completed' && filing.certificateUrl && (
+                      <div className="pt-2 border-t border-emerald-200">
+                        <p className="text-sm font-medium text-emerald-900 mb-1">Certificate set – customer sees this link:</p>
+                        <a href={filing.certificateUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-emerald-700 underline break-all">
+                          {filing.certificateUrl}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
+                      Upload Stamped Schedule 1
+                    </label>
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => setSchedule1File(e.target.files[0])}
+                      className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-navy)]"
+                    />
+                    {schedule1File && (
+                      <p className="mt-2 text-sm text-[var(--color-muted)]">
+                        Selected: {schedule1File.name}
+                      </p>
+                    )}
+                    <button
+                      onClick={handleUploadSchedule1}
+                      disabled={saving || !schedule1File || status === 'completed'}
+                      className="mt-2 w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {saving ? 'Uploading...' : 'Upload Schedule 1 & Mark Complete'}
+                    </button>
+                    {status === 'completed' && filing.finalSchedule1Url && (
+                      <p className="mt-2 text-sm text-green-600">
+                        Schedule 1 already uploaded. <a href={filing.finalSchedule1Url} target="_blank" rel="noopener noreferrer" className="underline">View current file</a>
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

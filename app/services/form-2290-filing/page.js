@@ -4,7 +4,7 @@ import SchemaMarkup from '@/components/seo/SchemaMarkup';
 
 export const metadata = {
     title: 'E-File Form 2290 for 2025-2026 Tax Year | Instant Schedule 1',
-    description: 'File IRS Form 2290 for tax year 2025-2026 online. Get your Schedule 1 in minutes. IRS-authorized E-file provider starting at just $34.99.',
+    description: 'File IRS Form 2290 for tax year 2025-2026 online. Expert concierge service—we handle the filing. Get your Schedule 1 fast. $34.99 flat.',
     keywords: 'e-file form 2290, file 2290 online, hvut filing, schedule 1, 2290 tax, heavy vehicle use tax, 2025-2026 tax year',
     alternates: {
         canonical: 'https://www.quicktrucktax.com/services/form-2290-filing',
@@ -37,8 +37,8 @@ export default function Form2290ServicePage() {
                 type="Service"
                 data={{
                     name: "Form 2290 E-Filing",
-                    description: "IRS Authorized E-file provider for Form 2290 (HVUT). Get your Schedule 1 in minutes.",
-                    catalogName: "IRS Tax Filing Services",
+                    description: "Expert concierge service for Form 2290 (HVUT). We file on your behalf and get your Schedule 1 fast.",
+                    catalogName: "Trucking Tax Filing Services",
                     offers: [
                         { name: "Standard 2290 Filing", price: "19.99" },
                         { name: "VIN Correction", price: "0.00" }
@@ -52,7 +52,7 @@ export default function Form2290ServicePage() {
                 <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
                     <div>
                         <div className="inline-flex items-center gap-2 bg-blue-500/20 text-blue-200 px-3 py-1 rounded-full text-sm font-semibold mb-6 border border-blue-400/30">
-                            <CheckCircle className="w-4 h-4" /> IRS Authorized E-file Provider
+                            <CheckCircle className="w-4 h-4" /> Expert Concierge Service
                         </div>
                         <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
                             E-file Form 2290 & Get Schedule 1 <span className="text-[var(--color-orange)]">Instantly</span>
@@ -62,16 +62,10 @@ export default function Form2290ServicePage() {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
-                                href="/early-access"
+                                href="/resources"
                                 className="bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#ff7a20] transition shadow-lg shadow-orange-900/20 flex items-center justify-center gap-2"
                             >
-                                Launching Jan 2026 <ArrowRight className="w-5 h-5" />
-                            </Link>
-                            <Link
-                                href="#pricing"
-                                className="bg-white/10 backdrop-blur-sm text-white border border-white/20 px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/20 transition flex items-center justify-center"
-                            >
-                                View Pricing
+                                Explore Resources <ArrowRight className="w-5 h-5" />
                             </Link>
                         </div>
                         <div className="mt-8 flex items-center gap-6 text-sm text-blue-200">
@@ -151,19 +145,19 @@ export default function Form2290ServicePage() {
                 </div>
             </div>
 
-            {/* Pricing Teaser - CTA */}
-            <div id="pricing" className="bg-[var(--color-navy)] text-white py-20 px-6">
+            {/* CTA */}
+            <div className="bg-[var(--color-navy)] text-white py-20 px-6">
                 <div className="max-w-4xl mx-auto text-center">
-                    <h2 className="text-3xl font-bold mb-6">Simple, Transparent Pricing</h2>
+                    <h2 className="text-3xl font-bold mb-6">Guides &amp; Tools</h2>
                     <p className="text-xl text-blue-200 mb-10">
-                        Just <span className="text-[var(--color-orange)] font-bold">$19.99</span> per filing. No hidden fees. No subscription required.
+                        Free checklists, due-date guides, and HVUT calculators to help you stay compliant.
                     </p>
                     <div className="flex justify-center">
                         <Link
-                            href="/pricing"
+                            href="/resources"
                             className="bg-white !text-blue-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-50 transition shadow-lg flex items-center gap-2"
                         >
-                            See Full Pricing Details <ArrowRight className="w-5 h-5" />
+                            Explore Resources <ArrowRight className="w-5 h-5" />
                         </Link>
                     </div>
                 </div>
@@ -186,16 +180,13 @@ export default function Form2290ServicePage() {
 
             {/* Bottom CTA */}
             <div className="py-16 px-6 bg-slate-50 text-center">
-                <h2 className="text-2xl font-bold text-[var(--color-navy)] mb-6">Ready to get your Schedule 1?</h2>
-                <div className="inline-block bg-white/10 rounded-xl p-6 backdrop-blur-sm border border-white/10">
-                    <p className="text-xl mb-4 text-orange-200">Filing opens January 2026</p>
-                    <Link
-                        href="/early-access"
-                        className="inline-flex bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#ff7a20] transition shadow-lg shadow-orange-900/20 items-center gap-2"
-                    >
-                        Get Early Access <ArrowRight className="w-5 h-5" />
-                    </Link>
-                </div>
+                <h2 className="text-2xl font-bold text-[var(--color-navy)] mb-6">More Form 2290 resources</h2>
+                <Link
+                    href="/resources"
+                    className="inline-flex bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#ff7a20] transition shadow-lg shadow-orange-900/20 items-center gap-2"
+                >
+                    Explore Resources <ArrowRight className="w-5 h-5" />
+                </Link>
             </div>
 
         </div>

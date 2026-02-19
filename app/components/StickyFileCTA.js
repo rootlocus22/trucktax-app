@@ -11,9 +11,9 @@ import { ArrowRight, FileText } from 'lucide-react';
  * Based on Clarity insights showing users looking for "File Now" action on content pages.
  */
 export default function StickyFileCTA({
-    href = '/early-access',
-    ctaText = 'Get Early Access',
-    subtitle = 'Join 2,000+ truckers on the waitlist'
+    href = '/resources',
+    ctaText = 'Explore Resources',
+    subtitle = 'Guides, checklists & tools for Form 2290'
 }) {
     const [isVisible, setIsVisible] = useState(false);
 
@@ -48,7 +48,7 @@ export default function StickyFileCTA({
                                 <FileText className="w-5 h-5 text-[var(--color-orange)]" />
                             </div>
                             <div className="text-center sm:text-left">
-                                <p className="font-semibold text-sm sm:text-base">Ready to file your Form 2290?</p>
+                                <p className="font-semibold text-sm sm:text-base">Form 2290 guides &amp; tools</p>
                                 <p className="text-xs sm:text-sm text-white/70">{subtitle}</p>
                             </div>
                         </div>

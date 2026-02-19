@@ -39,7 +39,7 @@ export function Sidebar({ children }) {
     main: [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/dashboard/filings', label: 'Filing List', icon: FileText },
-      { href: '/dashboard/new-filing', label: 'New Filing', icon: FileCheck },
+      { href: '/ucr/file', label: 'New UCR Filing', icon: FileCheck },
       { href: '/dashboard/schedule1', label: 'Schedule 1', icon: FileCheck },
       { href: '/dashboard/businesses', label: 'Businesses', icon: Building2 },
       { href: '/dashboard/vehicles', label: 'Vehicles', icon: Truck },

@@ -22,11 +22,7 @@ import {
   Truck,
   FileCheck,
   ChevronDown,
-  RotateCcw,
-  Upload,
-  Edit,
-  RefreshCw,
-  Building2
+  ShieldCheck
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -77,6 +73,8 @@ export default function FilingsListPage() {
 
   const getStatusConfig = (status) => {
     switch (status) {
+      case 'draft':
+        return { color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-200', icon: FileText, label: 'Draft' };
       case 'submitted':
         return { color: 'text-indigo-700', bg: 'bg-indigo-50/50', border: 'border-indigo-100', icon: Clock, label: 'Submitted' };
       case 'processing':
@@ -90,37 +88,43 @@ export default function FilingsListPage() {
       case 'completed':
         return { color: 'text-emerald-700', bg: 'bg-emerald-50/50', border: 'border-emerald-100', icon: CheckCircle, label: 'Approved' };
       default:
-        return { color: 'text-slate-700', bg: 'bg-slate-50/50', border: 'border-slate-100', icon: FileText, label: status };
+        return { color: 'text-slate-700', bg: 'bg-slate-50', border: 'border-slate-200', icon: FileText, label: status || '—' };
     }
   };
 
   const getFilingTypeInfo = (filing) => {
+    if (filing.filingType === 'ucr') {
+      const year = filing.filingYear || new Date().getFullYear();
+      return { label: `UCR ${year}`, icon: ShieldCheck, image: null, color: 'text-teal-700', bg: 'bg-teal-50' };
+    }
     if (filing.filingType === 'amendment') {
       const type = filing.amendmentType === 'vin_correction' ? 'VIN Correction' :
         filing.amendmentType === 'weight_increase' ? 'Weight Increase' :
           filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded' : 'Amendment';
-      return { label: type, image: '/assets/icons/amendment.png', color: 'text-purple-600', bg: 'bg-purple-50' };
+      return { label: type, icon: null, image: '/assets/icons/amendment.png', color: 'text-purple-600', bg: 'bg-purple-50' };
     }
     if (filing.filingType === 'refund') {
-      return { label: 'Refund (8849)', image: '/assets/icons/refund.png', color: 'text-green-600', bg: 'bg-green-50' };
+      return { label: 'Refund (8849)', icon: null, image: '/assets/icons/refund.png', color: 'text-green-600', bg: 'bg-green-50' };
     }
-    return { label: 'Form 2290', image: '/assets/icons/form2290.png', color: 'text-blue-600', bg: 'bg-blue-50' };
+    return { label: 'Form 2290', icon: null, image: '/assets/icons/form2290.png', color: 'text-blue-600', bg: 'bg-blue-50' };
   };
 
-  const filteredFilings = useMemo(() => {
-    return filings.filter((filing) => {
-      if (statusFilter !== 'all' && filing.status !== statusFilter) return false;
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        const matchesTaxYear = filing.taxYear?.toLowerCase().includes(searchLower);
-        const matchesStatus = filing.status?.toLowerCase().includes(searchLower);
-        const matchesBusiness = filing.business?.businessName?.toLowerCase().includes(searchLower);
-        const matchesId = filing.id?.toLowerCase().includes(searchLower);
-        return matchesTaxYear || matchesStatus || matchesBusiness || matchesId;
-      }
-      return true;
-    });
-  }, [filings, statusFilter, searchTerm]);
+  const filteredFilings = filings.filter((filing) => {
+    if (statusFilter !== 'all' && filing.status !== statusFilter) return false;
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesTaxYear = filing.taxYear?.toString().toLowerCase().includes(searchLower);
+      const matchesFilingYear = filing.filingYear?.toString().toLowerCase().includes(searchLower);
+      const matchesStatus = filing.status?.toLowerCase().includes(searchLower);
+      const matchesBusiness = filing.business?.businessName?.toLowerCase().includes(searchLower);
+      const matchesLegalName = filing.legalName?.toLowerCase().includes(searchLower);
+      const matchesDotNumber = filing.dotNumber?.toString().toLowerCase().includes(searchLower);
+      const matchesState = filing.state?.toLowerCase().includes(searchLower);
+      const matchesId = filing.id?.toLowerCase().includes(searchLower);
+      return matchesTaxYear || matchesFilingYear || matchesStatus || matchesBusiness || matchesLegalName || matchesDotNumber || matchesState || matchesId;
+    }
+    return true;
+  });
 
   const stats = useMemo(() => ({
     total: filings.length,
@@ -132,13 +136,26 @@ export default function FilingsListPage() {
 
   const incomplete = useMemo(() => getIncompleteFilings(filings), [filings]);
 
-  // Filter drafts to only show those with selectedBusinessId (business selected)
-  const activeDrafts = useMemo(() => draftFilings.filter(d => d.status === 'draft' && (d.selectedBusinessId || d.businessId)), [draftFilings]);
+  // Define preferred order (UCR first for ucr-pivot)
+  const categoryOrder = [
+    'Form 2290',
+    'VIN Correction',
+    'Weight Increase',
+    'Mileage Exceeded',
+    'Amendment',
+    'Refund (8849)'
+  ];
+  // UCR categories (e.g. "UCR 2026") sort first, newest year first
+  const ucrCategories = Object.keys(groupedFilings).filter(k => k.startsWith('UCR')).sort((a, b) => b.localeCompare(a));
+  const categoryOrderWithUcr = [...ucrCategories, ...categoryOrder];
 
-  const allIncompleteFilings = useMemo(() => [
-    ...activeDrafts.map(d => ({ ...d, isDraft: true })),
-    ...incomplete.all.filter(f => f.status !== 'action_required')
-  ], [activeDrafts, incomplete]);
+  const sortedCategories = Object.keys(groupedFilings).sort((a, b) => {
+    const order = categoryOrderWithUcr;
+    const indexA = order.indexOf(a);
+    const indexB = order.indexOf(b);
+    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+    return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+  });
 
   const hasIncomplete = allIncompleteFilings.length > 0;
 
@@ -359,28 +376,19 @@ export default function FilingsListPage() {
   return (
     <ProtectedRoute>
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Professional Header */}
-        <div className="bg-white border-b border-slate-200 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-5 md:py-6 mb-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-center sm:text-left">
-                <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
-                  <Link href="/dashboard" className="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors">Dashboard</Link>
-                  <span className="text-slate-300 text-[10px] font-black">/</span>
-                  <span className="text-xs font-bold text-slate-900">Filings</span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">All Filings</h1>
-                <p className="text-sm text-slate-500 font-medium mt-1">Track every Form 2290 submission in one place</p>
-              </div>
-              <Link
-                href="/dashboard/new-filing"
-                className="inline-flex items-center justify-center gap-2 bg-[#ff8b3d] text-white px-6 py-3 rounded-xl text-sm font-black hover:bg-[#f07a2d] hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-lg shadow-orange-500/20"
-              >
-                <Plus className="w-4 h-4" strokeWidth={3} />
-                File Now
-              </Link>
-            </div>
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">Your Filings</h1>
+            <p className="text-slate-500">Track and manage your UCR and filing history</p>
           </div>
+          <Link
+            href="/ucr/file"
+            className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 shadow-md"
+          >
+            <Plus className="w-5 h-5" />
+            New UCR Filing
+          </Link>
         </div>
 
         {loading ? (
@@ -391,38 +399,16 @@ export default function FilingsListPage() {
                 <div className="w-8 h-8 bg-slate-50 rounded-full"></div>
               </div>
             </div>
-            <p className="mt-6 text-sm font-black text-slate-400 uppercase tracking-widest animate-pulse">Synchronizing Filings...</p>
-          </div>
-        ) : filings.length === 0 && !hasIncomplete ? (
-          /* Empty State */
-          <div className="flex flex-col items-center justify-center py-24 px-4 bg-white border border-dashed border-slate-200 rounded-[2.5rem] shadow-sm">
-            <div className="relative mb-10 group">
-              <div className="absolute inset-0 bg-[#ff8b3d]/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-              <div className="relative bg-gradient-to-br from-white to-slate-50 p-10 rounded-[3rem] border border-slate-100 shadow-2xl transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
-                <FileText className="w-20 h-20 text-[#ff8b3d]" strokeWidth={1} />
-                <div className="absolute -top-2 -right-2 w-8 h-8 bg-[#0f172a] rounded-xl flex items-center justify-center shadow-lg transform -rotate-12 group-hover:rotate-12 transition-transform">
-                  <Plus className="w-4 h-4 text-white" strokeWidth={3} />
-                </div>
-              </div>
-            </div>
-            <h2 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">No Filings Found</h2>
-            <p className="text-slate-500 text-center max-w-sm mb-10 font-medium leading-relaxed">
-              Start your tax journey. File your Form 2290 manually or upload an existing Schedule 1 to get started.
+            <h2 className="text-2xl font-bold text-slate-900 mb-3">No Filings Yet</h2>
+            <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">
+              Start your first UCR registration. It only takes a few minutes and we'll guide you through every step.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                href="/dashboard/new-filing"
-                className="inline-flex items-center justify-center gap-3 bg-[#ff8b3d] text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#f07a2d] hover:shadow-2xl hover:shadow-orange-500/20 hover:-translate-y-1 transition-all duration-300"
-              >
-                Manual Entry <ArrowRight className="w-4 h-4" strokeWidth={3} />
-              </Link>
-              <Link
-                href="/dashboard/upload-schedule1"
-                className="inline-flex items-center justify-center gap-3 bg-white border-2 border-slate-100 text-slate-900 px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 hover:border-slate-200 hover:-translate-y-1 transition-all duration-300"
-              >
-                Upload S1 <Upload className="w-4 h-4" strokeWidth={3} />
-              </Link>
-            </div>
+            <Link
+              href="/ucr/file"
+              className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
+            >
+              Start UCR Filing <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         ) : (
           <div className="space-y-8">
@@ -484,8 +470,14 @@ export default function FilingsListPage() {
                   className="w-[52px] h-[52px] flex items-center justify-center bg-slate-50 border border-slate-100 rounded-xl hover:bg-white hover:border-slate-200 active:bg-slate-100 transition-all group"
                   title="Refresh"
                 >
-                  <RefreshCw className="w-4 h-4 text-slate-500 group-hover:rotate-180 transition-transform duration-500" strokeWidth={3} />
-                </button>
+                  <option value="all">All Statuses</option>
+                  <option value="draft">Draft</option>
+                  <option value="submitted">Submitted</option>
+                  <option value="processing">Processing</option>
+                  <option value="action_required">Action Required</option>
+                  <option value="completed">Completed</option>
+                </select>
+                <Filter className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
             </div>
 
@@ -607,90 +599,121 @@ export default function FilingsListPage() {
                           </div>
                         </div>
 
-                        <div className="flex gap-2">
-                          <Link
-                            href={resumeUrl}
-                            className={`flex-1 py-3 rounded-xl text-center text-[10px] font-black uppercase tracking-widest transition-all shadow-md active:scale-95 border ${isIncomplete
-                                ? 'bg-[#ff8b3d] text-white border-orange-600 shadow-orange-500/10 hover:bg-[#f07a2d]'
-                                : 'bg-[#14b8a6] text-white border-teal-600 hover:bg-[#0d9488] shadow-teal-500/10'
-                              }`}
-                          >
-                            {isIncomplete ? 'Continue Filing' : 'Review Details'}
-                          </Link>
-                          {hasSchedule1(filing) && (
-                            <Link
-                              href={filing.schedule1Url}
-                              target="_blank"
-                              className="w-12 h-12 flex items-center justify-center bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors border border-blue-100 shadow-sm"
-                            >
-                              <Upload className="w-5 h-5 rotate-180" strokeWidth={2.5} />
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      {/* Accordion Body */}
+                      {isExpanded && (
+                        <div className="p-6 space-y-4">
+                          {categoryFilings.map((filing) => {
+                            const status = getStatusConfig(filing.status);
+                            const typeInfo = getFilingTypeInfo(filing);
+                            const StatusIcon = status.icon;
+                            const createdAt = filing.createdAt?.toDate?.() || filing.createdAt;
+                            const date = createdAt ? new Date(createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+                            const isUcr = filing.filingType === 'ucr';
+                            const displayName = isUcr ? (filing.legalName || filing.registrantName || 'UCR Registration') : (filing.business?.businessName || 'Unnamed Business');
+                            const yearLabel = isUcr ? `Filing Year ${filing.filingYear ?? new Date().getFullYear()}` : `Tax Year ${filing.taxYear ?? '—'}`;
+                            const unitsLabel = isUcr
+                              ? `${filing.powerUnits != null ? Number(filing.powerUnits) : 0} Power unit${filing.powerUnits !== 1 ? 's' : ''}`
+                              : `${filing.vehicleIds?.length || 0} Vehicle${filing.vehicleIds?.length !== 1 ? 's' : ''}`;
 
-                {/* Desktop Table Layout */}
-                <div className="hidden lg:block bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                  <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                    <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Returns & Filings</h2>
-                    <div className="text-[10px] font-bold text-slate-400">Total Filings: {allFilingsForTable.length}</div>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-white border-b border-slate-100">
-                        <tr>
-                          <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Return Details</th>
-                          <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hidden sm:table-cell">Usage</th>
-                          <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hidden md:table-cell">Fleet Info</th>
-                          <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Tax Due</th>
-                          <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
-                          <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-50">
-                        {allFilingsForTable.map((filing) => {
-                          const filingStatus = filing.isDraft ? 'draft' : (filing.status || 'submitted');
-                          const statusConfig = getStatusConfig(filingStatus);
-                          const isIncomplete = filingStatus === 'draft' || filing.isDraft;
+                            return (
+                              <Link
+                                key={filing.id}
+                                href={`/dashboard/filings/${filing.id}`}
+                                className="group block bg-white rounded-xl border border-slate-200 p-5 hover:border-[var(--color-orange)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden"
+                              >
+                                {/* Status Stripe */}
+                                <div className={`absolute left-0 top-0 bottom-0 w-1 ${status.bg.replace('bg-', 'bg-').replace('50', '500').replace('100', '400')}`}></div>
 
-                          const resumeUrl = filing.isDraft || filingStatus === 'draft' || filingStatus === 'pending_payment'
-                            ? filing.workflowType === 'upload'
-                              ? `/dashboard/upload-schedule1?draft=${filing.draftId || filing.id}`
-                              : `/dashboard/new-filing?draft=${filing.draftId || filing.id}`
-                            : `/dashboard/filings/${filing.id}`;
+                                <div className="flex flex-col md:flex-row md:items-center gap-4 sm:gap-6 pl-2">
+                                  {/* Icon Section */}
+                                  {typeInfo.icon ? (
+                                    <>
+                                      <div className="flex md:hidden flex-col items-center justify-center min-w-[60px] mb-2">
+                                        <div className={`w-12 h-12 rounded-xl ${typeInfo.bg} border border-slate-200 flex items-center justify-center`}>
+                                          <typeInfo.icon className={`w-6 h-6 ${typeInfo.color}`} />
+                                        </div>
+                                      </div>
+                                      <div className="hidden md:flex flex-col items-center justify-center min-w-[80px]">
+                                        <div className={`w-16 h-16 rounded-xl ${typeInfo.bg} border border-slate-200 flex items-center justify-center`}>
+                                          <typeInfo.icon className={`w-8 h-8 ${typeInfo.color}`} />
+                                        </div>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="flex md:hidden flex-col items-center gap-2 min-w-[60px] mb-2">
+                                        <div className="relative w-12 h-12 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
+                                          <Image
+                                            src={typeInfo.image}
+                                            alt={typeInfo.label}
+                                            fill
+                                            className="object-contain"
+                                          />
+                                        </div>
+                                      </div>
+                                      <div className="hidden md:flex flex-col items-center gap-2 min-w-[80px]">
+                                        <div className="relative w-16 h-16 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
+                                          <Image
+                                            src={typeInfo.image}
+                                            alt={typeInfo.label}
+                                            fill
+                                            className="object-contain"
+                                          />
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
 
-                          const vehiclesInfo = getVehiclesInfo(filing);
-                          const typeInfo = getFilingTypeInfo(filing);
+                                  {/* Main Info */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-3 mb-1">
+                                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide border ${status.bg} ${status.color} ${status.border}`}>
+                                        <StatusIcon className="w-3 h-3" />
+                                        {status.label}
+                                      </span>
+                                      <span className="text-xs text-slate-400 font-medium">#{filing.id.slice(0, 8)}</span>
+                                    </div>
 
-                          return (
-                            <tr key={filing.id || filing.draftId} className="group hover:bg-slate-50 transition-colors">
-                              <td className="px-6 py-5">
-                                <div className="flex items-center gap-3">
-                                  <div className="flex w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 items-center justify-center group-hover:bg-white group-hover:scale-105 transition-all">
-                                    <Image src={typeInfo.image} alt={typeInfo.label} width={24} height={24} className="opacity-80" />
+                                    <div className="flex items-baseline gap-2 mb-1">
+                                      <h3 className="text-lg font-bold text-slate-900 group-hover:text-[var(--color-orange)] transition-colors truncate">
+                                        {displayName}
+                                      </h3>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
+                                      <div className="flex items-center gap-2">
+                                        <Calendar className="w-4 h-4 text-slate-400" />
+                                        <span className="font-medium">{yearLabel}</span>
+                                      </div>
+                                      {isUcr && filing.state && (
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-slate-400 font-medium">State:</span>
+                                          <span>{filing.state}</span>
+                                        </div>
+                                      )}
+                                      <div className="flex items-center gap-2">
+                                        <FileText className="w-4 h-4 text-slate-400" />
+                                        <span>{typeInfo.label}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Truck className="w-4 h-4 text-slate-400" />
+                                        <span>{unitsLabel}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2 text-slate-500 text-xs">
+                                        <span>{filing.status === 'draft' ? 'Started' : 'Filed'} {date}</span>
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <Link
-                                      href={resumeUrl}
-                                      className="text-sm font-black text-slate-900 hover:text-[#ff8b3d] transition-colors block leading-tight"
-                                    >
-                                      {getReturnNumber(filing)}
-                                    </Link>
-                                    <div className="flex items-center gap-2 mt-1">
-                                      <span className="text-[10px] font-bold text-slate-400">{getFilingDate(filing) || 'Draft'}</span>
-                                      {primaryBusiness?.signingAuthorityName && (
-                                        <>
-                                          <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                                          <span className="text-[10px] font-bold text-slate-500 italic">By: {primaryBusiness.signingAuthorityName}</span>
-                                        </>
-                                      )}
-                                      {!filing.isDraft && (
-                                        <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                                      )}
-                                      <span className={`text-[10px] font-black uppercase tracking-widest ${typeInfo.color}`}>{typeInfo.label}</span>
+
+                                  {/* Action Area - Mobile Optimized */}
+                                  <div className="flex items-center gap-3 sm:gap-4 border-t md:border-t-0 border-slate-100 pt-3 sm:pt-4 md:pt-0 mt-3 sm:mt-4 md:mt-0 justify-between md:justify-end">
+                                    <div className="md:hidden flex items-center gap-2 text-slate-500 text-xs">
+                                      <Clock className="w-3 h-3" />
+                                      <span className="truncate">{date}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 sm:gap-3 text-[var(--color-orange)] font-semibold text-xs sm:text-sm group-hover:underline decoration-2 underline-offset-4 touch-manipulation">
+                                      <span className="whitespace-nowrap">View Details</span>
+                                      <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform flex-shrink-0" />
                                     </div>
                                   </div>
                                 </div>

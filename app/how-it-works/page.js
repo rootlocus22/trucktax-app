@@ -1,4 +1,6 @@
-"use client";
+import Link from 'next/link';
+import Image from 'next/image';
+import { UserPlus, LogIn, Upload, Sparkles, FileCheck, Clock, ArrowRight, CheckCircle } from 'lucide-react';
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -92,26 +94,32 @@ export default function HowItWorksPage() {
   ];
 
   return (
-    <div className="flex flex-col">
-      {/* Hero Section - Professional */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] text-white py-20 sm:py-24 lg:py-32">
-        <div className="absolute inset-0">
-          <Image
-            src="/hero-truck-sunset.png"
-            alt="Truck on highway"
-            fill
-            className="object-cover opacity-5"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-midnight)]/90 to-transparent" />
+    <div className="max-w-7xl mx-auto">
+      {/* Hero with truck/highway vibe */}
+      <div className="relative rounded-2xl overflow-hidden mb-16 h-56 sm:h-72">
+        <Image
+          src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=85"
+          alt="Highway and trucks - life on the road"
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 1200px"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)]/80 via-[var(--color-midnight)]/50 to-transparent" />
+        <div className="absolute inset-0 flex flex-col justify-center px-6 sm:px-12">
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 drop-shadow-lg">
+            How QuickTruckTax Works
+          </h1>
+          <p className="text-white/90 max-w-xl text-sm sm:text-base">
+            From upload to stamped Schedule 1—we handle everything so you can focus on the road.
+          </p>
         </div>
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/90 mb-8">
-              <Users className="w-3.5 h-3.5" /> <span>Expert Concierge Service</span>
-            </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-[1.1] mb-6 tracking-tight">
-              How Our <span className="text-[var(--color-orange)]">Concierge Service</span> Works
+      </div>
+
+      {/* Header (for accessibility, minimal duplicate) */}
+      <div className="text-center mb-12 sr-only">
+        <h1 className="text-3xl sm:text-4xl font-semibold text-[var(--color-text)] mb-3">
+          How QuickTruckTax Works
         </h1>
             <p className="text-lg sm:text-xl lg:text-2xl text-slate-300 max-w-3xl mx-auto leading-relaxed mb-10 font-light">
               Our expert team handles your Form 2290 filing from start to finish. You provide the information, we handle everything else—review, filing, and delivery.
@@ -329,77 +337,21 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      {/* Social Proof Section - Professional */}
-      <section className="py-20 sm:py-24 lg:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid sm:grid-cols-2 gap-12 sm:gap-16 lg:gap-20 items-center">
-            <div>
-              <div className="flex items-center gap-2 mb-8">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-6 h-6 fill-yellow-400 text-yellow-400" />
-                ))}
-                <span className="ml-3 text-2xl font-bold">4.9/5</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 tracking-tight">
-                Trusted by Thousands of Truckers
-              </h2>
-              <p className="text-lg sm:text-xl text-slate-300 mb-8 leading-relaxed font-light">
-                "QuickTruckTax made filing so easy. Their team handled everything—I just provided my info and they took care of the rest. Got my Schedule 1 the next day. Best service I've used!"
-              </p>
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
-                  <Users className="w-7 h-7" />
-                </div>
-                <div>
-                  <p className="font-bold text-lg">Mike Thompson</p>
-                  <p className="text-slate-400 text-sm">Owner-Operator, 15+ Years</p>
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 text-center">
-                <p className="text-4xl sm:text-5xl font-bold mb-2">10,000+</p>
-                <p className="text-slate-400 text-sm">Happy Customers</p>
-              </div>
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 text-center">
-                <p className="text-4xl sm:text-5xl font-bold mb-2">99.8%</p>
-                <p className="text-slate-400 text-sm">Success Rate</p>
-              </div>
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 text-center">
-                <p className="text-4xl sm:text-5xl font-bold mb-2">24/7</p>
-                <p className="text-slate-400 text-sm">Support</p>
-              </div>
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 text-center">
-                <p className="text-4xl sm:text-5xl font-bold mb-2">2 min</p>
-                <p className="text-slate-400 text-sm">Avg Setup</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA Section - Professional */}
-      <section className="py-20 sm:py-24 lg:py-32 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-tight">
-          Ready to Get Started?
+      {/* CTA Section */}
+      <div className="text-center">
+        <h2 className="text-2xl font-semibold text-[var(--color-text)] mb-3">
+          Explore Our Resources
         </h2>
-          <p className="text-lg sm:text-xl text-slate-600 mb-10 max-w-2xl mx-auto font-light">
-            Join thousands of truckers who trust QuickTruckTax. Let our expert team handle your Form 2290 filing.
+        <p className="text-sm text-[var(--color-muted)] mb-6 max-w-2xl mx-auto">
+          Guides, checklists, and tools for Form 2290 and trucking compliance.
         </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
-            href="/signup"
-              className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold text-base shadow-xl shadow-orange-500/20 transition hover:bg-[#e66a15] active:scale-[0.98] min-h-[56px]"
+            href="/resources"
+            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20] text-white px-6 py-3 rounded-lg font-semibold text-sm transition shadow-md hover:shadow-lg"
           >
-            Start Filing Now
-              <ArrowRight className="w-5 h-5" />
-          </Link>
-          <Link
-            href="/pricing"
-              className="inline-flex items-center justify-center gap-2 border-2 border-slate-300 text-slate-900 px-8 py-4 rounded-xl font-semibold text-base transition hover:bg-slate-50 hover:border-slate-400 active:scale-[0.98] min-h-[56px]"
-          >
-            View Pricing
+            Explore Resources
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
           <div className="mt-8 pt-8 border-t border-slate-200">

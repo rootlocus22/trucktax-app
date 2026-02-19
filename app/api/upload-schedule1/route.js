@@ -225,13 +225,19 @@ export async function POST(request) {
     const formData = await request.formData();
     const file = formData.get('file');
     const filingId = formData.get('filingId');
+    const uploadType = formData.get('type') || 'schedule1'; // 'schedule1' | 'ucr_certificate'
 
     if (!file) {
       return NextResponse.json({ error: 'Missing file' }, { status: 400 });
     }
 
-    // filingId is optional - can be 'temp' for initial upload before filing creation
-    const isTempFiling = !filingId || filingId === 'temp';
+    // UCR certificate upload requires filingId
+    if (uploadType === 'ucr_certificate' && (!filingId || filingId === 'temp')) {
+      return NextResponse.json({ error: 'filingId is required for UCR certificate upload' }, { status: 400 });
+    }
+
+    // filingId is optional for schedule1 - can be 'temp' for initial upload before filing creation
+    const isTempFiling = uploadType === 'schedule1' && (!filingId || filingId === 'temp');
 
     if (file.size === 0) {
       return NextResponse.json({ error: 'File is empty' }, { status: 400 });
@@ -283,10 +289,16 @@ export async function POST(request) {
         // Continue anyway - the upload will fail if bucket doesn't exist
       }
       
-      // Use a temporary path if filingId is 'temp' or missing
-      const storagePath = isTempFiling 
-        ? `temp-uploads/${userId}/schedule1-${Date.now()}.pdf`
-        : `filings/${filingId}/input-docs/schedule1-${Date.now()}.pdf`;
+      // Storage path by type
+      const timestamp = Date.now();
+      let storagePath;
+      if (uploadType === 'ucr_certificate') {
+        storagePath = `filings/${filingId}/ucr-certificate-${timestamp}.pdf`;
+      } else if (isTempFiling) {
+        storagePath = `temp-uploads/${userId}/schedule1-${timestamp}.pdf`;
+      } else {
+        storagePath = `filings/${filingId}/input-docs/schedule1-${timestamp}.pdf`;
+      }
       fileName = storagePath;
       const fileRef = bucket.file(fileName);
       
@@ -327,10 +339,25 @@ export async function POST(request) {
     // Get form data (already read above, but get isFinal flag)
     const isFinal = formData.get('isFinal') === 'true';
     
-    console.log('Upload request - isFinal:', isFinal, 'filingId:', filingId, 'isTemp:', isTempFiling);
+    console.log('Upload request - type:', uploadType, 'isFinal:', isFinal, 'filingId:', filingId, 'isTemp:', isTempFiling);
     
-    // Only update Firestore if we have a valid filingId (not 'temp')
-    if (!isTempFiling && filingId) {
+    // Only update Firestore if we have a valid filingId (not 'temp') or for UCR certificate
+    if (uploadType === 'ucr_certificate' && filingId) {
+      const updateData = {
+        certificateUrl: publicUrl,
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+        updatedAt: new Date(),
+      };
+      try {
+        const filingRef = db.collection('filings').doc(filingId);
+        await filingRef.update(updateData);
+        console.log('Filing updated with UCR certificate URL');
+      } catch (firestoreError) {
+        console.error('Error updating Firestore with UCR certificate:', firestoreError?.message);
+        console.warn('File uploaded but Firestore update failed - file URL:', publicUrl);
+      }
+    } else if (!isTempFiling && filingId) {
       const updateData = {
         updatedAt: new Date(),
       };
@@ -351,31 +378,23 @@ export async function POST(request) {
             updateData.inputDocuments = [...existingInputDocs, publicUrl];
             console.log('Updating as input document');
           } else {
-            // Filing doesn't exist yet, just set inputDocuments
             updateData.inputDocuments = [publicUrl];
             console.log('Filing does not exist yet, setting inputDocuments');
           }
         } catch (docError) {
           console.warn('Error reading filing document:', docError?.message || 'Unknown error');
-          // Continue with just the URL
           updateData.inputDocuments = [publicUrl];
         }
       }
 
-      // Update filing in Firestore
       try {
         const filingRef = db.collection('filings').doc(filingId);
         await filingRef.update(updateData);
         console.log('Filing updated in Firestore successfully');
       } catch (firestoreError) {
-        // Safely log the error without causing issues
         const errorMessage = firestoreError?.message || 'Unknown error';
         const errorCode = firestoreError?.code || 'UNKNOWN';
-        console.error('Error updating Firestore:', errorMessage);
-        console.error('Error code:', errorCode);
-        
-        // Don't fail the whole request if Firestore update fails
-        // The file is already uploaded
+        console.error('Error updating Firestore:', errorMessage, errorCode);
         console.warn('File uploaded but Firestore update failed - file URL:', publicUrl);
       }
     } else {

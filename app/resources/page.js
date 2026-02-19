@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { FileText, Calendar, Clock, BookOpen, AlertCircle, CheckSquare } from "lucide-react";
 
 export const metadata = {
@@ -98,8 +99,12 @@ export default function ResourcesIndex() {
             />
 
             {/* Header Section */}
-            <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] px-4 py-14 text-white shadow-xl shadow-[rgba(10,23,43,0.2)] sm:px-6 lg:px-8">
-                <div className="absolute right-0 top-0 h-56 w-56 translate-x-1/3 -translate-y-1/3 rounded-full bg-[var(--color-orange)]/30 blur-3xl" />
+            <header className="relative overflow-hidden rounded-3xl px-4 py-14 text-white shadow-xl shadow-[rgba(10,23,43,0.2)] sm:px-6 lg:px-8 min-h-[220px]">
+                <div className="absolute inset-0">
+                    <Image src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=75" alt="" fill className="object-cover opacity-40" sizes="(max-width: 1200px) 100vw, 1200px" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)]" />
+                </div>
+                <div className="absolute right-0 top-0 h-56 w-56 translate-x-1/3 -translate-y-1/3 rounded-full bg-[var(--color-orange)]/20 blur-3xl" />
                 <div className="relative z-10 space-y-5">
                     <span className="inline-flex rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-[var(--color-sand)]">
                         Resource Library

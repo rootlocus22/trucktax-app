@@ -6165,6 +6165,21 @@ function NewFilingContent() {
   );
 }
 
+// UCR-pivot: New Filing route redirects to UCR flow (no 2290)
+function NewFilingRedirect() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/ucr/file');
+  }, [router]);
+  return (
+    <ProtectedRoute>
+      <div className="max-w-7xl mx-auto p-6 flex items-center justify-center min-h-[400px]">
+        <p className="text-sm text-slate-500">Redirecting to UCR filing...</p>
+      </div>
+    </ProtectedRoute>
+  );
+}
+
 export default function NewFilingPage() {
   console.log('[PAGE] NewFilingPage component rendering');
 
@@ -6174,9 +6189,9 @@ export default function NewFilingPage() {
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
           <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
         </div>
-      }>
-        <NewFilingContent />
-      </Suspense>
-    </ProtectedRoute>
+      </ProtectedRoute>
+    }>
+      <NewFilingRedirect />
+    </Suspense>
   );
 }

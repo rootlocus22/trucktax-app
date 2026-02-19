@@ -151,6 +151,16 @@ export default function Schedule1ListPage() {
                 </div>
               </div>
             </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-3">No Documents Yet</h2>
+            <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">
+              Your stamped Schedule 1 forms will appear here automatically once your filings are approved by the IRS.
+            </p>
+            <Link
+              href="/ucr/file"
+              className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
+            >
+              Start New Filing
+            </Link>
           </div>
         </div>
 

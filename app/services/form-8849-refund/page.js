@@ -61,10 +61,10 @@ export default function RefundServicePage() {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
-                                href="/early-access"
+                                href="/resources"
                                 className="bg-green-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-green-600 transition shadow-lg shadow-green-900/20 flex items-center justify-center gap-2"
                             >
-                                Launching Jan 2026 <ArrowRight className="w-5 h-5" />
+                                Explore Resources <ArrowRight className="w-5 h-5" />
                             </Link>
                         </div>
                         <div className="mt-8 flex items-center gap-6 text-sm text-blue-200">
@@ -72,7 +72,7 @@ export default function RefundServicePage() {
                                 <CheckCircle className="w-4 h-4" /> Pro-Rated Calculation
                             </div>
                             <div className="flex items-center gap-2">
-                                <ClipboardCheck className="w-4 h-4" /> IRS Authorized
+                                <ClipboardCheck className="w-4 h-4" /> Expert Filing
                             </div>
                         </div>
                     </div>
@@ -166,7 +166,7 @@ export default function RefundServicePage() {
                 <div className="inline-block bg-green-50 p-6 rounded-xl border border-green-100">
                     <p className="text-green-800 font-medium mb-4">Service opens Jan 2026</p>
                     <Link
-                        href="/early-access"
+                        href="/resources"
                         className="inline-flex bg-green-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-green-600 transition shadow-lg shadow-green-900/20 items-center gap-2"
                     >
                         Claim Waitlist <ArrowRight className="w-5 h-5" />

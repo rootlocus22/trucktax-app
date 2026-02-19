@@ -32,7 +32,7 @@ export function AuthNav() {
         <button
           onClick={async () => {
             await signOut();
-            router.push('/');
+            window.location.href = '/';
           }}
           className="rounded-full bg-white/10 px-3 py-1 text-white transition hover:bg-white/20"
         >

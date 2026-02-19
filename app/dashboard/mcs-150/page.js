@@ -142,8 +142,8 @@ export default function MCS150Page() {
 
             // 2. Call FMCSA API
             const res = await fetch(`/api/fmcsa/lookup?usdot=${searchUsdot}`);
-            if (!res.ok) throw new Error('Carrier not found');
-            const data = await res.json();
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || 'We couldn’t fetch this USDOT. Please enter the details manually.');
 
             // 3. Populate "Selected Business" with found data (even if not saved yet)
             setSelectedBusiness({
@@ -1527,7 +1527,7 @@ export default function MCS150Page() {
                     <User className="w-6 h-6 text-orange-400" />
                 </div>
                 <div className="text-sm text-orange-900">
-                    We will reach out to you for your driver's license or you can email us a copy of your driver's license at <span className="font-bold underline">support@trucktax.com</span>. The FMCSA requires your driver's license along with the MCS-150 filing for verification.
+                    We will reach out to you for your driver's license or you can email us a copy of your driver's license at <span className="font-bold underline">support@quicktrucktax.com</span>. The FMCSA requires your driver's license along with the MCS-150 filing for verification.
                 </div>
             </div>
 

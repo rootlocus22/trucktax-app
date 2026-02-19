@@ -1,32 +1,22 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { complianceGuides } from "@/lib/guides";
-import { 
-  ShieldCheck, 
-  ChevronRight, 
-  Calculator, 
-  CheckCircle, 
-  Lock, 
-  Award, 
-  FileText, 
-  Download, 
-  Clock, 
-  Edit3, 
-  Users, 
-  LayoutGrid, 
-  ArrowRight,
-  Zap,
-  DollarSign,
-  Truck,
-  FileCheck,
-  MessageSquare,
-  Star
-} from "lucide-react";
+import { ShieldCheck, ChevronRight, Calculator, CheckCircle, Lock, Award, FileText, Download, Clock, Edit3, Users, LayoutGrid, ArrowRight, Search } from "lucide-react";
+import HomepageUcrCalculator from "@/components/HomepageUcrCalculator";
+import RedirectLoggedInToDashboard from "@/components/RedirectLoggedInToDashboard";
+
+export const metadata = {
+  title: "UCR Filing & Renewal Service – Fast, Simple & Compliant | QuickTruckTax",
+  description: "File your UCR registration online. Instant fee calculator, guided filing, and compliance dashboard. Start your UCR filing in minutes.",
+  openGraph: {
+    title: "UCR Filing & Renewal Service – Fast, Simple & Compliant | QuickTruckTax",
+    description: "File your UCR registration online. Instant fee calculator, guided filing, and compliance dashboard. Start your UCR filing in minutes.",
+    url: "https://www.quicktrucktax.com",
+  },
+};
 
 const spotlightSlugs = [
   "form-2290-ultimate-guide",
@@ -70,47 +60,56 @@ const services = [
   }
 ];
 
+const stats = [
+  { label: "HVUT & compliance topics", value: "230+" },
+  { label: "2026 deadlines covered", value: "100%" },
+  { label: "Actionable templates", value: "15" },
+];
+
 export default function Home() {
-  const { user, userData, loading } = useAuth();
-  const router = useRouter();
+  const spotlightGuides = complianceGuides.filter((guide) =>
+    spotlightSlugs.includes(guide.slug),
+  );
 
-  useEffect(() => {
-    // If user is logged in, redirect based on role
-    if (!loading && user) {
-      if (userData?.role === 'agent') {
-        router.push('/agent/dashboard');
-      } else {
-        router.push('/dashboard');
-      }
-    }
-  }, [user, userData, loading, router]);
+  const categories = categoryOrder
+    .map((category) => ({
+      category,
+      guides: complianceGuides
+        .filter((guide) => guide.category === category)
+        .slice(0, 3),
+    }))
+    .filter((entry) => entry.guides.length > 0);
 
+  // JSON-LD structured data for Organization
   const organizationJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'QuickTruckTax',
     url: 'https://www.quicktrucktax.com',
     logo: 'https://www.quicktrucktax.com/quicktrucktax-logo-new.png',
-    description: 'QuickTruckTax provides expert concierge services for Form 2290, UCR, MCS-150, and IFTA filing. Our team handles everything for you.',
-    sameAs: ['https://twitter.com/quicktrucktax']
+    image: 'https://www.quicktrucktax.com/quicktrucktax-logo-new.png',
+    description: 'QuickTruckTax helps carriers, owner-operators, and brokers stay compliant with HVUT, UCR, MCS-150, and fuel tax filings.',
+    sameAs: [
+      'https://twitter.com/quicktrucktax',
+    ],
   };
 
   const productJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: 'IRS Form 2290 E-Filing Service (2025-2026)',
-    image: 'https://www.quicktrucktax.com/quicktrucktax-logo-new.png',
-    description: 'Expert concierge service for Form 2290 (HVUT) filing. Our team handles everything for you.',
+    '@type': 'WebApplication',
+    name: 'QuickTruckTax Form 2290 Guides & Resources',
+    url: 'https://www.quicktrucktax.com',
+    description: 'Free Form 2290 guides, checklists, due-date tools, and HVUT resources for trucking compliance.',
     brand: {
       '@type': 'Brand',
       name: 'QuickTruckTax'
     },
+    applicationCategory: 'ReferenceApplication',
     offers: {
       '@type': 'Offer',
-      url: 'https://www.quicktrucktax.com/services/form-2290-filing',
+      url: 'https://www.quicktrucktax.com/resources',
+      price: '0',
       priceCurrency: 'USD',
-      price: '34.99',
-      priceValidUntil: '2026-12-31',
       availability: 'https://schema.org/InStock'
     },
     aggregateRating: {
@@ -130,7 +129,7 @@ export default function Home() {
         name: 'How to file Form 2290?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'File Form 2290 with QuickTruckTax in 3 simple steps: 1) Provide your business and vehicle information, 2) Our expert team reviews and files with the IRS on your behalf, 3) Receive your Schedule 1 via email once processed. Our concierge service costs $34.99 flat fee.'
+          text: 'QuickTruckTax provides free Form 2290 guides, checklists, due-date tools, and HVUT calculators. Use our resources to understand filing steps, deadlines, and compliance requirements.'
         }
       },
       {
@@ -138,7 +137,7 @@ export default function Home() {
         name: 'How much does it cost to file Form 2290?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'QuickTruckTax charges a flat fee of $34.99 for our concierge Form 2290 filing service. This includes expert review, IRS filing, error checking, and delivery of your Schedule 1. Free VIN corrections are included if you make a mistake.'
+          text: 'QuickTruckTax is a content and resource site. We offer free guides, checklists, and tools for Form 2290 and trucking compliance.'
         }
       },
       {
@@ -146,7 +145,7 @@ export default function Home() {
         name: 'How long does it take to get Schedule 1 after filing Form 2290?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'With QuickTruckTax concierge service, our team files your Form 2290 and monitors it 24/7. You typically receive your Schedule 1 within 24 hours of filing. We email it to you as soon as the IRS processes it. Paper filings can take 2-4 weeks.'
+          text: 'QuickTruckTax provides information on how to obtain your IRS-stamped Schedule 1. E-filing is generally the fastest method, often resulting in approval within minutes, while paper filings can take several weeks.'
         }
       },
       {
@@ -198,213 +197,183 @@ export default function Home() {
   );
 
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, productJsonLd, faqJsonLd]) }}
-      />
+    <RedirectLoggedInToDashboard>
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, productJsonLd, faqJsonLd]) }}
+        />
 
-      <div className="flex flex-col">
-        {/* HERO SECTION - Enhanced with better imagery - Mobile Optimized */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] text-white min-h-[85vh] sm:min-h-[90vh] flex items-center">
+        <div className="flex flex-col gap-20 sm:gap-24">
+        {/* HERO SECTION */}
+        <section className="relative overflow-hidden rounded-3xl bg-[var(--color-midnight)] text-white shadow-2xl">
           <div className="absolute inset-0 z-0">
             <Image
-              src="/hero-truck-sunset.png"
-              alt="Heavy-duty truck on highway representing Form 2290 filing"
+              src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1920&q=85"
+              alt="Highway and trucks at golden hour - life on the road"
               fill
               priority
-              className="object-cover opacity-20"
+              className="object-cover opacity-50"
+              sizes="100vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-midnight)]/80 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)] via-[var(--color-midnight)]/85 to-[var(--color-midnight)]/40" />
+            {/* Subtle road stripe accent */}
+            <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-[var(--color-orange)]/60 to-transparent opacity-80" />
           </div>
 
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 xl:px-16 py-12 sm:py-16 lg:py-20 w-full">
-            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-              <div className="space-y-6 sm:space-y-8 text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 rounded-full bg-[var(--color-orange)]/20 border border-[var(--color-orange)]/30 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-[var(--color-orange)] backdrop-blur-sm">
-                  <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="whitespace-nowrap">Expert Concierge Service</span>
+          <div className="relative z-10 px-4 sm:px-6 py-14 sm:py-20 lg:px-16 grid gap-10 sm:gap-12 lg:grid-cols-2 items-center">
+            <div className="space-y-6 sm:space-y-8">
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 border border-emerald-400/30 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-300">
+                UCR Specialist
               </div>
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-[1.1] sm:leading-tight tracking-tight text-white">
-                  Expert Form 2290 Filing <span className="text-[var(--color-orange)]">Done For You</span>
-                  <span className="block mt-2 sm:mt-3 text-blue-200 text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">Get Your Schedule 1 Fast</span>
+              <h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl text-white">
+                The Smart <span className="block text-blue-200">UCR Filing &amp; Compliance</span> Platform for Truckers
               </h1>
-                <p className="text-base sm:text-lg lg:text-xl leading-relaxed text-slate-200 max-w-2xl mx-auto lg:mx-0">
-                  Our expert team handles your Form 2290 filing from start to finish. We review, file, and deliver your Schedule 1. 
-                  <span className="font-semibold text-white"> Trusted by 10,000+ truckers nationwide.</span>
+              <p className="text-lg leading-8 text-slate-300 max-w-xl">
+                File your UCR registration online. Instant fee calculator, guided filing, and compliance dashboard. Start your UCR filing in minutes.
               </p>
 
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <Link
-                    href="/dashboard/new-filing"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-orange)] px-6 sm:px-8 py-4 sm:py-5 text-base sm:text-lg font-bold text-white shadow-xl shadow-orange-500/30 transition hover:bg-[#e66a15] active:scale-95 transform duration-200 touch-manipulation min-h-[48px] sm:min-h-[56px]"
+                  href="/ucr/file"
+                  className="inline-flex items-center justify-center gap-2 min-h-[52px] rounded-full bg-[var(--color-orange)] px-6 sm:px-8 py-4 text-base sm:text-lg font-bold !text-white shadow-lg shadow-orange-500/20 transition hover:bg-[#e66a15] hover:scale-[1.02] active:scale-[0.98] transform duration-200 touch-manipulation w-full sm:w-auto"
                 >
-                    Start Filing Now
-                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                  Start UCR Filing – $79
+                  <ChevronRight className="w-5 h-5" />
                 </Link>
                 <Link
-                  href="/tools/hvut-calculator"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 backdrop-blur-md border-2 border-white/20 px-6 sm:px-8 py-4 sm:py-5 text-base sm:text-lg font-semibold text-white transition hover:bg-white/20 hover:border-white/30 active:scale-95 touch-manipulation min-h-[48px] sm:min-h-[56px]"
+                  href="/tools/ucr-calculator"
+                  className="inline-flex items-center justify-center gap-2 min-h-[52px] rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-6 sm:px-8 py-4 text-base sm:text-lg font-semibold !text-white transition hover:bg-white/20 touch-manipulation w-full sm:w-auto"
                 >
-                    <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
-                    Calculate Tax
+                  <Calculator className="w-5 h-5" />
+                  UCR Fee Calculator
                 </Link>
               </div>
 
                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-xs sm:text-sm font-medium text-slate-300 pt-2 sm:pt-4">
                 <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" /> 
-                    <span>Expert Team Review</span>
+                  <CheckCircle className="w-5 h-5 text-green-400" /> Fee calculation
                 </div>
                 <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" /> 
-                    <span>Free VIN Corrections</span>
+                  <CheckCircle className="w-5 h-5 text-green-400" /> Guided filing
                 </div>
                 <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" /> 
-                    <span>24/7 Support</span>
-                  </div>
+                  <CheckCircle className="w-5 h-5 text-green-400" /> Compliance dashboard
                 </div>
               </div>
 
-              {/* Hero Image/Visual - Responsive */}
-              <div className="hidden md:block relative mt-8 lg:mt-0">
-                <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 sm:border-4 border-white/20">
-                  <Image
-                    src="/schedule1-mockup.png"
-                    alt="Schedule 1 document preview"
-                    width={600}
-                    height={400}
-                    className="object-cover w-full h-auto"
-                    priority
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-midnight)]/50 to-transparent" />
+            {/* UCR Calculator above the fold + CTA */}
+            <div className="hidden lg:block relative max-w-md">
+              <HomepageUcrCalculator />
             </div>
-                {/* Floating Stats Card - Responsive */}
-                <div className="absolute -bottom-4 sm:-bottom-6 -left-4 sm:-left-6 bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-2xl border-2 border-[var(--color-orange)]/20">
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="bg-[var(--color-orange)]/10 rounded-lg p-2 sm:p-3">
-                      <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-orange)]" />
-                  </div>
-                  <div>
-                      <p className="text-xl sm:text-2xl font-bold text-[var(--color-text)]">$34.99</p>
-                      <p className="text-xs text-[var(--color-muted)]">Flat Fee</p>
-                  </div>
-                  </div>
-                </div>
-              </div>
+            <div className="lg:hidden mt-8 max-w-sm mx-auto">
+              <HomepageUcrCalculator />
             </div>
           </div>
         </section>
 
-        {/* TRUST BANNER - Mobile Optimized */}
-        <div className="bg-gradient-to-r from-slate-50 via-blue-50 to-slate-50 border-y border-slate-200 py-6 sm:py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 md:gap-8 lg:gap-12">
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                  <Users className="w-6 h-6 text-green-600" />
-                </div>
-                <span className="text-xs sm:text-sm font-bold text-slate-700">Expert Team</span>
-                <span className="text-[10px] sm:text-xs text-slate-500">Tax Professionals</span>
-              </div>
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Lock className="w-6 h-6 text-blue-600" />
-                </div>
-                <span className="text-xs sm:text-sm font-bold text-slate-700">Secure & Private</span>
-                <span className="text-[10px] sm:text-xs text-slate-500">256-Bit SSL</span>
-              </div>
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="w-12 h-12 rounded-full bg-[var(--color-orange)]/10 flex items-center justify-center">
-                  <Award className="w-6 h-6 text-[var(--color-orange)]" />
-                </div>
-                <span className="text-xs sm:text-sm font-bold text-slate-700">100% Accuracy</span>
-                <span className="text-[10px] sm:text-xs text-slate-500">Error-Free Filing</span>
-              </div>
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
-                  <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
-                </div>
-                <span className="text-xs sm:text-sm font-bold text-slate-700">4.9/5 Rating</span>
-                <span className="text-[10px] sm:text-xs text-slate-500">10,000+ Reviews</span>
-              </div>
+        {/* UCR Urgency Banner */}
+        <div className="bg-amber-500 text-white py-3 px-4 text-center text-sm font-semibold">
+          🚛 2026 UCR registration is open. File before Dec 31 to stay compliant.{' '}
+          <Link href="/ucr/file" className="underline ml-1 inline-block py-2 touch-manipulation font-bold">Start UCR Filing →</Link>
+        </div>
+
+        {/* TRUST BANNER */}
+        <div className="bg-white border-y border-slate-100 py-8">
+          <div className="max-w-7xl mx-auto px-6 text-center">
+            <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-6">Trusted by Industry Leaders & Independent Truckers</p>
+            <div className="flex flex-wrap justify-center gap-12 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+              <span className="text-2xl font-black text-slate-800 flex items-center gap-2"><ShieldCheck className="w-6 h-6" /> McAfee SECURE</span>
+              <span className="text-2xl font-black text-slate-800 flex items-center gap-2"><Lock className="w-6 h-6" /> 256-Bit SSL</span>
+              <span className="text-2xl font-black text-slate-800 flex items-center gap-2"><Award className="w-6 h-6" /> Expert CPA Review</span>
             </div>
           </div>
         </div>
 
-        {/* STATS SECTION - Mobile Optimized */}
-        <section className="bg-gradient-to-r from-slate-50 to-blue-50 py-12 sm:py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
-              {[
-                { value: "10,000+", label: "Truckers Served", icon: Truck },
-                { value: "2 min", label: "Avg Filing Time", icon: Zap },
-                { value: "99.8%", label: "Success Rate", icon: FileCheck },
-                { value: "$34.99", label: "Flat Fee", icon: DollarSign }
-              ].map((stat, idx) => (
-                <div key={idx} className="text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white shadow-lg mb-3 sm:mb-4">
-                    <stat.icon className="w-6 h-6 sm:w-8 sm:h-8 text-[var(--color-orange)]" />
+        {/* LIFE ON THE ROAD - Trucker imagery */}
+        <section className="relative py-16 sm:py-20 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-50/80 to-white pointer-events-none" />
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold text-[var(--color-text)] mb-3">Built for Life on the Road</h2>
+              <p className="text-lg text-[var(--color-muted)] max-w-2xl mx-auto">Highways, deadlines, and compliance—we get it. Our guides and tools are made for truckers, by people who care about the industry.</p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+              <div className="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 aspect-[4/3]">
+                <Image src="https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=600&q=80" alt="Heavy truck on the highway" fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 33vw" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                  <p className="font-bold text-lg">Highway Ready</p>
+                  <p className="text-sm text-white/90">Stay compliant so you can stay on the road.</p>
+                </div>
+              </div>
+              <div className="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 aspect-[4/3]">
+                <Image src="https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=600&q=80" alt="Open road at golden hour" fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 33vw" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                  <p className="font-bold text-lg">Miles Ahead</p>
+                  <p className="text-sm text-white/90">Clear deadlines and checklists—no guesswork.</p>
+                </div>
+              </div>
+              <div className="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 aspect-[4/3]">
+                <Image src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&q=80" alt="Truck on the road" fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 33vw" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                  <p className="font-bold text-lg">Your Fleet, Your Way</p>
+                  <p className="text-sm text-white/90">From one truck to hundreds—we’ve got you.</p>
+                </div>
+              </div>
+            </div>
           </div>
-                  <p className="text-2xl sm:text-3xl font-bold text-[var(--color-text)] mb-1 sm:mb-2">{stat.value}</p>
-                  <p className="text-xs sm:text-sm text-[var(--color-muted)] font-medium">{stat.label}</p>
+        </section>
+
+        {/* HOW IT WORKS */}
+        <section className="relative py-16 sm:py-20">
+          <div className="absolute inset-0 bg-[var(--color-page)]" />
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-amber-50/50 to-transparent pointer-events-none" />
+          <div className="relative text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl font-bold text-[var(--color-text)] sm:text-4xl mb-4">Get Compliant in 3 Simple Steps</h2>
+            <p className="text-lg text-[var(--color-muted)]">No complicated software. We do the heavy lifting for you.</p>
+          </div>
+          <div className="relative grid md:grid-cols-3 gap-12">
+            {/* Connecting Line (Desktop) */}
+            <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-1 bg-slate-100 -z-10"></div>
+
+            {[
+              { title: "1. Lookup USDOT", desc: "Enter your DOT number and our AI will instantly pull your latest FMCSA business details.", icon: Search },
+              { title: "2. Verify Fleet", desc: "We'll calculate your UCR bracket (0-2, 3-5, etc.) and service fee based on your fleet size.", icon: Calculator },
+              { title: "3. Get Certificate", desc: "We file your registration instantly and store your UCR certificate in our secure portal.", icon: Download }
+            ].map((step, idx) => (
+              <div key={idx} className="flex flex-col items-center text-center bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition">
+                <div className="w-24 h-24 rounded-full bg-blue-50 border-4 border-white shadow-sm flex items-center justify-center mb-6 text-[var(--color-navy)] text-indigo-600">
+                  <step.icon className="w-10 h-10" />
                 </div>
               ))}
               </div>
           </div>
         </section>
 
-        {/* SERVICES SHOWCASE - Mobile Optimized */}
-        <section className="py-12 sm:py-16 lg:py-20 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-10 sm:mb-12 lg:mb-16">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--color-text)] mb-3 sm:mb-4">
-                Complete Trucking Compliance Solutions
-              </h2>
-              <p className="text-base sm:text-lg lg:text-xl text-[var(--color-muted)] max-w-2xl mx-auto px-4">
-                Everything you need to stay compliant, all in one place
-              </p>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {services.map((service, idx) => (
-                <Link
-                  key={idx}
-                  href={service.href}
-                  className="group bg-white rounded-xl sm:rounded-2xl border-2 border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-[var(--color-orange)] transition-all duration-300 active:scale-[0.98] touch-manipulation"
-                >
-                  <div className="relative h-40 sm:h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
-                    <Image
-                      src={service.image}
-                      alt={service.title}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-[var(--color-orange)] text-white px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold">
-                      {service.price}
-                    </div>
-                  </div>
-                  <div className="p-4 sm:p-6">
-                    <h3 className="text-lg sm:text-xl font-bold text-[var(--color-text)] mb-2 group-hover:text-[var(--color-orange)] transition-colors">
-                      {service.title}
-                    </h3>
-                    <p className="text-[var(--color-muted)] text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">
-                      {service.description}
-                    </p>
-                    <ul className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
-                      {service.features.map((feature, fIdx) => (
-                        <li key={fIdx} className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                          <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="flex items-center gap-2 text-[var(--color-orange)] font-semibold text-xs sm:text-sm">
-                      Learn More <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+        {/* WHY CHOOSE US GRID */}
+        <section className="bg-slate-50 rounded-3xl p-8 sm:p-16">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-[var(--color-text)] sm:text-4xl mb-4">Why Choose Our Smart E-Filing?</h2>
+            <p className="text-lg text-[var(--color-muted)]">We offer more than just software. We offer a personal filing assistant.</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              { title: "Official UCR Proof", desc: "We deliver and store your official UCR registration receipt the moment it's processed.", icon: Clock },
+              { title: "FMCSA Sync", desc: "Our platform syncs directly with FMCSA records to ensure your fleet count and business data are always accurate.", icon: ShieldCheck },
+              { title: "Status Monitoring", desc: "We monitor your UCR status year-round and notify you of any administrative changes to your DOT status.", icon: Users },
+              { title: "Secure Portal", desc: "Access your UCR certificates, receipts, and filing history anytime through your secure dashboard.", icon: Lock },
+              { title: "Smart Fee Calculator", desc: "Avoid overpaying. Our calculator uses real-time brackets to determine your exact UCR and service fees.", icon: Calculator },
+              { title: "Compliance Pro", desc: "Upgrade to UCR Pro for automated annual renewals, deadline reminders, and DOT status monitoring.", icon: LayoutGrid },
+            ].map((feature, idx) => (
+              <div key={idx} className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition border border-slate-100 group">
+                <feature.icon className="w-10 h-10 text-[var(--color-orange)] mb-6 group-hover:scale-110 transition-transform" />
+                <h3 className="text-xl font-bold text-[var(--color-text)] mb-3">{feature.title}</h3>
+                <p className="text-sm leading-relaxed text-[var(--color-muted)]">{feature.desc}</p>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -528,56 +497,24 @@ export default function Home() {
                   </div>
         </section>
 
-        {/* TESTIMONIAL / SOCIAL PROOF - Mobile Optimized */}
-        <section className="py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-[var(--color-midnight)] to-[var(--color-navy)] text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid sm:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 items-center">
-              <div>
-                <div className="flex items-center gap-2 mb-4 sm:mb-6">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 sm:w-6 sm:h-6 fill-yellow-400 text-yellow-400" />
-                  ))}
-                  <span className="ml-2 text-lg sm:text-xl font-bold">4.9/5</span>
-                </div>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6">
-                  Trusted by Thousands of Truckers
-                </h2>
-                <p className="text-base sm:text-lg lg:text-xl text-slate-300 mb-6 sm:mb-8 leading-relaxed">
-                  "QuickTruckTax made filing so easy. Their team handled everything - I just provided my info and they took care of the rest. 
-                  Got my Schedule 1 the next day. Best service I've used!"
-                </p>
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                    <Users className="w-6 h-6 sm:w-8 sm:h-8" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-base sm:text-lg">Mike Thompson</p>
-                    <p className="text-sm sm:text-base text-slate-400">Owner-Operator, 15+ Years</p>
-                  </div>
-                </div>
-              </div>
-              <div className="relative mt-8 sm:mt-0">
-                <div className="bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-white/20">
-                  <div className="grid grid-cols-2 gap-4 sm:gap-6">
-                    <div className="text-center">
-                      <p className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">10,000+</p>
-                      <p className="text-slate-300 text-xs sm:text-sm">Happy Customers</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">99.8%</p>
-                      <p className="text-slate-300 text-xs sm:text-sm">Success Rate</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">2 min</p>
-                      <p className="text-slate-300 text-xs sm:text-sm">Avg Filing Time</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">24/7</p>
-                      <p className="text-slate-300 text-xs sm:text-sm">Support Available</p>
-                    </div>
-                </div>
-                </div>
-              </div>
+            {/* Sidebar / CTA Box */}
+            <div className="lg:w-1/3 bg-[var(--color-midnight)] text-white p-8 rounded-2xl sticky top-24 shadow-xl ring-1 ring-white/10">
+              <h3 className="text-2xl font-bold mb-4">Free Resources</h3>
+              <p className="text-slate-300 mb-8">
+                Guides, checklists, and tools for Form 2290 and trucking compliance.
+              </p>
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> Due-Date Calendar</li>
+                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> HVUT Calculator</li>
+                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> Filing Checklists</li>
+                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> State-by-State Guides</li>
+              </ul>
+              <Link
+                href="/resources"
+                className="flex w-full items-center justify-center rounded-xl bg-[var(--color-orange)] py-4 font-bold text-white transition hover:bg-[#e66a15] hover:shadow-lg hover:scale-[1.02]"
+              >
+                Explore Resources
+              </Link>
             </div>
           </div>
         </section>
@@ -677,5 +614,6 @@ export default function Home() {
         </section>
       </div>
     </>
+    </RedirectLoggedInToDashboard>
   );
 }

@@ -20,16 +20,15 @@ import {
   ArrowRight,
   RotateCcw,
   Plus,
-  TrendingUp,
   Calendar,
   ChevronRight,
   Search,
   Filter,
   MoreVertical,
-  Building2,
-  RefreshCw,
-  FileCheck,
-  Trash2
+  ShieldCheck,
+  Download,
+  Calculator,
+  HelpCircle
 } from 'lucide-react';
 import { AIOnboarding } from '@/components/AIOnboarding';
 
@@ -151,8 +150,8 @@ export default function DashboardPage() {
     completed: filings.filter(f => f.status === 'completed').length,
     processing: filings.filter(f => f.status === 'processing' || f.status === 'submitted').length,
     actionRequired: filings.filter(f => f.status === 'action_required').length,
-    totalVehicles: filings.reduce((sum, f) => sum + (f.vehicleIds?.length || 0), 0),
-  }), [filings]);
+    totalVehicles: filings.reduce((sum, f) => sum + (f.vehicleIds?.length || 0) + (Number(f.powerUnits) || 0), 0),
+  };
 
   const incomplete = useMemo(() => getIncompleteFilings(filings), [filings]);
   // Filter drafts to only show those with selectedBusinessId (business selected)
@@ -396,117 +395,243 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      {/* Viewport layout - flex-1 to fill space between header and footer */}
       <div className="flex flex-col flex-1 h-full min-h-0">
-        {showOnboarding && (
-          <AIOnboarding
-            onDismiss={() => {
-              setShowOnboarding(false);
-              localStorage.setItem('onboarding_dismissed', 'true');
-            }}
-          />
-        )}
-        {/* Professional Header */}
-        <div className="bg-[#f8fafc] border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-8 lg:py-10 flex-shrink-0 relative overflow-hidden">
-          {/* Subtle background glow */}
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-blue-50/20 to-transparent pointer-events-none" />
-
-          <div className="max-w-7xl mx-auto relative z-10">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div className="text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-50 text-[#173b63] text-[10px] font-black mb-2 border border-blue-100 uppercase tracking-widest">
-                  Management Console
-                </div>
-                <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
-                  Dashboard
-                </h1>
-                <p className="text-base sm:text-lg text-slate-500 font-medium max-w-xl mt-2 lg:max-w-none mx-auto lg:mx-0">
-                  Your central hub for Form 2290 compliance and fleet management.
-                </p>
+        {/* Compact Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3 bg-white border-b border-slate-200 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <h1 className="text-xl sm:text-2xl font-bold text-[var(--color-navy)] tracking-tight">Dashboard</h1>
+            <div className="hidden xs:inline-flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-full px-2 sm:px-3 py-1.5">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[var(--color-navy)] flex items-center justify-center text-white font-semibold text-xs">
+                {(userData?.displayName || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
               </div>
-
-              {hasFilings && (
-                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-3 w-full lg:w-auto">
-                  <Link
-                    href="/dashboard/new-filing"
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#ff8b3d] hover:bg-[#f07a2d] text-white !text-white rounded-2xl text-sm font-black transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-orange-500/20"
-                  >
-                    <Plus className="w-5 h-5 stroke-[3px]" />
-                    File New Form 2290
-                  </Link>
-                  <Link
-                    href="/dashboard/filings"
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white text-slate-700 border-2 border-slate-200 rounded-2xl text-sm font-bold hover:bg-slate-50 transition-all hover:scale-[1.02] active:scale-95 shadow-sm"
-                  >
-                    <Search className="w-4 h-4" />
-                    View All Filings
-                  </Link>
-                </div>
-              )}
+              <span className="text-xs sm:text-sm font-semibold text-slate-700 hidden sm:inline">
+                {userData?.displayName || user?.email?.split('@')[0] || 'User'}
+              </span>
             </div>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
+            {hasFilings && (
+              <>
+                <button className="min-w-[44px] min-h-[44px] rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition-colors text-slate-600 touch-manipulation" aria-label="Search">
+                  <Search className="w-4 h-4" />
+                </button>
+                <button className="min-w-[44px] min-h-[44px] rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition-colors text-slate-600 touch-manipulation" aria-label="Filter">
+                  <Filter className="w-4 h-4" />
+                </button>
+                <Link
+                  href="/ucr/file"
+                  className="inline-flex items-center justify-center gap-2 min-h-[44px] px-3 sm:px-4 py-2 bg-[var(--color-navy)] !text-white rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] active:scale-95 transition-all whitespace-nowrap touch-manipulation"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">New UCR Filing</span>
+                  <span className="sm:hidden">UCR</span>
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center flex-1">
+          <div className="flex items-center justify-center flex-1 bg-slate-50">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-8 h-8 border-2 border-[var(--color-orange)]/10 border-t-[var(--color-orange)] rounded-full animate-spin"></div>
-              <p className="text-sm text-[var(--color-muted)]">Loading...</p>
+              <div className="w-8 h-8 border-2 border-slate-200 border-t-[var(--color-navy)] rounded-full animate-spin"></div>
+              <p className="text-sm text-slate-500">Loading...</p>
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex overflow-hidden">
-            {/* Main Content Area - Scrollable if needed */}
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex-1 flex overflow-hidden bg-slate-50/80">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
               <div className="max-w-6xl mx-auto">
-                {/* Professional Stats Cards */}
-                {(hasFilings || hasIncomplete) && (
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-                    {[
-                      { label: 'Total Filings', value: stats.total, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
-                      { label: 'Completed', value: stats.completed, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                      { label: 'In Progress', value: stats.processing, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
-                      { label: 'Total Vehicles', value: stats.totalVehicles, icon: Truck, color: 'text-purple-600', bg: 'bg-purple-50' },
-                    ].map((stat, idx) => {
-                      const Icon = stat.icon;
-                      return (
-                        <div key={idx} className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 hover:shadow-md hover:border-slate-300 transition-all">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg ${stat.bg} ${stat.color} flex items-center justify-center flex-shrink-0`}>
-                              <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                {/* Welcome Message */}
+                <div className="mb-8">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-navy)] tracking-tight">
+                    Welcome back, {userData?.displayName || user?.email?.split('@')[0] || 'Trucker'}
+                  </h2>
+                  <p className="text-slate-600 mt-2 text-base">
+                    Manage your fleet and stay compliant with your UCR registrations.
+                  </p>
+                </div>
+
+                {/* UCR Compliance Section */}
+                {(() => {
+                  const activeUcr = filings.find(f => f.filingType === 'ucr' && f.filingYear === 2026) ||
+                    draftFilings.find(d => d.filingType === 'ucr' && d.filingYear === 2026);
+                  const status = activeUcr?.status || 'none';
+                  const isCompleted = status === 'completed';
+                  const isSubmittedOrProcessing = status === 'submitted' || status === 'processing';
+                  const historicalFilings = filings.filter(f => f.filingType === 'ucr' && f.filingYear < 2026);
+
+                  return (
+                    <div className="space-y-4 mb-8">
+                      <div className={`rounded-2xl p-6 sm:p-8 border-2 transition-all shadow-sm ${
+                        isCompleted ? 'bg-white border-teal-200' :
+                        isSubmittedOrProcessing ? 'bg-gradient-to-br from-white to-blue-50/30 border-blue-200' :
+                        'bg-white border-slate-200'
+                      }`}>
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                          <div className="flex items-start gap-4 min-w-0">
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${
+                              isCompleted ? 'bg-teal-100 text-teal-600' :
+                              isSubmittedOrProcessing ? 'bg-blue-100 text-blue-600' :
+                              'bg-[var(--color-navy)]/10 text-[var(--color-navy)]'
+                            }`}>
+                              <ShieldCheck className="w-7 h-7" />
                             </div>
-                            <div>
-                              <div className="text-xl sm:text-2xl font-black text-slate-900 leading-none mb-1">{stat.value}</div>
-                              <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight">{stat.label}</div>
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <h3 className="text-xl font-bold text-slate-800">UCR Compliance 2026</h3>
+                                {activeUcr && (
+                                  <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${
+                                    isCompleted ? 'bg-teal-100 text-teal-700' :
+                                    isSubmittedOrProcessing ? 'bg-blue-100 text-blue-700' :
+                                    'bg-slate-100 text-slate-700'
+                                  }`}>
+                                    {status === 'draft' ? 'In Progress' : status}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-slate-600 leading-relaxed mt-1">Annual registration required for interstate motor carriers.</p>
+                              <div className="flex flex-wrap items-center gap-4 mt-3">
+                                <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                                  <Calendar className="w-4 h-4 text-slate-400" /> Year: 2026
+                                </span>
+                                <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                                  <Clock className="w-4 h-4 text-slate-400" /> Renewal: Dec 31, 2026
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          <div className="flex flex-col sm:flex-row gap-4 flex-shrink-0 lg:w-auto w-full">
+                            {isCompleted ? (
+                              <button
+                                type="button"
+                                onClick={() => window.open(activeUcr.certificateUrl || '#', '_blank')}
+                                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 py-3 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 transition active:scale-[0.98] touch-manipulation shadow-sm"
+                              >
+                                <Download className="w-5 h-5" /> Download Certificate
+                              </button>
+                            ) : isSubmittedOrProcessing ? (
+                              <div className="flex flex-col gap-4 min-w-0 max-w-sm">
+                                <p className="text-sm text-slate-600 leading-relaxed">
+                                  An agent is processing your filing. You’ll see your certificate here when it’s ready.
+                                </p>
+                                <Link
+                                  href={`/dashboard/filings/${activeUcr.id}`}
+                                  className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 py-3 bg-[var(--color-navy)] !text-white rounded-xl text-sm font-semibold hover:bg-[var(--color-navy-soft)] transition active:scale-[0.98] touch-manipulation shadow-sm w-full sm:w-auto"
+                                >
+                                  <Clock className="w-5 h-5" /> View status
+                                </Link>
+                              </div>
+                            ) : (
+                              <Link
+                                href={status === 'draft' ? `/ucr/file?draft=${activeUcr.id || activeUcr.draftId}` : '/ucr/file'}
+                                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 py-3 bg-[var(--color-navy)] !text-white rounded-xl text-sm font-semibold hover:bg-[var(--color-navy-soft)] transition active:scale-[0.98] touch-manipulation shadow-sm w-full sm:w-auto"
+                              >
+                                {status === 'draft' ? 'Continue Filing' : 'Start 2026 Filing'}
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {historicalFilings.length > 0 && (
+                        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                          <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between">
+                            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Historical Records</h4>
+                            <span className="text-[10px] text-slate-400">{historicalFilings.length} years</span>
+                          </div>
+                          <div className="divide-y divide-slate-100">
+                            {historicalFilings.map(hist => (
+                              <div key={hist.id} className="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+                                    <FileText className="w-5 h-5" />
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-semibold text-slate-800">UCR {hist.filingYear}</div>
+                                    <div className="text-xs text-slate-500">Completed {hist.completedAt ? new Date(hist.completedAt).toLocaleDateString() : '—'}</div>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => window.open(hist.certificateUrl || '#', '_blank')}
+                                  className="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-200 transition flex items-center gap-1.5"
+                                >
+                                  <Download className="w-3.5 h-3.5" /> Certificate
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Stats Row */}
+                {(hasFilings || hasIncomplete) && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                    {[
+                      { label: 'Total Filings', value: stats.total, color: 'slate', icon: FileText },
+                      { label: 'Completed', value: stats.completed, color: 'teal', icon: CheckCircle },
+                      { label: 'In Progress', value: stats.processing, color: 'amber', icon: Clock },
+                      { label: 'Fleet Units', value: stats.totalVehicles, color: 'navy', icon: Truck },
+                    ].map((stat, idx) => {
+                      const Icon = stat.icon;
+                      const colors = {
+                        slate: 'text-slate-600 bg-slate-100',
+                        teal: 'text-teal-600 bg-teal-100',
+                        amber: 'text-amber-600 bg-amber-100',
+                        navy: 'text-[var(--color-navy)] bg-[var(--color-navy)]/10',
+                      };
+                      const valueColors = {
+                        slate: 'text-slate-800',
+                        teal: 'text-teal-700',
+                        amber: 'text-amber-700',
+                        navy: 'text-[var(--color-navy)]',
+                      };
+                      return (
+                        <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-slate-300/50 transition-all">
+                          <div className={`w-11 h-11 rounded-xl ${colors[stat.color]} flex items-center justify-center mb-3`}>
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          <div className={`text-2xl font-bold ${valueColors[stat.color]}`}>{stat.value}</div>
+                          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">{stat.label}</div>
                         </div>
                       );
                     })}
                   </div>
                 )}
 
-                {/* Compact Business Information Card */}
-                {primaryBusiness && (
-                  <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 mb-6 hover:shadow-lg hover:shadow-slate-200/50 transition-all">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-xl flex-shrink-0 shadow-lg shadow-slate-900/20">
-                        {primaryBusiness.businessName?.charAt(0).toUpperCase() || 'B'}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3">
-                          <h2 className="text-lg font-black text-slate-900 truncate">
-                            {primaryBusiness.businessName}
-                          </h2>
-                          <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500 font-mono">
-                            {primaryBusiness.ein ? primaryBusiness.ein.replace(/(\d{2})(\d{7})/, '$1-$2') : 'N/A'}
-                          </span>
-                          <Link
-                            href="/dashboard/businesses"
-                            className="text-slate-400 hover:text-[#ff8b3d] transition-colors"
-                            title="Edit business"
-                          >
-                            <Edit className="w-4 h-4" />
+                {/* Filings List or Empty State */}
+                {hasFilings ? (
+                  <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+                      <h3 className="text-base font-bold text-slate-800">Recent Activity</h3>
+                      <Link href="/dashboard/filings" className="text-sm font-semibold text-[var(--color-navy)] hover:underline">View History →</Link>
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                      {filings.slice(0, 5).map((filing) => {
+                        const statusConfig = getStatusConfig(filing.status);
+                        const StatusIcon = statusConfig.icon;
+                        return (
+                          <Link key={filing.id} href={`/dashboard/filings/${filing.id}`} className="flex items-center gap-4 p-4 hover:bg-slate-50/80 transition-colors">
+                            <div className={`w-11 h-11 rounded-lg ${statusConfig.bg} border ${statusConfig.border} flex items-center justify-center shrink-0`}>
+                              <StatusIcon className={`w-5 h-5 ${statusConfig.color}`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span className="text-sm font-semibold text-slate-800">{filing.filingType === 'ucr' ? `UCR ${filing.filingYear}` : `Form 2290 ${filing.taxYear}`}</span>
+                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase ${statusConfig.bg} ${statusConfig.color} border ${statusConfig.border}`}>
+                                  {statusConfig.label}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3 text-xs text-slate-500">
+                                <span className="flex items-center gap-1"><Truck className="w-3.5 h-3.5" /> {filing.vehicleIds?.length || filing.powerUnits || 0} units</span>
+                                <span>·</span>
+                                <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {filing.createdAt?.toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-slate-400" />
                           </Link>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-slate-500 font-medium">
@@ -527,401 +652,43 @@ export default function DashboardPage() {
                       </Link>
                     </div>
                   </div>
-                )}
-
-                {/* Professional Returns List - Table (Desktop) & Cards (Mobile) */}
-                {allFilingsForTable.length > 0 && (
-                  <div className="space-y-4 mb-8">
-                    {/* Mobile Card Layout */}
-                    <div className="sm:hidden space-y-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-1 h-5 bg-[#ff8b3d] rounded-full" />
-                          <h2 className="text-sm font-black text-slate-900">Recent Filings</h2>
-                        </div>
-                        <Link href="/dashboard/filings" className="text-[10px] text-slate-500 hover:text-[#ff8b3d] font-bold transition-colors">
-                          View All
-                        </Link>
-                      </div>
-                      {allFilingsForTable.map((filing) => {
-                        const filingStatus = filing.isDraft ? 'draft' : (filing.status || 'submitted');
-                        const statusConfig = getStatusConfig(filingStatus);
-                        const isIncomplete = filingStatus === 'draft' || filing.isDraft;
-
-                        const resumeUrl = filing.isDraft || filingStatus === 'draft' || filingStatus === 'pending_payment'
-                          ? filing.workflowType === 'upload'
-                            ? `/dashboard/upload-schedule1?draft=${filing.draftId || filing.id}`
-                            : `/dashboard/new-filing?draft=${filing.draftId || filing.id}`
-                          : `/dashboard/filings/${filing.id}`;
-
-                        return (
-                          <div key={filing.id || filing.draftId} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <Link href={resumeUrl} className="text-sm text-slate-900 hover:text-[#ff8b3d] font-bold block truncate max-w-[200px]">
-                                  {getReturnNumber(filing)}
-                                </Link>
-                                <div className="text-[10px] text-slate-400 mt-0.5">{getFirstUsedMonth(filing)} • {getFilingDate(filing) || 'Draft'}</div>
-                              </div>
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold ${statusConfig.bg} ${statusConfig.color} border border-current/10`}>
-                                <div className={`w-1 h-1 rounded-full ${statusConfig.dot}`} />
-                                {isIncomplete ? 'Incomplete' : statusConfig.label}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center justify-between py-2 border-y border-slate-50 text-[11px]">
-                              <div className="flex flex-col">
-                                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Tax Due</span>
-                                <span className="text-slate-900 font-black">${getTaxAmount(filing).toFixed(2)}</span>
-                              </div>
-                              <div className="flex flex-col text-right">
-                                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Fleet</span>
-                                <div className="flex flex-col items-end gap-0.5">
-                                  <span className="text-slate-700 font-bold">{getVehiclesInfo(filing).length} Vehicle{getVehiclesInfo(filing).length !== 1 ? 's' : ''}</span>
-                                  {getVehiclesInfo(filing).length > 0 && getVehiclesInfo(filing).length <= 2 && (
-                                    <div className="text-[9px] text-slate-500 font-mono">
-                                      {getVehiclesInfo(filing).map((v, i) => (
-                                        <span key={i}>{v.vin?.slice(-8) || 'N/A'}{i < getVehiclesInfo(filing).length - 1 ? ', ' : ''}</span>
-                                      ))}
-                                    </div>
-                                  )}
-                                  {getVehiclesInfo(filing).length > 2 && (
-                                    <div className="text-[9px] text-slate-500 font-mono">
-                                      {getVehiclesInfo(filing).slice(0, 2).map((v, i) => (
-                                        <span key={i}>{v.vin?.slice(-8) || 'N/A'}{i < 1 ? ', ' : ''}</span>
-                                      ))}
-                                      <span className="text-slate-400"> +{getVehiclesInfo(filing).length - 2}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex gap-2">
-                              <Link
-                                href={resumeUrl}
-                                className={`flex-1 py-2 rounded-lg text-center text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95 ${isIncomplete
-                                  ? 'bg-[#ff8b3d] text-white hover:bg-[#f07a2d] shadow-orange-500/10'
-                                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 shadow-slate-200/50'
-                                  }`}
-                              >
-                                {isIncomplete ? 'Continue' : 'View'}
-                              </Link>
-                              {hasSchedule1(filing) && (
-                                <Link
-                                  href={filing.schedule1Url}
-                                  target="_blank"
-                                  className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-slate-600 hover:border-slate-300 transition-all shadow-sm"
-                                >
-                                  <FileCheck className="w-4 h-4" />
-                                </Link>
-                              )}
-                              {canDeleteDraft(filing) && (
-                                <button
-                                  onClick={() => handleDeleteDraft(filing)}
-                                  className="w-9 h-9 flex items-center justify-center bg-white border border-red-200 text-red-500 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all shadow-sm active:scale-95"
-                                  title="Delete draft"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
+                ) : !hasIncomplete && (
+                  <div className="bg-white border border-dashed border-slate-200 rounded-xl p-10 text-center">
+                    <div className="w-16 h-16 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-4 text-slate-600">
+                      <Plus className="w-8 h-8" />
                     </div>
-
-                    {/* Desktop Table Layout */}
-                    <div className="hidden sm:block bg-white border border-slate-200 rounded-lg overflow-hidden">
-                      <div className="px-5 py-3 border-b border-slate-200 bg-slate-50/50">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-1.5 h-6 bg-[#ff8b3d] rounded-full" />
-                            <h2 className="text-base font-black text-slate-900">Recent Filings</h2>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Link
-                              href="/dashboard/filings"
-                              className="text-xs text-slate-500 hover:text-[#ff8b3d] font-bold transition-colors"
-                            >
-                              View All
-                            </Link>
-                            <button
-                              onClick={() => window.location.reload()}
-                              className="w-7 h-7 rounded-lg border border-slate-200 hover:bg-white flex items-center justify-center transition-all hover:rotate-180 duration-500"
-                              title="Refresh"
-                            >
-                              <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead className="bg-slate-50/50 border-b border-slate-200">
-                            <tr>
-                              <th className="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Return</th>
-                              <th className="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest hidden md:table-cell">First Used</th>
-                              <th className="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest hidden lg:table-cell">Vehicles</th>
-                              <th className="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Tax Amount</th>
-                              <th className="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
-                              <th className="px-6 py-3 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-100">
-                            {allFilingsForTable.map((filing) => {
-                              const filingStatus = filing.isDraft ? 'draft' : (filing.status || 'submitted');
-                              const statusConfig = getStatusConfig(filingStatus);
-                              const isIncomplete = filingStatus === 'draft' || filing.isDraft;
-
-                              const resumeUrl = filing.isDraft || filingStatus === 'draft' || filingStatus === 'pending_payment'
-                                ? filing.workflowType === 'upload'
-                                  ? `/dashboard/upload-schedule1?draft=${filing.draftId || filing.id}`
-                                  : `/dashboard/new-filing?draft=${filing.draftId || filing.id}`
-                                : `/dashboard/filings/${filing.id}`;
-
-                              const vehiclesInfo = getVehiclesInfo(filing);
-
-                              return (
-                                <tr key={filing.id || filing.draftId} className="hover:bg-slate-50/50 transition-colors">
-                                  <td className="px-6 py-3">
-                                    <Link
-                                      href={resumeUrl}
-                                      className="text-sm text-slate-900 hover:text-[#ff8b3d] font-bold block"
-                                    >
-                                      {getReturnNumber(filing)}
-                                    </Link>
-                                    <div className="sm:hidden text-[10px] text-slate-500">{getFirstUsedMonth(filing)}</div>
-                                    {getFilingDate(filing) && (
-                                      <div className="text-[10px] text-slate-400 mt-0.5">{getFilingDate(filing)}</div>
-                                    )}
-                                  </td>
-                                  <td className="px-6 py-3 text-xs text-slate-600 font-medium hidden md:table-cell">
-                                    {getFirstUsedMonth(filing)}
-                                  </td>
-                                  <td className="px-6 py-3 hidden lg:table-cell">
-                                    {vehiclesInfo.length > 0 ? (
-                                      <div className="flex flex-col gap-1 max-w-xs">
-                                        {vehiclesInfo.slice(0, 2).map((vehicle, idx) => (
-                                          <div key={idx} className="flex items-center gap-1.5 group relative">
-                                            <span className="text-[10px] font-mono font-bold text-slate-700 truncate max-w-[140px]" title={vehicle.vin || 'Vehicle'}>
-                                              {vehicle.vin || `Vehicle ${idx + 1}`}
-                                            </span>
-                                            {vehicle.vehicleType && (
-                                              <span className={`px-1 py-0.5 rounded text-[8px] font-bold uppercase flex-shrink-0 ${
-                                                vehicle.vehicleType === 'suspended' ? 'bg-amber-100 text-amber-700' :
-                                                vehicle.vehicleType === 'credit' ? 'bg-blue-100 text-blue-700' :
-                                                vehicle.vehicleType === 'priorYearSold' ? 'bg-purple-100 text-purple-700' :
-                                                'bg-emerald-100 text-emerald-700'
-                                              }`}>
-                                                {vehicle.vehicleType === 'suspended' ? 'S' :
-                                                 vehicle.vehicleType === 'credit' ? 'C' :
-                                                 vehicle.vehicleType === 'priorYearSold' ? 'P' : 'T'}
-                                              </span>
-                                            )}
-                                          </div>
-                                        ))}
-                                        {vehiclesInfo.length > 2 && (
-                                          <div className="text-[10px] text-slate-500 font-medium">
-                                            +{vehiclesInfo.length - 2} more vehicle{vehiclesInfo.length - 2 !== 1 ? 's' : ''}
-                                          </div>
-                                        )}
-                                      </div>
-                                    ) : (
-                                      <span className="text-slate-300 text-xs">-</span>
-                                    )}
-                                  </td>
-                                  <td className="px-6 py-3 text-sm font-black text-slate-900">
-                                    ${getTaxAmount(filing).toFixed(2)}
-                                  </td>
-                                  <td className="px-6 py-3">
-                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${statusConfig.bg} ${statusConfig.color} border border-current/10`}>
-                                      <div className={`w-1 h-1 rounded-full ${statusConfig.dot}`} />
-                                      {isIncomplete ? 'Incomplete' : statusConfig.label}
-                                    </span>
-                                  </td>
-                                  <td className="px-6 py-3 text-right">
-                                    <div className="flex items-center justify-end gap-2">
-                                      {isIncomplete ? (
-                                        <Link
-                                          href={resumeUrl}
-                                          className="inline-flex items-center justify-center px-4 py-1.5 bg-[#ff8b3d] hover:bg-[#f07a2d] text-white !text-white rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95 shadow-md shadow-orange-500/10"
-                                        >
-                                          Continue
-                                        </Link>
-                                      ) : (
-                                        <Link
-                                          href={resumeUrl}
-                                          className="inline-flex items-center justify-center px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold transition-all"
-                                        >
-                                          View
-                                        </Link>
-                                      )}
-                                      {hasSchedule1(filing) && (
-                                        <Link
-                                          href={filing.schedule1Url}
-                                          target="_blank"
-                                          className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-all"
-                                          title="View Schedule 1"
-                                        >
-                                          <FileCheck className="w-3.5 h-3.5" />
-                                        </Link>
-                                      )}
-                                      {canDeleteDraft(filing) && (
-                                        <button
-                                          onClick={() => handleDeleteDraft(filing)}
-                                          className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-red-200 bg-white text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all"
-                                          title="Delete draft"
-                                        >
-                                          <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                      )}
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Professional Empty State */}
-                {!hasFilings && !hasIncomplete && (
-                  <div className="bg-white border border-slate-200 rounded-lg p-12 text-center">
-                    <div className="max-w-2xl mx-auto">
-                      <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                        <FileText className="w-8 h-8 text-slate-600" />
-                      </div>
-                      <h2 className="text-2xl font-bold text-slate-900 mb-2">Get Started with Your First Filing</h2>
-                      <p className="text-slate-600 mb-8 max-w-md mx-auto">
-                        Choose how you'd like to file your Form 2290. Our expert team will handle the rest.
-                      </p>
-                      <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
-                        <Link
-                          href="/dashboard/upload-schedule1"
-                          className="group relative bg-[#fdfdfe] border border-slate-200 rounded-2xl p-8 hover:border-[#ff8b3d]/30 hover:shadow-2xl hover:shadow-orange-500/5 transition-all duration-300 overflow-hidden"
-                        >
-                          <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <Upload className="w-20 h-20" />
-                          </div>
-                          <div className="w-14 h-14 rounded-xl bg-slate-50 flex items-center justify-center mb-6 group-hover:bg-[#ff8b3d] group-hover:text-white transition-all duration-300">
-                            <Upload className="w-7 h-7" />
-                          </div>
-                          <h3 className="text-xl font-bold text-slate-900 mb-3 text-left">Upload Schedule 1</h3>
-                          <p className="text-sm text-slate-600 mb-6 text-left leading-relaxed">AI extracts data from your existing Schedule 1 PDF. Fast & Accurate.</p>
-                          <div className="inline-flex items-center gap-2 px-0 py-2 text-[#ff8b3d] text-sm font-black group-hover:gap-4 transition-all">
-                            Get Started <ArrowRight className="w-5 h-5 stroke-[3px]" />
-                          </div>
-                        </Link>
-
-                        <Link
-                          href="/dashboard/new-filing"
-                          className="group relative bg-[#fdfdfe] border border-slate-200 rounded-2xl p-8 hover:border-[#ff8b3d]/30 hover:shadow-2xl hover:shadow-orange-500/5 transition-all duration-300 overflow-hidden"
-                        >
-                          <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <Edit className="w-20 h-20" />
-                          </div>
-                          <div className="w-14 h-14 rounded-xl bg-slate-50 flex items-center justify-center mb-6 group-hover:bg-[#ff8b3d] group-hover:text-white transition-all duration-300">
-                            <Edit className="w-7 h-7" />
-                          </div>
-                          <h3 className="text-xl font-bold text-slate-900 mb-3 text-left">Manual Entry</h3>
-                          <p className="text-sm text-slate-600 mb-6 text-left leading-relaxed">Step-by-step guided filing process. Perfect for new vehicles.</p>
-                          <div className="inline-flex items-center gap-2 px-0 py-2 text-[#ff8b3d] text-sm font-black group-hover:gap-4 transition-all">
-                            Get Started <ArrowRight className="w-5 h-5 stroke-[3px]" />
-                          </div>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Action Required Alert */}
-                {hasFilings && stats.actionRequired > 0 && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-5 mb-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0">
-                        <AlertCircle className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-base font-bold text-amber-900 mb-1">Action Required</h3>
-                        <p className="text-sm text-amber-800 mb-3">{stats.actionRequired} {stats.actionRequired === 1 ? 'filing requires' : 'filings require'} your attention</p>
-                        <Link
-                          href="/dashboard/filings?status=action_required"
-                          className="text-sm font-semibold text-amber-700 hover:text-amber-900 hover:underline"
-                        >
-                          Review Filings →
-                        </Link>
-                      </div>
-                    </div>
+                    <h3 className="text-lg font-bold text-slate-800 mb-1">No filings yet</h3>
+                    <p className="text-slate-500 mb-6 max-w-sm mx-auto text-sm">Start your 2026 UCR registration.</p>
+                    <Link href="/ucr/file" className="inline-flex items-center gap-2 bg-[var(--color-navy)] !text-white px-6 py-3 rounded-lg font-semibold hover:bg-[var(--color-navy-soft)] transition active:scale-95">
+                      New UCR Filing <ArrowRight className="w-4 h-4" />
+                    </Link>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Right Sidebar - Professional */}
-            <div className="hidden xl:block w-80 border-l border-slate-200 bg-white overflow-y-auto flex-shrink-0">
-              <div className="p-6 space-y-6">
-                {/* Quick Actions */}
-                <div className="bg-white border border-slate-200 rounded-lg p-5">
-                  <h3 className="text-sm font-semibold text-slate-900 mb-4">Quick Actions</h3>
-                  <div className="space-y-2">
-                    {[
-                      { href: '/dashboard/new-filing', icon: Plus, label: 'New Filing' },
-                      { href: '/dashboard/upload-schedule1', icon: Upload, label: 'Upload PDF' },
-                      { href: '/dashboard/new-filing?type=amendment', icon: Edit, label: 'Amendment' },
-                    ].map((action, idx) => {
-                      const Icon = action.icon;
-                      return (
-                        <Link
-                          key={idx}
-                          href={action.href}
-                          className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 hover:border-[#173b63]/30 hover:bg-slate-50 hover:shadow-sm transition-all group"
-                        >
-                          <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-[#173b63] group-hover:text-white transition-all duration-300">
-                            <Icon className="w-4.5 h-4.5" />
-                          </div>
-                          <span className="text-sm font-bold text-slate-700 group-hover:text-[#173b63] transition-colors">{action.label}</span>
-                        </Link>
-                      );
-                    })}
+            {/* Right Sidebar - Quick Actions */}
+            <div className="hidden xl:block w-80 bg-slate-50/50 border-l border-slate-200 p-6 overflow-y-auto">
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Quick Links</h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    <Link href="/tools/ucr-calculator" className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-[var(--color-navy)]/30 hover:shadow-md transition-all">
+                      <Calculator className="w-5 h-5 text-[var(--color-navy)]" />
+                      <span className="text-sm font-semibold text-slate-700">Fee Calculator</span>
+                    </Link>
+                    <Link href="/services/ucr-registration" className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-teal-300 hover:shadow-md transition-all">
+                      <HelpCircle className="w-5 h-5 text-teal-600" />
+                      <span className="text-sm font-semibold text-slate-700">Compliance Info</span>
+                    </Link>
                   </div>
                 </div>
-
-                {/* View All Filings */}
-                {hasFilings && (
-                  <Link
-                    href="/dashboard/filings"
-                    className="block p-5 bg-slate-50 border border-slate-200 rounded-lg hover:shadow-sm transition-all group"
-                  >
-                    <h3 className="text-sm font-semibold text-slate-900 mb-1">View All Filings</h3>
-                    <p className="text-xs text-slate-600 mb-3">Search, filter, and manage all your filings</p>
-                    <div className="text-sm font-medium text-slate-700 group-hover:text-slate-900 flex items-center gap-2">
-                      View All <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </Link>
-                )}
-
-                {/* Help Section */}
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-5">
-                  <h3 className="text-sm font-semibold text-slate-900 mb-2">Need Help?</h3>
-                  <p className="text-xs text-slate-600 mb-4">Our support team is here to assist you.</p>
-                  <div className="space-y-2">
-                    <Link
-                      href="/faq"
-                      className="block text-sm font-medium text-slate-700 hover:text-slate-900"
-                    >
-                      FAQ →
-                    </Link>
-                    <Link
-                      href="/how-it-works"
-                      className="block text-sm font-medium text-slate-700 hover:text-slate-900"
-                    >
-                      How It Works →
-                    </Link>
-                  </div>
+                <div className="bg-[var(--color-navy)] rounded-2xl p-6 text-white shadow-lg">
+                  <h4 className="font-bold text-lg mb-2">Need Help?</h4>
+                  <p className="text-sm text-white/90 mb-5">Our compliance team can assist with your registrations.</p>
+                  <a href="mailto:support@quicktrucktax.com" className="block w-full bg-white !text-[var(--color-navy)] py-3 rounded-xl text-sm font-semibold text-center hover:bg-slate-100 transition">
+                    Contact support
+                  </a>
                 </div>
               </div>
             </div>

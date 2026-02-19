@@ -55,7 +55,7 @@ export function ConsumerLayout({ children }) {
               onClick={toggleFooter}
               className="w-full flex items-center justify-between text-sm text-white/70 hover:text-white transition"
             >
-              <span>&copy; {new Date().getFullYear()} QuickTruckTax. All rights reserved.</span>
+              <span>&copy; {new Date().getFullYear()} QuickTruckTax, All Rights Reserved.</span>
               <ChevronUp className="h-4 w-4" />
             </button>
           </div>
@@ -79,14 +79,14 @@ export function ConsumerLayout({ children }) {
               <div>
                 <h3 className="font-semibold mb-4">QuickTruckTax</h3>
                 <p className="text-sm text-white/70">
-                  The Done-For-You Form 2290 filing service for owner-operators.
+                  Form 2290 and trucking compliance guides and resources.
                 </p>
               </div>
               <div>
                 <h3 className="font-semibold mb-4">Company</h3>
                 <ul className="space-y-2 text-sm text-white/70">
                   <li><Link href="/how-it-works" className="hover:text-white transition">How it Works</Link></li>
-                  <li><Link href="/pricing" className="hover:text-white transition">Pricing</Link></li>
+                  <li><Link href="/resources" className="hover:text-white transition">Resources</Link></li>
                   <li><Link href="/faq" className="hover:text-white transition">FAQ</Link></li>
                 </ul>
               </div>
@@ -103,25 +103,16 @@ export function ConsumerLayout({ children }) {
                 <ul className="space-y-2 text-sm text-white/70">
                   <li><Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link></li>
                   <li><Link href="/terms" className="hover:text-white transition">Terms of Service</Link></li>
-                  <li><Link href="/terms#refunds" className="hover:text-white transition">Refund Policy</Link></li>
+                  <li><Link href="/refund-policy" className="hover:text-white transition">Refund Policy</Link></li>
                 </ul>
               </div>
             </div>
-            <div className="border-t border-white/10 pt-6 mt-8">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/60">
-                <div className="text-center sm:text-left">
-                  <p>&copy; {new Date().getFullYear()} QuickTruckTax. All rights reserved.</p>
-                </div>
-                <div className="text-center sm:text-right">
-                  <p className="font-semibold text-white/80">Vendax Systems LLC</p>
-                  <p>28 Geary St STE 650 Suite #500, San Francisco, CA 94108, USA</p>
-                  <p>
-                    <a href="mailto:support@vendaxsystemlabs.com" className="hover:text-white transition">
-                      support@vendaxsystemlabs.com
-                    </a>
-                  </p>
-                </div>
+            <div className="border-t border-white/10 mt-12 pt-8 space-y-6">
+              <div className="text-xs text-white/60 leading-relaxed space-y-2 text-center max-w-3xl mx-auto">
+                <p>The information and images on this website are the property of QuickTruckTax and may not be reproduced, reused, or appropriated without the express written consent of the owner.</p>
+                <p>QuickTruckTax is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement. We are not affiliated with any government authority such as the IRS, USDOT, or FMCSA.</p>
               </div>
+              <p className="text-center text-sm text-white/50">&copy; 2026 QuickTruckTax, All Rights Reserved.</p>
             </div>
           </div>
         )}

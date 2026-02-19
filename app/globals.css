@@ -45,6 +45,12 @@ a:hover {
   color: inherit;
 }
 
+/* Dark CTA: force white text so global a { color: inherit } doesn't reduce contrast */
+.cta-dark,
+a.cta-dark {
+  color: #ffffff !important;
+}
+
 strong {
   font-weight: 600;
 }
@@ -311,10 +317,23 @@ a:focus-visible {
 
 /* Better button spacing for mobile */
 @media (max-width: 640px) {
+    button,
+    a[role="button"] {
+        min-height: 44px; /* Apple's recommended touch target size */
+    }
+}
 
-  button,
-  a[role="button"] {
-    min-height: 44px;
-    /* Apple's recommended touch target size */
-  }
+/* Safe area for notched devices (e.g. iPhone) */
+.pb-safe {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+.pt-safe {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+/* Conversion CTAs: thumb-friendly tap targets */
+.btn-touch {
+    min-height: 48px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }

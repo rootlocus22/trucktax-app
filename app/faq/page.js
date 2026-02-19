@@ -3,7 +3,7 @@ import { HelpCircle, Truck, DollarSign, Calendar, FileText, Shield } from 'lucid
 
 export const metadata = {
     title: 'Form 2290 FAQ - Complete Guide for Truckers | QuickTruckTax',
-    description: 'Comprehensive FAQ about Form 2290 Heavy Vehicle Use Tax. Get answers to all your HVUT filing questions from IRS-authorized e-file experts.',
+    description: 'Comprehensive FAQ about Form 2290 Heavy Vehicle Use Tax. Get answers from our expert concierge team.',
     keywords: ['form 2290 faq', 'hvut questions', 'truck tax help', 'schedule 1 questions'],
 };
 
@@ -23,7 +23,7 @@ export default function FAQPage() {
                 },
                 {
                     q: 'Can I file Form 2290 online?',
-                    a: 'Yes! QuickTruckTax is an IRS-authorized e-file provider. You can file in 5 minutes and receive your stamped Schedule 1 instantly.'
+                    a: 'Yes! QuickTruckTax is an expert concierge service. You provide your info, we handle the filing and you get your stamped Schedule 1 quickly—often within 24 hours.'
                 },
                 {
                     q: 'What is Schedule 1 and why do I need it?',
@@ -41,7 +41,7 @@ export default function FAQPage() {
             questions: [
                 {
                     q: 'How much does it cost to file Form 2290?',
-                    a: 'QuickTruckTax charges $12.99 for a single vehicle, with fleet discounts available. The IRS tax itself ranges from $100-$550 depending on your vehicle weight.'
+                    a: 'QuickTruckTax charges a flat $34.99 for our concierge filing service, with fleet discounts available. The IRS tax itself ranges from $100-$550 depending on your vehicle weight.'
                 },
                 {
                     q: 'What are the HVUT tax rates for 2025-2026?',
@@ -49,11 +49,11 @@ export default function FAQPage() {
                 },
                 {
                     q: 'Are there additional fees?',
-                    a: 'No hidden fees. Our price includes IRS e-filing, instant Schedule 1 delivery, and free VIN corrections if needed.'
+                    a: 'No hidden fees. Our price includes expert filing, Schedule 1 delivery, and free VIN corrections if needed.'
                 },
                 {
                     q: 'Do you offer fleet discounts?',
-                    a: 'Yes! 2-5 vehicles: $9.99/each. 6+ vehicles: $7.99/each. The more you file, the more you save.'
+                    a: 'Yes! We offer fleet pricing for multiple vehicles. Contact us or check the pricing page for current rates.'
                 },
             ]
         },
@@ -103,7 +103,7 @@ export default function FAQPage() {
             questions: [
                 {
                     q: 'Is online filing safe?',
-                    a: 'Yes, QuickTruckTax uses bank-level encryption and we are IRS-authorized. Your data is secure and never shared with third parties.'
+                    a: 'Yes, QuickTruckTax uses bank-level encryption and secure channels. Your data is secure and never sold or shared with third parties for marketing.'
                 },
                 {
                     q: 'How do I pay the IRS tax?',
@@ -131,7 +131,7 @@ export default function FAQPage() {
                         Form 2290 Frequently Asked Questions
                     </h1>
                     <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-                        Get expert answers to all your Heavy Vehicle Use Tax questions from an IRS-authorized e-file provider
+                        Get expert answers to all your Heavy Vehicle Use Tax questions from our concierge team
                     </p>
                 </div>
             </div>
