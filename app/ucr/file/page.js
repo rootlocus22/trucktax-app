@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,7 +28,7 @@ const STEPS = [
   { id: 6, title: 'Confirmation', icon: CheckCircle },
 ];
 
-export default function UcrFilePage() {
+function UcrFileContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
@@ -125,7 +125,7 @@ export default function UcrFilePage() {
         setConfirmationData(payload);
         try {
           sessionStorage.setItem('ucr_filing_confirmation', JSON.stringify(payload));
-        } catch (e) {}
+        } catch (e) { }
         setStep(6);
         setVerifyLoading(false);
         router.replace('/ucr/file?thankyou=1', { scroll: false });
@@ -641,5 +641,17 @@ export default function UcrFilePage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function UcrFilePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-[var(--color-navy)] animate-spin" />
+      </div>
+    }>
+      <UcrFileContent />
+    </Suspense>
   );
 }

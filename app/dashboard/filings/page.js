@@ -135,31 +135,6 @@ export default function FilingsListPage() {
     totalVehicles: filings.reduce((sum, f) => sum + (f.vehicleIds?.length || 0), 0),
   }), [filings]);
 
-  const incomplete = useMemo(() => getIncompleteFilings(filings), [filings]);
-
-  // Define preferred order (UCR first for ucr-pivot)
-  const categoryOrder = [
-    'Form 2290',
-    'VIN Correction',
-    'Weight Increase',
-    'Mileage Exceeded',
-    'Amendment',
-    'Refund (8849)'
-  ];
-  // UCR categories (e.g. "UCR 2026") sort first, newest year first
-  const ucrCategories = Object.keys(groupedFilings).filter(k => k.startsWith('UCR')).sort((a, b) => b.localeCompare(a));
-  const categoryOrderWithUcr = [...ucrCategories, ...categoryOrder];
-
-  const sortedCategories = Object.keys(groupedFilings).sort((a, b) => {
-    const order = categoryOrderWithUcr;
-    const indexA = order.indexOf(a);
-    const indexB = order.indexOf(b);
-    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
-    return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
-  });
-
-  const hasIncomplete = allIncompleteFilings.length > 0;
-
   // Filter out drafts that have been converted to actual filings
   // A draft is considered "converted" if there's a filing with:
   // 1. The same draftId reference, OR
@@ -185,7 +160,7 @@ export default function FilingsListPage() {
 
   // Only include drafts that haven't been converted to filings AND have a business selected
   const unconvertedDrafts = useMemo(() => {
-    return activeDrafts.filter(draft => {
+    return draftFilings.filter(draft => {
       // Only show drafts with selectedBusinessId (business must be selected)
       if (!draft.selectedBusinessId && !draft.businessId) {
         return false;
@@ -218,7 +193,7 @@ export default function FilingsListPage() {
       }
       return true;
     });
-  }, [activeDrafts, convertedDraftIds, filings, statusFilter, searchTerm]);
+  }, [draftFilings, convertedDraftIds, filings, statusFilter, searchTerm]);
 
   // Combine all filings (completed, incomplete, drafts) for the table
   const allFilingsForTable = useMemo(() => [
@@ -430,106 +405,7 @@ export default function FilingsListPage() {
             <div className="text-[11px] text-slate-700 truncate">{filing.submissionId || 'Pending'}</div>
           </div>
         </div>
-        {isExpanded && (
-          <div className="p-6 space-y-4">
-            {categoryFilings.map((f) => {
-              const status = getStatusConfig(f.status);
-              const fTypeInfo = getFilingTypeInfo(f);
-              const StatusIcon = status.icon;
-              const createdAt = f.createdAt?.toDate?.() || f.createdAt;
-              const date = createdAt ? new Date(createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
-              const isUcr = f.filingType === 'ucr';
-              const displayName = isUcr ? (f.legalName || f.registrantName || 'UCR Registration') : (f.business?.businessName || 'Unnamed Business');
-              const yearLabel = isUcr ? `Filing Year ${f.filingYear ?? new Date().getFullYear()}` : `Tax Year ${f.taxYear ?? '—'}`;
-              const unitsLabel = isUcr
-                ? `${f.powerUnits != null ? Number(f.powerUnits) : 0} Power unit${f.powerUnits !== 1 ? 's' : ''}`
-                : `${f.vehicleIds?.length || 0} Vehicle${f.vehicleIds?.length !== 1 ? 's' : ''}`;
-              return (
-                <Link
-                  key={f.id}
-                  href={`/dashboard/filings/${f.id}`}
-                  className="group block bg-white rounded-xl border border-slate-200 p-5 hover:border-[var(--color-orange)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden"
-                >
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${status.bg.replace('bg-', 'bg-').replace('50', '500').replace('100', '400')}`}></div>
-                  <div className="flex flex-col md:flex-row md:items-center gap-4 sm:gap-6 pl-2">
-                    {fTypeInfo.icon ? (
-                      <>
-                        <div className="flex md:hidden flex-col items-center justify-center min-w-[60px] mb-2">
-                          <div className={`w-12 h-12 rounded-xl ${fTypeInfo.bg} border border-slate-200 flex items-center justify-center`}>
-                            <fTypeInfo.icon className={`w-6 h-6 ${fTypeInfo.color}`} />
-                          </div>
-                        </div>
-                        <div className="hidden md:flex flex-col items-center justify-center min-w-[80px]">
-                          <div className={`w-16 h-16 rounded-xl ${fTypeInfo.bg} border border-slate-200 flex items-center justify-center`}>
-                            <fTypeInfo.icon className={`w-8 h-8 ${fTypeInfo.color}`} />
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex md:hidden flex-col items-center gap-2 min-w-[60px] mb-2">
-                          <div className="relative w-12 h-12 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
-                            <Image src={fTypeInfo.image} alt={fTypeInfo.label} fill className="object-contain" />
-                          </div>
-                        </div>
-                        <div className="hidden md:flex flex-col items-center gap-2 min-w-[80px]">
-                          <div className="relative w-16 h-16 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
-                            <Image src={fTypeInfo.image} alt={fTypeInfo.label} fill className="object-contain" />
-                          </div>
-                        </div>
-                      </>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide border ${status.bg} ${status.color} ${status.border}`}>
-                          <StatusIcon className="w-3 h-3" />
-                          {status.label}
-                        </span>
-                        <span className="text-xs text-slate-400 font-medium">#{f.id.slice(0, 8)}</span>
-                      </div>
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <h3 className="text-lg font-bold text-slate-900 group-hover:text-[var(--color-orange)] transition-colors truncate">{displayName}</h3>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-slate-400" />
-                          <span className="font-medium">{yearLabel}</span>
-                        </div>
-                        {isUcr && f.state && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-400 font-medium">State:</span>
-                            <span>{f.state}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-slate-400" />
-                          <span>{fTypeInfo.label}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Truck className="w-4 h-4 text-slate-400" />
-                          <span>{unitsLabel}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-slate-500 text-xs">
-                          <span>{f.status === 'draft' ? 'Started' : 'Filed'} {date}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 sm:gap-4 border-t md:border-t-0 border-slate-100 pt-3 sm:pt-4 md:pt-0 mt-3 sm:mt-4 md:mt-0 justify-between md:justify-end">
-                      <div className="md:hidden flex items-center gap-2 text-slate-500 text-xs">
-                        <Clock className="w-3 h-3" />
-                        <span className="truncate">{date}</span>
-                      </div>
-                      <div className="flex items-center gap-2 sm:gap-3 text-[var(--color-orange)] font-semibold text-xs sm:text-sm group-hover:underline decoration-2 underline-offset-4 touch-manipulation">
-                        <span className="whitespace-nowrap">View Details</span>
-                        <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform flex-shrink-0" />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
+
       </div>
     );
   });
@@ -702,9 +578,8 @@ export default function FilingsListPage() {
                 </div>
               </div>
             )}
-        </div>
-      </div>
-      )}
+          </div>
+        )}
       </div>
     </ProtectedRoute>
   );

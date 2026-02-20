@@ -5923,10 +5923,10 @@ function NewFilingContent() {
                         <div>
                           <span className="text-xs text-slate-500 block mb-0.5">Status</span>
                           <span className={`font-semibold ${existingDraft.status === 'processing' || existingDraft.status === 'completed'
-                              ? 'text-red-600'
-                              : existingDraft.status === 'pending_payment'
-                                ? 'text-orange-600'
-                                : 'text-midnight'
+                            ? 'text-red-600'
+                            : existingDraft.status === 'pending_payment'
+                              ? 'text-orange-600'
+                              : 'text-midnight'
                             }`}>
                             {existingDraft.status === 'processing' ? 'Processing' :
                               existingDraft.status === 'completed' ? 'Completed (IRS Acceptance)' :
@@ -5980,9 +5980,9 @@ function NewFilingContent() {
                                   {vehicle ? (
                                     <div className="flex flex-wrap gap-1">
                                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${vehicle.vehicleType === 'suspended' ? 'bg-amber-100 text-amber-700' :
-                                          vehicle.vehicleType === 'credit' ? 'bg-blue-100 text-blue-700' :
-                                            vehicle.vehicleType === 'priorYearSold' ? 'bg-purple-100 text-purple-700' :
-                                              'bg-emerald-100 text-emerald-700'
+                                        vehicle.vehicleType === 'credit' ? 'bg-blue-100 text-blue-700' :
+                                          vehicle.vehicleType === 'priorYearSold' ? 'bg-purple-100 text-purple-700' :
+                                            'bg-emerald-100 text-emerald-700'
                                         }`}>
                                         {typeLabel}
                                       </span>
@@ -6011,15 +6011,15 @@ function NewFilingContent() {
 
                   {/* Warning Message */}
                   <div className={`text-sm p-3 rounded-lg border ${existingDraft.isProcessingOrCompleted ||
-                      (existingDraft.status === 'processing' || existingDraft.status === 'completed' || existingDraft.status === 'submitted') ||
-                      existingDraft.filingId ||
-                      (existingDraft.step >= 5)
-                      ? 'bg-red-50 border-red-100 text-red-800'
-                      : existingDraft.isDeletable && !existingDraft.isSubmitted
-                        ? 'bg-amber-50 border-amber-100 text-amber-800'
-                        : existingDraft.isSubmitted
-                          ? 'bg-blue-50 border-blue-100 text-blue-800'
-                          : 'bg-amber-50 border-amber-100 text-amber-800'
+                    (existingDraft.status === 'processing' || existingDraft.status === 'completed' || existingDraft.status === 'submitted') ||
+                    existingDraft.filingId ||
+                    (existingDraft.step >= 5)
+                    ? 'bg-red-50 border-red-100 text-red-800'
+                    : existingDraft.isDeletable && !existingDraft.isSubmitted
+                      ? 'bg-amber-50 border-amber-100 text-amber-800'
+                      : existingDraft.isSubmitted
+                        ? 'bg-blue-50 border-blue-100 text-blue-800'
+                        : 'bg-amber-50 border-amber-100 text-amber-800'
                     }`}>
                     {existingDraft.isProcessingOrCompleted ||
                       (existingDraft.status === 'processing' || existingDraft.status === 'completed' || existingDraft.status === 'submitted') ||
@@ -6189,9 +6189,9 @@ export default function NewFilingPage() {
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
           <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
         </div>
-      </ProtectedRoute>
-    }>
-      <NewFilingRedirect />
-    </Suspense>
+      }>
+        <NewFilingRedirect />
+      </Suspense>
+    </ProtectedRoute>
   );
 }
