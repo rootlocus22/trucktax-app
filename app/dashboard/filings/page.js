@@ -7,7 +7,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { subscribeToUserFilings, getBusinessesByUser, getVehicle } from '@/lib/db';
 import { subscribeToDraftFilings } from '@/lib/draftHelpers';
-import { getIncompleteFilings, formatIncompleteFiling } from '@/lib/filingIntelligence';
 import {
   FileText,
   CreditCard,
@@ -16,15 +15,14 @@ import {
   AlertCircle,
   ArrowRight,
   Search,
-  Filter,
   Plus,
   Calendar,
-  Truck,
   FileCheck,
   ChevronDown,
   ShieldCheck,
   RefreshCw,
-  RotateCcw
+  RotateCcw,
+  Edit
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -40,6 +38,8 @@ export default function FilingsListPage() {
   const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
+    let isMounted = true;
+
     if (!authLoading && userData?.role === 'agent') {
       router.push('/agent/dashboard');
       return;
@@ -59,18 +59,23 @@ export default function FilingsListPage() {
 
       // Load businesses
       getBusinessesByUser(user.uid).then(businessList => {
-        setBusinesses(businessList);
+        if (isMounted) setBusinesses(businessList);
       }).catch(err => {
         console.error('Error loading businesses:', err);
       });
 
       return () => {
+        isMounted = false;
         unsubscribeFilings();
         unsubscribeDrafts();
       };
     } else if (!authLoading && !user) {
       setLoading(false);
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [user, userData, authLoading, router]);
 
   const getStatusConfig = (status) => {
@@ -112,21 +117,21 @@ export default function FilingsListPage() {
   };
 
   const filteredFilings = filings.filter((filing) => {
-    if (statusFilter !== 'all' && filing.status !== statusFilter) return false;
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
+      if (statusFilter !== 'all' && filing.status !== statusFilter) return false;
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
       const matchesTaxYear = filing.taxYear?.toString().toLowerCase().includes(searchLower);
       const matchesFilingYear = filing.filingYear?.toString().toLowerCase().includes(searchLower);
-      const matchesStatus = filing.status?.toLowerCase().includes(searchLower);
-      const matchesBusiness = filing.business?.businessName?.toLowerCase().includes(searchLower);
+        const matchesStatus = filing.status?.toLowerCase().includes(searchLower);
+        const matchesBusiness = filing.business?.businessName?.toLowerCase().includes(searchLower);
       const matchesLegalName = filing.legalName?.toLowerCase().includes(searchLower);
       const matchesDotNumber = filing.dotNumber?.toString().toLowerCase().includes(searchLower);
       const matchesState = filing.state?.toLowerCase().includes(searchLower);
-      const matchesId = filing.id?.toLowerCase().includes(searchLower);
+        const matchesId = filing.id?.toLowerCase().includes(searchLower);
       return matchesTaxYear || matchesFilingYear || matchesStatus || matchesBusiness || matchesLegalName || matchesDotNumber || matchesState || matchesId;
-    }
-    return true;
-  });
+      }
+      return true;
+    });
 
   const stats = useMemo(() => ({
     total: filings.length,
@@ -148,14 +153,14 @@ export default function FilingsListPage() {
         ids.add(filing.draftId);
       }
     });
-
+    
     // Also add drafts that have an explicit filingId reference
     draftFilings.forEach(draft => {
       if (draft.filingId && filings.some(f => f.id === draft.filingId)) {
         ids.add(draft.id || draft.draftId);
       }
     });
-
+    
     return ids;
   }, [filings, draftFilings]);
 
@@ -166,22 +171,22 @@ export default function FilingsListPage() {
       if (!draft.selectedBusinessId && !draft.businessId) {
         return false;
       }
-
+      
       // Skip if this draft was converted to a filing
       if (convertedDraftIds.has(draft.id || draft.draftId)) {
         return false;
       }
-
+      
       // Also check for duplicates based on tax year and business
       // If there's a filing with same tax year and business, likely the same filing
       const hasMatchingFiling = filings.some(filing => {
         const sameTaxYear = filing.taxYear === draft.taxYear;
-        const sameBusiness = filing.businessId === draft.selectedBusinessId ||
-          filing.businessId === draft.businessId;
+        const sameBusiness = filing.businessId === draft.selectedBusinessId || 
+                            filing.businessId === draft.businessId;
         // If both match and filing is submitted/completed/pending, skip the draft
         return sameTaxYear && sameBusiness;
       });
-
+      
       return !hasMatchingFiling;
     }).filter(d => {
       // Only include drafts that match search/filter
@@ -207,8 +212,8 @@ export default function FilingsListPage() {
   }), [filteredFilings, unconvertedDrafts]);
 
   // Get primary business (first business or business from first filing)
-  const primaryBusiness = useMemo(() => businesses.length > 0
-    ? businesses[0]
+  const primaryBusiness = useMemo(() => businesses.length > 0 
+    ? businesses[0] 
     : (filings.length > 0 && filings[0].business ? filings[0].business : null), [businesses, filings]);
 
   // Helper function to get return number display
@@ -220,7 +225,7 @@ export default function FilingsListPage() {
     if (filing.filingType === 'amendment') {
       const type = filing.amendmentType === 'vin_correction' ? 'VIN Correction Amendment' :
         filing.amendmentType === 'weight_increase' ? 'Weight Increase Amendment' :
-          filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded Amendment' : '2290 Amendment';
+        filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded Amendment' : '2290 Amendment';
       return `${type}-${filing.id?.slice(-7) || 'N/A'}`;
     }
     if (filing.filingType === 'refund') {
@@ -312,25 +317,20 @@ export default function FilingsListPage() {
         }
       }
     }
-
+    
     if (vehicleIds.length === 0) return [];
-
+    
     return vehicleIds.map(id => vehiclesMap[id] || { id, vin: 'Loading...', vehicleType: null }).filter(v => v);
   };
 
-  // Load vehicles when filings change
-  useEffect(() => {
-    if (!user || (filteredFilings.length === 0 && unconvertedDrafts.length === 0)) return;
-
-    const loadVehicles = async () => {
+  const vehicleIdsToLoad = useMemo(() => {
       const vehicleIdsSet = new Set();
-
-      // Collect all vehicle IDs from filings and drafts
-      [...filteredFilings, ...unconvertedDrafts].forEach(filing => {
+    [...filteredFilings, ...unconvertedDrafts].forEach(filing => {
+      if (filing.filingType === 'ucr') return;
+      
         const vehicleIds = filing.vehicleIds || filing.selectedVehicleIds || [];
         vehicleIds.forEach(id => vehicleIdsSet.add(id));
-
-        // For amendments, also check amendment details
+        
         if (filing.filingType === 'amendment' && filing.amendmentDetails) {
           if (filing.amendmentType === 'weight_increase' && filing.amendmentDetails.weightIncrease?.vehicleId) {
             vehicleIdsSet.add(filing.amendmentDetails.weightIncrease.vehicleId);
@@ -339,27 +339,40 @@ export default function FilingsListPage() {
           }
         }
       });
+    return Array.from(vehicleIdsSet);
+  }, [filteredFilings, unconvertedDrafts]);
 
-      // Load vehicles
+  // Load only missing vehicle records to avoid repeated fetch loops
+  useEffect(() => {
+    if (!user || vehicleIdsToLoad.length === 0) return;
+
+    let cancelled = false;
+    const missingVehicleIds = vehicleIdsToLoad.filter(id => !vehiclesMap[id]);
+    if (missingVehicleIds.length === 0) return;
+
+    const loadVehicles = async () => {
       const vehiclesData = {};
       await Promise.all(
-        Array.from(vehicleIdsSet).map(async (vehicleId) => {
+        missingVehicleIds.map(async (vehicleId) => {
           try {
             const vehicle = await getVehicle(vehicleId);
-            if (vehicle) {
-              vehiclesData[vehicleId] = vehicle;
-            }
+            if (vehicle) vehiclesData[vehicleId] = vehicle;
           } catch (error) {
             console.error(`Error loading vehicle ${vehicleId}:`, error);
           }
         })
       );
-
+      
+      if (!cancelled && Object.keys(vehiclesData).length > 0) {
       setVehiclesMap(prev => ({ ...prev, ...vehiclesData }));
+      }
     };
 
     loadVehicles();
-  }, [user, filteredFilings, unconvertedDrafts]);
+    return () => {
+      cancelled = true;
+    };
+  }, [user, vehicleIdsToLoad, vehiclesMap]);
 
   const primaryEinFormatted = primaryBusiness?.ein
     ? primaryBusiness.ein.replace(/(\d{2})(\d{7})/, '$1-$2')
@@ -472,12 +485,12 @@ export default function FilingsListPage() {
             <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">
               Start your first UCR registration. It only takes a few minutes and we'll guide you through every step.
             </p>
-            <Link
+              <Link
               href="/ucr/file"
               className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
             >
               Start UCR Filing <ArrowRight className="w-4 h-4" />
-            </Link>
+              </Link>
           </div>
         ) : (
           <div className="space-y-8">
@@ -500,7 +513,7 @@ export default function FilingsListPage() {
                       <div className="text-right">
                         <div className="text-3xl font-black text-slate-900 leading-none mb-1 group-hover:scale-105 transition-transform origin-right">{stat.value}</div>
                         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</div>
-                      </div>
+                    </div>
                     </div>
                   </div>
                 );
@@ -521,17 +534,17 @@ export default function FilingsListPage() {
               </div>
               <div className="flex gap-3">
                 <div className="relative min-w-[160px] flex-1 md:flex-none">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
                     className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-[#ff8b3d]/20 focus:border-[#ff8b3d] focus:bg-white text-sm font-black text-slate-700 cursor-pointer appearance-none transition-all outline-none"
-                  >
+                >
                     <option value="all">Every Status</option>
-                    <option value="submitted">Submitted</option>
-                    <option value="processing">Processing</option>
+                  <option value="submitted">Submitted</option>
+                  <option value="processing">Processing</option>
                     <option value="action_required">Needs Action</option>
-                    <option value="completed">Completed</option>
-                  </select>
+                  <option value="completed">Completed</option>
+                </select>
                   <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" strokeWidth={3} />
                 </div>
                 <button
@@ -549,7 +562,7 @@ export default function FilingsListPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#ff8b3d] to-[#f07a2d] flex items-center justify-center text-white font-black text-xl shadow-lg shadow-orange-500/20">
-                      {primaryBusiness.businessName?.charAt(0).toUpperCase() || 'B'}
+                    {primaryBusiness.businessName?.charAt(0).toUpperCase() || 'B'}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
@@ -576,14 +589,14 @@ export default function FilingsListPage() {
                     <div className="text-right hidden sm:block">
                       <div className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-0.5">Signing Authority</div>
                       <div className="text-xs font-bold text-white/80">{primaryBusiness.signingAuthorityName || 'Not Set'}</div>
-                    </div>
-                    <Link
+                  </div>
+                  <Link
                       href="/dashboard/businesses"
                       className="ml-auto md:ml-4 flex items-center gap-2 px-4 py-2 bg-[#14b8a6] text-white hover:bg-[#0d9488] rounded-xl transition-all border border-white/20 font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95"
-                    >
+                  >
                       <Edit className="w-3.5 h-3.5" strokeWidth={3} />
                       Edit Profile
-                    </Link>
+                  </Link>
                   </div>
                 </div>
               </div>
@@ -604,7 +617,7 @@ export default function FilingsListPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                   <h3 className="text-base font-bold text-slate-900">All Filings</h3>
                   <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
                     {allFilingsForTable.length} total

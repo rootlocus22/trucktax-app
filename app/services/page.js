@@ -139,12 +139,12 @@ export default function ServicesPage() {
                                     <p className="text-slate-600 text-sm leading-relaxed">{service.description}</p>
                                 </div>
 
-                                <Link
-                                    href={service.link}
+                                    <Link
+                                        href={service.link}
                                     className={`text-${service.color}-600 font-bold text-sm bg-${service.color}-50 hover:bg-${service.color}-100 px-4 py-2 rounded-lg text-center transition-colors`}
-                                >
+                                    >
                                     Read Overview Guide
-                                </Link>
+                                    </Link>
                             </div>
                         ))}
                     </div>
@@ -172,12 +172,12 @@ export default function ServicesPage() {
                         >
                             Who Needs to File?
                         </Link>
-                        <Link
+                    <Link
                             href="/insights/ucr-renewal-guide"
                             className="bg-white/10 hover:bg-white/20 !text-white hover:!text-white border border-white/30 px-6 py-3 rounded-lg font-bold transition"
-                        >
+                    >
                             UCR Renewal Process
-                        </Link>
+                    </Link>
                     </div>
                 </div>
             </div>

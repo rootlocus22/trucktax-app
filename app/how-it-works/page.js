@@ -104,8 +104,8 @@ export default function HowItWorksPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)]/80 via-[var(--color-midnight)]/50 to-transparent" />
         <div className="absolute inset-0 flex flex-col justify-center px-6 sm:px-12">
           <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 drop-shadow-lg">
-            How QuickTruckTax Works
-          </h1>
+          How QuickTruckTax Works
+        </h1>
           <p className="text-white/90 max-w-xl text-sm sm:text-base">
             From upload to stamped Schedule 1—we handle everything so you can focus on the road.
           </p>
@@ -298,8 +298,8 @@ export default function HowItWorksPage() {
                   </h3>
                   <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-light">
                     {benefit.description}
-                  </p>
-                </div>
+            </p>
+          </div>
               );
             })}
           </div>

@@ -59,6 +59,7 @@ export default function Header() {
   };
 
   const isActive = (path) => pathname === path;
+  const isDashboardSection = pathname?.startsWith('/dashboard');
   const headerDark = !minimal && !isScrolled;
 
   const navLinks = [
@@ -86,9 +87,29 @@ export default function Header() {
         <header className="sticky top-0 z-50 bg-white border-b border-slate-200 py-2 shadow-sm">
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between gap-4 min-h-[44px]">
-              <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2 shrink-0">
-                <Logo dark={false} compact />
-              </Link>
+              <div className="flex items-center gap-3 min-w-0">
+                <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2 shrink-0">
+                  <Logo dark={false} compact />
+                </Link>
+                {!authLoading && user && (
+                  <nav className="hidden sm:flex items-center gap-1" aria-label="Dashboard navigation">
+                    <Link
+                      href="/dashboard"
+                      aria-current={pathname === '/dashboard' ? 'page' : undefined}
+                      className={`inline-flex items-center min-h-[36px] px-2.5 py-1 rounded-md text-xs font-semibold transition ${pathname === '/dashboard' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/dashboard/filings"
+                      aria-current={isActive('/dashboard/filings') ? 'page' : undefined}
+                      className={`inline-flex items-center min-h-[36px] px-2.5 py-1 rounded-md text-xs font-semibold transition ${isActive('/dashboard/filings') ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+                    >
+                      Filings
+                    </Link>
+                  </nav>
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 {!authLoading && (
                   user ? (
@@ -117,6 +138,9 @@ export default function Header() {
                           <Link href="/dashboard" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-slate-700 hover:bg-slate-50 touch-manipulation">
                             <LayoutDashboard className="w-4 h-4" /> Dashboard
                           </Link>
+                          <Link href="/dashboard/filings" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-slate-700 hover:bg-slate-50 touch-manipulation">
+                            <FileText className="w-4 h-4" /> Filings
+                          </Link>
                           <Link href="/dashboard/profile" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-slate-700 hover:bg-slate-50 touch-manipulation">
                             <User className="w-4 h-4" /> Profile
                           </Link>
@@ -143,6 +167,24 @@ export default function Header() {
                 )}
               </div>
             </div>
+            {!authLoading && user && (
+              <nav className="sm:hidden flex items-center gap-2 pb-1 pt-1" aria-label="Dashboard quick links">
+                <Link
+                  href="/dashboard"
+                  aria-current={pathname === '/dashboard' ? 'page' : undefined}
+                  className={`inline-flex items-center min-h-[36px] px-2.5 py-1 rounded-md text-xs font-semibold transition ${pathname === '/dashboard' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/dashboard/filings"
+                  aria-current={isActive('/dashboard/filings') ? 'page' : undefined}
+                  className={`inline-flex items-center min-h-[36px] px-2.5 py-1 rounded-md text-xs font-semibold transition ${isActive('/dashboard/filings') ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+                >
+                  Filings
+                </Link>
+              </nav>
+            )}
           </div>
         </header>
       </>
@@ -201,6 +243,9 @@ export default function Header() {
                       <div className="absolute right-0 top-full mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
                         <Link href="/dashboard" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-slate-700 hover:bg-slate-50 touch-manipulation">
                           <LayoutDashboard className="w-4 h-4" /> Dashboard
+                        </Link>
+                        <Link href="/dashboard/filings" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-slate-700 hover:bg-slate-50 touch-manipulation">
+                          <FileText className="w-4 h-4" /> Filings
                         </Link>
                         <Link href="/dashboard/profile" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-slate-700 hover:bg-slate-50 touch-manipulation">
                           <User className="w-4 h-4" /> Profile
@@ -266,6 +311,9 @@ export default function Header() {
                 <>
                   <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 min-h-[48px] p-3 bg-white border border-slate-200 rounded-xl font-semibold text-slate-700 touch-manipulation">
                     <LayoutDashboard className="w-5 h-5 text-[var(--color-navy)]" /> Dashboard
+                  </Link>
+                  <Link href="/dashboard/filings" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 min-h-[48px] p-3 bg-white border border-slate-200 rounded-xl font-semibold text-slate-700 touch-manipulation">
+                    <FileText className="w-5 h-5 text-[var(--color-navy)]" /> Filings
                   </Link>
                   <Link href="/dashboard/profile" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 min-h-[48px] p-3 bg-white border border-slate-200 rounded-xl font-semibold text-slate-700 touch-manipulation">
                     <User className="w-5 h-5" /> Profile

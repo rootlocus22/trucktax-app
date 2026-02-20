@@ -64,15 +64,15 @@ export function Header() {
           {/* Logo Column */}
           <div className="flex justify-start">
             <Link href="/" className="flex items-center space-x-2 group">
-              <div className="flex flex-col">
+            <div className="flex flex-col">
                 <span className="text-xl font-black tracking-tight text-white group-hover:text-[var(--color-orange)] transition-colors">
-                  QuickTruckTax
-                </span>
+                QuickTruckTax
+              </span>
                 <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/50 group-hover:text-white/80 transition-colors">
-                  Filing Made Simple
-                </span>
-              </div>
-            </Link>
+                Filing Made Simple
+              </span>
+            </div>
+          </Link>
           </div>
 
           {/* Main Navigation Column (Centered) */}
@@ -130,14 +130,14 @@ export function Header() {
                   <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-56 opacity-0 translate-y-2 invisible group-hover:opacity-100 group-hover:translate-y-0 group-hover:visible transition-all duration-300 z-[100]">
                     <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden p-2">
                       {navigation.management.map((item) => (
-                        <Link
-                          key={item.href}
-                          href={item.href}
+                          <Link
+                            key={item.href}
+                            href={item.href}
                           className={`flex items-center px-4 py-2.5 text-sm font-black rounded-xl transition-colors ${isActive(item.href) ? 'bg-orange-50 !text-[#ff8b3d]' : '!text-[#0f172a] hover:bg-slate-50'}`}
-                        >
+                          >
                           {item.label}
-                        </Link>
-                      ))}
+                          </Link>
+                        ))}
                     </div>
                   </div>
                 </div>
@@ -145,27 +145,27 @@ export function Header() {
             )}
 
             {/* Compliance Dropdown */}
-            <div className="relative group">
+                <div className="relative group">
               <button className="px-3 py-1.5 text-sm font-bold text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all flex items-center gap-1.5">
-                Compliance
+                    Compliance
                 <svg className="w-3.5 h-3.5 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+                    </svg>
+                  </button>
               <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-64 opacity-0 translate-y-2 invisible group-hover:opacity-100 group-hover:translate-y-0 group-hover:visible transition-all duration-300 z-[100]">
                 <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden p-2">
-                  {navigation.compliance.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
+                        {navigation.compliance.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
                       className="flex items-center px-4 py-2.5 text-sm font-bold !text-[#0f172a] hover:bg-slate-50 hover:text-[#ff8b3d] rounded-xl transition-colors"
-                    >
+                          >
                       {item.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
 
             {/* Resources Dropdown */}
             <div className="relative group">
@@ -205,31 +205,31 @@ export function Header() {
                   File Now
                 </Link>
 
-                <div className="relative">
-                  <button
-                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  <div className="relative">
+                    <button
+                      onClick={() => setUserMenuOpen(!userMenuOpen)}
                     className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 rounded-xl hover:bg-white/10 active:bg-white/20 transition group min-h-[44px]"
-                  >
+                    >
                     <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-[#ff8b3d] to-[#f07a2d] flex items-center justify-center text-white font-black text-xs sm:text-sm shadow-lg shadow-orange-500/20">
-                      {getUserInitials()}
-                    </div>
-                    <div className="hidden md:block text-left">
+                        {getUserInitials()}
+                      </div>
+                      <div className="hidden md:block text-left">
                       <div className="text-sm font-bold text-white leading-tight">{getUserDisplayName()}</div>
                       <div className="text-[10px] text-white/50 font-medium">My Account</div>
-                    </div>
-                    <svg
+                      </div>
+                      <svg
                       className={`w-4 h-4 text-white/50 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
+                      </svg>
+                    </button>
 
-                  {/* User Menu Dropdown */}
-                  {userMenuOpen && (
-                    <>
+                    {/* User Menu Dropdown */}
+                    {userMenuOpen && (
+                      <>
                       <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)}></div>
                       <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden transform animate-in fade-in zoom-in-95 duration-200">
                         <div className="py-2">
@@ -335,27 +335,27 @@ export function Header() {
                                 <span style={{ color: '#dc2626' }}>Sign Out</span>
                               </button>
                             </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </>
-                  )}
+                      </>
+                    )}
                 </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
                 <Link href="/login" className="px-5 py-2 text-sm font-bold text-white hover:bg-white/10 rounded-xl transition">
-                  Login
-                </Link>
-                <Link
-                  href="/signup"
+                      Login
+                    </Link>
+                    <Link
+                      href="/signup"
                   className="px-6 py-2 bg-[#ff8b3d] hover:bg-[#f07a2d] text-white rounded-xl text-sm font-black transition-all shadow-lg shadow-orange-500/20 active:scale-95 whitespace-nowrap"
-                >
+                    >
                   File Now
-                </Link>
+                    </Link>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
         </div>
 
         {/* Mobile Header */}
@@ -377,9 +377,9 @@ export function Header() {
                 className="p-2.5 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition"
                 aria-label="Open menu"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+                  </svg>
               </button>
             </div>
           </div>
@@ -418,7 +418,7 @@ export function Header() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
-                </div>
+                  </div>
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto px-6 py-8 space-y-10">
@@ -488,19 +488,19 @@ export function Header() {
                           <span className="text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider">TRANSACTIONS</span>
                         </div>
                         <span className="font-bold text-white text-base">How it Works</span>
-                      </Link>
+                        </Link>
                       <Link href="/features" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-4 py-3 group">
                         <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
                           <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                         </div>
                         <span className="font-bold text-white text-base">Features</span>
-                      </Link>
+                        </Link>
                       <Link href="/pricing" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-4 py-3 group">
                         <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
                           <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <span className="font-bold text-white text-base">Pricing</span>
-                      </Link>
+                          </Link>
                       <div className="pt-8 space-y-4">
                         <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="block w-full py-3.5 text-center text-white font-bold bg-white/5 rounded-xl border border-white/10 transition">Login</Link>
                         <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="block w-full py-3.5 text-center text-white font-black bg-[#ff8b3d] rounded-xl shadow-xl shadow-orange-500/20 transition">File Now</Link>

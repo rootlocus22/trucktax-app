@@ -9,7 +9,7 @@ const CONTACT_EMAIL = 'support@quicktrucktax.com';
 const ADDRESS = '28 Geary St STE 650 Suite #500, San Francisco, California 94108, United States';
 
 export default function TermsPage() {
-  return (
+    return (
     <div className="bg-slate-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-[var(--color-navy)] text-white px-4 py-2 rounded-lg z-50">
         Skip to content
@@ -18,12 +18,12 @@ export default function TermsPage() {
         <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Terms & Conditions</h1>
         <p className="text-slate-500 mb-8">Updated: October 1, 2024</p>
 
-        <div className="prose prose-slate max-w-none text-slate-600 space-y-8">
-          <section>
+                <div className="prose prose-slate max-w-none text-slate-600 space-y-8">
+                    <section>
             <p className="leading-relaxed">
               Welcome to the QuickTruckTax website and services. The following terms and conditions (&quot;Terms&quot;), along with our <Link href="/privacy-policy" className="text-[var(--color-navy)] hover:underline">Privacy Policy</Link>, <Link href="/refund-policy" className="text-[var(--color-navy)] hover:underline">Refund Policy</Link> and any linked agreements, govern your access to and use of the website, including any content, features, and services offered through it. By accessing or using the website, you agree to be bound by these Terms. Please carefully review these Terms before using the website.
-            </p>
-          </section>
+                        </p>
+                    </section>
 
           <section>
             <h2 className="text-xl font-bold text-slate-900 mb-4">1. Consent and Agreement</h2>
@@ -132,38 +132,38 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-bold text-slate-900 mb-4">21. Intellectual Property</h2>
             <p>QuickTruckTax and its licensors own all rights to the website and its content. You may not use the website or its content for any purpose not explicitly granted in these Terms.</p>
-          </section>
+                    </section>
 
-          <section>
+                    <section>
             <h2 className="text-xl font-bold text-slate-900 mb-4">22. Notice</h2>
             <p>Any required notices shall be emailed to <a href={`mailto:${CONTACT_EMAIL}`} className="text-[var(--color-navy)] hover:underline">{CONTACT_EMAIL}</a>.</p>
-          </section>
+                    </section>
 
-          <section>
+                    <section>
             <h2 className="text-xl font-bold text-slate-900 mb-4">23. Assignment</h2>
             <p>You may not assign this agreement or transfer rights to use the services without QuickTruckTax&apos;s prior written consent.</p>
-          </section>
+                    </section>
 
-          <section>
+                    <section>
             <h2 className="text-xl font-bold text-slate-900 mb-4">24. Headings</h2>
             <p>Headings in this agreement are for convenience only and shall not affect its interpretation.</p>
-          </section>
+                    </section>
 
-          <section>
+                    <section>
             <h2 className="text-xl font-bold text-slate-900 mb-4">25. Miscellaneous</h2>
             <p>These Terms, together with any other applicable agreements you may have entered into regarding our services, constitute the entire agreement between QuickTruckTax and you regarding your use of the services. In the event any provision of these Terms is held unenforceable, it will not affect the validity or enforceability of the remaining provisions. No joint venture, partnership, employment or agency relationship exists between you and QuickTruckTax as a result of these Terms or your access to and use of the site. Our failure to enforce any provisions of these Terms does not waive our right to subsequently enforce any terms or conditions.</p>
-          </section>
+                    </section>
 
-          <section>
+                    <section>
             <h2 className="text-xl font-bold text-slate-900 mb-4">Contact Us</h2>
             <p>If you have questions about these Terms, contact QuickTruckTax at <a href={`mailto:${CONTACT_EMAIL}`} className="text-[var(--color-navy)] hover:underline">{CONTACT_EMAIL}</a>.</p>
             <address className="mt-4 not-italic bg-slate-100 p-4 rounded-lg text-sm">
               <strong>QuickTruckTax</strong><br />
               {ADDRESS}<br />
               Email: <a href={`mailto:${CONTACT_EMAIL}`} className="text-[var(--color-navy)] hover:underline">{CONTACT_EMAIL}</a>
-            </address>
-          </section>
-        </div>
+                        </address>
+                    </section>
+                </div>
 
         {/* Footer disclaimer */}
         <div className="mt-12 pt-8 border-t border-slate-200 text-xs text-slate-500 space-y-2">
@@ -177,7 +177,7 @@ export default function TermsPage() {
           <Link href="/privacy-policy" className="text-[var(--color-navy)] hover:underline">Privacy Policy</Link>
           <a href={`mailto:${CONTACT_EMAIL}`} className="text-[var(--color-navy)] hover:underline">Contact Us</a>
         </div>
-      </div>
-    </div>
-  );
+            </div>
+        </div>
+    );
 }
