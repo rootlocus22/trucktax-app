@@ -590,6 +590,7 @@ export default function VehiclesPage() {
             </Link>
           </div>
         </div>
+        </div>
 
         <div className="max-w-7xl mx-auto">
           {/* Fleet Summary Banner */}
@@ -1049,6 +1050,7 @@ export default function VehiclesPage() {
                   </Link>
                 </div>
               </div>
+            </div>
             </div>
           )}
 

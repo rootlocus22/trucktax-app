@@ -1,9 +1,5 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { UserPlus, LogIn, Upload, Sparkles, FileCheck, Clock, ArrowRight, CheckCircle } from 'lucide-react';
-
-import Link from 'next/link';
-import Image from 'next/image';
 import { 
   UserPlus, 
   Upload, 
@@ -115,33 +111,6 @@ export default function HowItWorksPage() {
           </p>
         </div>
       </div>
-
-      {/* Header (for accessibility, minimal duplicate) */}
-      <div className="text-center mb-12 sr-only">
-        <h1 className="text-3xl sm:text-4xl font-semibold text-[var(--color-text)] mb-3">
-          How QuickTruckTax Works
-        </h1>
-            <p className="text-lg sm:text-xl lg:text-2xl text-slate-300 max-w-3xl mx-auto leading-relaxed mb-10 font-light">
-              Our expert team handles your Form 2290 filing from start to finish. You provide the information, we handle everything else—review, filing, and delivery.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/signup"
-                className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold text-base shadow-xl shadow-orange-500/20 transition hover:bg-[#e66a15] active:scale-[0.98] min-h-[56px]"
-              >
-                Get Started Now
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-xl font-semibold text-base transition hover:bg-white/20 active:scale-[0.98] min-h-[56px]"
-              >
-                View Pricing
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Trust Banner - Refined */}
       <div className="bg-white border-b border-slate-200 py-8 sm:py-10">
@@ -360,7 +329,6 @@ export default function HowItWorksPage() {
             </p>
         </div>
       </div>
-      </section>
     </div>
   );
 }
