@@ -213,6 +213,10 @@ export default function FilingsListPage() {
 
   // Helper function to get return number display
   const getReturnNumber = (filing) => {
+    if (filing.filingType === 'ucr') {
+      const year = filing.filingYear || new Date().getFullYear();
+      return `UCR ${year}-${filing.id?.slice(-7) || 'N/A'}`;
+    }
     if (filing.filingType === 'amendment') {
       const type = filing.amendmentType === 'vin_correction' ? 'VIN Correction Amendment' :
         filing.amendmentType === 'weight_increase' ? 'Weight Increase Amendment' :
@@ -227,6 +231,9 @@ export default function FilingsListPage() {
 
   // Helper function to get first used month
   const getFirstUsedMonth = (filing) => {
+    if (filing.filingType === 'ucr') {
+      return filing.filingYear ? `UCR ${filing.filingYear}` : 'UCR';
+    }
     if (filing.firstUsedMonth) {
       const month = filing.firstUsedMonth;
       const year = filing.taxYear?.split('-')[0] || new Date().getFullYear();
@@ -286,6 +293,10 @@ export default function FilingsListPage() {
 
   // Helper function to get vehicles info for a filing
   const getVehiclesInfo = (filing) => {
+    if (filing.filingType === 'ucr') {
+      const count = Number(filing.powerUnits || 0);
+      return [{ id: 'ucr-power-units', vin: `${count}`, vehicleType: 'power_units' }];
+    }
     const vehicleIds = filing.vehicleIds || filing.selectedVehicleIds || [];
     if (vehicleIds.length === 0) {
       // For amendments, check amendment details
@@ -360,6 +371,8 @@ export default function FilingsListPage() {
     const isIncomplete = filingStatus === 'draft' || filing.isDraft;
     const typeInfo = getFilingTypeInfo(filing);
     const vehiclesInfo = getVehiclesInfo(filing);
+    const isUcr = filing.filingType === 'ucr';
+    const ucrPowerUnits = Number(filing.powerUnits || 0);
     const resumeUrl = filing.isDraft || filingStatus === 'draft' || filingStatus === 'pending_payment'
       ? filing.workflowType === 'upload'
         ? `/dashboard/upload-schedule1?draft=${filing.draftId || filing.id}`
@@ -371,7 +384,13 @@ export default function FilingsListPage() {
         <div className="flex items-start justify-between relative">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl ${typeInfo.bg} flex items-center justify-center border border-slate-100`}>
-              <Image src={typeInfo.image} alt={typeInfo.label} width={24} height={24} className="opacity-80" />
+              {typeInfo.image ? (
+                <Image src={typeInfo.image} alt={typeInfo.label} width={24} height={24} className="opacity-80" />
+              ) : typeInfo.icon ? (
+                <typeInfo.icon className="w-5 h-5 text-current opacity-90" />
+              ) : (
+                <FileText className="w-5 h-5 text-slate-500" />
+              )}
             </div>
             <div>
               <Link href={resumeUrl} className="text-sm font-black text-slate-900 leading-tight block">
@@ -390,20 +409,32 @@ export default function FilingsListPage() {
         </div>
         <div className="grid grid-cols-2 gap-4 border-y border-slate-50 py-4 font-bold relative">
           <div>
-            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Tax Period</div>
+            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">
+              {isUcr ? 'Registration Year' : 'Tax Period'}
+            </div>
             <div className="text-[11px] text-slate-700">{getFirstUsedMonth(filing)}</div>
           </div>
           <div>
             <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Fleet Info</div>
-            <div className="text-[11px] text-slate-700">{vehiclesInfo.length} {vehiclesInfo.length === 1 ? 'Vehicle' : 'Vehicles'}</div>
+            <div className="text-[11px] text-slate-700">
+              {isUcr ? `${ucrPowerUnits} ${ucrPowerUnits === 1 ? 'Power Unit' : 'Power Units'}` : `${vehiclesInfo.length} ${vehiclesInfo.length === 1 ? 'Vehicle' : 'Vehicles'}`}
+            </div>
           </div>
           <div>
-            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">IRS Tax Due</div>
-            <div className="text-[11px] text-slate-900 font-black">${getTaxAmount(filing).toFixed(2)}</div>
+            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">
+              {isUcr ? 'UCR Fee' : 'IRS Tax Due'}
+            </div>
+            <div className="text-[11px] text-slate-900 font-black">
+              ${isUcr ? Number(filing.ucrFee || 0).toFixed(2) : getTaxAmount(filing).toFixed(2)}
+            </div>
           </div>
           <div>
-            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Reference</div>
-            <div className="text-[11px] text-slate-700 truncate">{filing.submissionId || 'Pending'}</div>
+            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">
+              {isUcr ? 'Certificate' : 'Reference'}
+            </div>
+            <div className="text-[11px] text-slate-700 truncate">
+              {isUcr ? (filing.certificateUrl ? 'Available' : 'Pending') : (filing.submissionId || 'Pending')}
+            </div>
           </div>
         </div>
 
