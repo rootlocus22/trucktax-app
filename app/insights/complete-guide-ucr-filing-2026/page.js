@@ -86,14 +86,14 @@ export default function CompleteUcrGuide() {
                             </p>
 
                             {/* Call to Action box */}
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 my-8text-center">
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 my-8 text-center">
                                 <h3 className="mt-0 mb-3 text-center">Calculate Your exact 2026 UCR Fee</h3>
                                 <p className="text-center mb-4 text-sm max-w-lg mx-auto">Stop guessing brackets. Use our free tool to instantly calculate what you owe based on your exact fleet size, or see the official breakdown.</p>
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                    <Link href="/tools/ucr-calculator" className="inline-flex justify-center items-center bg-white border border-slate-300 text-slate-700 px-6 py-3 rounded-lg font-medium hover:bg-slate-50 transition no-underline">
+                                    <Link href="/tools/ucr-calculator" className="inline-flex justify-center items-center bg-white border border-slate-300 !text-slate-700 hover:!text-slate-900 px-6 py-3 rounded-lg font-medium hover:bg-slate-50 transition no-underline">
                                         <Calculator className="w-4 h-4 mr-2" /> UCR Calculator
                                     </Link>
-                                    <Link href="/ucr/pricing" className="inline-flex justify-center items-center bg-[var(--color-navy)] text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-800 transition no-underline">
+                                    <Link href="/ucr/pricing" className="inline-flex justify-center items-center bg-[var(--color-navy)] !text-white hover:!text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-800 transition no-underline">
                                         View Fee Table <ChevronRight className="w-4 h-4 ml-1" />
                                     </Link>
                                 </div>
@@ -127,7 +127,7 @@ export default function CompleteUcrGuide() {
                                     Get compliant in under 5 minutes. Enter your DOT number, let us verify your fleet size, and receive your official PDF receipt instantly.
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-4">
-                                    <Link href="/ucr/file" className="inline-flex items-center justify-center bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66a15] transition shadow-lg no-underline group text-lg">
+                                    <Link href="/ucr/file" className="inline-flex items-center justify-center bg-[var(--color-orange)] !text-white hover:!text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66a15] transition shadow-lg no-underline group text-lg">
                                         Start UCR Filing
                                         <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                                     </Link>

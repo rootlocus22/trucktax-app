@@ -108,11 +108,11 @@ export default function WhoNeedsUcrGuide() {
                                     If you fall into any of the required categories, you need to secure your 2026 UCR before the deadline to avoid steep roadside fines. QuickTruckTax can process your UCR instantly.
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-4">
-                                    <Link href="/ucr/file" className="inline-flex items-center justify-center bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66a15] transition shadow-lg no-underline group">
+                                    <Link href="/ucr/file" className="inline-flex items-center justify-center bg-[var(--color-orange)] !text-white hover:!text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66a15] transition shadow-lg no-underline group">
                                         File Your UCR Now
                                         <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                                     </Link>
-                                    <Link href="/tools/ucr-calculator" className="inline-flex items-center justify-center bg-white/10 hover:bg-white/20 text-white border border-white/30 px-8 py-4 rounded-xl font-bold transition no-underline">
+                                    <Link href="/tools/ucr-calculator" className="inline-flex items-center justify-center bg-white/10 hover:bg-white/20 !text-white hover:!text-white border border-white/30 px-8 py-4 rounded-xl font-bold transition no-underline">
                                         Calculate My Fee First
                                     </Link>
                                 </div>

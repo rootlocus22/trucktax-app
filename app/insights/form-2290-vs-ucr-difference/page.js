@@ -115,7 +115,7 @@ export default function Difference2290UcrGuide() {
                                     While Form 2290 requires extensive IRS Schedule 1 generation, the UCR can be handled incredibly quickly through QuickTruckTax. Calculate your fees and file securely in under 5 minutes.
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                    <Link href="/ucr/file" className="inline-flex items-center justify-center bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66a15] transition shadow-lg no-underline group text-lg w-full sm:w-auto">
+                                    <Link href="/ucr/file" className="inline-flex items-center justify-center bg-[var(--color-orange)] !text-white hover:!text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66a15] transition shadow-lg no-underline group text-lg w-full sm:w-auto">
                                         File Your UCR Now
                                         <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                                     </Link>

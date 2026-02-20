@@ -95,7 +95,7 @@ export default function UcrPenaltiesGuide() {
                                 <Clock className="w-12 h-12 text-blue-500 mx-auto mb-4" />
                                 <h3 className="mt-0 text-[var(--color-navy)]">Are you past due?</h3>
                                 <p className="text-sm">Don't risk the road. You can file late, but the fee owed to the UCR board does not change. File instantly today to update the federal database and get back to hauling legally.</p>
-                                <Link href="/ucr/file" className="mt-6 inline-flex items-center justify-center bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66a15] transition shadow-lg no-underline group text-lg w-full sm:w-auto">
+                                <Link href="/ucr/file" className="mt-6 inline-flex items-center justify-center bg-[var(--color-orange)] !text-white hover:!text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66a15] transition shadow-lg no-underline group text-lg w-full sm:w-auto">
                                     File Your UCR Instantly
                                 </Link>
                                 <div className="mt-4">
