@@ -116,7 +116,12 @@ export default function UcrForTypePage({ params }) {
           </div>
         </section>
 
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-4 mt-8 pt-6 border-t border-slate-200">
+          <p className="w-full text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">More UCR resources</p>
+          <Link href="/insights/complete-guide-ucr-filing-2026" className="text-[var(--color-navy)] font-semibold hover:underline">Complete 2026 UCR Guide</Link>
+          <Link href="/insights/who-needs-ucr-registration" className="text-[var(--color-navy)] font-semibold hover:underline">Who Needs a UCR?</Link>
+          <Link href="/insights/ucr-deadlines-penalties-explained" className="text-[var(--color-navy)] font-semibold hover:underline">UCR Penalties Explained</Link>
+          <Link href="/insights/form-2290-vs-ucr-difference" className="text-[var(--color-navy)] font-semibold hover:underline">UCR vs Form 2290</Link>
           <Link href="/ucr/file" className="text-[var(--color-navy)] font-semibold hover:underline">Start UCR Filing</Link>
           <Link href="/tools/ucr-calculator" className="text-[var(--color-navy)] font-semibold hover:underline">UCR Fee Calculator</Link>
           <Link href="/ucr/pricing" className="text-[var(--color-navy)] font-semibold hover:underline">UCR Pricing</Link>

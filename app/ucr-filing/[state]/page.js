@@ -194,11 +194,13 @@ export default function UcrFilingStatePage({ params }) {
         <div className="mt-10 pt-8 border-t border-slate-200">
           <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">More UCR resources</p>
           <div className="flex flex-wrap gap-4">
+            <Link href="/insights/complete-guide-ucr-filing-2026" className="text-[var(--color-navy)] font-semibold hover:underline">Complete 2026 UCR Guide</Link>
+            <Link href="/insights/who-needs-ucr-registration" className="text-[var(--color-navy)] font-semibold hover:underline">Who Needs a UCR?</Link>
+            <Link href="/insights/ucr-deadlines-penalties-explained" className="text-[var(--color-navy)] font-semibold hover:underline">UCR Penalties Explained</Link>
+            <Link href="/insights/form-2290-vs-ucr-difference" className="text-[var(--color-navy)] font-semibold hover:underline">UCR vs Form 2290</Link>
             <Link href="/ucr/file" className="text-[var(--color-navy)] font-semibold hover:underline">Start UCR Filing</Link>
             <Link href="/tools/ucr-calculator" className="text-[var(--color-navy)] font-semibold hover:underline">UCR Fee Calculator</Link>
             <Link href="/ucr/pricing" className="text-[var(--color-navy)] font-semibold hover:underline">UCR Pricing</Link>
-            <Link href="/services/ucr-registration" className="text-[var(--color-navy)] font-semibold hover:underline">UCR Registration Guide</Link>
-            <Link href="/" className="text-[var(--color-navy)] font-semibold hover:underline">Home</Link>
           </div>
         </div>
       </div>
