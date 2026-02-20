@@ -68,7 +68,7 @@ const faqs = [
     { q: 'What is IRS Form 2290 used for?', a: 'It is used to figure and pay the tax due on heavy highway motor vehicles.' },
     { q: 'Who pays the 2290 tax?', a: 'The person in whose name the vehicle is registered under state, Canadian, or Mexican law.' },
     { q: 'When is the 2290 deadline for 2025?', a: 'For vehicles on the road in July 2025, the deadline is September 2, 2025 (since Aug 31 is a Sunday and Sep 1 is Labor Day).' },
-    { q: 'What is an authorized e-file provider?', a: 'A private company approved by the IRS to submit tax returns electronically.' },
+    { q: 'What is an authorized e-file provider?', a: 'A private company authorized to safely transmit tax returns electronically to the IRS.' },
     { q: 'Can I file 2290 for free?', a: 'The IRS does not charge to file, but e-file providers charge a service fee. Paper filing is free but slow.' },
     { q: 'What is the tax for 80,000 lbs?', a: 'The maximum tax for vehicles 75,000 lbs and over is $550 per year.' },
     { q: 'Do I need to file for a trailer?', a: 'No, you file for the power unit (truck) but include the trailer\'s weight in the calculation.' },

@@ -172,7 +172,7 @@ export function LandingPage() {
             <div className="space-y-8 animate-fade-in-up">
               <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-orange)] border border-white/10 shadow-lg">
                 <ShieldCheck className="w-4 h-4" />
-                IRS Authorized E-file Provider
+                Leading Third-Party E-file Provider
               </div>
               <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-[4.25rem] font-bold leading-[1.1] drop-shadow-2xl tracking-tight">
                 File Form 2290 <br />
@@ -248,7 +248,7 @@ export function LandingPage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
                 {/* Replace with actual logos if available, using text/icons for now */}
-                <div className="flex items-center gap-2 font-bold text-xl text-[var(--color-text)]"><ShieldCheck className="w-8 h-8 text-[var(--color-navy)]" /> IRS Authorized</div>
+                <div className="flex items-center gap-2 font-bold text-xl text-[var(--color-text)]"><ShieldCheck className="w-8 h-8 text-[var(--color-navy)]" /> Federal Compliant</div>
                 <div className="flex items-center gap-2 font-bold text-xl text-[var(--color-text)]"><Lock className="w-8 h-8 text-[var(--color-navy)]" /> 256-bit SSL</div>
                 <div className="flex items-center gap-2 font-bold text-xl text-[var(--color-text)]"><Star className="w-8 h-8 text-[var(--color-navy)]" /> 5-Star Rated</div>
                 <div className="flex items-center gap-2 font-bold text-xl text-[var(--color-text)]"><Phone className="w-8 h-8 text-[var(--color-navy)]" /> US Support</div>
@@ -353,7 +353,7 @@ export function LandingPage() {
                   <ul className="space-y-3">
                     <li className="flex items-center gap-3 text-[var(--color-text)]">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span>IRS-Authorized E-file Provider</span>
+                      <span>Trusted Third-Party E-file Provider</span>
                     </li>
                     <li className="flex items-center gap-3 text-[var(--color-text)]">
                       <CheckCircle className="w-5 h-5 text-green-500" />

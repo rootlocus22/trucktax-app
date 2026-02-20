@@ -107,7 +107,7 @@ export default function VsExpressTruckTax() {
                         <Link href="/services/form-2290-filing" className="block w-full text-center bg-[var(--color-orange)] hover:bg-[#ea580c] py-4 rounded-xl font-bold text-lg transition-colors">
                             Start Filing Now
                         </Link>
-                        <p className="text-center text-xs text-blue-400 mt-4">Safe, Secure & IRS Authorized</p>
+                        <p className="text-center text-xs text-blue-400 mt-4">Safe, Secure & Federal Compliant</p>
                     </div>
                 </div>
             </div>

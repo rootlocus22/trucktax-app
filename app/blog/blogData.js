@@ -712,7 +712,7 @@ export const blogPosts = [
             <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 flex-shrink-0">1</div>
             <div>
               <h4 className="font-bold mb-1">Choose an IRS-Approved E-File Provider</h4>
-              <p className="text-sm text-gray-600 mb-3">Select from <a href="https://www.irs.gov/e-file-providers/authorized-irs-e-file-providers-for-business-returns" target="_blank" rel="nofollow" className="text-blue-600 hover:underline">IRS-authorized e-file providers</a>. Popular options include:</p>
+              <p className="text-sm text-gray-600 mb-3">Select from trusted third-party e-file providers. Popular options include:</p>
               <ul className="text-sm text-gray-600 space-y-1 ml-4">
                 <li>• <a href="https://www.expresstrucktax.com" target="_blank" rel="nofollow" className="text-blue-600 hover:underline">ExpressTruckTax</a> - Fast processing with bulk upload</li>
                 <li>• <a href="https://www.tax2290.com" target="_blank" rel="nofollow" className="text-blue-600 hover:underline">Tax2290</a> - User-friendly interface</li>
@@ -827,7 +827,7 @@ export const blogPosts = [
             Choose from IRS-approved e-file providers for fast, accurate filing with instant Schedule 1 delivery.
           </p>
           <div className="max-w-2xl mx-auto mb-6">
-            <h3 className="text-lg font-bold mb-4">Top IRS-Authorized E-File Providers:</h3>
+            <h3 className="text-lg font-bold mb-4">Top Third-Party E-File Providers:</h3>
             <div className="grid md:grid-cols-2 gap-3 text-left text-sm">
               <div className="bg-white/10 backdrop-blur-sm p-3 rounded">
                 <a href="https://www.expresstrucktax.com" target="_blank" rel="nofollow" className="font-bold text-[var(--color-sky)] hover:underline block mb-1">ExpressTruckTax</a>
@@ -4067,7 +4067,7 @@ export const blogPosts = [
         <div className="mt-12 pt-8 border-t border-[var(--color-border)]">
           <h3 className="text-lg font-bold mb-4 text-[var(--color-text)]">Additional Resources</h3>
           <ul className="space-y-2 text-sm text-[var(--color-muted)]">
-            <li>• <a href="https://www.irs.gov/e-file-providers/authorized-irs-e-file-providers" target="_blank" rel="nofollow" className="text-blue-600 hover:underline">IRS Authorized E-File Providers</a></li>
+            <li>• Trusted Third-Party E-File Providers</li>
             <li>• <a href="https://www.irs.gov/forms-pubs/about-form-2290" target="_blank" rel="nofollow" className="text-blue-600 hover:underline">IRS Form 2290 Official Page</a></li>
           </ul>
         </div>
@@ -4866,7 +4866,7 @@ export const blogPosts = [
         <div className="mt-12 pt-8 border-t border-[var(--color-border)]">
           <h3 className="text-lg font-bold mb-4 text-[var(--color-text)]">Additional Resources</h3>
           <ul className="space-y-2 text-sm text-[var(--color-muted)]">
-            <li>• <a href="https://www.irs.gov/e-file-providers/authorized-irs-e-file-providers" target="_blank" rel="nofollow" className="text-blue-600 hover:underline">IRS Authorized E-File Providers (includes mobile apps)</a></li>
+            <li>• Top Third-Party E-File Providers (includes mobile apps)</li>
             <li>• <a href="https://www.irs.gov/forms-pubs/about-form-2290" target="_blank" rel="nofollow" className="text-blue-600 hover:underline">IRS Form 2290 Official Page</a></li>
           </ul>
         </div>
