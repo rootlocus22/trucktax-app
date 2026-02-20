@@ -6,7 +6,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { getPaymentLogsByUser } from '@/lib/db';
 import Link from 'next/link';
 import { getPaymentsByUser } from '@/lib/db';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, CreditCard, Calendar } from 'lucide-react';
 
 export default function PaymentHistoryPage() {
   const { user } = useAuth();
