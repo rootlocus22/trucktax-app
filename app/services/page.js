@@ -162,19 +162,19 @@ export default function ServicesPage() {
                     <div className="flex flex-wrap gap-4 justify-center">
                         <Link
                             href="/insights/complete-guide-ucr-filing-2026"
-                            className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-6 py-3 rounded-lg font-bold transition"
+                            className="bg-white/10 hover:bg-white/20 !text-white hover:!text-white border border-white/30 px-6 py-3 rounded-lg font-bold transition"
                         >
                             Complete 2026 Guide
                         </Link>
                         <Link
                             href="/insights/who-needs-ucr-registration"
-                            className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-6 py-3 rounded-lg font-bold transition"
+                            className="bg-white/10 hover:bg-white/20 !text-white hover:!text-white border border-white/30 px-6 py-3 rounded-lg font-bold transition"
                         >
                             Who Needs to File?
                         </Link>
                         <Link
                             href="/insights/ucr-renewal-guide"
-                            className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-6 py-3 rounded-lg font-bold transition"
+                            className="bg-white/10 hover:bg-white/20 !text-white hover:!text-white border border-white/30 px-6 py-3 rounded-lg font-bold transition"
                         >
                             UCR Renewal Process
                         </Link>
