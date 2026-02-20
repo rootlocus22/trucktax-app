@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, ShieldCheck, ArrowRight, Calculator, FileText, Calendar, Compass, Truck, MapPin, ChevronRight } from "lucide-react";
-import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { adminDb as db } from "@/lib/firebaseAdmin";
+
 import PseoImage from "../components/PseoImage";
 import VisualTimeline from "../components/VisualTimeline";
 import TaxRateTable from "../components/TaxRateTable";
@@ -54,9 +54,9 @@ export async function generateMetadata({ params }) {
     // Try to fetch meta from DB if available for better SEO
     let dbMeta = {};
     try {
-        const docRef = doc(db, "pseo_pages", slug);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
+        const docRef = db.collection("pseo_pages").doc(slug);
+        const docSnap = await docRef.get();
+        if (docSnap.exists) {
             dbMeta = docSnap.data();
         }
     } catch (e) {
@@ -65,61 +65,61 @@ export async function generateMetadata({ params }) {
 
     // Improved fallback titles with keyword optimization
     const generateOptimizedTitle = (slug, data) => {
-      if (dbMeta.meta_title) return dbMeta.meta_title;
-      
-      // Extract keywords from slug
-      const slugWords = slug.replace(/-/g, ' ');
-      
-      // For calculator pages, include price and value prop
-      if (data.type === "calculator" || data.type === "state-calculator") {
-        const weight = data.weight ? `${parseInt(data.weight).toLocaleString()} lb` : '';
-        const vehicle = data.vehicle_type ? data.vehicle_type.replace(/-/g, ' ') : '';
-        const state = data.state ? ` in ${data.state.replace(/-/g, ' ')}` : '';
-        return `Form 2290 Tax for ${weight} ${vehicle}${state} | File Online $34.99`;
-      }
-      
-      // For deadline pages, include urgency
-      if (data.type === "deadline" || data.type === "state-deadline") {
-        const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1) : '';
-        const year = data.year || '';
-        const state = data.state ? ` in ${data.state.replace(/-/g, ' ')}` : '';
-        return `File Form 2290 ${month} ${year}${state} | Deadline & Rates | QuickTruckTax`;
-      }
-      
-      // For vehicle type pages
-      if (data.type === "state-type") {
-        const vehicle = data.vehicle_type ? data.vehicle_type.replace(/-/g, ' ') : '';
-        const state = data.state ? ` in ${data.state.replace(/-/g, ' ')}` : '';
-        return `Form 2290 for ${vehicle}${state} | File Online $34.99 | QuickTruckTax`;
-      }
-      
-      // Default: include primary keyword + value prop
-      return `${slugWords.charAt(0).toUpperCase() + slugWords.slice(1)} | File Form 2290 Online $34.99`;
+        if (dbMeta.meta_title) return dbMeta.meta_title;
+
+        // Extract keywords from slug
+        const slugWords = slug.replace(/-/g, ' ');
+
+        // For calculator pages, include price and value prop
+        if (data.type === "calculator" || data.type === "state-calculator") {
+            const weight = data.weight ? `${parseInt(data.weight).toLocaleString()} lb` : '';
+            const vehicle = data.vehicle_type ? data.vehicle_type.replace(/-/g, ' ') : '';
+            const state = data.state ? ` in ${data.state.replace(/-/g, ' ')}` : '';
+            return `Form 2290 Tax for ${weight} ${vehicle}${state} | File Online $34.99`;
+        }
+
+        // For deadline pages, include urgency
+        if (data.type === "deadline" || data.type === "state-deadline") {
+            const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1) : '';
+            const year = data.year || '';
+            const state = data.state ? ` in ${data.state.replace(/-/g, ' ')}` : '';
+            return `File Form 2290 ${month} ${year}${state} | Deadline & Rates | QuickTruckTax`;
+        }
+
+        // For vehicle type pages
+        if (data.type === "state-type") {
+            const vehicle = data.vehicle_type ? data.vehicle_type.replace(/-/g, ' ') : '';
+            const state = data.state ? ` in ${data.state.replace(/-/g, ' ')}` : '';
+            return `Form 2290 for ${vehicle}${state} | File Online $34.99 | QuickTruckTax`;
+        }
+
+        // Default: include primary keyword + value prop
+        return `${slugWords.charAt(0).toUpperCase() + slugWords.slice(1)} | File Form 2290 Online $34.99`;
     };
-    
+
     const generateOptimizedDescription = (slug, data) => {
-      if (dbMeta.meta_description) return dbMeta.meta_description;
-      
-      const slugWords = slug.replace(/-/g, ' ');
-      
-      // Include price, speed, and guarantee in descriptions
-      if (data.type === "calculator" || data.type === "state-calculator") {
-        const weight = data.weight ? `${parseInt(data.weight).toLocaleString()} lb` : '';
-        const vehicle = data.vehicle_type ? data.vehicle_type.replace(/-/g, ' ') : '';
-        const state = data.state ? ` in ${data.state.replace(/-/g, ' ')}` : '';
-        return `File Form 2290 for ${weight} ${vehicle}${state}. Get IRS Schedule 1 in minutes. $34.99 flat fee. Free VIN corrections. Start now →`;
-      }
-      
-      if (data.type === "deadline" || data.type === "state-deadline") {
-        const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1) : '';
-        const year = data.year || '';
-        return `File Form 2290 in ${month} ${year}. Learn deadlines, prorated rates, and get Schedule 1 instantly. $34.99 flat fee. E-file now →`;
-      }
-      
-      // Default: include value props
-      return `Complete guide for ${slugWords}. File Form 2290 online in 2 minutes. Get IRS Schedule 1 instantly. $34.99 flat fee. Free VIN corrections. Start now →`;
+        if (dbMeta.meta_description) return dbMeta.meta_description;
+
+        const slugWords = slug.replace(/-/g, ' ');
+
+        // Include price, speed, and guarantee in descriptions
+        if (data.type === "calculator" || data.type === "state-calculator") {
+            const weight = data.weight ? `${parseInt(data.weight).toLocaleString()} lb` : '';
+            const vehicle = data.vehicle_type ? data.vehicle_type.replace(/-/g, ' ') : '';
+            const state = data.state ? ` in ${data.state.replace(/-/g, ' ')}` : '';
+            return `File Form 2290 for ${weight} ${vehicle}${state}. Get IRS Schedule 1 in minutes. $34.99 flat fee. Free VIN corrections. Start now →`;
+        }
+
+        if (data.type === "deadline" || data.type === "state-deadline") {
+            const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1) : '';
+            const year = data.year || '';
+            return `File Form 2290 in ${month} ${year}. Learn deadlines, prorated rates, and get Schedule 1 instantly. $34.99 flat fee. E-file now →`;
+        }
+
+        // Default: include value props
+        return `Complete guide for ${slugWords}. File Form 2290 online in 2 minutes. Get IRS Schedule 1 instantly. $34.99 flat fee. Free VIN corrections. Start now →`;
     };
-    
+
     const title = generateOptimizedTitle(slug, data);
     const description = generateOptimizedDescription(slug, data);
 
@@ -259,10 +259,10 @@ export default async function PseoPage({ params }) {
         // Debug: Check which project we are connecting to
         console.log("Connecting to Firebase Project:", process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
 
-        const docRef = doc(db, "pseo_pages", slug);
-        const docSnap = await getDoc(docRef);
+        const docRef = db.collection("pseo_pages").doc(slug);
+        const docSnap = await docRef.get();
 
-        if (docSnap.exists()) {
+        if (docSnap.exists) {
             displayData = docSnap.data();
         } else {
             // Fallback content if generation hasn't happened yet or failed
