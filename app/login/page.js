@@ -5,15 +5,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  Mail, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  ArrowRight, 
-  ShieldCheck, 
-  Users, 
-  Zap, 
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  ShieldCheck,
+  Users,
+  Zap,
   Award,
   Star,
   CheckCircle2,
@@ -79,21 +79,22 @@ function LoginContent() {
 
   const features = [
     {
-      icon: '🏛️',
+      icon: ShieldCheck,
       title: 'Official UCR Filing',
       description: 'Simple 3-step wizard to file your 2026 UCR registration correctly based on fleet size.'
     },
     {
-      icon: '🛡️',
+      icon: FileCheck,
       title: 'Compliance Dashboard',
       description: 'Track your filing status in real-time and access your UCR certificates anytime.'
     },
     {
-      icon: '⚡',
+      icon: Zap,
       title: 'Smart Fleet Sync',
       description: 'Automatically pull your latest power unit data from FMCSA to ensure accurate filing.'
     }
   ];
+
 
   return (
     <div className="min-h-screen flex">
@@ -119,16 +120,22 @@ function LoginContent() {
           </div>
 
           <div className="space-y-6 mb-12">
-            {features.map((feature, index) => (
-              <div key={index} className="flex items-start gap-4">
-                <div className="text-4xl">{feature.icon}</div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-1 tracking-tight">{feature.title}</h3>
-                  <p className="text-white/80 text-base leading-relaxed">{feature.description}</p>
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <div key={index} className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-1 tracking-tight">{feature.title}</h3>
+                    <p className="text-white/80 text-base leading-relaxed">{feature.description}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
+
 
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20">
             <div className="flex items-center gap-2 mb-3">
@@ -145,63 +152,15 @@ function LoginContent() {
             <p className="text-white/70 text-sm">— Mark Dawson, Logistics Manager</p>
           </div>
         </div>
-        
-        <div className="relative z-10 p-10 xl:p-12 flex flex-col justify-between w-full">
-          <div>
-            <div className="mb-12">
-              <h1 className="text-3xl font-bold mb-2 tracking-tight">QuickTruckTax</h1>
-              <p className="text-white/70 text-base font-light">Expert Form 2290 Filing Service</p>
-            </div>
 
-            <div className="mb-12">
-              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-[1.1] tracking-tight">
-                Welcome Back
-              </h2>
-              <p className="text-lg sm:text-xl text-white/80 leading-relaxed font-light max-w-lg">
-                Continue managing your trucking compliance with our expert concierge service for Form 2290 filing.
-              </p>
-            </div>
-
-            <div className="space-y-6 mb-12">
-              {features.map((feature, index) => {
-                const Icon = feature.icon;
-                return (
-                  <div key={index} className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-1 tracking-tight">{feature.title}</h3>
-                      <p className="text-white/70 text-sm leading-relaxed font-light">{feature.description}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="flex items-center gap-2 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                ))}
-                <span className="ml-2 text-xl font-bold">4.9/5</span>
-              </div>
-              <p className="text-white/90 italic mb-2 text-sm leading-relaxed">
-                "QuickTruckTax made filing so easy. Their team handled everything—I just provided my info and they took care of the rest. Got my Schedule 1 the next day."
-              </p>
-              <p className="text-white/60 text-xs">— Mike Thompson, Owner-Operator</p>
-            </div>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mt-auto">
+          <div className="flex items-center gap-3 mb-2">
+            <Award className="w-6 h-6 text-[var(--color-orange)]" />
+            <h3 className="text-lg font-bold">Trusted by 10,000+ Truckers</h3>
           </div>
-
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-            <div className="flex items-center gap-3 mb-2">
-              <Award className="w-6 h-6 text-[var(--color-orange)]" />
-              <h3 className="text-lg font-bold">Trusted by 10,000+ Truckers</h3>
-            </div>
-            <p className="text-white/80 text-sm font-light">Join thousands of professionals who trust QuickTruckTax for their Form 2290 filing needs.</p>
-          </div>
-          <p className="text-white/90">Join the thousands of carriers who have already secured their 2026 UCR compliance through our smart platform.</p>
+          <p className="text-white/80 text-sm font-light">Join thousands of professionals who trust QuickTruckTax for their UCR and compliance needs.</p>
         </div>
+
       </div>
 
       {/* Right Panel - Login Form */}

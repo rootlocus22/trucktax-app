@@ -5,15 +5,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  Mail, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  ArrowRight, 
-  ShieldCheck, 
-  Users, 
-  Zap, 
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  ShieldCheck,
+  Users,
+  Zap,
   Award,
   Star,
   CheckCircle2,
@@ -94,26 +94,27 @@ function SignupContent() {
 
   const benefits = [
     {
-      icon: '🛡️',
+      icon: ShieldCheck,
       title: 'UCR Filing Wizard',
       description: 'Step-by-step guidance for carriers, brokers, and freight forwarders.'
     },
     {
-      icon: '⚡',
+      icon: Zap,
       title: 'Instant FMCSA Sync',
       description: 'Pulls your power units automatically for accurate fee calculation.'
     },
     {
-      icon: '📋',
+      icon: FileCheck,
       title: 'Certificate Storage',
       description: 'Store and access your official UCR registration proof anytime.'
     },
     {
-      icon: '⏰',
+      icon: Clock,
       title: 'Renewal Reminders',
       description: 'Never miss a UCR deadline again with our automated compliance alerts.'
     }
   ];
+
 
   return (
     <div className="min-h-screen flex">
@@ -139,14 +140,20 @@ function SignupContent() {
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-12">
-            {benefits.map((benefit, index) => (
-              <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                <div className="text-3xl mb-2">{benefit.icon}</div>
-                <h3 className="text-lg font-semibold mb-1">{benefit.title}</h3>
-                <p className="text-white/80 text-sm">{benefit.description}</p>
-              </div>
-            ))}
+            {benefits.map((benefit, index) => {
+              const Icon = benefit.icon;
+              return (
+                <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="w-10 h-10 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center mb-3">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-1 tracking-tight">{benefit.title}</h3>
+                  <p className="text-white/80 text-sm leading-relaxed">{benefit.description}</p>
+                </div>
+              );
+            })}
           </div>
+
 
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20">
             <div className="flex items-center gap-2 mb-3">
@@ -164,62 +171,15 @@ function SignupContent() {
             <p className="text-white/70 text-sm">— Sarah Martinez, Fleet Manager</p>
           </div>
         </div>
-        
-        <div className="relative z-10 p-10 xl:p-12 flex flex-col justify-between w-full">
-          <div>
-            <div className="mb-12">
-              <h1 className="text-3xl font-bold mb-2 tracking-tight">QuickTruckTax</h1>
-              <p className="text-white/70 text-base font-light">Expert Form 2290 Filing Service</p>
-            </div>
 
-            <div className="mb-12">
-              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-[1.1] tracking-tight">
-                Start Your <span className="text-[var(--color-orange)]">Compliant</span> Journey
-              </h2>
-              <p className="text-lg sm:text-xl text-white/80 leading-relaxed font-light max-w-lg">
-                Join thousands of trucking professionals who trust QuickTruckTax for expert Form 2290 filing and compliance management.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-12">
-              {benefits.map((benefit, index) => {
-                const Icon = benefit.icon;
-                return (
-                  <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
-                    <div className="w-10 h-10 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center mb-3">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <h3 className="text-base font-semibold mb-1.5 tracking-tight">{benefit.title}</h3>
-                    <p className="text-white/70 text-xs leading-relaxed font-light">{benefit.description}</p>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="flex items-center gap-2 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                ))}
-                <span className="ml-2 text-xl font-bold">4.9/5</span>
-                <span className="text-white/60 text-sm font-light">(10,000+ reviews)</span>
-              </div>
-              <p className="text-white/90 italic mb-2 text-sm leading-relaxed">
-                "I've been using QuickTruckTax for 3 years. Their service is fast, reliable, and saves me hours every filing season."
-              </p>
-              <p className="text-white/60 text-xs">— Sarah Martinez, Fleet Manager</p>
-            </div>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mt-auto">
+          <div className="flex items-center gap-3 mb-2">
+            <Award className="w-6 h-6 text-[var(--color-orange)]" />
+            <h3 className="text-lg font-bold">Join 10,000+ Success Stories</h3>
           </div>
-
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-            <div className="flex items-center gap-3 mb-2">
-              <Award className="w-6 h-6 text-[var(--color-orange)]" />
-              <h3 className="text-lg font-bold">Join 10,000+ Success Stories</h3>
-            </div>
-            <p className="text-white/80 text-sm font-light">Get started in minutes. File your first Form 2290 today and experience the difference.</p>
-          </div>
-          <p className="text-white/90">Get started in minutes. Calculate your UCR fee, file with ease, and secure your compliance dashboard today.</p>
+          <p className="text-white/80 text-sm font-light">Get started in minutes. Calculate your UCR fee, file with ease, and secure your compliance dashboard today.</p>
         </div>
+
       </div>
 
       {/* Right Panel - Signup Form */}
