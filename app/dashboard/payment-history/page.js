@@ -13,6 +13,7 @@ export default function PaymentHistoryPage() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   useEffect(() => {
     if (!user?.uid) {
@@ -187,7 +188,7 @@ export default function PaymentHistoryPage() {
                             <Calendar className="w-5 h-5" />
                           </div>
                           <div>
-                            <div className="font-bold text-slate-900">{formatDate(payment.timestamp)}</div>
+                            <div className="font-bold text-slate-900">{formatDate(payment.createdAt || payment.date)}</div>
                             <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{payment.orderId || 'Order #' + payment.id.slice(0, 8)}</div>
                           </div>
                         </div>
@@ -200,8 +201,8 @@ export default function PaymentHistoryPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${payment.status === 'paid' ? 'bg-green-100 text-green-800' :
-                            payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
+                          payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
                           }`}>
                           {payment.status}
                         </span>
@@ -218,10 +219,15 @@ export default function PaymentHistoryPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
                           type="button"
-                          onClick={() => openInvoice(payment)}
-                          className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-navy)] hover:underline"
+                          disabled={downloadingId === payment.id}
+                          onClick={() => handleDownloadReceipt(payment)}
+                          className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-navy)] hover:underline disabled:opacity-50"
                         >
-                          <Download className="w-4 h-4" />
+                          {downloadingId === payment.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Download className="w-4 h-4" />
+                          )}
                           Download invoice
                         </button>
                       </td>
@@ -241,7 +247,7 @@ export default function PaymentHistoryPage() {
                         <Calendar className="w-5 h-5 text-slate-400" />
                       </div>
                       <div>
-                        <div className="font-bold text-slate-900">{formatDate(payment.timestamp)}</div>
+                        <div className="font-bold text-slate-900">{formatDate(payment.createdAt || payment.date)}</div>
                         <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{payment.filingType || 'Standard 2290'}</div>
                       </div>
                     </div>
