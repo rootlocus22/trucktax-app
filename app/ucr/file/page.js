@@ -2,9 +2,13 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUcrFee, UCR_ENTITY_TYPES, UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
+import { createFiling } from '@/lib/db';
+import { deleteDraftFiling } from '@/lib/draftHelpers';
+import { trackEvent } from '@/lib/analytics';
+import { getUcrSubmittedPayLaterEmailTemplate } from '@/lib/ucrEmailTemplates';
 import {
   ChevronRight,
   ChevronLeft,
@@ -12,7 +16,6 @@ import {
   Truck,
   MapPin,
   FileCheck,
-  CreditCard,
   CheckCircle,
   Loader2,
   AlertCircle,
@@ -24,17 +27,15 @@ const STEPS = [
   { id: 2, title: 'Fleet count', icon: Truck },
   { id: 3, title: 'State', icon: MapPin },
   { id: 4, title: 'Review', icon: FileCheck },
-  { id: 5, title: 'Payment', icon: CreditCard },
+  { id: 5, title: 'Submit', icon: CheckCircle },
   { id: 6, title: 'Confirmation', icon: CheckCircle },
 ];
 
 function UcrFileContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const [step, setStep] = useState(1);
-  const [paymentRedirecting, setPaymentRedirecting] = useState(false);
-  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [submittingFiling, setSubmittingFiling] = useState(false);
   const [confirmationData, setConfirmationData] = useState(null); // { filingId, legalName, dotNumber, email, total }
   const [form, setForm] = useState({
     legalName: '',
@@ -55,6 +56,7 @@ function UcrFileContent() {
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState('');
   const [consentGiven, setConsentGiven] = useState(false);
+  const [hasTrackedStart, setHasTrackedStart] = useState(false);
 
   // Load draft from URL if present
   useEffect(() => {
@@ -86,10 +88,8 @@ function UcrFileContent() {
     }
   }, [user, authLoading, router]);
 
-  // Restore thank you page when returning with ?thankyou=1 (after replace from Stripe success)
+  // Restore confirmation page from session
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (searchParams?.get('thankyou') !== '1') return;
     try {
       const saved = sessionStorage.getItem('ucr_filing_confirmation');
       if (saved) {
@@ -100,42 +100,16 @@ function UcrFileContent() {
     } catch (e) {
       console.warn('Could not restore confirmation:', e);
     }
-  }, [searchParams]);
+  }, []);
 
-  // After Stripe success redirect: verify session, save payment, then show thank you (step 6)
   useEffect(() => {
-    const success = searchParams?.get('success');
-    const sessionId = searchParams?.get('session_id');
-    if (!user || success !== '1' || !sessionId || verifyLoading) return;
-    setVerifyLoading(true);
-    fetch('/api/stripe/verify-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_id: sessionId }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) throw new Error(data.error);
-        const payload = {
-          filingId: data.filingId,
-          legalName: data.legalName,
-          dotNumber: data.dotNumber,
-          email: data.email,
-          total: data.total,
-        };
-        setConfirmationData(payload);
-        try {
-          sessionStorage.setItem('ucr_filing_confirmation', JSON.stringify(payload));
-        } catch (e) { }
-        setStep(6);
-        setVerifyLoading(false);
-        router.replace('/ucr/file?thankyou=1', { scroll: false });
-      })
-      .catch((err) => {
-        console.error('Verify session failed:', err);
-        setVerifyLoading(false);
-      });
-  }, [searchParams, user]);
+    if (hasTrackedStart) return;
+    trackEvent('ucr_filing_started', {
+      source: typeof window !== 'undefined' ? window.location.pathname : '/ucr/file',
+      model: 'pay_later',
+    });
+    setHasTrackedStart(true);
+  }, [hasTrackedStart]);
 
   const { fee: ucrFee } = getUcrFee(Number(form.powerUnits) || 0, form.entityType);
   const servicePrice = UCR_SERVICE_PLANS[form.plan]?.price ?? 79;
@@ -203,9 +177,10 @@ function UcrFileContent() {
 
   const handleBack = () => { if (step > 1) setStep(step - 1); };
 
-  const handlePayWithStripe = async () => {
+  const handleSubmitFiling = async () => {
     if (!user) return;
-    setPaymentRedirecting(true);
+    if (!consentGiven) return;
+    setSubmittingFiling(true);
     setLookupError('');
     const payload = {
       userId: user.uid,
@@ -226,26 +201,53 @@ function UcrFileContent() {
       ucrFee,
       servicePrice,
       total,
+      paymentStatus: 'pending',
+      paymentRequiredAtDownload: true,
+      amountDueOnCertificateDownload: servicePrice,
     };
     try {
-      const res = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.uid,
-          amountCents: Math.round(servicePrice * 100),
-          planName: UCR_SERVICE_PLANS[form.plan]?.name || 'UCR Filing Service',
-          filingPayload: payload,
-        }),
+      const filingId = await createFiling(payload);
+      const submittedEmailTemplate = getUcrSubmittedPayLaterEmailTemplate({
+        legalName: payload.legalName,
+        dotNumber: payload.dotNumber,
+        filingId,
+        amountDueLater: payload.servicePrice,
       });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      if (data.url) window.location.href = data.url;
-      else throw new Error('No checkout URL');
+
+      trackEvent('ucr_filing_submitted_pay_later', {
+        filingId,
+        plan: payload.plan,
+        servicePrice: payload.servicePrice,
+        powerUnits: payload.powerUnits,
+        state: payload.state,
+      });
+
+      if (draftId) {
+        try {
+          await deleteDraftFiling(draftId);
+        } catch (err) {
+          console.warn('Could not delete UCR draft after submit:', err);
+        }
+      }
+
+      const donePayload = {
+        filingId,
+        legalName: payload.legalName,
+        dotNumber: payload.dotNumber,
+        email: payload.email,
+        amountDueLater: payload.servicePrice,
+        emailSubject: submittedEmailTemplate.subject,
+      };
+      setConfirmationData(donePayload);
+      try {
+        sessionStorage.setItem('ucr_filing_confirmation', JSON.stringify(donePayload));
+      } catch (e) { }
+      setStep(6);
     } catch (err) {
-      console.error('Checkout error:', err);
-      setPaymentRedirecting(false);
-      setLookupError(err.message || 'Payment could not be started. Please try again.');
+      console.error('UCR submit error:', err);
+      setLookupError(err.message || 'Your filing could not be submitted. Please try again.');
+    } finally {
+      setSubmittingFiling(false);
     }
   };
 
@@ -255,17 +257,6 @@ function UcrFileContent() {
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-2 border-[var(--color-navy)]/20 border-t-[var(--color-navy)] rounded-full animate-spin" />
           <p className="text-sm text-slate-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (verifyLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-10 h-10 text-[var(--color-navy)] animate-spin" />
-          <p className="text-sm text-slate-600">Completing your filing...</p>
         </div>
       </div>
     );
@@ -555,16 +546,21 @@ function UcrFileContent() {
               <div className="flex justify-between text-slate-600 mb-4 font-medium"><span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span><span>${servicePrice}</span></div>
               <div className="flex justify-between font-bold text-xl pt-4 border-t border-slate-200 text-[var(--color-navy)]"><span>Total payable</span><span>${total.toLocaleString()}</span></div>
             </div>
+            <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              <p className="text-sm text-emerald-800">
+                <strong>Pay-later protection:</strong> You can submit now with <strong>$0 upfront</strong>. We charge the service fee only after your UCR certificate is uploaded and ready for full download.
+              </p>
+            </div>
           </div>
         )}
 
-        {/* Step 5: Payment — Stripe Checkout */}
+        {/* Step 5: Submit filing (pay later) */}
         {step === 5 && (
           <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-            <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Pay service fee</h2>
+            <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Submit now, pay when certificate is ready</h2>
             {!user ? (
               <div className="text-center py-6">
-                <p className="text-slate-600 mb-4">Sign in or create an account to complete your UCR filing and payment.</p>
+                <p className="text-slate-600 mb-4">Sign in or create an account to complete your UCR filing.</p>
                 <Link href={`/login?redirect=${encodeURIComponent('/ucr/file')}`} className="inline-block bg-[var(--color-orange)] text-white px-6 py-3 rounded-xl font-semibold">Sign in to continue</Link>
               </div>
             ) : (
@@ -572,9 +568,14 @@ function UcrFileContent() {
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
                   <div className="flex justify-between text-slate-600 mb-2"><span>UCR official fee (2026)</span><span>${ucrFee.toLocaleString()}</span></div>
                   <div className="flex justify-between text-slate-600 mb-2"><span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span><span>${servicePrice}</span></div>
-                  <div className="flex justify-between font-bold text-lg pt-2 border-t border-slate-200 text-[var(--color-navy)]"><span>Total due today</span><span>${total.toLocaleString()}</span></div>
+                  <div className="flex justify-between font-bold text-lg pt-2 border-t border-slate-200 text-[var(--color-navy)]"><span>Due today</span><span>$0.00</span></div>
+                  <div className="flex justify-between text-sm text-slate-600 mt-2"><span>Pay on certificate download</span><span>${servicePrice.toLocaleString()}</span></div>
                 </div>
-                <p className="text-sm text-slate-500 mb-4">You’ll be taken to secure Stripe Checkout to pay the <strong>${servicePrice} service fee</strong>. The UCR fee above is paid separately to the state; we’ll guide you through that after payment.</p>
+                <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                  <p className="text-sm text-emerald-800">
+                    <strong>File first, pay later:</strong> We process your UCR filing first. Once your certificate is ready, you can preview it in your dashboard and unlock the full download for ${servicePrice}.
+                  </p>
+                </div>
                 {lookupError && (
                   <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-xl border border-red-100 mb-4">
                     <AlertCircle className="w-4 h-4" /> {lookupError}
@@ -596,14 +597,14 @@ function UcrFileContent() {
 
                 <button
                   type="button"
-                  onClick={handlePayWithStripe}
-                  disabled={paymentRedirecting || !consentGiven}
+                  onClick={handleSubmitFiling}
+                  disabled={submittingFiling || !consentGiven}
                   className="mt-2 w-full bg-[var(--color-navy)] text-white py-4 min-h-[52px] rounded-xl font-bold touch-manipulation flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
                 >
-                  {paymentRedirecting ? (
-                    <>Redirecting to checkout… <Loader2 className="w-5 h-5 animate-spin" /></>
+                  {submittingFiling ? (
+                    <>Submitting your filing… <Loader2 className="w-5 h-5 animate-spin" /></>
                   ) : (
-                    <>Pay ${servicePrice} with card — Stripe Checkout <CreditCard className="w-5 h-5" /></>
+                    <>Submit filing now (pay later)</>
                   )}
                 </button>
               </>
@@ -617,8 +618,8 @@ function UcrFileContent() {
             <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
               <CheckCircle className="w-14 h-14 text-emerald-600" />
             </div>
-            <h1 className="text-3xl font-bold text-[var(--color-text)] mb-2">Thank you for your payment</h1>
-            <p className="text-lg text-slate-600 mb-6">Your UCR filing has been submitted and your payment was successful.</p>
+            <h1 className="text-3xl font-bold text-[var(--color-text)] mb-2">Your UCR filing is submitted</h1>
+            <p className="text-lg text-slate-600 mb-6">No upfront charge. You’ll pay only when your certificate is ready to download.</p>
             <div className="max-w-md mx-auto p-6 bg-slate-50 rounded-2xl border border-slate-200 text-left mb-8">
               <p className="text-sm text-slate-600 mb-2">
                 <strong className="text-[var(--color-text)]">Registration:</strong>{' '}
@@ -627,14 +628,19 @@ function UcrFileContent() {
               <p className="text-sm text-slate-600 mb-2">
                 <strong className="text-[var(--color-text)]">Confirmation email:</strong> {confirmationData?.email || form.email || user?.email}
               </p>
-              {confirmationData?.total != null && (
+              {confirmationData?.amountDueLater != null && (
                 <p className="text-sm text-slate-600">
-                  <strong className="text-[var(--color-text)]">Amount paid:</strong> ${Number(confirmationData.total).toLocaleString()}
+                  <strong className="text-[var(--color-text)]">Pay later amount:</strong> ${Number(confirmationData.amountDueLater).toLocaleString()}
+                </p>
+              )}
+              {confirmationData?.emailSubject && (
+                <p className="text-sm text-slate-600 mt-2">
+                  <strong className="text-[var(--color-text)]">Email subject preview:</strong> {confirmationData.emailSubject}
                 </p>
               )}
             </div>
             <p className="text-slate-600 mb-8 max-w-lg mx-auto leading-relaxed">
-              Our team will process your filing with the UCR board. We’ll notify you at your email once your official certificate is ready. You can also track status in your dashboard.
+              Our team will process your filing with the UCR board. Once your certificate is uploaded, you can preview it in your dashboard and unlock full download in one click.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/dashboard" className="inline-flex items-center justify-center min-h-[48px] bg-[var(--color-navy)] !text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-navy-200/50 transition touch-manipulation w-full sm:w-auto">Go to Dashboard</Link>
@@ -649,7 +655,7 @@ function UcrFileContent() {
           <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 mt-8">
             <button type="button" onClick={handleBack} className="min-h-[48px] px-6 py-3 rounded-xl border border-slate-200 font-medium text-[var(--color-text)] touch-manipulation w-full sm:w-auto">Back</button>
             <button type="button" onClick={handleNext} disabled={!canProceed()} className="flex-1 min-h-[52px] px-8 py-3 rounded-xl bg-[var(--color-orange)] text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation w-full sm:w-auto">
-              {step === 4 ? 'Proceed to payment' : 'Next'} <ChevronRight className="w-5 h-5" />
+              {step === 4 ? 'Proceed to submit' : 'Next'} <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         )}

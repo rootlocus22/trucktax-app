@@ -573,8 +573,14 @@ export default function FilingsListPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Mobile Card Layout */}
-                <div className="lg:hidden space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-bold text-slate-900">All Filings</h3>
+                  <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
+                    {allFilingsForTable.length} total
+                  </span>
+                </div>
+                {/* Filing list visible on all sizes */}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {mobileFilingCards}
                 </div>
               </div>

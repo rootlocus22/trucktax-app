@@ -21,7 +21,9 @@ const db = getFirestore();
 /**
  * POST /api/stripe/verify-session
  * Body: { session_id }
- * Retrieves Stripe session, verifies payment, loads pending UCR filing, creates filing in Firestore, deletes pending.
+ * Retrieves Stripe session, verifies payment, and finalizes either:
+ * - pending UCR filing creation, or
+ * - UCR certificate unlock payment for an existing filing.
  * Returns { filingId, legalName, dotNumber, total } for confirmation page.
  */
 export async function POST(request) {
@@ -43,6 +45,56 @@ export async function POST(request) {
 
     if (session.payment_status !== 'paid') {
       return NextResponse.json({ error: 'Payment not completed' }, { status: 400 });
+    }
+
+    const unlockType = session.metadata?.type;
+    const pendingPaymentId = session.metadata?.pendingPaymentId;
+    if (unlockType === 'ucr_certificate_unlock' && pendingPaymentId) {
+      const pendingPaymentRef = db.collection('pending_ucr_payments').doc(pendingPaymentId);
+      const pendingPaymentSnap = await pendingPaymentRef.get();
+      if (!pendingPaymentSnap.exists) {
+        return NextResponse.json({ error: 'Pending unlock payment not found or already completed' }, { status: 404 });
+      }
+
+      const paymentData = pendingPaymentSnap.data();
+      const filingId = paymentData.filingId;
+      const amount = (Number(paymentData.amountCents) || 0) / 100;
+      const now = new Date();
+
+      const filingRef = db.collection('filings').doc(filingId);
+      const filingSnap = await filingRef.get();
+      if (!filingSnap.exists) {
+        return NextResponse.json({ error: 'Filing not found for unlock payment' }, { status: 404 });
+      }
+      const filing = filingSnap.data();
+
+      await filingRef.update({
+        paymentStatus: 'paid',
+        amountPaid: amount,
+        paidAt: now,
+        stripeSessionId: sessionId,
+        updatedAt: now,
+      });
+
+      await db.collection('payments').add({
+        userId: paymentData.userId,
+        filingId,
+        type: 'ucr_certificate_unlock',
+        description: `UCR Certificate Unlock – ${filing.legalName || 'Carrier'} (USDOT: ${filing.dotNumber || '—'})`,
+        amount,
+        total: amount,
+        currency: 'USD',
+        stripeSessionId: sessionId,
+        status: 'paid',
+        createdAt: now,
+      });
+
+      await pendingPaymentRef.delete();
+      return NextResponse.json({
+        mode: 'ucr_certificate_unlock',
+        filingId,
+        amount,
+      });
     }
 
     const pendingId = session.metadata?.pendingId;

@@ -20,7 +20,7 @@ const db = getFirestore();
 
 /**
  * POST /api/stripe/checkout
- * Body: { userId, amountCents, planName, filingPayload }
+ * Body: { userId, amountCents, planName, filingPayload, filingId, mode }
  * filingPayload: all fields needed for createFiling (ucrFee, servicePrice, total, legalName, dotNumber, etc.)
  * Creates a pending_ucr_filings doc, then a Stripe Checkout Session. Returns { url, pendingId }.
  */
@@ -32,18 +32,70 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { userId, amountCents, planName, filingPayload } = body;
+    const { userId, amountCents, planName, filingPayload, filingId, mode } = body;
 
-    if (!userId || amountCents == null || !filingPayload) {
-      return NextResponse.json(
-        { error: 'userId, amountCents, and filingPayload are required' },
-        { status: 400 }
-      );
+    if (!userId || amountCents == null) {
+      return NextResponse.json({ error: 'userId and amountCents are required' }, { status: 400 });
     }
 
     const amount = Math.round(Number(amountCents));
     if (amount < 50) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
+    }
+
+    const origin = request.headers.get('origin') || request.headers.get('x-forwarded-host') || 'http://localhost:3000';
+    const baseUrl = origin.startsWith('http') ? origin : `https://${origin}`;
+
+    const stripe = new Stripe(stripeSecret);
+    let session;
+
+    if (mode === 'ucr_certificate_unlock') {
+      if (!filingId) {
+        return NextResponse.json({ error: 'filingId is required for certificate unlock payment' }, { status: 400 });
+      }
+
+      const pendingPaymentRef = db.collection('pending_ucr_payments').doc();
+      const pendingPaymentId = pendingPaymentRef.id;
+      await pendingPaymentRef.set({
+        userId,
+        filingId,
+        mode: 'ucr_certificate_unlock',
+        amountCents: amount,
+        createdAt: new Date(),
+      });
+
+      session = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: planName || 'UCR Certificate Download Unlock',
+                description: 'Unlock your completed UCR certificate for full-quality download.',
+                images: [],
+              },
+              unit_amount: amount,
+            },
+            quantity: 1,
+          },
+        ],
+        success_url: `${baseUrl}/dashboard/filings/${filingId}?pay_success=1&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/dashboard/filings/${filingId}?pay_canceled=1`,
+        client_reference_id: userId,
+        metadata: {
+          pendingPaymentId,
+          filingId,
+          type: 'ucr_certificate_unlock',
+        },
+      });
+
+      return NextResponse.json({ url: session.url, pendingId: pendingPaymentId });
+    }
+
+    if (!filingPayload) {
+      return NextResponse.json({ error: 'filingPayload is required' }, { status: 400 });
     }
 
     const pendingRef = db.collection('pending_ucr_filings').doc();
@@ -60,11 +112,7 @@ export async function POST(request) {
       createdAt: new Date(),
     });
 
-    const origin = request.headers.get('origin') || request.headers.get('x-forwarded-host') || 'http://localhost:3000';
-    const baseUrl = origin.startsWith('http') ? origin : `https://${origin}`;
-
-    const stripe = new Stripe(stripeSecret);
-    const session = await stripe.checkout.sessions.create({
+    session = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
       line_items: [

@@ -459,6 +459,12 @@ export default function DashboardPage() {
                   const status = activeUcr?.status || 'none';
                   const isCompleted = status === 'completed';
                   const isSubmittedOrProcessing = status === 'submitted' || status === 'processing';
+                  const activeUcrUnlockPrice = Number(activeUcr?.amountDueOnCertificateDownload ?? activeUcr?.servicePrice ?? 79);
+                  const isUcrDownloadLocked = Boolean(
+                    activeUcr?.certificateUrl &&
+                    activeUcr?.paymentStatus !== 'paid' &&
+                    Number(activeUcr?.amountPaid || 0) < activeUcrUnlockPrice
+                  );
                   const historicalFilings = filings.filter(f => f.filingType === 'ucr' && f.filingYear < 2026);
 
                   return (
@@ -491,6 +497,7 @@ export default function DashboardPage() {
                                 )}
                               </div>
                               <p className="text-sm text-slate-600 leading-relaxed mt-1">Annual registration required for interstate motor carriers.</p>
+                              <p className="text-xs text-emerald-700 font-semibold mt-2">File first with $0 upfront. Pay only when your certificate is ready.</p>
                               <div className="flex flex-wrap items-center gap-4 mt-3">
                                 <span className="flex items-center gap-1.5 text-xs text-slate-500">
                                   <Calendar className="w-4 h-4 text-slate-400" /> Year: 2026
@@ -503,17 +510,26 @@ export default function DashboardPage() {
                           </div>
                           <div className="flex flex-col sm:flex-row gap-4 flex-shrink-0 lg:w-auto w-full">
                             {isCompleted ? (
-                              <button
-                                type="button"
-                                onClick={() => window.open(activeUcr.certificateUrl || '#', '_blank')}
-                                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 py-3 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 transition active:scale-[0.98] touch-manipulation shadow-sm"
-                              >
-                                <Download className="w-5 h-5" /> Download Certificate
-                              </button>
+                              isUcrDownloadLocked ? (
+                                <Link
+                                  href={`/dashboard/filings/${activeUcr.id}`}
+                                  className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 py-3 bg-[var(--color-navy)] !text-white rounded-xl text-sm font-semibold hover:bg-[var(--color-navy-soft)] transition active:scale-[0.98] touch-manipulation shadow-sm"
+                                >
+                                  View Certificate & Pay Later
+                                </Link>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => window.open(activeUcr.certificateUrl || '#', '_blank')}
+                                  className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 py-3 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 transition active:scale-[0.98] touch-manipulation shadow-sm"
+                                >
+                                  <Download className="w-5 h-5" /> Download Certificate
+                                </button>
+                              )
                             ) : isSubmittedOrProcessing ? (
                               <div className="flex flex-col gap-4 min-w-0 max-w-sm">
                                 <p className="text-sm text-slate-600 leading-relaxed">
-                                  An agent is processing your filing. You’ll see your certificate here when it’s ready.
+                                  An agent is processing your filing. No upfront charge was taken. You’ll pay only when your certificate is ready to unlock.
                                 </p>
                                 <Link
                                   href={`/dashboard/filings/${activeUcr.id}`}

@@ -95,8 +95,8 @@ function SignupContent() {
   const benefits = [
     {
       icon: ShieldCheck,
-      title: 'UCR Filing Wizard',
-      description: 'Step-by-step guidance for carriers, brokers, and freight forwarders.'
+      title: 'File First, Pay Later',
+      description: 'Start your UCR filing with $0 upfront and pay only when your certificate is ready.'
     },
     {
       icon: Zap,
@@ -135,7 +135,7 @@ function SignupContent() {
               Start Your <span className="text-[var(--color-amber)]">UCR Compliance</span> Journey
             </h2>
             <p className="text-lg sm:text-xl lg:text-[1.375rem] text-white/90 leading-relaxed">
-              The fastest way to file your UCR and stay 100% compliant with FMCSA regulations.
+              The easiest way to file UCR without upfront stress: submit first, then pay once your certificate is available.
             </p>
           </div>
 

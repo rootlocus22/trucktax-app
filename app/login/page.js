@@ -80,8 +80,8 @@ function LoginContent() {
   const features = [
     {
       icon: ShieldCheck,
-      title: 'Official UCR Filing',
-      description: 'Simple 3-step wizard to file your 2026 UCR registration correctly based on fleet size.'
+      title: 'File First, Pay Later',
+      description: 'Submit your UCR with $0 upfront and pay only when your certificate is ready to download.'
     },
     {
       icon: FileCheck,
@@ -115,7 +115,7 @@ function LoginContent() {
               Welcome to Your <span className="text-[var(--color-amber)]">UCR Compliance</span> Hub
             </h2>
             <p className="text-lg sm:text-xl lg:text-[1.375rem] text-white/90 leading-relaxed">
-              Continue managing your trucking fleet with our guided UCR filing wizard, fee calculator, and secure certificate storage.
+              Continue managing your UCR filings with no upfront payment pressure. Submit first, then pay at certificate unlock.
             </p>
           </div>
 

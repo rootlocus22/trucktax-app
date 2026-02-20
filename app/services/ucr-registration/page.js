@@ -4,7 +4,7 @@ import SchemaMarkup from '@/components/seo/SchemaMarkup';
 
 export const metadata = {
     title: 'UCR Registration & Renewal Guide | Unified Carrier Registration',
-    description: 'Learn how to file your annual UCR registration online. Comprehensive guide for interstate carriers on bracket-based fee structures and compliance.',
+    description: 'Learn how to file your annual UCR registration online with $0 upfront. We file first, then you pay when your UCR certificate is ready.',
     keywords: 'ucr registration guide, ucr renewal, unified carrier registration, file ucr online instructions, interstate carrier registration info',
     alternates: {
         canonical: 'https://www.quicktrucktax.com/services/ucr-registration',
@@ -24,6 +24,10 @@ export default function UCRServicePage() {
         {
             question: "How are UCR fees calculated?",
             answer: "UCR fees are based on the size of your fleet (number of commercial motor vehicles). There are brackets: 0-2 vehicles, 3-5, 6-20, 21-100, and 101-1000+. The fee is not per-vehicle but a flat rate for the bracket."
+        },
+        {
+            question: "Do I have to pay before my filing is submitted?",
+            answer: "No. With our file-first model, you can submit your UCR filing with no upfront service charge. You pay later when your certificate is uploaded and ready for full download in your dashboard."
         },
         {
             question: "Do I need UCR if I only drive in one state?",
@@ -52,20 +56,20 @@ export default function UCRServicePage() {
                 <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
                     <div>
                         <div className="inline-flex items-center gap-2 bg-indigo-500/20 text-indigo-200 px-3 py-1 rounded-full text-sm font-semibold mb-6 border border-indigo-400/30">
-                            <Map className="w-4 h-4" /> Interstate Compliance
+                            <Map className="w-4 h-4" /> File First, Pay Later
                         </div>
                         <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
                             Unified Carrier Registration (UCR) <span className="text-indigo-400">Renewal</span>
                         </h1>
                         <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                            Mandatory annual registration for all carriers crossing state lines. Simple fee calculation based on your fleet size.
+                            Mandatory annual registration for all carriers crossing state lines. Submit first with $0 upfront and pay only when your UCR certificate is ready.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
-                                href="/resources"
+                                href="/ucr/file"
                                 className="bg-indigo-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-indigo-600 transition shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2"
                             >
-                                Explore Resources <ArrowRight className="w-5 h-5" />
+                                Start UCR Filing ($0 Upfront) <ArrowRight className="w-5 h-5" />
                             </Link>
                         </div>
                         <div className="mt-8 flex items-center gap-6 text-sm text-blue-200">
@@ -136,6 +140,7 @@ export default function UCRServicePage() {
                         ))}
                     </div>
                     <p className="text-center text-slate-400 text-xs mt-8">* Official UCR government fees. Service filing fees apply separately.</p>
+                    <p className="text-center text-slate-500 text-sm mt-3">No upfront service charge. You pay when your certificate is ready for full download.</p>
                 </div>
             </div>
 
@@ -157,13 +162,13 @@ export default function UCRServicePage() {
             {/* CTA */}
             <div className="py-20 px-6 bg-slate-50 text-center">
                 <h2 className="text-3xl font-bold text-[var(--color-navy)] mb-4">Ready to file your 2026 UCR?</h2>
-                <p className="text-lg text-slate-600 mb-10 max-w-xl mx-auto">Join thousands of carriers who use QuickTruckTax for simple, fast, and compliant UCR filings.</p>
+                <p className="text-lg text-slate-600 mb-10 max-w-xl mx-auto">Join carriers choosing a stress-free UCR process: submit now, then pay only after your certificate is delivered.</p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <Link
                         href="/ucr/file"
                         className="inline-flex bg-indigo-600 text-white px-10 py-5 rounded-full font-bold text-xl hover:bg-indigo-700 transition shadow-xl shadow-indigo-200 items-center gap-2 transform hover:-translate-y-1"
                     >
-                        Start Filing Now <ArrowRight className="w-5 h-5" />
+                        Start Filing Now ($0 Upfront) <ArrowRight className="w-5 h-5" />
                     </Link>
                     <Link
                         href="/tools/ucr-calculator"

@@ -7,10 +7,10 @@ import RedirectLoggedInToDashboard from "@/components/RedirectLoggedInToDashboar
 
 export const metadata = {
   title: "UCR Filing & Renewal Service – Fast, Simple & Compliant | QuickTruckTax",
-  description: "File your UCR registration online. Instant fee calculator, guided filing, and compliance dashboard. Start your UCR filing in minutes.",
+  description: "File your UCR registration online with $0 upfront. We complete your filing first, then you pay when your UCR certificate is ready to download.",
   openGraph: {
     title: "UCR Filing & Renewal Service – Fast, Simple & Compliant | QuickTruckTax",
-    description: "File your UCR registration online. Instant fee calculator, guided filing, and compliance dashboard. Start your UCR filing in minutes.",
+    description: "File your UCR registration online with $0 upfront. We complete your filing first, then you pay when your UCR certificate is ready to download.",
     url: "https://www.quicktrucktax.com",
   },
 };
@@ -42,8 +42,8 @@ const services = [
   },
   {
     title: "UCR Registration",
-    description: "Renew your Unified Carrier Registration quickly and securely.",
-    price: "Starting at $10",
+    description: "File now with no upfront charge. Pay only when your UCR certificate is ready.",
+    price: "$0 upfront",
     image: "/dashboard-mockup-v2.png",
     href: "/services/ucr-renewal",
     features: ["Fast Processing", "Multi-State Support", "Bulk Renewals"]
@@ -225,13 +225,13 @@ export default function Home() {
           <div className="relative z-10 px-4 sm:px-6 py-14 sm:py-20 lg:px-16 grid gap-10 sm:gap-12 lg:grid-cols-2 items-center">
             <div className="space-y-6 sm:space-y-8">
               <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 border border-emerald-400/30 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-300">
-                UCR Specialist
+                File First, Pay Later
               </div>
               <h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl text-white">
                 The Smart <span className="block text-blue-200">UCR Filing &amp; Compliance</span> Platform for Truckers
               </h1>
               <p className="text-lg leading-8 text-slate-300 max-w-xl">
-                File your UCR registration online. Instant fee calculator, guided filing, and compliance dashboard. Start your UCR filing in minutes.
+                Submit your UCR in minutes with no upfront payment. We complete your filing first, and you only pay when your certificate is uploaded and ready to download.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 sm:items-center">
@@ -241,7 +241,7 @@ export default function Home() {
                 >
                   <span className="flex items-center gap-2.5 leading-tight">
                     <span className="text-base sm:text-[15px] font-extrabold">Start UCR Filing</span>
-                    <span className="inline-flex items-center rounded-md bg-white/20 px-2 py-0.5 text-[11px] font-bold text-white/95">$79</span>
+                    <span className="inline-flex items-center rounded-md bg-white/20 px-2 py-0.5 text-[11px] font-bold text-white/95">$0 upfront</span>
                   </span>
                   <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 ring-1 ring-white/30 transition-transform duration-200 group-hover:translate-x-0.5">
                     <ChevronRight className="w-4 h-4" />
@@ -265,10 +265,10 @@ export default function Home() {
                   <CheckCircle className="w-5 h-5 text-green-400" /> Fee calculation
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" /> Guided filing
+                <CheckCircle className="w-5 h-5 text-green-400" /> Guided filing first
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" /> Compliance dashboard
+                <CheckCircle className="w-5 h-5 text-green-400" /> Pay on certificate download
                 </div>
               </div>
             </div>
@@ -285,7 +285,7 @@ export default function Home() {
 
         {/* UCR Urgency Banner */}
         <div className="bg-amber-500 text-white py-3 px-4 text-center text-sm font-semibold">
-          🚛 2026 UCR registration is open. File before Dec 31 to stay compliant.{' '}
+          🚛 2026 UCR registration is open. File before Dec 31 with $0 upfront — pay later after your certificate is ready.{' '}
           <Link href="/ucr/file" className="underline ml-1 inline-block py-2 touch-manipulation font-bold">Start UCR Filing →</Link>
         </div>
 
@@ -352,8 +352,8 @@ export default function Home() {
 
             {[
               { title: "1. Lookup USDOT", desc: "Enter your DOT number and our AI will instantly pull your latest FMCSA business details.", icon: Search },
-              { title: "2. Verify Fleet", desc: "We'll calculate your UCR bracket (0-2, 3-5, etc.) and service fee based on your fleet size.", icon: Calculator },
-              { title: "3. Get Certificate", desc: "We file your registration instantly and store your UCR certificate in our secure portal.", icon: Download }
+              { title: "2. Submit With $0 Upfront", desc: "Review your UCR bracket and submit right away. No upfront service charge is required to start.", icon: Calculator },
+              { title: "3. Preview & Pay Later", desc: "Once your UCR certificate is uploaded, preview it in your dashboard and unlock full download with one secure payment.", icon: Download }
             ].map((step, idx) => (
               <div key={idx} className="flex flex-col items-center text-center bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition">
                 <div className="w-24 h-24 rounded-full bg-blue-50 border-4 border-white shadow-sm flex items-center justify-center mb-6 text-[var(--color-navy)] text-indigo-600">
