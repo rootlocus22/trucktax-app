@@ -1067,10 +1067,15 @@ export default function FilingDetailPage() {
                       </div>
                     )}
                   </div>
-                )}
-              </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-sm text-slate-500 italic">No vehicles</div>
+          )}
+        </div>
 
-              {/* Filing Details with Payment Info */}
+        {/* Filing Details with Payment Info */}
               <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Calendar className="w-4 h-4 text-purple-600" />
@@ -1139,7 +1144,6 @@ export default function FilingDetailPage() {
                   )}
                 </div>
               </div>
-            </div>
 
             {/* Amendment Details Section */}
             {filing.filingType === 'amendment' && filing.amendmentType && (

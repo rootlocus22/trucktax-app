@@ -573,11 +573,12 @@ export default function VehiclesPage() {
                 {uploading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  <Upload className="w-4 h-4" />
-                  <span className="hidden sm:inline">Import CSV</span>
-                  <span className="sm:hidden">Import</span>
-                </>
-              )}
+                  <span className="inline-flex items-center gap-2">
+                    <Upload className="w-4 h-4" />
+                    <span className="hidden sm:inline">Import CSV</span>
+                    <span className="sm:hidden">Import</span>
+                  </span>
+                )}
             </button>
             <Link
               href="/ucr/file"

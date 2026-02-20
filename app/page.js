@@ -1,10 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { complianceGuides } from "@/lib/guides";
-import { ShieldCheck, ChevronRight, Calculator, CheckCircle, Lock, Award, FileText, Download, Clock, Edit3, Users, LayoutGrid, ArrowRight, Search } from "lucide-react";
+import { ShieldCheck, ChevronRight, Calculator, CheckCircle, Lock, Award, FileText, Download, Clock, Edit3, Users, LayoutGrid, ArrowRight, Search, MessageSquare } from "lucide-react";
 import HomepageUcrCalculator from "@/components/HomepageUcrCalculator";
 import RedirectLoggedInToDashboard from "@/components/RedirectLoggedInToDashboard";
 
@@ -23,6 +20,15 @@ const spotlightSlugs = [
   "ucr-renewal-guide",
   "mcs150-update-guide",
   "ifta-filing-basics",
+];
+
+const categoryOrder = [
+  "Form 2290 / HVUT",
+  "UCR",
+  "FMCSA / MCS-150",
+  "IFTA & Fuel Taxes",
+  "Business & Administration",
+  "Resources",
 ];
 
 const services = [
@@ -191,11 +197,6 @@ export default function Home() {
     ]
   };
 
-  // Filter guides based on spotlight slugs
-  const spotlightGuides = complianceGuides.filter(guide => 
-    spotlightSlugs.includes(guide.slug)
-  );
-
   return (
     <RedirectLoggedInToDashboard>
       <>
@@ -233,20 +234,29 @@ export default function Home() {
                 File your UCR registration online. Instant fee calculator, guided filing, and compliance dashboard. Start your UCR filing in minutes.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 sm:items-center">
                 <Link
                   href="/ucr/file"
-                  className="inline-flex items-center justify-center gap-2 min-h-[52px] rounded-full bg-[var(--color-orange)] px-6 sm:px-8 py-4 text-base sm:text-lg font-bold !text-white shadow-lg shadow-orange-500/20 transition hover:bg-[#e66a15] hover:scale-[1.02] active:scale-[0.98] transform duration-200 touch-manipulation w-full sm:w-auto"
+                  className="group inline-flex items-center justify-between gap-3 min-h-[54px] sm:min-h-[50px] rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#ff8b3d] to-[#f07a2d] px-5 sm:px-6 py-3.5 sm:py-3 !text-white shadow-[0_8px_22px_rgba(255,139,61,0.32)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(255,139,61,0.4)] active:translate-y-0 touch-manipulation w-full sm:w-auto"
                 >
-                  Start UCR Filing – $79
-                  <ChevronRight className="w-5 h-5" />
+                  <span className="flex items-center gap-2.5 leading-tight">
+                    <span className="text-base sm:text-[15px] font-extrabold">Start UCR Filing</span>
+                    <span className="inline-flex items-center rounded-md bg-white/20 px-2 py-0.5 text-[11px] font-bold text-white/95">$79</span>
+                  </span>
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 ring-1 ring-white/30 transition-transform duration-200 group-hover:translate-x-0.5">
+                    <ChevronRight className="w-4 h-4" />
+                  </span>
                 </Link>
                 <Link
                   href="/tools/ucr-calculator"
-                  className="inline-flex items-center justify-center gap-2 min-h-[52px] rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-6 sm:px-8 py-4 text-base sm:text-lg font-semibold !text-white transition hover:bg-white/20 touch-manipulation w-full sm:w-auto"
+                  className="group inline-flex items-center justify-between gap-3 min-h-[54px] sm:min-h-[50px] rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 px-5 sm:px-6 py-3.5 sm:py-3 !text-white transition-all duration-200 hover:bg-white/20 hover:border-white/35 hover:-translate-y-0.5 touch-manipulation w-full sm:w-auto"
                 >
-                  <Calculator className="w-5 h-5" />
-                  UCR Fee Calculator
+                  <span className="flex items-center gap-3">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/20">
+                      <Calculator className="w-4 h-4" />
+                    </span>
+                    <span className="text-base sm:text-[15px] font-bold leading-tight">UCR Fee Calculator</span>
+                  </span>
                 </Link>
               </div>
 
@@ -261,6 +271,7 @@ export default function Home() {
                   <CheckCircle className="w-5 h-5 text-green-400" /> Compliance dashboard
                 </div>
               </div>
+            </div>
 
             {/* UCR Calculator above the fold + CTA */}
             <div className="hidden lg:block relative max-w-md">
@@ -269,7 +280,7 @@ export default function Home() {
             <div className="lg:hidden mt-8 max-w-sm mx-auto">
               <HomepageUcrCalculator />
             </div>
-          </div>
+        </div>
         </section>
 
         {/* UCR Urgency Banner */}
@@ -348,8 +359,10 @@ export default function Home() {
                 <div className="w-24 h-24 rounded-full bg-blue-50 border-4 border-white shadow-sm flex items-center justify-center mb-6 text-[var(--color-navy)] text-indigo-600">
                   <step.icon className="w-10 h-10" />
                 </div>
-              ))}
+                <h3 className="text-xl font-bold text-[var(--color-text)] mb-3">{step.title}</h3>
+                <p className="text-sm leading-relaxed text-[var(--color-muted)]">{step.desc}</p>
               </div>
+            ))}
           </div>
         </section>
 
@@ -495,28 +508,6 @@ export default function Home() {
               ))}
             </div>
                   </div>
-        </section>
-
-            {/* Sidebar / CTA Box */}
-            <div className="lg:w-1/3 bg-[var(--color-midnight)] text-white p-8 rounded-2xl sticky top-24 shadow-xl ring-1 ring-white/10">
-              <h3 className="text-2xl font-bold mb-4">Free Resources</h3>
-              <p className="text-slate-300 mb-8">
-                Guides, checklists, and tools for Form 2290 and trucking compliance.
-              </p>
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> Due-Date Calendar</li>
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> HVUT Calculator</li>
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> Filing Checklists</li>
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-400" /> State-by-State Guides</li>
-              </ul>
-              <Link
-                href="/resources"
-                className="flex w-full items-center justify-center rounded-xl bg-[var(--color-orange)] py-4 font-bold text-white transition hover:bg-[#e66a15] hover:shadow-lg hover:scale-[1.02]"
-              >
-                Explore Resources
-              </Link>
-            </div>
-          </div>
         </section>
 
         {/* GUIDES SECTION - Mobile Optimized */}

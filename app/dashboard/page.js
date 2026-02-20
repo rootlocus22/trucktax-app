@@ -151,7 +151,7 @@ export default function DashboardPage() {
     processing: filings.filter(f => f.status === 'processing' || f.status === 'submitted').length,
     actionRequired: filings.filter(f => f.status === 'action_required').length,
     totalVehicles: filings.reduce((sum, f) => sum + (f.vehicleIds?.length || 0) + (Number(f.powerUnits) || 0), 0),
-  };
+  }), [filings]);
 
   const incomplete = useMemo(() => getIncompleteFilings(filings), [filings]);
   // Filter drafts to only show those with selectedBusinessId (business selected)
@@ -633,23 +633,8 @@ export default function DashboardPage() {
                             </div>
                             <ChevronRight className="w-5 h-5 text-slate-400" />
                           </Link>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-slate-500 font-medium">
-                          {primaryBusiness.address && (
-                            <p className="truncate max-w-[300px]">{primaryBusiness.address}, {primaryBusiness.city}, {primaryBusiness.state}</p>
-                          )}
-                          {primaryBusiness.signingAuthorityName && (
-                            <p className="border-l border-slate-200 pl-4 hidden md:block">Signatory: <span className="text-slate-700 font-bold">{primaryBusiness.signingAuthorityName}</span></p>
-                          )}
-                        </div>
-                      </div>
-                      <Link
-                        href="/dashboard/new-filing"
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-[#ff8b3d] hover:bg-[#f07a2d] text-white !text-white rounded-xl text-sm font-black transition-all hover:scale-105 shadow-md shadow-orange-500/10"
-                      >
-                        <Plus className="w-4 h-4 stroke-[3px]" />
-                        New Filing
-                      </Link>
+                        );
+                      })}
                     </div>
                   </div>
                 ) : !hasIncomplete && (

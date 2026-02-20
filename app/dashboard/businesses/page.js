@@ -119,6 +119,78 @@ export default function BusinessesPage() {
     });
   };
 
+  const businessCards = filteredBusinesses.map((business) => (
+    <div
+      key={business.id}
+      className="group bg-white rounded-2xl border border-slate-200 hover:border-[var(--color-orange)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden"
+    >
+      <div className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 group-hover:from-orange-50/30 group-hover:to-white transition-colors">
+        <div className="flex items-start justify-between mb-6">
+          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200 shadow-sm group-hover:border-[var(--color-orange)] group-hover:shadow-md transition-all duration-300">
+            <Building2 className="w-8 h-8 text-blue-600 group-hover:text-[var(--color-orange)] transition-colors duration-300" strokeWidth={1.5} />
+          </div>
+          <div className="flex gap-2">
+            <span className="px-3 py-1 bg-white text-slate-600 rounded-lg text-xs font-bold border border-slate-200 uppercase tracking-wide shadow-sm">
+              {business.entityType || 'Business'}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="p-8 pt-6 flex-1 flex flex-col bg-white">
+        <div className="space-y-6 mb-8">
+          {business.address && (
+            <div className="flex items-start gap-4 group/item">
+              <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover/item:bg-blue-50 transition-colors border border-slate-100">
+                <MapPin className="w-5 h-5 text-slate-400 group-hover/item:text-blue-500 transition-colors" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Address</p>
+                <p className="text-base text-slate-700 leading-relaxed font-medium">{business.address}</p>
+              </div>
+            </div>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {business.phone && (
+              <div className="flex items-center gap-4 group/item">
+                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center flex-shrink-0 group-hover/item:bg-blue-50 transition-colors">
+                  <Phone className="w-4 h-4 text-slate-400 group-hover/item:text-blue-500 transition-colors" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Phone</p>
+                  <p className="text-sm text-slate-700 font-medium">{business.phone}</p>
+                </div>
+              </div>
+            )}
+            {business.signingAuthorityName && (
+              <div className="flex items-center gap-4 group/item">
+                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center flex-shrink-0 group-hover/item:bg-blue-50 transition-colors">
+                  <User className="w-4 h-4 text-slate-400 group-hover/item:text-blue-500 transition-colors" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Signing Authority</p>
+                  <p className="text-sm text-slate-700 font-medium">{business.signingAuthorityName}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button className="flex items-center justify-center gap-2 py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:border-slate-300 hover:bg-slate-50 active:bg-slate-100 transition-all duration-200 touch-manipulation">
+            <Edit className="w-4 h-4" />
+            Edit Details
+          </button>
+          <Link
+            href="/ucr/file"
+            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--color-orange)] text-white font-semibold text-sm hover:bg-[var(--color-orange-soft)] active:scale-95 shadow-md hover:shadow-lg transition-all duration-200 touch-manipulation"
+          >
+            <FileText className="w-4 h-4" />
+            Start Filing
+          </Link>
+        </div>
+      </div>
+    </div>
+  ));
+
   const handleEdit = (business) => {
     setEditingBusiness(business);
   };
@@ -242,160 +314,73 @@ export default function BusinessesPage() {
         </div>
 
         <div className="max-w-7xl mx-auto">
-          {/* Management Context Banner */}
-          {!loading && businesses.length > 0 && (
-            <div className="bg-[#173b63] rounded-[2rem] p-6 shadow-xl shadow-slate-900/10 border border-white/10 relative overflow-hidden group mb-8">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl transition-transform group-hover:scale-110"></div>
-              <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-5">
-                  <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-[#14b8a6] to-[#0d9488] flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-teal-500/20">
-                    <Building2 className="w-8 h-8" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="px-2 py-0.5 bg-white/10 rounded text-[9px] font-black uppercase tracking-widest text-white/70 border border-white/5">
-                        Registration Center
-                      </span>
-                    </div>
-                    <h2 className="text-2xl font-black text-white tracking-tight">
-                      {businesses.length} Registered {businesses.length === 1 ? 'Business' : 'Businesses'}
-                    </h2>
-                    <p className="text-sm text-white/60 mt-1">
-                      Active filing entities linked to your account
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-3">No Businesses Yet</h2>
-            <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">
-              Add your business details to get started with your tax filings. You can manage multiple businesses from here.
-            </p>
-            <Link
-              href="/ucr/file"
-              className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
-            >
-              Add Your First Business
-              <ArrowLeft className="w-4 h-4 rotate-180" />
-            </Link>
-          </div>
-        ) : (
-          <div className="grid gap-8 grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3">
-            {businesses.map((business) => (
-              <div
-                key={business.id}
-                className="group bg-white rounded-2xl border border-slate-200 hover:border-[var(--color-orange)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden"
+          {/* Empty state */}
+          {!loading && businesses.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <h2 className="text-2xl font-bold text-slate-900 mb-3">No Businesses Yet</h2>
+              <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">
+                Add your business details to get started with your tax filings. You can manage multiple businesses from here.
+              </p>
+              <Link
+                href="/ucr/file"
+                className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-xl hover:-translate-y-1 transition-all duration-200 shadow-lg"
               >
-                {/* Visual Header */}
-                <div className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 group-hover:from-orange-50/30 group-hover:to-white transition-colors">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200 shadow-sm group-hover:border-[var(--color-orange)] group-hover:shadow-md transition-all duration-300">
-                      <Building2 className="w-8 h-8 text-blue-600 group-hover:text-[var(--color-orange)] transition-colors duration-300" strokeWidth={1.5} />
-                    </div>
-                    <div className="flex gap-2">
-                      {/* Optional: Add Edit Button or Menu here later */}
-                      <span className="px-3 py-1 bg-white text-slate-600 rounded-lg text-xs font-bold border border-slate-200 uppercase tracking-wide shadow-sm">
-                        {business.entityType || 'Business'}
-                      </span>
-                    </div>
-                  </div>
-
-          {/* Search Bar */}
-          {businesses.length > 0 && (
-            <div className="mb-8 flex flex-col md:flex-row items-center gap-4 bg-white p-2 rounded-[1.5rem] border border-slate-200 shadow-sm">
-              <div className="relative flex-1 w-full">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search entities by name, EIN, or address..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-[#14b8a6] outline-none transition-all text-sm font-bold tracking-tight"
-                />
-              </div>
+                Add Your First Business
+                <ArrowLeft className="w-4 h-4 rotate-180" />
+              </Link>
             </div>
           )}
-
-                {/* Details Body */}
-                <div className="p-8 pt-6 flex-1 flex flex-col bg-white">
-                  <div className="space-y-6 mb-8">
-                    {business.address && (
-                      <div className="flex items-start gap-4 group/item">
-                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover/item:bg-blue-50 transition-colors border border-slate-100">
-                          <MapPin className="w-5 h-5 text-slate-400 group-hover/item:text-blue-500 transition-colors" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Address</p>
-                          <p className="text-base text-slate-700 leading-relaxed font-medium">{business.address}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      {business.phone && (
-                        <div className="flex items-center gap-4 group/item">
-                          <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center flex-shrink-0 group-hover/item:bg-blue-50 transition-colors">
-                            <Phone className="w-4 h-4 text-slate-400 group-hover/item:text-blue-500 transition-colors" />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Phone</p>
-                            <p className="text-sm text-slate-700 font-medium">{business.phone}</p>
-                          </div>
-                        </div>
-                      )}
-                      {business.signingAuthorityName && (
-                        <div className="flex items-center gap-4 group/item">
-                          <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center flex-shrink-0 group-hover/item:bg-blue-50 transition-colors">
-                            <User className="w-4 h-4 text-slate-400 group-hover/item:text-blue-500 transition-colors" />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Signing Authority</p>
-                            <p className="text-sm text-slate-700 font-medium">{business.signingAuthorityName}</p>
-                          </div>
-                        </div>
-                      )}
+          {/* Management Context Banner + Grid when we have businesses */}
+          {!loading && businesses.length > 0 && (
+            <>
+              <div className="bg-[#173b63] rounded-[2rem] p-6 shadow-xl shadow-slate-900/10 border border-white/10 relative overflow-hidden group mb-8">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl transition-transform group-hover:scale-110"></div>
+                <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex items-center gap-5">
+                    <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-[#14b8a6] to-[#0d9488] flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-teal-500/20">
+                      <Building2 className="w-8 h-8" />
                     </div>
-                  </div>
-
-                  {/* Actions - Mobile Optimized */}
-                  <div className="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button className="flex items-center justify-center gap-2 py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:border-slate-300 hover:bg-slate-50 active:bg-slate-100 transition-all duration-200 touch-manipulation">
-                      <Edit className="w-4 h-4" />
-                      Edit Details
-                    </button>
-                    <Link
-                      href="/ucr/file"
-                      className="flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--color-orange)] text-white font-semibold text-sm hover:bg-[var(--color-orange-soft)] active:scale-95 shadow-md hover:shadow-lg transition-all duration-200 touch-manipulation"
-                    >
-                      <FileText className="w-4 h-4" />
-                      Start Filing
-                    </Link>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="px-2 py-0.5 bg-white/10 rounded text-[9px] font-black uppercase tracking-widest text-white/70 border border-white/5">
+                          Registration Center
+                        </span>
+                      </div>
+                      <h2 className="text-2xl font-black text-white tracking-tight">
+                        {businesses.length} Registered {businesses.length === 1 ? 'Business' : 'Businesses'}
+                      </h2>
+                      <p className="text-sm text-white/60 mt-1">
+                        Active filing entities linked to your account
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-3">
-                {searchQuery ? 'No businesses match your search' : 'No Businesses Yet'}
-              </h2>
-              <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">
-                {searchQuery
-                  ? 'Try adjusting your search criteria.'
-                  : 'Add your business details to get started with your tax filings. You can manage multiple businesses from here.'}
-              </p>
-              {!searchQuery && (
-                <button
-                  onClick={() => {
-                    setShowAddModal(true);
-                    setBusinessErrors({});
-                  }}
-                  className="inline-flex items-center justify-center gap-2 bg-[#14b8a6] text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#0d9488] shadow-xl shadow-teal-500/20 transition-all active:scale-95"
-                >
-                  <Plus className="w-4 h-4" strokeWidth={3} />
-                  Add Your First Business
-                </button>
+              {/* Search Bar */}
+              {businesses.length > 0 && (
+                <div className="mb-8 flex flex-col md:flex-row items-center gap-4 bg-white p-2 rounded-[1.5rem] border border-slate-200 shadow-sm">
+                  <div className="relative flex-1 w-full">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Search entities by name, EIN, or address..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-11 pr-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-[#14b8a6] outline-none transition-all text-sm font-bold tracking-tight"
+                    />
+                  </div>
+                </div>
+              )}
+              <div className="grid gap-8 grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3">
+                {businessCards}
+                {filteredBusinesses.length === 0 && searchQuery && (
+                <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                  <h2 className="text-2xl font-bold text-slate-900 mb-3">No businesses match your search</h2>
+                  <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">Try adjusting your search criteria.</p>
+                </div>
               )}
             </div>
-          ) : (
-            <div className="bg-transparent lg:bg-white lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-sm overflow-hidden mb-20">
+            <div className="bg-transparent lg:bg-white lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-sm overflow-hidden mb-20 hidden">
               {/* High-Density Table Header */}
               <div className="hidden lg:block bg-slate-50 border-b border-slate-100">
                 <div className="grid grid-cols-12 gap-4 px-6 py-4">
@@ -501,6 +486,7 @@ export default function BusinessesPage() {
                 ))}
               </div>
             </div>
+            </>
           )}
 
           {/* Add Business Modal */}

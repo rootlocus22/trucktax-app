@@ -22,7 +22,8 @@ import {
   Truck,
   FileCheck,
   ChevronDown,
-  ShieldCheck
+  ShieldCheck,
+  RefreshCw
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -373,6 +374,166 @@ export default function FilingsListPage() {
     loadVehicles();
   }, [user, filteredFilings, unconvertedDrafts]);
 
+  const primaryEinFormatted = primaryBusiness?.ein
+    ? primaryBusiness.ein.replace(/(\d{2})(\d{7})/, '$1-$2')
+    : 'N/A';
+
+  const mobileFilingCards = allFilingsForTable.map((filing) => {
+    const filingStatus = filing.isDraft ? 'draft' : (filing.status || 'submitted');
+    const statusConfig = getStatusConfig(filingStatus);
+    const isIncomplete = filingStatus === 'draft' || filing.isDraft;
+    const typeInfo = getFilingTypeInfo(filing);
+    const vehiclesInfo = getVehiclesInfo(filing);
+    const resumeUrl = filing.isDraft || filingStatus === 'draft' || filingStatus === 'pending_payment'
+      ? filing.workflowType === 'upload'
+        ? `/dashboard/upload-schedule1?draft=${filing.draftId || filing.id}`
+        : `/dashboard/new-filing?draft=${filing.draftId || filing.id}`
+      : `/dashboard/filings/${filing.id}`;
+    return (
+      <div key={filing.id || filing.draftId} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-1 h-full bg-[#14b8a6] opacity-20"></div>
+        <div className="flex items-start justify-between relative">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl ${typeInfo.bg} flex items-center justify-center border border-slate-100`}>
+              <Image src={typeInfo.image} alt={typeInfo.label} width={24} height={24} className="opacity-80" />
+            </div>
+            <div>
+              <Link href={resumeUrl} className="text-sm font-black text-slate-900 leading-tight block">
+                {getReturnNumber(filing)}
+              </Link>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-[10px] font-bold text-slate-400 capitalize">{getFilingDate(filing) || 'Draft'}</span>
+                <span className="w-1 h-1 rounded-full bg-slate-200"></span>
+                <span className={`text-[10px] font-black uppercase tracking-widest ${typeInfo.color}`}>{typeInfo.label}</span>
+              </div>
+            </div>
+          </div>
+          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${statusConfig.bg} ${statusConfig.color} ${statusConfig.border}`}>
+            {isIncomplete ? 'Incomplete' : statusConfig.label}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-4 border-y border-slate-50 py-4 font-bold relative">
+          <div>
+            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Tax Period</div>
+            <div className="text-[11px] text-slate-700">{getFirstUsedMonth(filing)}</div>
+          </div>
+          <div>
+            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Fleet Info</div>
+            <div className="text-[11px] text-slate-700">{vehiclesInfo.length} {vehiclesInfo.length === 1 ? 'Vehicle' : 'Vehicles'}</div>
+          </div>
+          <div>
+            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">IRS Tax Due</div>
+            <div className="text-[11px] text-slate-900 font-black">${getTaxAmount(filing).toFixed(2)}</div>
+          </div>
+          <div>
+            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Reference</div>
+            <div className="text-[11px] text-slate-700 truncate">{filing.submissionId || 'Pending'}</div>
+          </div>
+        </div>
+        {isExpanded && (
+          <div className="p-6 space-y-4">
+            {categoryFilings.map((f) => {
+              const status = getStatusConfig(f.status);
+              const fTypeInfo = getFilingTypeInfo(f);
+              const StatusIcon = status.icon;
+              const createdAt = f.createdAt?.toDate?.() || f.createdAt;
+              const date = createdAt ? new Date(createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+              const isUcr = f.filingType === 'ucr';
+              const displayName = isUcr ? (f.legalName || f.registrantName || 'UCR Registration') : (f.business?.businessName || 'Unnamed Business');
+              const yearLabel = isUcr ? `Filing Year ${f.filingYear ?? new Date().getFullYear()}` : `Tax Year ${f.taxYear ?? '—'}`;
+              const unitsLabel = isUcr
+                ? `${f.powerUnits != null ? Number(f.powerUnits) : 0} Power unit${f.powerUnits !== 1 ? 's' : ''}`
+                : `${f.vehicleIds?.length || 0} Vehicle${f.vehicleIds?.length !== 1 ? 's' : ''}`;
+              return (
+                <Link
+                  key={f.id}
+                  href={`/dashboard/filings/${f.id}`}
+                  className="group block bg-white rounded-xl border border-slate-200 p-5 hover:border-[var(--color-orange)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden"
+                >
+                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${status.bg.replace('bg-', 'bg-').replace('50', '500').replace('100', '400')}`}></div>
+                  <div className="flex flex-col md:flex-row md:items-center gap-4 sm:gap-6 pl-2">
+                    {fTypeInfo.icon ? (
+                      <>
+                        <div className="flex md:hidden flex-col items-center justify-center min-w-[60px] mb-2">
+                          <div className={`w-12 h-12 rounded-xl ${fTypeInfo.bg} border border-slate-200 flex items-center justify-center`}>
+                            <fTypeInfo.icon className={`w-6 h-6 ${fTypeInfo.color}`} />
+                          </div>
+                        </div>
+                        <div className="hidden md:flex flex-col items-center justify-center min-w-[80px]">
+                          <div className={`w-16 h-16 rounded-xl ${fTypeInfo.bg} border border-slate-200 flex items-center justify-center`}>
+                            <fTypeInfo.icon className={`w-8 h-8 ${fTypeInfo.color}`} />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex md:hidden flex-col items-center gap-2 min-w-[60px] mb-2">
+                          <div className="relative w-12 h-12 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
+                            <Image src={fTypeInfo.image} alt={fTypeInfo.label} fill className="object-contain" />
+                          </div>
+                        </div>
+                        <div className="hidden md:flex flex-col items-center gap-2 min-w-[80px]">
+                          <div className="relative w-16 h-16 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
+                            <Image src={fTypeInfo.image} alt={fTypeInfo.label} fill className="object-contain" />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide border ${status.bg} ${status.color} ${status.border}`}>
+                          <StatusIcon className="w-3 h-3" />
+                          {status.label}
+                        </span>
+                        <span className="text-xs text-slate-400 font-medium">#{f.id.slice(0, 8)}</span>
+                      </div>
+                      <div className="flex items-baseline gap-2 mb-1">
+                        <h3 className="text-lg font-bold text-slate-900 group-hover:text-[var(--color-orange)] transition-colors truncate">{displayName}</h3>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-slate-400" />
+                          <span className="font-medium">{yearLabel}</span>
+                        </div>
+                        {isUcr && f.state && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-400 font-medium">State:</span>
+                            <span>{f.state}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-slate-400" />
+                          <span>{fTypeInfo.label}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Truck className="w-4 h-4 text-slate-400" />
+                          <span>{unitsLabel}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-slate-500 text-xs">
+                          <span>{f.status === 'draft' ? 'Started' : 'Filed'} {date}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 sm:gap-4 border-t md:border-t-0 border-slate-100 pt-3 sm:pt-4 md:pt-0 mt-3 sm:mt-4 md:mt-0 justify-between md:justify-end">
+                      <div className="md:hidden flex items-center gap-2 text-slate-500 text-xs">
+                        <Clock className="w-3 h-3" />
+                        <span className="truncate">{date}</span>
+                      </div>
+                      <div className="flex items-center gap-2 sm:gap-3 text-[var(--color-orange)] font-semibold text-xs sm:text-sm group-hover:underline decoration-2 underline-offset-4 touch-manipulation">
+                        <span className="whitespace-nowrap">View Details</span>
+                        <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform flex-shrink-0" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  });
+
   return (
     <ProtectedRoute>
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -470,14 +631,8 @@ export default function FilingsListPage() {
                   className="w-[52px] h-[52px] flex items-center justify-center bg-slate-50 border border-slate-100 rounded-xl hover:bg-white hover:border-slate-200 active:bg-slate-100 transition-all group"
                   title="Refresh"
                 >
-                  <option value="all">All Statuses</option>
-                  <option value="draft">Draft</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="processing">Processing</option>
-                  <option value="action_required">Action Required</option>
-                  <option value="completed">Completed</option>
-                </select>
-                <Filter className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <RefreshCw className="w-4 h-4 text-slate-500" />
+                </button>
               </div>
             </div>
 
@@ -498,7 +653,7 @@ export default function FilingsListPage() {
                       <div className="flex items-center gap-3 text-xs font-bold text-white/40">
                         <span className="flex items-center gap-1">
                           <Building2 className="w-3 h-3" />
-                          EIN: {primaryBusiness.ein ? primaryBusiness.ein.replace(/(\d{2})(\d{7})/, '$1-$2') : 'N/A'}
+                          EIN: {primaryEinFormatted}
                         </span>
                         {primaryBusiness.state && (
                           <span className="flex items-center gap-1 border-l border-white/10 pl-3">
@@ -543,262 +698,13 @@ export default function FilingsListPage() {
               <div className="space-y-4">
                 {/* Mobile Card Layout */}
                 <div className="lg:hidden space-y-4">
-                  {allFilingsForTable.map((filing) => {
-                    const filingStatus = filing.isDraft ? 'draft' : (filing.status || 'submitted');
-                    const statusConfig = getStatusConfig(filingStatus);
-                    const isIncomplete = filingStatus === 'draft' || filing.isDraft;
-                    const typeInfo = getFilingTypeInfo(filing);
-                    const vehiclesInfo = getVehiclesInfo(filing);
-
-                    const resumeUrl = filing.isDraft || filingStatus === 'draft' || filingStatus === 'pending_payment'
-                      ? filing.workflowType === 'upload'
-                        ? `/dashboard/upload-schedule1?draft=${filing.draftId || filing.id}`
-                        : `/dashboard/new-filing?draft=${filing.draftId || filing.id}`
-                      : `/dashboard/filings/${filing.id}`;
-
-                    return (
-                      <div key={filing.id || filing.draftId} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-1 h-full bg-[#14b8a6] opacity-20"></div>
-                        <div className="flex items-start justify-between relative">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl ${typeInfo.bg} flex items-center justify-center border border-slate-100`}>
-                              <Image src={typeInfo.image} alt={typeInfo.label} width={24} height={24} className="opacity-80" />
-                            </div>
-                            <div>
-                              <Link href={resumeUrl} className="text-sm font-black text-slate-900 leading-tight block">
-                                {getReturnNumber(filing)}
-                              </Link>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[10px] font-bold text-slate-400 capitalize">{getFilingDate(filing) || 'Draft'}</span>
-                                <span className="w-1 h-1 rounded-full bg-slate-200"></span>
-                                <span className={`text-[10px] font-black uppercase tracking-widest ${typeInfo.color}`}>{typeInfo.label}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${statusConfig.bg} ${statusConfig.color} ${statusConfig.border}`}>
-                            {isIncomplete ? 'Incomplete' : statusConfig.label}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 border-y border-slate-50 py-4 font-bold relative">
-                          <div>
-                            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Tax Period</div>
-                            <div className="text-[11px] text-slate-700">{getFirstUsedMonth(filing)}</div>
-                          </div>
-                          <div>
-                            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Fleet Info</div>
-                            <div className="text-[11px] text-slate-700">{vehiclesInfo.length} {vehiclesInfo.length === 1 ? 'Vehicle' : 'Vehicles'}</div>
-                          </div>
-                          <div>
-                            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">IRS Tax Due</div>
-                            <div className="text-[11px] text-slate-900 font-black">${getTaxAmount(filing).toFixed(2)}</div>
-                          </div>
-                          <div>
-                            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Reference</div>
-                            <div className="text-[11px] text-slate-700 truncate">{filing.submissionId || 'Pending'}</div>
-                          </div>
-                        </div>
-
-                      {/* Accordion Body */}
-                      {isExpanded && (
-                        <div className="p-6 space-y-4">
-                          {categoryFilings.map((filing) => {
-                            const status = getStatusConfig(filing.status);
-                            const typeInfo = getFilingTypeInfo(filing);
-                            const StatusIcon = status.icon;
-                            const createdAt = filing.createdAt?.toDate?.() || filing.createdAt;
-                            const date = createdAt ? new Date(createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
-                            const isUcr = filing.filingType === 'ucr';
-                            const displayName = isUcr ? (filing.legalName || filing.registrantName || 'UCR Registration') : (filing.business?.businessName || 'Unnamed Business');
-                            const yearLabel = isUcr ? `Filing Year ${filing.filingYear ?? new Date().getFullYear()}` : `Tax Year ${filing.taxYear ?? '—'}`;
-                            const unitsLabel = isUcr
-                              ? `${filing.powerUnits != null ? Number(filing.powerUnits) : 0} Power unit${filing.powerUnits !== 1 ? 's' : ''}`
-                              : `${filing.vehicleIds?.length || 0} Vehicle${filing.vehicleIds?.length !== 1 ? 's' : ''}`;
-
-                            return (
-                              <Link
-                                key={filing.id}
-                                href={`/dashboard/filings/${filing.id}`}
-                                className="group block bg-white rounded-xl border border-slate-200 p-5 hover:border-[var(--color-orange)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden"
-                              >
-                                {/* Status Stripe */}
-                                <div className={`absolute left-0 top-0 bottom-0 w-1 ${status.bg.replace('bg-', 'bg-').replace('50', '500').replace('100', '400')}`}></div>
-
-                                <div className="flex flex-col md:flex-row md:items-center gap-4 sm:gap-6 pl-2">
-                                  {/* Icon Section */}
-                                  {typeInfo.icon ? (
-                                    <>
-                                      <div className="flex md:hidden flex-col items-center justify-center min-w-[60px] mb-2">
-                                        <div className={`w-12 h-12 rounded-xl ${typeInfo.bg} border border-slate-200 flex items-center justify-center`}>
-                                          <typeInfo.icon className={`w-6 h-6 ${typeInfo.color}`} />
-                                        </div>
-                                      </div>
-                                      <div className="hidden md:flex flex-col items-center justify-center min-w-[80px]">
-                                        <div className={`w-16 h-16 rounded-xl ${typeInfo.bg} border border-slate-200 flex items-center justify-center`}>
-                                          <typeInfo.icon className={`w-8 h-8 ${typeInfo.color}`} />
-                                        </div>
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <div className="flex md:hidden flex-col items-center gap-2 min-w-[60px] mb-2">
-                                        <div className="relative w-12 h-12 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
-                                          <Image
-                                            src={typeInfo.image}
-                                            alt={typeInfo.label}
-                                            fill
-                                            className="object-contain"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="hidden md:flex flex-col items-center gap-2 min-w-[80px]">
-                                        <div className="relative w-16 h-16 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 drop-shadow-md">
-                                          <Image
-                                            src={typeInfo.image}
-                                            alt={typeInfo.label}
-                                            fill
-                                            className="object-contain"
-                                          />
-                                        </div>
-                                      </div>
-                                    </>
-                                  )}
-
-                                  {/* Main Info */}
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-3 mb-1">
-                                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide border ${status.bg} ${status.color} ${status.border}`}>
-                                        <StatusIcon className="w-3 h-3" />
-                                        {status.label}
-                                      </span>
-                                      <span className="text-xs text-slate-400 font-medium">#{filing.id.slice(0, 8)}</span>
-                                    </div>
-
-                                    <div className="flex items-baseline gap-2 mb-1">
-                                      <h3 className="text-lg font-bold text-slate-900 group-hover:text-[var(--color-orange)] transition-colors truncate">
-                                        {displayName}
-                                      </h3>
-                                    </div>
-
-                                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
-                                      <div className="flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-slate-400" />
-                                        <span className="font-medium">{yearLabel}</span>
-                                      </div>
-                                      {isUcr && filing.state && (
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-slate-400 font-medium">State:</span>
-                                          <span>{filing.state}</span>
-                                        </div>
-                                      )}
-                                      <div className="flex items-center gap-2">
-                                        <FileText className="w-4 h-4 text-slate-400" />
-                                        <span>{typeInfo.label}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Truck className="w-4 h-4 text-slate-400" />
-                                        <span>{unitsLabel}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2 text-slate-500 text-xs">
-                                        <span>{filing.status === 'draft' ? 'Started' : 'Filed'} {date}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* Action Area - Mobile Optimized */}
-                                  <div className="flex items-center gap-3 sm:gap-4 border-t md:border-t-0 border-slate-100 pt-3 sm:pt-4 md:pt-0 mt-3 sm:mt-4 md:mt-0 justify-between md:justify-end">
-                                    <div className="md:hidden flex items-center gap-2 text-slate-500 text-xs">
-                                      <Clock className="w-3 h-3" />
-                                      <span className="truncate">{date}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 sm:gap-3 text-[var(--color-orange)] font-semibold text-xs sm:text-sm group-hover:underline decoration-2 underline-offset-4 touch-manipulation">
-                                      <span className="whitespace-nowrap">View Details</span>
-                                      <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform flex-shrink-0" />
-                                    </div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-5 hidden sm:table-cell">
-                                <div className="flex flex-col">
-                                  <span className="text-sm font-bold text-slate-700">{getFirstUsedMonth(filing)}</span>
-                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tax Month</span>
-                                </div>
-                              </td>
-                              <td className="px-6 py-5 hidden md:table-cell">
-                                {vehiclesInfo.length > 0 ? (
-                                  <div className="space-y-1">
-                                    <div className="flex -space-x-2">
-                                      {vehiclesInfo.slice(0, 3).map((_, i) => (
-                                        <div key={i} className="w-7 h-7 rounded-lg bg-white border-2 border-slate-50 flex items-center justify-center">
-                                          <Truck className="w-3.5 h-3.5 text-slate-400" />
-                                        </div>
-                                      ))}
-                                      {vehiclesInfo.length > 3 && (
-                                        <div className="w-7 h-7 rounded-lg bg-slate-100 border-2 border-slate-50 flex items-center justify-center text-[10px] font-black text-slate-500">
-                                          +{vehiclesInfo.length - 3}
-                                        </div>
-                                      )}
-                                    </div>
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-                                      {vehiclesInfo.length} {vehiclesInfo.length === 1 ? 'Truck' : 'Fleet'}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <span className="text-slate-300 font-bold text-xs">No Vehicles</span>
-                                )}
-                              </td>
-                              <td className="px-6 py-5">
-                                <div className="flex flex-col">
-                                  <span className="text-sm font-black text-slate-900">${getTaxAmount(filing).toFixed(2)}</span>
-                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">2290 IRS Tax</span>
-                                </div>
-                              </td>
-                              <td className="px-6 py-5">
-                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-colors ${statusConfig.bg} ${statusConfig.color} ${statusConfig.border}`}>
-                                  <statusConfig.icon className="w-3 h-3" strokeWidth={3} />
-                                  {isIncomplete ? 'Incomplete' : statusConfig.label}
-                                </span>
-                              </td>
-                              <td className="px-6 py-5 text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  {isIncomplete ? (
-                                    <Link
-                                      href={resumeUrl}
-                                      className="min-w-[100px] text-center px-4 py-2 bg-[#ff8b3d] text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-[#f07a2d] transition-all shadow-md shadow-orange-500/10 active:scale-95"
-                                    >
-                                      Continue
-                                    </Link>
-                                  ) : (
-                                    <Link
-                                      href={resumeUrl}
-                                      className="min-w-[100px] text-center px-4 py-2 bg-[#14b8a6] text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-all active:scale-95 shadow-md shadow-teal-500/10"
-                                    >
-                                      Review
-                                    </Link>
-                                  )}
-                                  {hasSchedule1(filing) && (
-                                    <Link
-                                      href={filing.schedule1Url}
-                                      target="_blank"
-                                      className="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors border border-blue-100"
-                                      title="Download Schedule 1"
-                                    >
-                                      <Upload className="w-4 h-4 rotate-180" strokeWidth={2.5} />
-                                    </Link>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                  {mobileFilingCards}
                 </div>
               </div>
             )}
-          </div>
-        )}
+        </div>
+      </div>
+      )}
       </div>
     </ProtectedRoute>
   );

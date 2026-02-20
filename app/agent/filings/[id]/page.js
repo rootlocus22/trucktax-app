@@ -1599,16 +1599,10 @@ export default function AgentWorkStationPage() {
                       </div>
                     ) : vehicles.length > 0 ? (
                       <div className="space-y-3">
-                        {vehicles.map((vehicle) => (
-                          <div key={vehicle.id} className="border-b border-[var(--color-border)] pb-3 last:border-0 last:pb-0">
-                            <div className="space-y-1.5 text-sm">
-                              <div className="flex items-start justify-between gap-2">
-                                <span className="text-[var(--color-muted)] min-w-[80px]">VIN:</span>
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                  <span className="text-[var(--color-text)] font-mono font-medium truncate">{vehicle.vin}</span>
-                                  <button onClick={() => handleCopyToClipboard(vehicle.vin)} className="text-[var(--color-navy)] hover:underline text-xs flex-shrink-0">Copy</button>
-                                </div>
-                              </div>
+                        {vehicles.map((vehicle) => {
+                          const vType = vehicle.type || (filing?.amendmentType ? 'taxable' : 'taxable');
+                          return (
+                            <div key={vehicle.id} className="border-b border-[var(--color-border)] pb-3 last:border-0 last:pb-0">
                               <div className="space-y-1.5 text-sm">
                                 <div className="flex items-start justify-between gap-2">
                                   <span className="text-[var(--color-muted)] min-w-[80px]">VIN:</span>
@@ -1619,27 +1613,21 @@ export default function AgentWorkStationPage() {
                                 </div>
                                 <div className="flex items-start justify-between gap-2">
                                   <span className="text-[var(--color-muted)] min-w-[80px]">Weight Category:</span>
-                                  <span className="text-[var(--color-text)] font-medium">{vehicle.grossWeightCategory || (vehicleType === 'suspended' ? 'W' : 'N/A')}</span>
+                                  <span className="text-[var(--color-text)] font-medium">{vehicle.grossWeightCategory || (vType === 'suspended' ? 'W' : 'N/A')}</span>
                                 </div>
-                                
-                                {/* Taxable/Suspended/Credit Vehicle Fields */}
-                                {(vehicleType === 'taxable' || vehicleType === 'suspended' || vehicleType === 'credit') && vehicle.logging !== null && vehicle.logging !== undefined && (
+                                {(vType === 'taxable' || vType === 'suspended' || vType === 'credit') && vehicle.logging !== null && vehicle.logging !== undefined && (
                                   <div className="flex items-start justify-between gap-2">
                                     <span className="text-[var(--color-muted)] min-w-[80px]">Logging:</span>
                                     <span className="text-[var(--color-text)] font-medium">{vehicle.logging ? 'Yes' : 'No'}</span>
                                   </div>
                                 )}
-                                
-                                {/* Suspended Vehicle Fields */}
-                                {vehicleType === 'suspended' && vehicle.agricultural !== null && vehicle.agricultural !== undefined && (
+                                {vType === 'suspended' && vehicle.agricultural !== null && vehicle.agricultural !== undefined && (
                                   <div className="flex items-start justify-between gap-2">
                                     <span className="text-[var(--color-muted)] min-w-[80px]">Agricultural:</span>
                                     <span className="text-[var(--color-text)] font-medium">{vehicle.agricultural ? 'Yes' : 'No'}</span>
                                   </div>
                                 )}
-                                
-                                {/* Credit Vehicle Fields */}
-                                {vehicleType === 'credit' && (
+                                {vType === 'credit' && (
                                   <>
                                     {vehicle.creditReason && (
                                       <div className="flex items-start justify-between gap-2">
@@ -1663,9 +1651,7 @@ export default function AgentWorkStationPage() {
                                     )}
                                   </>
                                 )}
-                                
-                                {/* Prior Year Sold Vehicle Fields */}
-                                {vehicleType === 'priorYearSold' && (
+                                {vType === 'priorYearSold' && (
                                   <>
                                     {vehicle.soldTo && (
                                       <div className="flex items-start justify-between gap-2">
