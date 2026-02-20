@@ -21,8 +21,15 @@ export default function RefundPolicyPage() {
         <div className="prose prose-slate max-w-none text-slate-600 space-y-8">
           <section>
             <h2 className="text-xl font-bold text-slate-900 mb-4">Refunds</h2>
+            <p className="mb-4">
+              QuickTruckTax offers refunds for UCR services purchased within 30 days of payment under specific conditions.
+            </p>
+            <ul className="list-disc pl-5 mb-4 space-y-2">
+              <li><strong>Eligible for Refund:</strong> Filing has not yet been submitted/processed by us, it was a duplicate filing made in error, or there was an obvious clerical mistake on our end.</li>
+              <li><strong>Not Eligible for Refund:</strong> The service has already been utilized, meaning the UCR filing has been successfully processed and submitted to the UCR system. Customized services created specifically for you are also non-refundable.</li>
+            </ul>
             <p>
-              QuickTruckTax currently offers only UCR (Unified Carrier Registration) filing services. We offer refunds for UCR services purchased within 30 days of payment under specific conditions. To request a refund, please contact us within this 30-day period with your order number and the reason for your request. Refunds will only be granted if the service was not provided as described or if the service has not been accessed or used. Note that we do not offer refunds for services that have already been accessed or used (e.g., once a UCR filing has been submitted or completed). Customized services created specifically for you are also non-refundable.
+              To request a refund, please contact us within this 30-day period with your order number and the reason for your request. Refunds will only be granted if the criteria above are met.
             </p>
             <p className="mt-4">
               A transaction fee of up to 10% may be deducted from the refund amount to cover bank or credit card processing fees.
@@ -66,7 +73,7 @@ export default function RefundPolicyPage() {
         {/* Footer disclaimer */}
         <div className="mt-12 pt-8 border-t border-slate-200 text-xs text-slate-500 space-y-2">
           <p>The information and images on this website are the property of QuickTruckTax and may not be reproduced, reused, or appropriated without the express written consent of the owner.</p>
-          <p>QuickTruckTax is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement. We are not affiliated with any government authority such as the IRS, USDOT, or FMCSA.</p>
+          <p>QuickTruckTax is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement. We are not a government agency and are not affiliated with any government authority such as the UCR Board, IRS, USDOT, or FMCSA.</p>
           <p className="pt-2">&copy; 2026 QuickTruckTax, All Rights Reserved.</p>
         </div>
         <div className="mt-4 flex flex-wrap gap-4 text-sm">

@@ -54,6 +54,7 @@ function UcrFileContent() {
   const [draftId, setDraftId] = useState(null);
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState('');
+  const [consentGiven, setConsentGiven] = useState(false);
 
   // Load draft from URL if present
   useEffect(() => {
@@ -281,7 +282,11 @@ function UcrFileContent() {
               <h1 className="text-2xl sm:text-3xl font-bold">UCR Filing Wizard</h1>
               <p className="text-white/80 text-sm mt-1">Step {step} of 6 — {STEPS.find(s => s.id === step)?.title}</p>
             </div>
+            <span className="text-xs font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full border border-blue-200 uppercase tracking-widest whitespace-nowrap hidden sm:inline-block">Independent Filing Assistance Service</span>
           </div>
+          <p className="text-white/80 text-sm mt-4 max-w-2xl">
+            Complete your Unified Carrier Registration in under 5 minutes.
+          </p>
           {/* Visual stepper: one after another, only completed/current clickable */}
           <div className="mt-6 flex items-center justify-between gap-0 overflow-x-auto no-scrollbar">
             {STEPS.map((s, idx) => {
@@ -575,11 +580,25 @@ function UcrFileContent() {
                     <AlertCircle className="w-4 h-4" /> {lookupError}
                   </div>
                 )}
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={consentGiven}
+                      onChange={(e) => setConsentGiven(e.target.checked)}
+                      className="mt-1 w-5 h-5 rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]"
+                    />
+                    <span className="text-sm text-slate-700 leading-snug">
+                      <strong>Authorization & Consent:</strong> I authorize QuickTruckTax to prepare and submit my UCR registration using the information provided. I understand that QuickTruckTax is an independent third-party filing service and is not affiliated with the government.
+                    </span>
+                  </label>
+                </div>
+
                 <button
                   type="button"
                   onClick={handlePayWithStripe}
-                  disabled={paymentRedirecting}
-                  className="mt-2 w-full bg-[var(--color-navy)] text-white py-4 min-h-[52px] rounded-xl font-bold touch-manipulation flex items-center justify-center gap-2 disabled:opacity-70"
+                  disabled={paymentRedirecting || !consentGiven}
+                  className="mt-2 w-full bg-[var(--color-navy)] text-white py-4 min-h-[52px] rounded-xl font-bold touch-manipulation flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
                 >
                   {paymentRedirecting ? (
                     <>Redirecting to checkout… <Loader2 className="w-5 h-5 animate-spin" /></>

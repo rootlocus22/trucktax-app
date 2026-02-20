@@ -110,7 +110,7 @@ export function ConsumerLayout({ children }) {
             <div className="border-t border-white/10 mt-12 pt-8 space-y-6">
               <div className="text-xs text-white/60 leading-relaxed space-y-2 text-center max-w-3xl mx-auto">
                 <p>The information and images on this website are the property of QuickTruckTax and may not be reproduced, reused, or appropriated without the express written consent of the owner.</p>
-                <p>QuickTruckTax is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement. We are not affiliated with any government authority such as the IRS, USDOT, or FMCSA.</p>
+                <p>QuickTruckTax is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement. We are not a government agency and are not affiliated with any government authority such as the UCR Board, IRS, USDOT, or FMCSA.</p>
               </div>
               <p className="text-center text-sm text-white/50">&copy; 2026 QuickTruckTax, All Rights Reserved.</p>
             </div>

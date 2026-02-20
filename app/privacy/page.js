@@ -20,9 +20,9 @@ export default function PrivacyPolicyPage() {
                     <p>We collect information that you provide directly to us, including:</p>
                     <ul className="list-disc pl-5 space-y-2 mt-2">
                         <li><strong>Personal Identification Information:</strong> Name, email address, phone number, and mailing address.</li>
-                        <li><strong>Business Information:</strong> EIN, business name, and address.</li>
-                        <li><strong>Vehicle Information:</strong> VIN, gross weight, and vehicle type.</li>
-                        <li><strong>Payment Information:</strong> Credit card details (processed securely by our payment processor).</li>
+                        <li><strong>Business Information:</strong> USDOT number, EIN/Tax ID, business name, and address.</li>
+                        <li><strong>Vehicle Information:</strong> Fleet size, VIN, gross weight, and vehicle type.</li>
+                        <li><strong>Payment Information:</strong> Credit card details (handled entirely by our secure third-party processor, Stripe; we do not store raw credit card data on our servers).</li>
                     </ul>
                 </section>
 
@@ -38,9 +38,9 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-3">4. IRS Section 7216 Compliance</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-3">4. IRS Section 7216 & No Data Selling</h2>
                     <p>
-                        We are a compliant tax preparation firm. Pursuant to Internal Revenue Code Section 7216, we do not use or disclose your tax return information for any purpose other than preparing your return, unless you provide specific, written consent.
+                        We are a compliant filing assistance firm. As an independent third-party provider, we treat your business metrics (like USDOT numbers and EINs) as highly sensitive financial data. Pursuant to Internal Revenue Code Section 7216, we do not use or disclose your tax return information for any purpose other than preparing your filings or registration, unless you provide specific, written consent. <strong>We do not and will never sell your personal or business data to third parties.</strong>
                     </p>
                 </section>
 
