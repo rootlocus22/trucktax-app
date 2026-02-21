@@ -524,387 +524,397 @@ function UcrFileContent() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-8 sm:py-10 pb-24 sm:pb-10">
-        {/* Step 1: Business details */}
-        {step === 1 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-            <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Business details</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Legal name *</label>
-                <input
-                  type="text"
-                  value={form.legalName}
-                  onChange={(e) => setForm({ ...form, legalName: e.target.value })}
-                  placeholder="Company or sole proprietor name"
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[48px]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text)] mb-1">DBA (if any)</label>
-                <input
-                  type="text"
-                  value={form.dba}
-                  onChange={(e) => setForm({ ...form, dba: e.target.value })}
-                  placeholder="Doing business as"
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[48px]"
-                />
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-end">
-                <div className="flex-1 w-full">
-                  <label className="block text-sm font-medium text-[var(--color-text)] mb-1">USDOT number *</label>
-                  <input
-                    type="text"
-                    value={form.dotNumber}
-                    onChange={(e) => {
-                      const next = e.target.value.replace(/\D/g, '').slice(0, 8);
-                      setForm({ ...form, dotNumber: next });
-                      if (fmcsaLookup) setFmcsaLookup(null);
-                    }}
-                    placeholder="USDOT number"
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[48px]"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleUsdotLookup}
-                  disabled={lookupLoading}
-                  className="bg-indigo-50 border border-indigo-200 text-indigo-700 px-6 py-3 rounded-xl font-semibold hover:bg-indigo-100 transition flex items-center justify-center gap-2 min-h-[48px] touch-manipulation w-full sm:w-auto"
-                >
-                  {lookupLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Look up from FMCSA'}
-                </button>
-              </div>
-              <p className="text-xs text-slate-500">Optional: Look up fills legal name, DBA, state, and fleet count from FMCSA. If it doesn’t work, enter your details below.</p>
-              {lookupError && (
-                <div className="flex items-start gap-2 text-amber-800 text-sm bg-amber-50 p-3 rounded-xl border border-amber-200">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>{lookupError}</span>
-                </div>
-              )}
-              {fmcsaLookup && (fmcsaLookup.name || fmcsaLookup.address) && (
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-4">
-                  <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide">From FMCSA</h3>
-                  {fmcsaLookup.name ? (
-                    <div>
-                      <p className="text-xs text-slate-500 mb-0.5">Legal Name</p>
-                      <p className="font-bold text-[var(--color-text)]">{fmcsaLookup.name}</p>
-                    </div>
-                  ) : null}
-                  <div>
-                    <p className="text-xs text-slate-500 mb-0.5">DBA</p>
-                    <p className="font-bold text-[var(--color-text)]">{fmcsaLookup.dba || '—'}</p>
-                  </div>
-                  {fmcsaLookup.address && (fmcsaLookup.address.street || fmcsaLookup.address.city || fmcsaLookup.address.state) && (
-                    <div>
-                      <p className="text-xs text-slate-500 mb-0.5">Physical Address</p>
-                      <p className="font-bold text-[var(--color-text)]">
-                        {[fmcsaLookup.address.street, [fmcsaLookup.address.city, fmcsaLookup.address.state].filter(Boolean).join(', '), fmcsaLookup.address.zip].filter(Boolean).join(', ')}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Email *</label>
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    placeholder="you@example.com"
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Phone</label>
-                  <input
-                    type="tel"
-                    value={form.phone}
-                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    placeholder="(555) 000-0000"
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3"
-                  />
-                </div>
-              </div>
-              <div className="pt-4 border-t border-slate-100">
-                <h3 className="text-sm font-bold text-[var(--color-text)] mb-4">Registrant Information</h3>
+        {verificationAttempted.current && submittingFiling ? (
+          <div className="bg-white rounded-2xl border border-slate-200 p-12 shadow-sm text-center mt-8">
+            <Loader2 className="w-12 h-12 text-[var(--color-navy)] animate-spin mx-auto mb-6" />
+            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-text)] mb-4">Verifying Payment...</h2>
+            <p className="text-lg text-slate-600">Please wait while we confirm your federal fee payment with Stripe.</p>
+          </div>
+        ) : (
+          <>
+            {/* Step 1: Business details */}
+            {step === 1 && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Business details</h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Full Name of Person Filing *</label>
+                    <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Legal name *</label>
                     <input
                       type="text"
-                      value={form.registrantName}
-                      onChange={(e) => setForm({ ...form, registrantName: e.target.value })}
-                      placeholder="Your regular name"
-                      className="w-full rounded-xl border border-slate-200 px-4 py-3"
+                      value={form.legalName}
+                      onChange={(e) => setForm({ ...form, legalName: e.target.value })}
+                      placeholder="Company or sole proprietor name"
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[48px]"
                     />
                   </div>
-                  <label className="flex gap-3 p-4 min-h-[44px] rounded-xl border border-slate-200 bg-slate-50 cursor-pointer group touch-manipulation items-start sm:items-center">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text)] mb-1">DBA (if any)</label>
                     <input
-                      type="checkbox"
-                      checked={form.isAuthorized}
-                      onChange={(e) => setForm({ ...form, isAuthorized: e.target.checked })}
-                      className="mt-1.5 sm:mt-0 w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
+                      type="text"
+                      value={form.dba}
+                      onChange={(e) => setForm({ ...form, dba: e.target.value })}
+                      placeholder="Doing business as"
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[48px]"
                     />
-                    <span className="text-sm text-slate-600 leading-relaxed">
-                      I certify that I am authorized to file this registration on behalf of the USDOT number listed above. I understand that providing false information is subject to penalties.
-                    </span>
-                  </label>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-end">
+                    <div className="flex-1 w-full">
+                      <label className="block text-sm font-medium text-[var(--color-text)] mb-1">USDOT number *</label>
+                      <input
+                        type="text"
+                        value={form.dotNumber}
+                        onChange={(e) => {
+                          const next = e.target.value.replace(/\D/g, '').slice(0, 8);
+                          setForm({ ...form, dotNumber: next });
+                          if (fmcsaLookup) setFmcsaLookup(null);
+                        }}
+                        placeholder="USDOT number"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[48px]"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleUsdotLookup}
+                      disabled={lookupLoading}
+                      className="bg-indigo-50 border border-indigo-200 text-indigo-700 px-6 py-3 rounded-xl font-semibold hover:bg-indigo-100 transition flex items-center justify-center gap-2 min-h-[48px] touch-manipulation w-full sm:w-auto"
+                    >
+                      {lookupLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Look up from FMCSA'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-500">Optional: Look up fills legal name, DBA, state, and fleet count from FMCSA. If it doesn’t work, enter your details below.</p>
+                  {lookupError && (
+                    <div className="flex items-start gap-2 text-amber-800 text-sm bg-amber-50 p-3 rounded-xl border border-amber-200">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      <span>{lookupError}</span>
+                    </div>
+                  )}
+                  {fmcsaLookup && (fmcsaLookup.name || fmcsaLookup.address) && (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-4">
+                      <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide">From FMCSA</h3>
+                      {fmcsaLookup.name ? (
+                        <div>
+                          <p className="text-xs text-slate-500 mb-0.5">Legal Name</p>
+                          <p className="font-bold text-[var(--color-text)]">{fmcsaLookup.name}</p>
+                        </div>
+                      ) : null}
+                      <div>
+                        <p className="text-xs text-slate-500 mb-0.5">DBA</p>
+                        <p className="font-bold text-[var(--color-text)]">{fmcsaLookup.dba || '—'}</p>
+                      </div>
+                      {fmcsaLookup.address && (fmcsaLookup.address.street || fmcsaLookup.address.city || fmcsaLookup.address.state) && (
+                        <div>
+                          <p className="text-xs text-slate-500 mb-0.5">Physical Address</p>
+                          <p className="font-bold text-[var(--color-text)]">
+                            {[fmcsaLookup.address.street, [fmcsaLookup.address.city, fmcsaLookup.address.state].filter(Boolean).join(', '), fmcsaLookup.address.zip].filter(Boolean).join(', ')}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Email *</label>
+                      <input
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                        placeholder="you@example.com"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-3"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Phone</label>
+                      <input
+                        type="tel"
+                        value={form.phone}
+                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                        placeholder="(555) 000-0000"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-3"
+                      />
+                    </div>
+                  </div>
+                  <div className="pt-4 border-t border-slate-100">
+                    <h3 className="text-sm font-bold text-[var(--color-text)] mb-4">Registrant Information</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Full Name of Person Filing *</label>
+                        <input
+                          type="text"
+                          value={form.registrantName}
+                          onChange={(e) => setForm({ ...form, registrantName: e.target.value })}
+                          placeholder="Your regular name"
+                          className="w-full rounded-xl border border-slate-200 px-4 py-3"
+                        />
+                      </div>
+                      <label className="flex gap-3 p-4 min-h-[44px] rounded-xl border border-slate-200 bg-slate-50 cursor-pointer group touch-manipulation items-start sm:items-center">
+                        <input
+                          type="checkbox"
+                          checked={form.isAuthorized}
+                          onChange={(e) => setForm({ ...form, isAuthorized: e.target.checked })}
+                          className="mt-1.5 sm:mt-0 w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
+                        />
+                        <span className="text-sm text-slate-600 leading-relaxed">
+                          I certify that I am authorized to file this registration on behalf of the USDOT number listed above. I understand that providing false information is subject to penalties.
+                        </span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* Step 2: Fleet count */}
-        {step === 2 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-            <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Fleet size & entity type</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text)] mb-2">Entity type</label>
+            {/* Step 2: Fleet count */}
+            {step === 2 && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Fleet size & entity type</h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text)] mb-2">Entity type</label>
+                    <select
+                      value={form.entityType}
+                      onChange={(e) => setForm({ ...form, entityType: e.target.value })}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3"
+                    >
+                      {UCR_ENTITY_TYPES.map((t) => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {form.entityType === 'carrier' && (
+                    <div className="space-y-4">
+                      <label className="block text-sm font-medium text-[var(--color-text)]">Fleet count source</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, fleetOption: 'auto' })}
+                          className={`p-4 rounded-xl border text-left transition ${form.fleetOption === 'auto'
+                            ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500'
+                            : 'border-slate-200 hover:bg-slate-50'
+                            }`}
+                        >
+                          <div className="font-bold text-sm mb-1">Option A: Automatic</div>
+                          <div className="text-xs text-slate-500">Use fleet size from latest FMCSA records</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, fleetOption: 'manual' })}
+                          className={`p-4 rounded-xl border text-left transition ${form.fleetOption === 'manual'
+                            ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500'
+                            : 'border-slate-200 hover:bg-slate-50'
+                            }`}
+                        >
+                          <div className="font-bold text-sm mb-1">Option B: Manual</div>
+                          <div className="text-xs text-slate-500">Manually input vehicle count</div>
+                        </button>
+                      </div>
+
+                      {form.fleetOption === 'manual' ? (
+                        <div>
+                          <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Number of power units *</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={form.powerUnits}
+                            onChange={(e) => setForm({ ...form, powerUnits: e.target.value })}
+                            placeholder="e.g. 5"
+                            className="w-full rounded-xl border border-slate-200 px-4 py-3"
+                          />
+                          <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
+                            <Info className="w-3 h-3" /> Exclude vehicles operating solely in intrastate commerce.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                          <div className="text-sm font-medium text-slate-600">Calculated power units</div>
+                          <div className="text-2xl font-bold text-indigo-600">{form.powerUnits || '0'}</div>
+                          <p className="text-xs text-slate-500 mt-1 italic">Retrieved from FMCSA database</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text)] mb-2">Service plan</label>
+                    <div className="space-y-2">
+                      {Object.entries(UCR_SERVICE_PLANS).map(([key, p]) => (
+                        <label key={key} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
+                          <input type="radio" name="plan" value={key} checked={form.plan === key} onChange={() => setForm({ ...form, plan: key })} className="text-[var(--color-orange)]" />
+                          <span className="font-medium">{p.name} – ${p.price}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: State */}
+            {step === 3 && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Base state</h2>
+                <p className="text-slate-600 mb-4">Select the state where your business is registered or where you have your principal place of business.</p>
                 <select
-                  value={form.entityType}
-                  onChange={(e) => setForm({ ...form, entityType: e.target.value })}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3"
+                  value={form.state}
+                  onChange={(e) => setForm({ ...form, state: e.target.value })}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-lg"
                 >
-                  {UCR_ENTITY_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
+                  <option value="">Select state</option>
+                  {['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'].map((s) => (
+                    <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
               </div>
-              {form.entityType === 'carrier' && (
-                <div className="space-y-4">
-                  <label className="block text-sm font-medium text-[var(--color-text)]">Fleet count source</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setForm({ ...form, fleetOption: 'auto' })}
-                      className={`p-4 rounded-xl border text-left transition ${form.fleetOption === 'auto'
-                        ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500'
-                        : 'border-slate-200 hover:bg-slate-50'
-                        }`}
-                    >
-                      <div className="font-bold text-sm mb-1">Option A: Automatic</div>
-                      <div className="text-xs text-slate-500">Use fleet size from latest FMCSA records</div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setForm({ ...form, fleetOption: 'manual' })}
-                      className={`p-4 rounded-xl border text-left transition ${form.fleetOption === 'manual'
-                        ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500'
-                        : 'border-slate-200 hover:bg-slate-50'
-                        }`}
-                    >
-                      <div className="font-bold text-sm mb-1">Option B: Manual</div>
-                      <div className="text-xs text-slate-500">Manually input vehicle count</div>
-                    </button>
-                  </div>
+            )}
 
-                  {form.fleetOption === 'manual' ? (
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Number of power units *</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={form.powerUnits}
-                        onChange={(e) => setForm({ ...form, powerUnits: e.target.value })}
-                        placeholder="e.g. 5"
-                        className="w-full rounded-xl border border-slate-200 px-4 py-3"
-                      />
-                      <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
-                        <Info className="w-3 h-3" /> Exclude vehicles operating solely in intrastate commerce.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                      <div className="text-sm font-medium text-slate-600">Calculated power units</div>
-                      <div className="text-2xl font-bold text-indigo-600">{form.powerUnits || '0'}</div>
-                      <p className="text-xs text-slate-500 mt-1 italic">Retrieved from FMCSA database</p>
+            {/* Step 4: Review */}
+            {step === 4 && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Review your UCR filing</h2>
+                <dl className="space-y-4 text-sm divide-y divide-slate-100">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Legal name</dt><dd className="font-semibold sm:text-right">{form.legalName || '—'}</dd></div>
+                  {form.dba && <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">DBA</dt><dd className="font-semibold sm:text-right">{form.dba}</dd></div>}
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">USDOT</dt><dd className="font-semibold sm:text-right">{form.dotNumber || '—'}</dd></div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Registrant</dt><dd className="font-semibold sm:text-right">{form.registrantName || '—'}</dd></div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Entity</dt><dd className="font-semibold sm:text-right">{UCR_ENTITY_TYPES.find(e => e.value === form.entityType)?.label}</dd></div>
+                  {form.entityType === 'carrier' && (
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2">
+                      <dt className="text-slate-500">Power units</dt>
+                      <dd className="font-semibold sm:text-right">
+                        {form.powerUnits} ({form.fleetOption === 'auto' ? 'Auto-filled' : 'Manual'})
+                      </dd>
                     </div>
                   )}
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">State</dt><dd className="font-semibold sm:text-right">{form.state}</dd></div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Plan</dt><dd className="font-semibold sm:text-right text-indigo-600">{UCR_SERVICE_PLANS[form.plan]?.name}</dd></div>
+                </dl>
+                <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                  <div className="flex justify-between text-slate-600 mb-2 font-medium"><span>Official UCR fee (2026)</span><span>${ucrFee.toLocaleString()}</span></div>
+                  <div className="flex justify-between text-slate-600 mb-4 font-medium"><span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice}`}</span></div>
+                  <div className="flex justify-between font-bold text-xl pt-4 border-t border-slate-200 text-[var(--color-navy)]"><span>Total payable</span><span>${total.toLocaleString()}</span></div>
                 </div>
-              )}
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text)] mb-2">Service plan</label>
-                <div className="space-y-2">
-                  {Object.entries(UCR_SERVICE_PLANS).map(([key, p]) => (
-                    <label key={key} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
-                      <input type="radio" name="plan" value={key} checked={form.plan === key} onChange={() => setForm({ ...form, plan: key })} className="text-[var(--color-orange)]" />
-                      <span className="font-medium">{p.name} – ${p.price}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: State */}
-        {step === 3 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-            <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Base state</h2>
-            <p className="text-slate-600 mb-4">Select the state where your business is registered or where you have your principal place of business.</p>
-            <select
-              value={form.state}
-              onChange={(e) => setForm({ ...form, state: e.target.value })}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-lg"
-            >
-              <option value="">Select state</option>
-              {['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'].map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* Step 4: Review */}
-        {step === 4 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-            <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Review your UCR filing</h2>
-            <dl className="space-y-4 text-sm divide-y divide-slate-100">
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Legal name</dt><dd className="font-semibold sm:text-right">{form.legalName || '—'}</dd></div>
-              {form.dba && <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">DBA</dt><dd className="font-semibold sm:text-right">{form.dba}</dd></div>}
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">USDOT</dt><dd className="font-semibold sm:text-right">{form.dotNumber || '—'}</dd></div>
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Registrant</dt><dd className="font-semibold sm:text-right">{form.registrantName || '—'}</dd></div>
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Entity</dt><dd className="font-semibold sm:text-right">{UCR_ENTITY_TYPES.find(e => e.value === form.entityType)?.label}</dd></div>
-              {form.entityType === 'carrier' && (
-                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2">
-                  <dt className="text-slate-500">Power units</dt>
-                  <dd className="font-semibold sm:text-right">
-                    {form.powerUnits} ({form.fleetOption === 'auto' ? 'Auto-filled' : 'Manual'})
-                  </dd>
-                </div>
-              )}
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">State</dt><dd className="font-semibold sm:text-right">{form.state}</dd></div>
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Plan</dt><dd className="font-semibold sm:text-right text-indigo-600">{UCR_SERVICE_PLANS[form.plan]?.name}</dd></div>
-            </dl>
-            <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-              <div className="flex justify-between text-slate-600 mb-2 font-medium"><span>Official UCR fee (2026)</span><span>${ucrFee.toLocaleString()}</span></div>
-              <div className="flex justify-between text-slate-600 mb-4 font-medium"><span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice}`}</span></div>
-              <div className="flex justify-between font-bold text-xl pt-4 border-t border-slate-200 text-[var(--color-navy)]"><span>Total payable</span><span>${total.toLocaleString()}</span></div>
-            </div>
-            <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-              <p className="text-sm text-emerald-800">
-                <strong>Split-Payment Model:</strong> To ensure prompt processing with the government, you only pay the official federal fee today. We only charge our service fee after your UCR certificate is generated and ready for full download.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Step 5: Submit filing (pay govt fee upfront) */}
-        {step === 5 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-            <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Pay Federal Fee to Submit</h2>
-            {!user ? (
-              <div className="text-center py-6">
-                <p className="text-slate-600 mb-4">Sign in or create an account to complete your UCR filing.</p>
-                <Link href={`/login?redirect=${encodeURIComponent('/ucr/file')}`} className="inline-block bg-[var(--color-orange)] text-white px-6 py-3 rounded-xl font-semibold">Sign in to continue</Link>
-              </div>
-            ) : (
-              <>
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
-                  <div className="flex justify-between text-slate-600 mb-2"><span>UCR official fee (2026)</span><span>${ucrFee.toLocaleString()}</span></div>
-                  <div className="flex justify-between text-slate-600 mb-2"><span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice}`}</span></div>
-                  <div className="flex justify-between font-bold text-lg pt-2 border-t border-slate-200 text-[var(--color-navy)]"><span>Due today (Govt Fee)</span><span>${ucrFee.toLocaleString()}</span></div>
-                  <div className="flex justify-between text-sm text-slate-600 mt-2"><span>Pay service fee on download</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice.toLocaleString()}`}</span></div>
-                </div>
-                <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
-                  <p className="text-sm text-blue-800">
-                    <strong>Split-Payment Model:</strong> To ensure prompt processing of your registration with the federal system, the government fee must be paid upfront. <strong>You do not pay our service fee</strong> until your official certificate is generated and ready for download.
+                <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                  <p className="text-sm text-emerald-800">
+                    <strong>Split-Payment Model:</strong> To ensure prompt processing with the government, you only pay the official federal fee today. We only charge our service fee after your UCR certificate is generated and ready for full download.
                   </p>
                 </div>
-                {lookupError && (
-                  <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-xl border border-red-100 mb-4">
-                    <AlertCircle className="w-4 h-4" /> {lookupError}
-                  </div>
-                )}
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={consentGiven}
-                      onChange={(e) => setConsentGiven(e.target.checked)}
-                      className="mt-1 w-5 h-5 rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]"
-                    />
-                    <span className="text-sm text-slate-700 leading-snug">
-                      <strong>Authorization & Consent:</strong> I authorize QuickTruckTax to pay the federal UCR fee on my behalf using the funds provided today. I understand that QuickTruckTax is an independent third-party filing service and is not affiliated with the government.
-                    </span>
-                  </label>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleSubmitFiling}
-                  disabled={submittingFiling || !consentGiven}
-                  className="mt-2 w-full bg-[var(--color-navy)] text-white py-4 min-h-[52px] rounded-xl font-bold touch-manipulation flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
-                >
-                  {submittingFiling ? (
-                    <>Proceeding to checkout… <Loader2 className="w-5 h-5 animate-spin" /></>
-                  ) : (
-                    <>Proceed to Payment (${ucrFee.toLocaleString()})</>
-                  )}
-                </button>
-              </>
+              </div>
             )}
-          </div>
-        )}
 
-        {/* Step 6: Thank you / Confirmation */}
-        {step === 6 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-10 shadow-sm text-center">
-            <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-              <CheckCircle className="w-14 h-14 text-emerald-600" />
-            </div>
-            <h1 className="text-3xl font-bold text-[var(--color-text)] mb-2">Your UCR filing is submitted</h1>
-            <p className="text-lg text-slate-600 mb-6">No upfront charge. You’ll pay only when your certificate is ready to download.</p>
-            <div className="max-w-md mx-auto p-6 bg-slate-50 rounded-2xl border border-slate-200 text-left mb-8">
-              <p className="text-sm text-slate-600 mb-2">
-                <strong className="text-[var(--color-text)]">Registration:</strong>{' '}
-                {confirmationData?.legalName || form.legalName || '—'} (USDOT: {confirmationData?.dotNumber || form.dotNumber || '—'})
-              </p>
-              <p className="text-sm text-slate-600 mb-2">
-                <strong className="text-[var(--color-text)]">Confirmation email:</strong> {confirmationData?.email || form.email || user?.email}
-              </p>
-              {confirmationData?.amountDueLater != null && (
-                <p className="text-sm text-slate-600">
-                  <strong className="text-[var(--color-text)]">Pay later amount:</strong>{' '}
-                  {Number(confirmationData.amountDueLater) === 79 ? (
-                    <DiscountedPrice price={79} originalPrice={99} />
-                  ) : (
-                    `$${Number(confirmationData.amountDueLater).toLocaleString()}`
+            {/* Step 5: Submit filing (pay govt fee upfront) */}
+            {step === 5 && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Pay Federal Fee to Submit</h2>
+                {!user ? (
+                  <div className="text-center py-6">
+                    <p className="text-slate-600 mb-4">Sign in or create an account to complete your UCR filing.</p>
+                    <Link href={`/login?redirect=${encodeURIComponent('/ucr/file')}`} className="inline-block bg-[var(--color-orange)] text-white px-6 py-3 rounded-xl font-semibold">Sign in to continue</Link>
+                  </div>
+                ) : (
+                  <>
+                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
+                      <div className="flex justify-between text-slate-600 mb-2"><span>UCR official fee (2026)</span><span>${ucrFee.toLocaleString()}</span></div>
+                      <div className="flex justify-between text-slate-600 mb-2"><span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice}`}</span></div>
+                      <div className="flex justify-between font-bold text-lg pt-2 border-t border-slate-200 text-[var(--color-navy)]"><span>Due today (Govt Fee)</span><span>${ucrFee.toLocaleString()}</span></div>
+                      <div className="flex justify-between text-sm text-slate-600 mt-2"><span>Pay service fee on download</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice.toLocaleString()}`}</span></div>
+                    </div>
+                    <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                      <p className="text-sm text-blue-800">
+                        <strong>Split-Payment Model:</strong> To ensure prompt processing of your registration with the federal system, the government fee must be paid upfront. <strong>You do not pay our service fee</strong> until your official certificate is generated and ready for download.
+                      </p>
+                    </div>
+                    {lookupError && (
+                      <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-xl border border-red-100 mb-4">
+                        <AlertCircle className="w-4 h-4" /> {lookupError}
+                      </div>
+                    )}
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={consentGiven}
+                          onChange={(e) => setConsentGiven(e.target.checked)}
+                          className="mt-1 w-5 h-5 rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]"
+                        />
+                        <span className="text-sm text-slate-700 leading-snug">
+                          <strong>Authorization & Consent:</strong> I authorize QuickTruckTax to pay the federal UCR fee on my behalf using the funds provided today. I understand that QuickTruckTax is an independent third-party filing service and is not affiliated with the government.
+                        </span>
+                      </label>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleSubmitFiling}
+                      disabled={submittingFiling || !consentGiven}
+                      className="mt-2 w-full bg-[var(--color-navy)] text-white py-4 min-h-[52px] rounded-xl font-bold touch-manipulation flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
+                    >
+                      {submittingFiling ? (
+                        <>Proceeding to checkout… <Loader2 className="w-5 h-5 animate-spin" /></>
+                      ) : (
+                        <>Proceed to Payment (${ucrFee.toLocaleString()})</>
+                      )}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Step 6: Thank you / Confirmation */}
+            {step === 6 && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-10 shadow-sm text-center">
+                <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                  <CheckCircle className="w-14 h-14 text-emerald-600" />
+                </div>
+                <h1 className="text-3xl font-bold text-[var(--color-text)] mb-2">Your UCR filing is submitted</h1>
+                <p className="text-lg text-slate-600 mb-6">No upfront charge. You’ll pay only when your certificate is ready to download.</p>
+                <div className="max-w-md mx-auto p-6 bg-slate-50 rounded-2xl border border-slate-200 text-left mb-8">
+                  <p className="text-sm text-slate-600 mb-2">
+                    <strong className="text-[var(--color-text)]">Registration:</strong>{' '}
+                    {confirmationData?.legalName || form.legalName || '—'} (USDOT: {confirmationData?.dotNumber || form.dotNumber || '—'})
+                  </p>
+                  <p className="text-sm text-slate-600 mb-2">
+                    <strong className="text-[var(--color-text)]">Confirmation email:</strong> {confirmationData?.email || form.email || user?.email}
+                  </p>
+                  {confirmationData?.amountDueLater != null && (
+                    <p className="text-sm text-slate-600">
+                      <strong className="text-[var(--color-text)]">Pay later amount:</strong>{' '}
+                      {Number(confirmationData.amountDueLater) === 79 ? (
+                        <DiscountedPrice price={79} originalPrice={99} />
+                      ) : (
+                        `$${Number(confirmationData.amountDueLater).toLocaleString()}`
+                      )}
+                    </p>
                   )}
+                  {confirmationData?.emailSubject && (
+                    <p className="text-sm text-slate-600 mt-2">
+                      <strong className="text-[var(--color-text)]">Email subject preview:</strong> {confirmationData.emailSubject}
+                    </p>
+                  )}
+                </div>
+                <p className="text-slate-600 mb-8 max-w-lg mx-auto leading-relaxed">
+                  Our team will process your filing with the UCR board. Once your certificate is uploaded, you can preview it in your dashboard and unlock full download in one click.
                 </p>
-              )}
-              {confirmationData?.emailSubject && (
-                <p className="text-sm text-slate-600 mt-2">
-                  <strong className="text-[var(--color-text)]">Email subject preview:</strong> {confirmationData.emailSubject}
-                </p>
-              )}
-            </div>
-            <p className="text-slate-600 mb-8 max-w-lg mx-auto leading-relaxed">
-              Our team will process your filing with the UCR board. Once your certificate is uploaded, you can preview it in your dashboard and unlock full download in one click.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
-              <button type="button" onClick={handleFileAnother} className="inline-flex items-center justify-center min-h-[48px] bg-[var(--color-navy)] !text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-navy-200/50 transition touch-manipulation w-full sm:w-auto">File Another UCR</button>
-              <Link href="/dashboard/filings" className="inline-flex items-center justify-center min-h-[48px] bg-[var(--color-orange)] !text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66a15] transition touch-manipulation w-full sm:w-auto">View my filings</Link>
-              <button type="button" onClick={() => window.print()} className="inline-flex items-center justify-center min-h-[48px] bg-white border border-slate-200 text-slate-700 px-8 py-4 rounded-xl font-bold hover:bg-slate-50 transition touch-manipulation w-full sm:w-auto">Print receipt</button>
-            </div>
-          </div>
-        )}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
+                  <button type="button" onClick={handleFileAnother} className="inline-flex items-center justify-center min-h-[48px] bg-[var(--color-navy)] !text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-navy-200/50 transition touch-manipulation w-full sm:w-auto">File Another UCR</button>
+                  <Link href="/dashboard/filings" className="inline-flex items-center justify-center min-h-[48px] bg-[var(--color-orange)] !text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66a15] transition touch-manipulation w-full sm:w-auto">View my filings</Link>
+                  <button type="button" onClick={() => window.print()} className="inline-flex items-center justify-center min-h-[48px] bg-white border border-slate-200 text-slate-700 px-8 py-4 rounded-xl font-bold hover:bg-slate-50 transition touch-manipulation w-full sm:w-auto">Print receipt</button>
+                </div>
+              </div>
+            )}
 
-        {/* Nav buttons - full-width primary on mobile for conversion */}
-        {step < 6 && step !== 5 && (
-          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 mt-8">
-            <button type="button" onClick={handleBack} className="min-h-[48px] px-6 py-3 rounded-xl border border-slate-200 font-medium text-[var(--color-text)] touch-manipulation w-full sm:w-auto">Back</button>
-            <button type="button" onClick={handleNext} disabled={!canProceed()} className="flex-1 min-h-[52px] px-8 py-3 rounded-xl bg-[var(--color-orange)] text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation w-full sm:w-auto">
-              {step === 4 ? 'Proceed to submit' : 'Next'} <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        )}
-        {step === 5 && user && (
-          <div className="mt-8">
-            <button type="button" onClick={handleBack} className="min-h-[48px] px-6 py-3 rounded-xl border border-slate-200 font-medium text-[var(--color-text)] touch-manipulation w-full sm:w-auto">Back</button>
-          </div>
+            {/* Nav buttons - full-width primary on mobile for conversion */}
+            {step < 6 && step !== 5 && (
+              <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 mt-8">
+                <button type="button" onClick={handleBack} className="min-h-[48px] px-6 py-3 rounded-xl border border-slate-200 font-medium text-[var(--color-text)] touch-manipulation w-full sm:w-auto">Back</button>
+                <button type="button" onClick={handleNext} disabled={!canProceed()} className="flex-1 min-h-[52px] px-8 py-3 rounded-xl bg-[var(--color-orange)] text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation w-full sm:w-auto">
+                  {step === 4 ? 'Proceed to submit' : 'Next'} <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+            {step === 5 && user && (
+              <div className="mt-8">
+                <button type="button" onClick={handleBack} className="min-h-[48px] px-6 py-3 rounded-xl border border-slate-200 font-medium text-[var(--color-text)] touch-manipulation w-full sm:w-auto">Back</button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
