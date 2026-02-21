@@ -42,8 +42,8 @@ export default function PaymentHistoryPage() {
         <head><title>Invoice ${payment.id}</title>
           <style>
             body { font-family: system-ui, sans-serif; max-width: 560px; margin: 2rem auto; padding: 1rem; color: #1e293b; }
-            h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-            .meta { color: #64748b; font-size: 0.875rem; margin-bottom: 1.5rem; }
+            h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+            .meta { color: #64748b; font-size: 0.875rem; line-height: 1.4; margin-bottom: 1.5rem; }
             table { width: 100%; border-collapse: collapse; }
             th, td { text-align: left; padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0; }
             th { color: #64748b; font-weight: 600; }
@@ -54,10 +54,17 @@ export default function PaymentHistoryPage() {
         </head>
         <body>
           <h1>QuickTruckTax</h1>
-          <p class="meta">Payment receipt / Invoice</p>
+          <p class="meta">
+            <strong>Vendax Systems LLC</strong><br/>
+            28 Geary St STE 650<br/>
+            San Francisco, CA 94108<br/>
+            support@quicktrucktax.com<br/>
+            <br/>
+            Official Service Receipt
+          </p>
           <table>
             <tr><th>Date</th><td>${date}</td></tr>
-            <tr><th>Description</th><td>${payment.description || (payment.filingType === 'ucr' || payment.type === 'ucr_filing' ? 'UCR Registration' : 'IRS Form 2290')}</td></tr>
+            <tr><th>Description</th><td>${payment.description || (payment.type?.startsWith('ucr_') || payment.filingType === 'ucr' ? 'UCR Registration Renewal' : 'IRS Form 2290')}</td></tr>
             <tr><th>Amount</th><td>$${Number(payment.amount || 0).toLocaleString()}</td></tr>
             <tr><th>Status</th><td>${payment.status || 'paid'}</td></tr>
             ${payment.filingId ? `<tr><th>Filing</th><td>${payment.filingId}</td></tr>` : ''}
