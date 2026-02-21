@@ -19,7 +19,11 @@ export async function GET(request) {
             return NextResponse.json({ error: LOOKUP_UNAVAILABLE_MESSAGE }, { status: 404 });
         }
 
-        return NextResponse.json(carrier);
+        const headers = {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+        };
+        return NextResponse.json(carrier, { headers });
     } catch (error) {
         console.error('FMCSA lookup error:', error?.message || error);
         const message = error?.message || LOOKUP_UNAVAILABLE_MESSAGE;

@@ -51,6 +51,11 @@ export function AuthProvider({ children }) {
               // Fetch the newly created user data
               data = await getUser(firebaseUser.uid);
               console.log('User record created successfully in onAuthStateChanged');
+              firebaseUser.getIdToken().then((token) => {
+                setTimeout(() => {
+                  fetch('/api/email/welcome', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+                }, 800);
+              }).catch(() => {});
             } catch (createError) {
               // Only log detailed error if it's not a permission error
               if (createError.code !== 'permission-denied' && !createError.message?.includes('permission')) {
@@ -113,6 +118,11 @@ export function AuthProvider({ children }) {
       role: 'customer',
       ...userData
     });
+    result.user.getIdToken().then((token) => {
+      setTimeout(() => {
+        fetch('/api/email/welcome', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+      }, 800);
+    }).catch(() => {});
     return result;
   };
 
@@ -133,6 +143,11 @@ export function AuthProvider({ children }) {
             photoURL: result.user.photoURL || null
           });
           console.log('User record created successfully');
+          result.user.getIdToken().then((token) => {
+            setTimeout(() => {
+              fetch('/api/email/welcome', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+            }, 800);
+          }).catch(() => {});
         } catch (createError) {
           console.error('Error creating user record:', createError);
           // Don't throw - the onAuthStateChanged will handle it

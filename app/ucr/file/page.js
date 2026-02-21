@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUcrFee, UCR_ENTITY_TYPES, UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
+import DiscountedPrice from '@/components/DiscountedPrice';
 import { createFiling } from '@/lib/db';
 import { deleteDraftFiling } from '@/lib/draftHelpers';
 import { trackEvent } from '@/lib/analytics';
@@ -21,6 +22,34 @@ import {
   AlertCircle,
   Info,
 } from 'lucide-react';
+
+const UCR_VISIT_KEY = 'ucr_visit_session_id';
+const UCR_VISIT_USER_ID = 'ucr_visit_user_id';
+const UCR_VISIT_EMAIL = 'ucr_visit_email';
+const UCR_VISIT_STEP = 'ucr_visit_step';
+const UCR_VISIT_COMPLETED = 'ucr_visit_completed';
+
+function getSessionId() {
+  if (typeof window === 'undefined') return null;
+  let sid = sessionStorage.getItem(UCR_VISIT_KEY);
+  if (!sid) {
+    sid = crypto.randomUUID?.() || `ucr-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    sessionStorage.setItem(UCR_VISIT_KEY, sid);
+  }
+  return sid;
+}
+
+function recordUcrVisit(body) {
+  const sessionId = typeof window !== 'undefined' ? sessionStorage.getItem(UCR_VISIT_KEY) : null;
+  const userId = typeof window !== 'undefined' ? sessionStorage.getItem(UCR_VISIT_USER_ID) : null;
+  if (!sessionId || !userId) return;
+  fetch('/api/analytics/ucr-visit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId, userId, ...body }),
+    keepalive: true,
+  }).catch(() => {});
+}
 
 const STEPS = [
   { id: 1, title: 'Business details', icon: Building2 },
@@ -55,8 +84,97 @@ function UcrFileContent() {
   const [draftId, setDraftId] = useState(null);
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState('');
+  const [fmcsaLookup, setFmcsaLookup] = useState(null); // { name, dba, address: { street, city, state, zip } } after successful lookup
   const [consentGiven, setConsentGiven] = useState(false);
   const [hasTrackedStart, setHasTrackedStart] = useState(false);
+  const hasRecordedVisit = useRef(false);
+
+  // Ensure UCR visit session id exists and persist user/email/step for abandon tracking
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    getSessionId();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !user) return;
+    sessionStorage.setItem(UCR_VISIT_USER_ID, user.uid);
+  }, [user]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const email = (form && form.email) || (user && user.email) || '';
+    sessionStorage.setItem(UCR_VISIT_EMAIL, email);
+  }, [form?.email, user?.email]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    sessionStorage.setItem(UCR_VISIT_STEP, String(step));
+  }, [step]);
+
+  // Record UCR visit (analytics + abandon pipeline) when user lands on the page
+  useEffect(() => {
+    if (authLoading || !user || hasRecordedVisit.current) return;
+    const sessionId = getSessionId();
+    if (!sessionId) return;
+    hasRecordedVisit.current = true;
+    fetch('/api/analytics/ucr-visit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        userId: user.uid,
+        email: user.email || form.email || '',
+        step: 1,
+      }),
+    }).catch(() => {});
+  }, [user, authLoading]);
+
+  // Record step progress for analytics and abandon context
+  useEffect(() => {
+    if (!user || step === 1) return; // step 1 already recorded on visit
+    const sessionId = sessionStorage.getItem(UCR_VISIT_KEY);
+    if (!sessionId) return;
+    fetch('/api/analytics/ucr-visit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        userId: user.uid,
+        email: form.email || user.email || '',
+        step,
+      }),
+    }).catch(() => {});
+  }, [step, user, form.email]);
+
+  // On leave/hide: record abandon so we can send email after 5 min (unless they completed)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleAbandon = () => {
+      if (sessionStorage.getItem(UCR_VISIT_COMPLETED) === '1') return;
+      const sessionId = sessionStorage.getItem(UCR_VISIT_KEY);
+      const userId = sessionStorage.getItem(UCR_VISIT_USER_ID);
+      const email = sessionStorage.getItem(UCR_VISIT_EMAIL) || '';
+      const step = parseInt(sessionStorage.getItem(UCR_VISIT_STEP) || '1', 10);
+      if (!sessionId || !userId) return;
+      trackEvent('ucr_filing_abandoned', { step, source: 'ucr_file' });
+      fetch('/api/analytics/ucr-visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, userId, email, step, abandoned: true }),
+        keepalive: true,
+      }).catch(() => {});
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') handleAbandon();
+    };
+    const onPageHide = () => handleAbandon();
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', onPageHide);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', onPageHide);
+    };
+  }, []);
 
   // Load draft from URL if present
   useEffect(() => {
@@ -96,6 +214,7 @@ function UcrFileContent() {
         const data = JSON.parse(saved);
         setConfirmationData(data);
         setStep(6);
+        sessionStorage.setItem(UCR_VISIT_COMPLETED, '1');
       }
     } catch (e) {
       console.warn('Could not restore confirmation:', e);
@@ -129,6 +248,7 @@ function UcrFileContent() {
     }
     setLookupLoading(true);
     setLookupError('');
+    setFmcsaLookup(null);
     try {
       const res = await fetch(`/api/fmcsa/lookup?usdot=${form.dotNumber}`);
       const data = await res.json();
@@ -142,6 +262,11 @@ function UcrFileContent() {
           state: data.address?.state || '',
           powerUnits: data.totalUnits || '',
           fleetOption: 'auto'
+        });
+        setFmcsaLookup({
+          name: data.name || '',
+          dba: data.dba || '',
+          address: data.address ? { street: data.address.street || '', city: data.address.city || '', state: data.address.state || '', zip: data.address.zip || '' } : null,
         });
       }
     } catch (err) {
@@ -241,7 +366,14 @@ function UcrFileContent() {
       setConfirmationData(donePayload);
       try {
         sessionStorage.setItem('ucr_filing_confirmation', JSON.stringify(donePayload));
+        sessionStorage.setItem(UCR_VISIT_COMPLETED, '1');
       } catch (e) { }
+      recordUcrVisit({ email: payload.email, step: 6, completed: true });
+      fetch('/api/email/filing-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filingId, status: 'submitted' }),
+      }).catch(() => {});
       setStep(6);
     } catch (err) {
       console.error('UCR submit error:', err);
@@ -345,7 +477,11 @@ function UcrFileContent() {
                   <input
                     type="text"
                     value={form.dotNumber}
-                    onChange={(e) => setForm({ ...form, dotNumber: e.target.value.replace(/\D/g, '').slice(0, 8) })}
+                    onChange={(e) => {
+                      const next = e.target.value.replace(/\D/g, '').slice(0, 8);
+                      setForm({ ...form, dotNumber: next });
+                      if (fmcsaLookup) setFmcsaLookup(null);
+                    }}
                     placeholder="USDOT number"
                     className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[48px]"
                   />
@@ -364,6 +500,29 @@ function UcrFileContent() {
                 <div className="flex items-start gap-2 text-amber-800 text-sm bg-amber-50 p-3 rounded-xl border border-amber-200">
                   <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>{lookupError}</span>
+                </div>
+              )}
+              {fmcsaLookup && (fmcsaLookup.name || fmcsaLookup.address) && (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-4">
+                  <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide">From FMCSA</h3>
+                  {fmcsaLookup.name ? (
+                    <div>
+                      <p className="text-xs text-slate-500 mb-0.5">Legal Name</p>
+                      <p className="font-bold text-[var(--color-text)]">{fmcsaLookup.name}</p>
+                    </div>
+                  ) : null}
+                  <div>
+                    <p className="text-xs text-slate-500 mb-0.5">DBA</p>
+                    <p className="font-bold text-[var(--color-text)]">{fmcsaLookup.dba || '—'}</p>
+                  </div>
+                  {fmcsaLookup.address && (fmcsaLookup.address.street || fmcsaLookup.address.city || fmcsaLookup.address.state) && (
+                    <div>
+                      <p className="text-xs text-slate-500 mb-0.5">Physical Address</p>
+                      <p className="font-bold text-[var(--color-text)]">
+                        {[fmcsaLookup.address.street, [fmcsaLookup.address.city, fmcsaLookup.address.state].filter(Boolean).join(', '), fmcsaLookup.address.zip].filter(Boolean).join(', ')}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -543,7 +702,7 @@ function UcrFileContent() {
             </dl>
             <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
               <div className="flex justify-between text-slate-600 mb-2 font-medium"><span>Official UCR fee (2026)</span><span>${ucrFee.toLocaleString()}</span></div>
-              <div className="flex justify-between text-slate-600 mb-4 font-medium"><span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span><span>${servicePrice}</span></div>
+              <div className="flex justify-between text-slate-600 mb-4 font-medium"><span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice}`}</span></div>
               <div className="flex justify-between font-bold text-xl pt-4 border-t border-slate-200 text-[var(--color-navy)]"><span>Total payable</span><span>${total.toLocaleString()}</span></div>
             </div>
             <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
@@ -567,13 +726,13 @@ function UcrFileContent() {
               <>
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
                   <div className="flex justify-between text-slate-600 mb-2"><span>UCR official fee (2026)</span><span>${ucrFee.toLocaleString()}</span></div>
-                  <div className="flex justify-between text-slate-600 mb-2"><span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span><span>${servicePrice}</span></div>
+                  <div className="flex justify-between text-slate-600 mb-2"><span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice}`}</span></div>
                   <div className="flex justify-between font-bold text-lg pt-2 border-t border-slate-200 text-[var(--color-navy)]"><span>Due today</span><span>$0.00</span></div>
-                  <div className="flex justify-between text-sm text-slate-600 mt-2"><span>Pay on certificate download</span><span>${servicePrice.toLocaleString()}</span></div>
+                  <div className="flex justify-between text-sm text-slate-600 mt-2"><span>Pay on certificate download</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice.toLocaleString()}`}</span></div>
                 </div>
                 <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
                   <p className="text-sm text-emerald-800">
-                    <strong>File first, pay later:</strong> We process your UCR filing first. Once your certificate is ready, you can preview it in your dashboard and unlock the full download for ${servicePrice}.
+                    <strong>File first, pay later:</strong> We process your UCR filing first. Once your certificate is ready, you can preview it in your dashboard and unlock the full download for {form.plan === 'filing' && servicePrice === 79 ? <><span className="text-slate-400 line-through">$99</span> <span className="font-bold text-[var(--color-orange)]">$79</span></> : `$${servicePrice}`}.
                   </p>
                 </div>
                 {lookupError && (
@@ -630,7 +789,12 @@ function UcrFileContent() {
               </p>
               {confirmationData?.amountDueLater != null && (
                 <p className="text-sm text-slate-600">
-                  <strong className="text-[var(--color-text)]">Pay later amount:</strong> ${Number(confirmationData.amountDueLater).toLocaleString()}
+                  <strong className="text-[var(--color-text)]">Pay later amount:</strong>{' '}
+                  {Number(confirmationData.amountDueLater) === 79 ? (
+                    <DiscountedPrice price={79} originalPrice={99} />
+                  ) : (
+                    `$${Number(confirmationData.amountDueLater).toLocaleString()}`
+                  )}
                 </p>
               )}
               {confirmationData?.emailSubject && (

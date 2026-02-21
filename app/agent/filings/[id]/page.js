@@ -8,6 +8,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { getFiling, updateFiling, getBusiness, getVehicle, subscribeToFiling } from '@/lib/db';
 import { getAmendmentTypeConfig, formatAmendmentSummary, getAgentAmendmentInstructions } from '@/lib/amendmentHelpers';
 import { REJECTION_REASONS, REQUIRED_ACTIONS, getRejectionConfig } from '@/lib/rejectionConfig';
+import DiscountedPrice from '@/components/DiscountedPrice';
 
 export default function AgentWorkStationPage() {
   const params = useParams();
@@ -212,6 +213,7 @@ export default function AgentWorkStationPage() {
       });
       setStatus('completed');
       setFiling({ ...filing, status: 'completed', certificateUrl: url, completedAt: new Date().toISOString() });
+      fetch('/api/email/filing-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filingId: params.id, status: 'completed' }) }).catch(() => {});
     } catch (err) {
       setError(err.message || 'Failed to mark UCR as completed.');
     } finally {
@@ -251,10 +253,12 @@ export default function AgentWorkStationPage() {
       }
       const data = await res.json();
       const publicUrl = data.url;
+      await updateFiling(params.id, { status: 'completed', certificateUrl: publicUrl, completedAt: new Date().toISOString() });
       setStatus('completed');
       setFiling(prev => ({ ...prev, status: 'completed', certificateUrl: publicUrl, completedAt: new Date().toISOString() }));
       setCertificateUrlInput(publicUrl);
       setUcrCertificateFile(null);
+      fetch('/api/email/filing-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filingId: params.id, status: 'completed' }) }).catch(() => {});
     } catch (err) {
       setError(err.message || 'Failed to upload UCR certificate.');
     } finally {
@@ -321,11 +325,10 @@ export default function AgentWorkStationPage() {
       });
 
       setStatus('completed');
-      // Update local state immediately for better UX
       setFiling({ ...filing, finalSchedule1Url: url, status: 'completed' });
       setSchedule1File(null);
+      fetch('/api/email/filing-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filingId: params.id, status: 'completed' }) }).catch(() => {});
 
-      // Show success message
       alert('Schedule 1 uploaded successfully! The filing has been marked as completed.');
 
       // Note: The real-time subscription (subscribeToFiling) will automatically update
@@ -1739,7 +1742,7 @@ export default function AgentWorkStationPage() {
                         {filing.servicePrice != null && (
                           <div className="flex justify-between">
                             <span className="text-[var(--color-muted)]">Service Fee:</span>
-                            <span className="text-[var(--color-text)] font-medium">${Number(filing.servicePrice).toLocaleString()}</span>
+                            <span className="text-[var(--color-text)] font-medium">{Number(filing.servicePrice) === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${Number(filing.servicePrice).toLocaleString()}`}</span>
                           </div>
                         )}
                         {filing.total != null && (

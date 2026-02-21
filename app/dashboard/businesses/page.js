@@ -274,7 +274,7 @@ export default function BusinessesPage() {
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                   Business Directory
-                </h1>
+              </h1>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
                 <Link href="/dashboard" className="hover:text-[#14b8a6] transition-colors">Dashboard</Link>
@@ -306,12 +306,12 @@ export default function BusinessesPage() {
           <Link
             href="/ucr/file"
             className="inline-flex items-center justify-center gap-2 bg-[var(--color-orange)] text-white px-4 sm:px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[var(--color-orange-soft)] hover:shadow-lg active:scale-95 transition-all duration-200 shadow-md touch-manipulation w-full sm:w-auto"
-          >
-            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">Add Business</span>
-            <span className="sm:hidden">Add</span>
+              >
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Add Business</span>
+                <span className="sm:hidden">Add</span>
           </Link>
-        </div>
+            </div>
 
         <div className="max-w-7xl mx-auto">
           {/* Empty state */}
@@ -328,7 +328,7 @@ export default function BusinessesPage() {
                 Add Your First Business
                 <ArrowLeft className="w-4 h-4 rotate-180" />
               </Link>
-            </div>
+          </div>
           )}
           {/* Management Context Banner + Grid when we have businesses */}
           {!loading && businesses.length > 0 && (
@@ -339,7 +339,7 @@ export default function BusinessesPage() {
                   <div className="flex items-center gap-5">
                     <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-[#14b8a6] to-[#0d9488] flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-teal-500/20">
                       <Building2 className="w-8 h-8" />
-                    </div>
+        </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="px-2 py-0.5 bg-white/10 rounded text-[9px] font-black uppercase tracking-widest text-white/70 border border-white/5">
@@ -356,58 +356,58 @@ export default function BusinessesPage() {
                   </div>
                 </div>
               </div>
-              {/* Search Bar */}
-              {businesses.length > 0 && (
+        {/* Search Bar */}
+        {businesses.length > 0 && (
                 <div className="mb-8 flex flex-col md:flex-row items-center gap-4 bg-white p-2 rounded-[1.5rem] border border-slate-200 shadow-sm">
                   <div className="relative flex-1 w-full">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      type="text"
+              <input
+                type="text"
                       placeholder="Search entities by name, EIN, or address..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full pl-11 pr-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-[#14b8a6] outline-none transition-all text-sm font-bold tracking-tight"
-                    />
-                  </div>
-                </div>
-              )}
+              />
+            </div>
+          </div>
+        )}
               <div className="grid gap-8 grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3">
                 {businessCards}
                 {filteredBusinesses.length === 0 && searchQuery && (
                 <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
                   <h2 className="text-2xl font-bold text-slate-900 mb-3">No businesses match your search</h2>
                   <p className="text-slate-500 text-center max-w-md mb-8 leading-relaxed">Try adjusting your search criteria.</p>
-                </div>
-              )}
-            </div>
+          </div>
+            )}
+          </div>
             <div className="bg-transparent lg:bg-white lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-sm overflow-hidden mb-20 hidden">
               {/* High-Density Table Header */}
               <div className="hidden lg:block bg-slate-50 border-b border-slate-100">
                 <div className="grid grid-cols-12 gap-4 px-6 py-4">
                   <div className="col-span-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     Entity Identification
-                  </div>
+                </div>
                   <div className="col-span-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     Tax Identifier
-                  </div>
+                </div>
                   <div className="col-span-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     Established
-                  </div>
+                </div>
                   <div className="col-span-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
                     Management
-                  </div>
                 </div>
               </div>
+            </div>
 
               {/* High-Density Row Redesign */}
               <div className="space-y-4 lg:space-y-0 lg:divide-y lg:divide-slate-100 p-1 lg:p-0">
-                {filteredBusinesses.map((business, index) => (
-                  <div
-                    key={business.id}
+              {filteredBusinesses.map((business, index) => (
+                <div
+                  key={business.id}
                     className="group bg-white lg:bg-transparent rounded-2xl lg:rounded-none border border-slate-200 lg:border-none shadow-sm lg:shadow-none grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 py-5 lg:px-6 lg:py-4 hover:bg-slate-50/50 transition-all duration-300 relative"
-                    style={{
-                      animationDelay: `${index * 30}ms`,
-                      animation: 'fadeInUp 0.4s ease-out forwards',
+                  style={{
+                    animationDelay: `${index * 30}ms`,
+                    animation: 'fadeInUp 0.4s ease-out forwards',
                     }}
                   >
                     <div className="hidden lg:block absolute left-0 top-0 bottom-0 w-1 bg-[#14b8a6] opacity-0 group-hover:opacity-100 transition-all rounded-r-full"></div>
@@ -416,7 +416,7 @@ export default function BusinessesPage() {
                     <div className="col-span-1 lg:col-span-5 flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-[#14b8a6]/10 group-hover:text-[#14b8a6] group-hover:border-[#14b8a6]/20 transition-all shadow-sm">
                         <Building2 className="w-6 h-6" />
-                      </div>
+                    </div>
                       <div>
                         <h3 className="text-base font-black text-slate-900 tracking-tight group-hover:text-[#173b63] transition-colors leading-tight">
                           {business.businessName || 'UNNAMED ENTITY'}
@@ -424,12 +424,12 @@ export default function BusinessesPage() {
                         <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                           <MapPin className="w-3 h-3 text-[#14b8a6]" />
                           <span className="truncate max-w-[250px]">{business.address || 'Location Not Set'}</span>
-                        </div>
                       </div>
                     </div>
+                  </div>
 
                     {/* Identifier (EIN) */}
-                    <div className="col-span-1 lg:col-span-2 flex items-center">
+                  <div className="col-span-1 lg:col-span-2 flex items-center">
                       <div className="flex flex-col">
                         <span className="text-[11px] font-black text-slate-900 font-mono tracking-tighter">
                           {business.ein ? formatEIN(business.ein) : 'PENDING EIN'}
@@ -438,58 +438,58 @@ export default function BusinessesPage() {
                           Employer ID
                         </span>
                       </div>
-                    </div>
+                  </div>
 
                     {/* Registration Profile */}
-                    <div className="col-span-1 lg:col-span-2 flex items-center">
+                  <div className="col-span-1 lg:col-span-2 flex items-center">
                       <div className="flex flex-col">
                         <span className="text-[11px] font-black text-slate-900 uppercase tracking-tight">
-                          {formatDate(business.createdAt)}
-                        </span>
+                        {formatDate(business.createdAt)}
+                      </span>
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">
                           Registered On
                         </span>
-                      </div>
                     </div>
+                  </div>
 
                     {/* Management Actions */}
                     <div className="col-span-1 lg:col-span-3 flex items-center justify-end gap-3">
-                      <Link
-                        href={`/dashboard/new-filing?businessId=${business.id}`}
+                    <Link
+                      href={`/dashboard/new-filing?businessId=${business.id}`}
                         className="min-w-[140px] text-center px-4 py-2 bg-[#14b8a6] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-all shadow-md shadow-teal-500/10 active:scale-95"
-                      >
+                    >
                         Use for Filing
-                      </Link>
+                    </Link>
                       <div className="relative actions-menu-group" style={{ zIndex: 100 }}>
                         <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all">
                           <MoreVertical className="w-4 h-4" />
-                        </button>
+                      </button>
                         <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-slate-200 rounded-2xl shadow-2xl opacity-0 invisible actions-menu transition-all transform scale-95 z-[200]">
-                          <button
+                        <button
                             onClick={() => handleEdit(business)}
                             className="w-full px-4 py-3 text-left text-[11px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 flex items-center gap-3 rounded-t-2xl transition-colors"
                           >
                             <Edit className="w-4 h-4 text-slate-400" />
                             Edit Entity
-                          </button>
-                          <button
+                        </button>
+                        <button
                             onClick={() => setDeletingBusiness(business)}
                             className="w-full px-4 py-3 text-left text-[11px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 flex items-center gap-3 rounded-b-2xl transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
+                        >
+                          <Trash2 className="w-4 h-4" />
                             Remove Entity
-                          </button>
-                        </div>
+                        </button>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
+          </div>
             </>
-          )}
+        )}
 
-          {/* Add Business Modal */}
+        {/* Add Business Modal */}
           <BusinessFormModal
             isOpen={showAddModal}
             onClose={() => setShowAddModal(false)}
@@ -498,7 +498,7 @@ export default function BusinessesPage() {
             externalErrors={businessErrors}
           />
 
-          {/* Edit Modal */}
+        {/* Edit Modal */}
           <BusinessFormModal
             isOpen={!!editingBusiness}
             onClose={() => setEditingBusiness(null)}
@@ -510,54 +510,54 @@ export default function BusinessesPage() {
             externalErrors={businessErrors}
           />
 
-          {/* Delete Confirmation Modal */}
-          {deletingBusiness && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => !saving && setDeletingBusiness(null)}>
-              <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                    <AlertCircle className="w-6 h-6 text-red-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-slate-900">Delete Business</h2>
-                    <p className="text-sm text-slate-500">This action cannot be undone</p>
-                  </div>
+        {/* Delete Confirmation Modal */}
+        {deletingBusiness && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => !saving && setDeletingBusiness(null)}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-6 h-6 text-red-600" />
                 </div>
-
-                <p className="text-slate-700 mb-6">
-                  Are you sure you want to delete <span className="font-bold">{deletingBusiness.businessName || 'this business'}</span>?
-                  This will permanently remove all business information.
-                </p>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setDeletingBusiness(null)}
-                    disabled={saving}
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => handleDelete(deletingBusiness.id)}
-                    disabled={saving}
-                    className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {saving ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Deleting...
-                      </>
-                    ) : (
-                      <>
-                        <Trash2 className="w-4 h-4" />
-                        Delete
-                      </>
-                    )}
-                  </button>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">Delete Business</h2>
+                  <p className="text-sm text-slate-500">This action cannot be undone</p>
                 </div>
               </div>
+
+              <p className="text-slate-700 mb-6">
+                Are you sure you want to delete <span className="font-bold">{deletingBusiness.businessName || 'this business'}</span>?
+                This will permanently remove all business information.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeletingBusiness(null)}
+                  disabled={saving}
+                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDelete(deletingBusiness.id)}
+                  disabled={saving}
+                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          )}
+          </div>
+        )}
         </div>
       </div>
     </ProtectedRoute>

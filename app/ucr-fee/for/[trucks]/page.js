@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getUcrFee, UCR_FEE_BRACKETS_2026, UCR_REGISTRATION_YEAR, UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
 import { UCR_FLEET_SIZES } from '@/lib/ucr-seo-data';
+import DiscountedPrice from '@/components/DiscountedPrice';
 import { Calculator, Truck, CheckCircle } from 'lucide-react';
 
 function parseTrucksParam(trucks) {
@@ -45,7 +46,7 @@ export default function UcrFeeForTrucksPage({ params }) {
         name: `How much is UCR for ${n} truck${n === 1 ? '' : 's'}?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `The ${UCR_REGISTRATION_YEAR} UCR registration fee for ${n} power unit${n === 1 ? '' : 's'} is $${fee.toLocaleString()} (bracket: ${bracket.label}). With our filing service ($79), your total is $${total.toLocaleString()}.`,
+          text: `The ${UCR_REGISTRATION_YEAR} UCR registration fee for ${n} power unit${n === 1 ? '' : 's'} is $${fee.toLocaleString()} (bracket: ${bracket.label}). With our filing service ($99 discounted to $79), your total is $${total.toLocaleString()}.`,
         },
       },
       {
@@ -96,7 +97,7 @@ export default function UcrFeeForTrucksPage({ params }) {
             </div>
             <div>
               <p className="text-sm text-slate-500 mb-1">Filing service</p>
-              <p className="text-2xl font-bold text-slate-800">${servicePrice}</p>
+              <p className="text-2xl font-bold text-slate-800"><DiscountedPrice price={servicePrice} originalPrice={99} /></p>
             </div>
             <div>
               <p className="text-sm text-slate-500 mb-1">Total</p>
@@ -107,7 +108,7 @@ export default function UcrFeeForTrucksPage({ params }) {
             href="/ucr/file"
             className="mt-6 inline-flex items-center gap-2 bg-[var(--color-navy)] hover:bg-[var(--color-navy-soft)] !text-white font-bold px-6 py-3 rounded-xl transition"
           >
-            Start UCR Filing – $79 <CheckCircle className="w-5 h-5" />
+            Start UCR Filing – <span className="inline-flex items-center gap-1.5"><span className="text-slate-400 line-through">$99</span> <span className="font-bold text-[var(--color-orange)]">$79</span></span> <CheckCircle className="w-5 h-5" />
           </Link>
         </section>
 

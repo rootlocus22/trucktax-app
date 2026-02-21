@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test:emails": "node scripts/test-emails.js"
   },
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.995.0",
     "@google/generative-ai": "^0.24.1",
     "@stripe/react-stripe-js": "^5.6.0",
     "@stripe/stripe-js": "^8.7.0",

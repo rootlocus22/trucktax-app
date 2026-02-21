@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
+import { sendEmail } from '@/lib/ses';
+import { getInvoiceEmailTemplate } from '@/lib/emailTemplates';
 
 // Lazy initialization to avoid build-time errors
 function getStripe() {
@@ -44,8 +46,7 @@ export async function POST(req) {
             break;
         case 'checkout.session.completed':
             const session = event.data.object;
-            // If using Checkout Sessions instead of PaymentIntents directly
-            // handlePaymentSuccess(session);
+            await handleCheckoutSessionCompleted(session);
             break;
         default:
             console.log(`Unhandled event type ${event.type}`);
@@ -102,8 +103,74 @@ async function handlePaymentSuccess(paymentIntent) {
 
         await batch.commit();
         console.log(`Successfully updated records for payment ${paymentIntentId}`);
+
+        if (amount === 7900 && userId) {
+            await sendInvoiceEmail(userId, filingId || null, 79);
+        }
     } catch (error) {
         console.error('Error updating records after payment success:', error);
         throw error;
+    }
+}
+
+async function handleCheckoutSessionCompleted(session) {
+    const amountTotal = session.amount_total || 0;
+    const userId = session.client_reference_id || session.metadata?.userId;
+    const filingId = session.metadata?.filingId || null;
+    const sessionId = session.id;
+
+    try {
+        const batch = adminDb.batch();
+        const paymentRef = adminDb.collection('payments').doc(sessionId);
+        batch.set(paymentRef, {
+            userId: userId || null,
+            filingId: filingId || null,
+            filingType: session.metadata?.type || 'ucr_certificate_unlock',
+            amount: amountTotal / 100,
+            currency: session.currency || 'usd',
+            status: 'paid',
+            provider: 'stripe',
+            paymentMethod: 'checkout_session',
+            metadata: session.metadata || {},
+            createdAt: Timestamp.now(),
+        });
+
+        if (filingId) {
+            const filingRef = adminDb.collection('filings').doc(filingId);
+            batch.update(filingRef, {
+                paymentStatus: 'paid',
+                updatedAt: Timestamp.now(),
+            });
+        }
+
+        await batch.commit();
+        console.log(`Checkout session ${sessionId} recorded.`);
+
+        if (amountTotal === 7900 && userId) {
+            await sendInvoiceEmail(userId, filingId, 79);
+        }
+    } catch (error) {
+        console.error('Error handling checkout.session.completed:', error);
+        throw error;
+    }
+}
+
+async function sendInvoiceEmail(userId, filingId, amount) {
+    try {
+        const userRef = adminDb.collection('users').doc(userId);
+        const userSnap = await userRef.get();
+        const user = userSnap.exists ? userSnap.data() : null;
+        const to = user?.email;
+        if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return;
+
+        let legalName = null;
+        if (filingId) {
+            const filingSnap = await adminDb.collection('filings').doc(filingId).get();
+            if (filingSnap.exists) legalName = filingSnap.data().legalName || null;
+        }
+        const { subject, html } = getInvoiceEmailTemplate({ amount, filingId, legalName });
+        await sendEmail(to, subject, html);
+    } catch (err) {
+        console.error('Failed to send invoice email:', err);
     }
 }

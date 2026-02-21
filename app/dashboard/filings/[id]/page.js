@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { updateFiling, subscribeToFiling, getBusiness, getVehicle } from '@/lib/db';
 import { trackEvent } from '@/lib/analytics';
+import DiscountedPrice from '@/components/DiscountedPrice';
 import {
   ArrowLeft,
   CheckCircle,
@@ -436,7 +437,7 @@ export default function FilingDetailPage() {
                   className="inline-flex items-center gap-1.5 mt-2 bg-[var(--color-navy)] text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] transition disabled:opacity-60"
                 >
                   {unlockRedirecting || verifyingUnlock ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
-                  {unlockRedirecting || verifyingUnlock ? 'Redirecting...' : `Pay $${ucrUnlockPrice.toFixed(2)} & Download`}
+                  {unlockRedirecting || verifyingUnlock ? 'Redirecting...' : ucrUnlockPrice === 79 ? <>Pay <span className="line-through text-white/70">$99</span> $79 & Download</> : `Pay $${ucrUnlockPrice.toFixed(2)} & Download`}
                 </button>
               ) : (
                 <a
@@ -667,7 +668,7 @@ export default function FilingDetailPage() {
                           {filing.servicePrice != null && (
                             <div className="flex items-start justify-between gap-2">
                               <span className="text-[var(--color-muted)] min-w-[120px]">Service fee:</span>
-                              <span className="text-[var(--color-text)] font-medium">${Number(filing.servicePrice).toLocaleString()}</span>
+                              <span className="text-[var(--color-text)] font-medium">{Number(filing.servicePrice) === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${Number(filing.servicePrice).toLocaleString()}`}</span>
                             </div>
                           )}
                           {filing.total != null && (
@@ -976,7 +977,7 @@ export default function FilingDetailPage() {
                   {isUcrCertificateLocked ? (
                     <div className="space-y-3">
                       <p className="text-sm text-slate-700">
-                        We file first to earn your trust. Your certificate is ready — unlock full-quality download for <strong>${ucrUnlockPrice.toFixed(2)}</strong>.
+                        We file first to earn your trust. Your certificate is ready — unlock full-quality download for {ucrUnlockPrice === 79 ? <strong><span className="text-slate-400 line-through">$99</span> <span className="text-[var(--color-orange)]">$79</span></strong> : <strong>${ucrUnlockPrice.toFixed(2)}</strong>}.
                       </p>
                       <button
                         type="button"
@@ -985,7 +986,7 @@ export default function FilingDetailPage() {
                         className="inline-flex items-center gap-2 bg-[var(--color-navy)] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[var(--color-navy-soft)] transition disabled:opacity-60"
                       >
                         {unlockRedirecting || verifyingUnlock ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
-                        {unlockRedirecting || verifyingUnlock ? 'Redirecting to secure checkout...' : `Pay $${ucrUnlockPrice.toFixed(2)} & Download`}
+                        {unlockRedirecting || verifyingUnlock ? 'Redirecting to secure checkout...' : ucrUnlockPrice === 79 ? <>Pay <span className="line-through text-slate-400">$99</span> $79 & Download</> : `Pay $${ucrUnlockPrice.toFixed(2)} & Download`}
                       </button>
                     </div>
                   ) : (

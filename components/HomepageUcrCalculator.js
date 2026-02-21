@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { getUcrFee, UCR_ENTITY_TYPES, UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
+import DiscountedPrice from '@/components/DiscountedPrice';
 import { Calculator, ArrowRight } from 'lucide-react';
 
 const SERVICE_PRICE = 79;
@@ -75,9 +76,9 @@ export default function HomepageUcrCalculator() {
           <span>UCR fee (2026)</span>
           <span className="font-semibold text-white">${ucrFee.toLocaleString()}</span>
         </div>
-        <div className="flex justify-between text-white/90">
+        <div className="flex justify-between text-white/90 items-center">
           <span>Filing service</span>
-          <span className="font-semibold text-white">${SERVICE_PRICE}</span>
+          <span className="font-semibold text-white"><DiscountedPrice price={SERVICE_PRICE} originalPrice={99} className="[&_.line-through]:text-white/60 [&_.text-slate-400]:text-white/60 [&_.text-emerald-600]:text-[var(--color-orange)] [&_.bg-emerald-50]:bg-white/20 [&_.text-emerald-600]:text-white" /></span>
         </div>
         <div className="flex justify-between text-lg font-bold text-[var(--color-orange)] pt-1">
           <span>Total</span>
@@ -88,7 +89,7 @@ export default function HomepageUcrCalculator() {
         href={state ? `/ucr-filing/${state}` : '/ucr/file'}
         className="mt-4 flex items-center justify-center gap-2 w-full min-h-[52px] bg-[var(--color-orange)] hover:bg-[#e66a15] !text-white font-bold py-3.5 rounded-xl transition touch-manipulation"
       >
-        Start UCR Filing – $79 <ArrowRight className="w-4 h-4" />
+        Start UCR Filing – <span className="inline-flex items-center gap-1.5"><span className="line-through opacity-80">$99</span> <span className="font-bold">$79</span></span> <ArrowRight className="w-4 h-4" />
       </Link>
     </div>
   );

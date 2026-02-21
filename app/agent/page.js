@@ -375,6 +375,7 @@ export default function AgentQueuePage() {
                                 onClick={async () => {
                                   const { updateFiling } = require('@/lib/db');
                                   await updateFiling(filing.id, { status: 'processing' });
+                                  fetch('/api/email/filing-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filingId: filing.id, status: 'processing' }) }).catch(() => {});
                                 }}
                                 className="p-1 px-2 text-[10px] font-bold bg-amber-100 text-amber-700 rounded hover:bg-amber-200 flex items-center gap-1"
                               >
@@ -390,6 +391,7 @@ export default function AgentQueuePage() {
                                     certificateUrl: 'https://ucr.gov/mock/cert.pdf',
                                     completedAt: new Date().toISOString()
                                   });
+                                  fetch('/api/email/filing-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filingId: filing.id, status: 'completed' }) }).catch(() => {});
                                 }}
                                 className="p-1 px-2 text-[10px] font-bold bg-green-100 text-green-700 rounded hover:bg-green-200 flex items-center gap-1"
                               >

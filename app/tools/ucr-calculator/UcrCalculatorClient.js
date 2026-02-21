@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { getUcrFee, UCR_FEE_BRACKETS_2026, UCR_ENTITY_TYPES, UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
+import DiscountedPrice from '@/components/DiscountedPrice';
 import { Calculator, ArrowRight, Truck, Building2 } from 'lucide-react';
 
 export default function UcrCalculatorClient() {
@@ -57,7 +58,7 @@ export default function UcrCalculatorClient() {
             {Object.entries(UCR_SERVICE_PLANS).map(([key, p]) => (
               <label key={key} className="flex items-center gap-3 p-3 rounded-xl border border-[var(--color-border)] cursor-pointer hover:bg-slate-50">
                 <input type="radio" name="plan" value={key} checked={plan === key} onChange={() => setPlan(key)} className="text-[var(--color-orange)]" />
-                <span className="font-medium text-[var(--color-text)]">{p.name} – ${p.price}</span>
+                <span className="font-medium text-[var(--color-text)]">{p.name} – {p.originalPrice != null ? <DiscountedPrice price={p.price} originalPrice={p.originalPrice} /> : `$${p.price}`}</span>
               </label>
             ))}
           </div>
@@ -73,9 +74,9 @@ export default function UcrCalculatorClient() {
               <span>UCR registration fee (2026)</span>
               <span className="font-semibold text-white">${ucrFee.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between text-white/90">
+            <div className="flex justify-between text-white/90 items-center">
               <span>{UCR_SERVICE_PLANS[plan]?.name}</span>
-              <span className="font-semibold text-white">${servicePrice}</span>
+              <span className="font-semibold text-white">{UCR_SERVICE_PLANS[plan]?.originalPrice != null ? <DiscountedPrice price={servicePrice} originalPrice={UCR_SERVICE_PLANS[plan].originalPrice} className="[&_.line-through]:text-white/60 [&_.text-slate-400]:text-white/60 [&_.text-emerald-600]:text-[var(--color-orange)] [&_.bg-emerald-50]:bg-white/20" /> : `$${servicePrice}`}</span>
             </div>
             <div className="border-t border-white/20 pt-4 flex justify-between text-lg">
               <span>Total</span>

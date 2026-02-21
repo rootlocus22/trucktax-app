@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
+import DiscountedPrice from '@/components/DiscountedPrice';
 import { CheckCircle, ArrowRight } from 'lucide-react';
 
 export const metadata = {
-  title: 'UCR Pricing | $79 UCR Filing & $99 UCR Pro | QuickTruckTax',
-  description: 'Simple UCR pricing. Filing Service $79 or UCR Pro $99. Fee calculation, submission assistance, confirmation tracking, compliance storage.',
+  title: 'UCR Pricing | $99 discounted to $79 Filing & $99 UCR Pro | QuickTruckTax',
+  description: 'Simple UCR pricing. UCR Filing Service $99 discounted to $79, or UCR Pro $99. Fee calculation, submission assistance, confirmation tracking, compliance storage.',
   alternates: { canonical: 'https://www.quicktrucktax.com/ucr/pricing' },
 };
 
@@ -20,7 +21,9 @@ export default function UcrPricingPage() {
         <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
           <div className="mb-6">
             <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">UCR Filing Service</span>
-            <p className="text-4xl font-bold text-[var(--color-text)] mt-2">$79</p>
+            <p className="text-4xl font-bold text-[var(--color-text)] mt-2 flex items-center gap-3 flex-wrap">
+              <DiscountedPrice price={79} originalPrice={99} className="text-4xl" />
+            </p>
             <p className="text-sm text-slate-500 mt-1">+ official UCR fee (by fleet size)</p>
           </div>
           <ul className="space-y-3 mb-8">
