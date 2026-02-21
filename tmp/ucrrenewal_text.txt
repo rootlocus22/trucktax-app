@@ -1,0 +1,56 @@
+Skip to content
+					UCR Registration and Renewal Headquarters				
+					Quick, Simple &amp; Secure				
+					Streamline Your UCR Registration and Renewal				
+									Get quick UCR Renewal with our expert support. Enjoy same-day approvals and avoid fines. Ideal for any fleet size, from one truck to a thousand.								
+                Renew & Get Approved
+                    Same Day Approval
+                    Save Time + Avoid Fees
+                    Digital Copy of Your UCR Registration
+                    Industry Leading Live Customer Support
+                Need Help? Call Now: 
+                (800) 376-8355
+					Only Three Steps				
+									1
+Step 1: Submit Your Information								
+									2
+Step 2: Verify Your Business Credentials								
+									3
+Step 3: Pay and Receive UCR Certificate via Email								
+					UCR Registration and Renewal				
+									What is the UCR Registration?The UCR Registration, otherwise known as the Unified Carrier Registration, is a type of trucking filing that is required of some truck drivers. You need to have an active UCR filing if you operate as an interstate driver. The filing changes in some ways (such as cost) based on the number of trucks you have in your fleet. This is because the UCR serves as a way to fund the maintenance of public roads and driver safety programs. The more you contribute to the issues of the roads, i.e., you drive more trucks on them, the more you have to pay.Filing the Unified Carrier Registration RenewalDid you know that the Unified Carrier Registration is only actually good for one calendar year? Annually, you have to complete a UCR registration renewal by December 31st in order to have your registration active through to the next year. That is to say, in order to continue to have an active UCR into 2025, you had to submit your UCR renewal 2024. Now, if you want to continue to have an active UCR into 2026, you will have to submit your UCR renewal 2025. If you do not submit the UCR registration renewal by the deadline date of December 31st, you will have to restart the filing process and file for a brand new Unified Carrier Registration. In order to make sure none of our customers miss the Unified Carrier Registration renewal, we will send out reminders to all of our customers starting when the UCR renewal 2025 period has begun. Regardless of the reminders, we prioritize customer efficiency, so we have made the renewal process quick and easy. We have established a system that allows you to complete your UCR renewal online in no time at all!Important Dates to Know for the UCR Registration RenewalThe renewal starts again every year in October. From October 1st through to December 31st, you can complete your UCR renewal online so that you are fully ready for the new year. Be aware there is a UCR renewal fee to pay at the time of filing. However, the UCR renewal cost is very reasonable! We suggest getting your filing done ASAP, so be prepared to file your UCR renewal 2025 as soon as October 1st hits. Then, you can rest easily knowing we will take care of the rest for you! Do not wait to file your UCR renewal until the last minute!Another Important Registration for TruckersIn addition to the UCR, truckers who operate across multiple states need to be aware of the IRP, or International Registration Plan. The IRP is designed to simplify fleet registration for interstate travel by allowing you to register your trucks in your home state while paying proportional fees for the other states where you drive. These fees are calculated based on the number of miles your vehicles travel in each state, ensuring compliance without the need to register separately in every jurisdiction.Be Ready to Pay the Renewal FeeThe UCR renewal cost varies depending on your initial filing, but nonetheless there is a UCR renewal fee that all filers will be subject to paying. When you do the UCR renewal online process with us, you can pay the fee as you complete the filing.Staying Compliant with UsThe UCR renewal 2025 process will be just like that of the UCR renewal 2024. Be sure to get a head start and file for your UCR registration renewal ASAP. If you previously filed with us, you will automatically get a notification that the filing process is open. You can file your UCR renewal online with us quickly and easily so that you can stay compliant for every year that you truck!For interstate truckers, completing the annual Unified Carrier Registration renewal is by far one of the most important tasks that needs to be done. Trucking on interstate roads without an active and up to date UCR filing can really pose as a threat to you, your truck, and your business. Be sure to avoid any unnecessary risks and simply file your trucking files with us. Feel free to speak with one of our agents to learn about the rules of compliance on the road. Continue all of your trucking filings with us and stay up to date on all major trucking news!								
+									Copyright © 2024 UCR Renewal | Powered by UCR Renewal								
+									This website is not affiliated with the Unified Carrier Registration Plan. This website is operated by a private company that provides a private registration service for an additional fee. You are not required to use this site to register with the UCR Plan. You may register directly with the UCR Plan at www.ucr.gov. 								
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"\/*"},{"not":{"href_matches":["\/wp-*.php","\/wp-admin\/*","\/wp-content\/uploads\/*","\/wp-content\/*","\/wp-content\/plugins\/*","\/wp-content\/themes\/hello-elementor-child\/*","\/wp-content\/themes\/hello-elementor\/*","\/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+            const ajax_object = {
+                "ajax_url": "https://ucrrenewal.com/wp-admin/admin-ajax.php",
+                "rest_url": "https://ucrrenewal.com/wp-json/ucr/v1/get-dot-info",
+                "nonce": "18c79fcdb5"
+            };
+				const lazyloadRunObserver = () => {
+					const lazyloadBackgrounds = document.querySelectorAll( `.e-con.e-parent:not(.e-lazyloaded)` );
+					const lazyloadBackgroundObserver = new IntersectionObserver( ( entries ) => {
+						entries.forEach( ( entry ) => {
+							if ( entry.isIntersecting ) {
+								let lazyloadBackground = entry.target;
+								if( lazyloadBackground ) {
+									lazyloadBackground.classList.add( 'e-lazyloaded' );
+								}
+								lazyloadBackgroundObserver.unobserve( entry.target );
+							}
+						});
+					}, { rootMargin: '200px 0px 200px 0px' } );
+					lazyloadBackgrounds.forEach( ( lazyloadBackground ) => {
+						lazyloadBackgroundObserver.observe( lazyloadBackground );
+					} );
+				};
+				const events = [
+					'DOMContentLoaded',
+					'elementor/lazyload/observe',
+				];
+				events.forEach( ( event ) => {
+					document.addEventListener( event, lazyloadRunObserver );
+				} );
+var elementorFrontendConfig = {"environmentMode":{"edit":false,"wpPreview":false,"isScriptDebug":false},"i18n":{"shareOnFacebook":"Share on Facebook","shareOnTwitter":"Share on Twitter","pinIt":"Pin it","download":"Download","downloadImage":"Download image","fullscreen":"Fullscreen","zoom":"Zoom","share":"Share","playVideo":"Play Video","previous":"Previous","next":"Next","close":"Close","a11yCarouselPrevSlideMessage":"Previous slide","a11yCarouselNextSlideMessage":"Next slide","a11yCarouselFirstSlideMessage":"This is the first slide","a11yCarouselLastSlideMessage":"This is the last slide","a11yCarouselPaginationBulletMessage":"Go to slide"},"is_rtl":false,"breakpoints":{"xs":0,"sm":480,"md":768,"lg":1025,"xl":1440,"xxl":1600},"responsive":{"breakpoints":{"mobile":{"label":"Mobile Portrait","value":767,"default_value":767,"direction":"max","is_enabled":true},"mobile_extra":{"label":"Mobile Landscape","value":880,"default_value":880,"direction":"max","is_enabled":false},"tablet":{"label":"Tablet Portrait","value":1024,"default_value":1024,"direction":"max","is_enabled":true},"tablet_extra":{"label":"Tablet Landscape","value":1200,"default_value":1200,"direction":"max","is_enabled":false},"laptop":{"label":"Laptop","value":1366,"default_value":1366,"direction":"max","is_enabled":false},"widescreen":{"label":"Widescreen","value":2400,"default_value":2400,"direction":"min","is_enabled":false}},"hasCustomBreakpoints":false},"version":"3.32.5","is_static":false,"experimentalFeatures":{"e_font_icon_svg":true,"additional_custom_breakpoints":true,"container":true,"theme_builder_v2":true,"hello-theme-header-footer":true,"nested-elements":true,"home_screen":true,"global_classes_should_enforce_capabilities":true,"e_variables":true,"cloud-library":true,"e_opt_in_v4_page":true,"import-export-customization":true,"e_pro_variables":true},"urls":{"assets":"https:\/\/ucrrenewal.com\/wp-content\/plugins\/elementor\/assets\/","ajaxurl":"https:\/\/ucrrenewal.com\/wp-admin\/admin-ajax.php","uploadUrl":"https:\/\/ucrrenewal.com\/wp-content\/uploads"},"nonces":{"floatingButtonsClickTracking":"82f32d5b67"},"swiperClass":"swiper","settings":{"page":[],"editorPreferences":[]},"kit":{"active_breakpoints":["viewport_mobile","viewport_tablet"],"global_image_lightbox":"yes","lightbox_enable_counter":"yes","lightbox_enable_fullscreen":"yes","lightbox_enable_zoom":"yes","lightbox_enable_share":"yes","lightbox_title_src":"title","lightbox_description_src":"description","hello_header_logo_type":"logo","hello_header_menu_layout":"horizontal","hello_footer_logo_type":"logo"},"post":{"id":40,"title":"UCR%20Renewal%20I%20UCR%20Registration%20I%20%28800%29%20376-8355","excerpt":"","featuredImage":"https:\/\/ucrrenewal.com\/wp-content\/uploads\/2024\/05\/home-banner-1024x386.webp"}};
+wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );
+var ElementorProFrontendConfig = {"ajaxurl":"https:\/\/ucrrenewal.com\/wp-admin\/admin-ajax.php","nonce":"9f093d1265","urls":{"assets":"https:\/\/ucrrenewal.com\/wp-content\/plugins\/elementor-pro\/assets\/","rest":"https:\/\/ucrrenewal.com\/wp-json\/"},"settings":{"lazy_load_background_images":true},"popup":{"hasPopUps":false},"shareButtonsNetworks":{"facebook":{"title":"Facebook","has_counter":true},"twitter":{"title":"Twitter"},"linkedin":{"title":"LinkedIn","has_counter":true},"pinterest":{"title":"Pinterest","has_counter":true},"reddit":{"title":"Reddit","has_counter":true},"vk":{"title":"VK","has_counter":true},"odnoklassniki":{"title":"OK","has_counter":true},"tumblr":{"title":"Tumblr"},"digg":{"title":"Digg"},"skype":{"title":"Skype"},"stumbleupon":{"title":"StumbleUpon","has_counter":true},"mix":{"title":"Mix"},"telegram":{"title":"Telegram"},"pocket":{"title":"Pocket","has_counter":true},"xing":{"title":"XING","has_counter":true},"whatsapp":{"title":"WhatsApp"},"email":{"title":"Email"},"print":{"title":"Print"},"x-twitter":{"title":"X"},"threads":{"title":"Threads"}},"facebook_sdk":{"lang":"en_US","app_id":""},"lottie":{"defaultAnimationUrl":"https:\/\/ucrrenewal.com\/wp-content\/plugins\/elementor-pro\/modules\/lottie\/assets\/animations\/default.json"}};

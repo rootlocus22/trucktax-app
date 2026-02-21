@@ -328,6 +328,7 @@ export default async function PseoPage({ params }) {
                         <TableOfContents headers={headers} />
                         <div className="sticky top-24 space-y-6">
                             <CtaBox />
+                            <UcrCtaBox />
                             <RelatedGuides currentSlug={slug} data={data} />
                         </div>
                     </aside>
@@ -412,6 +413,7 @@ export default async function PseoPage({ params }) {
                         <TableOfContents headers={headers} />
                         <div className="sticky top-24 space-y-6">
                             <CtaBox />
+                            <UcrCtaBox />
                             <RelatedGuides currentSlug={slug} data={data} />
                         </div>
                     </aside>
@@ -481,6 +483,7 @@ export default async function PseoPage({ params }) {
                         <TrustBox />
                         <TableOfContents headers={headers} />
                         <CtaBox />
+                        <UcrCtaBox />
                         <RelatedGuides currentSlug={slug} />
                     </aside>
                 </div>
@@ -515,6 +518,7 @@ export default async function PseoPage({ params }) {
                         <TrustBox />
                         <TableOfContents headers={headers} />
                         <CtaBox />
+                        <UcrCtaBox />
                         <RelatedGuides currentSlug={slug} />
                     </aside>
                 </div>
@@ -554,6 +558,7 @@ export default async function PseoPage({ params }) {
                                 File Now
                             </Link>
                         </div>
+                        <UcrCtaBox />
                         <RelatedGuides currentSlug={slug} />
                     </aside>
                 </div>
@@ -592,6 +597,7 @@ export default async function PseoPage({ params }) {
                         <TrustBox />
                         <TableOfContents headers={headers} />
                         <CtaBox />
+                        <UcrCtaBox />
                         <RelatedGuides currentSlug={slug} />
                     </aside>
                 </div>
@@ -652,6 +658,24 @@ function CtaBox() {
             <Link href="/services/form-2290-filing" className="block w-full bg-[#f97316] hover:bg-[#ea580c] text-white font-bold py-3 rounded-lg transition-colors">
                 Start Filing
             </Link>
+        </div>
+    )
+}
+
+function UcrCtaBox() {
+    return (
+        <div className="bg-indigo-600 rounded-xl p-6 text-white text-center shadow-lg relative overflow-hidden mt-6">
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+            <div className="relative z-10">
+                <span className="inline-block py-1 px-3 rounded-full bg-indigo-500/50 text-indigo-100 text-[10px] font-bold mb-3 uppercase tracking-wider border border-indigo-400">
+                    DOT Compliance
+                </span>
+                <h4 className="font-bold text-lg mb-2">Need your 2026 UCR?</h4>
+                <p className="text-indigo-200 text-sm mb-6">Avoid fines. File now with $0 upfront.</p>
+                <Link href="/services/ucr-registration" className="block w-full bg-white text-indigo-600 font-bold py-3 rounded-lg transition-colors hover:bg-slate-50 border border-indigo-100 shadow-sm flex items-center justify-center gap-2">
+                    Get UCR <ArrowRight className="w-4 h-4" />
+                </Link>
+            </div>
         </div>
     )
 }

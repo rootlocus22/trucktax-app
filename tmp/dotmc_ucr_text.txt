@@ -1,0 +1,100 @@
+		Skip to content
+												Need Help?
+Contact Us
+			UCRdotmc2025-10-01T11:27:26-07:00						
+UCR RegistrationUCR RegistrationThe 2026 UCR registration&nbsp;is NOW OPEN!UCR Registrations for the 2026 year may now be completed.
+Enter USDOT Number To Start
+ucr-request
+	USDOT Number
+		*
+GET STARTED
+.frm_style_formidable-style.with_frm_style .frm_submit button {
+margin: 0px !important;
+}
+If you need to make any updates or changes to your USDOT Number, please file an MCS-150 Update.
+What is UCR?UCR (Unified Carrier Registration) is a federally mandated program required for motor carriers and businesses that are engaged in interstate commerce (crossing states lines). Paying UCR gov fee is crucial for your commercial transportation business, as failure to register can result in operation halt or potential removal from the road.
+UCR Renewal &#8211; Participating StatesCurrently there are 41 U.S. states as part of the UCR registration. If your business operates from a non-participating state, you still need to register for UCR if you cross over state lines into a participating state. In this cases, you would select a participating base state as your nearest to your operations. NONE Participating states are: Arizona, District of Columbia, Florida, Hawaii, Maryland, New Jersey, Nevada, Oregon, Vermont, Wyoming. If you are NOT located within these states or plan on operating outside of these states, UCR is mandatory.
+2026 UCR Registration FeesBased on your fleet size, Register for the Unified Carrier Registration Plan to contribute to funding highway safety. UCR Annual fees are due by December 31st. The fees collected are for supporting state enforcements, road maintenances, and driving safety. All companies must pay the UCR Fee before their first interstate trip to avoid fines and impoundment. 
+Register UCR
+Vehicle Quantity
+Fee
+1-2 Vehicles
+$176
+3-5 Vehicles
+$388
+6-20 Vehicles
+$609
+21-100 Vehicles
+$1449
+100+ Vehicles
+CONTACT US
+Register UCRThis website is not affiliated with the Unified Carrier Registration Plan. This website is operated by a private company that provides a private registration service for an additional fee. You are not required to use this site to register with the UCR Plan. You may register directly with the UCR Plan at www.ucr.gov.
+					Need Help?
+Chat with an Agent
+Contact Us
+USDOT Number
+Operating Authority
+MCS-150
+UCR
+BOC-3
+Terms &amp; Conditions&nbsp;|&nbsp;Refund Policy&nbsp;|&nbsp;Privacy Policy&nbsp;| Contact Us
+The information and images on this website are the property of DOTMC and may not be reproduced, reused, or appropriated without the express written consent of the owner.DOTMC, operated by MOTOR CARRIER AUTHORITY LLC, is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement.We are not affiliated with any government authority such as USDOT or FMCSA.
+© 2026 DOTMC, All Rights Reserved.
+    window.__lc = window.__lc || {};
+    window.__lc.license = 18339375;
+    window.__lc.integration_name = "manual_channels";
+    window.__lc.product_name = "livechat";
+    ;(function(n,t,c){function i(n){return e._h?e._h.apply(null,n):e._q.push(n)}var e={_q:[],_h:null,_v:"2.0",on:function(){i(["on",c.call(arguments)])},once:function(){i(["once",c.call(arguments)])},off:function(){i(["off",c.call(arguments)])},get:function(){if(!e._h)throw new Error("[LiveChatWidget] You can't use getters before load.");return i(["get",c.call(arguments)])},call:function(){i(["call",c.call(arguments)])},init:function(){var n=t.createElement("script");n.async=!0,n.type="text/javascript",n.src="https://cdn.livechatinc.com/tracking.js",t.head.appendChild(n)}};!n.__lc.asyncInit&&e.init(),n.LiveChatWidget=n.LiveChatWidget||e}(window,document,[].slice))
+Chat with us, powered by LiveChat
+				Page load link
+			Need Help?
+Chat with an Agent
+Contact Us
+USDOT NumberOperating AuthorityMCS-150CLEARINGHOUSEUCRBOC-3Contact Us
+window.off_canvas_5988 = {"type":"sliding-bar","width":"400","width_medium":"","width_small":"","height":"full","custom_height":"","custom_height_medium":"","custom_height_small":"","horizontal_position":"flex-end","horizontal_position_medium":"","horizontal_position_small":"","vertical_position":"flex-end","vertical_position_medium":"","vertical_position_small":"","content_layout":"column","align_content":"flex-start","valign_content":"flex-start","content_wrap":"wrap","enter_animation":"slideShort","enter_animation_direction":"right","enter_animation_speed":0.5,"enter_animation_timing":"ease","exit_animation":"slideShort","exit_animation_direction":"right","exit_animation_speed":0.5,"exit_animation_timing":"ease","off_canvas_state":"closed","sb_height":"","position":"right","transition":"overlap","css_class":"","css_id":"","sb_enter_animation":"slideShort","sb_enter_animation_speed":0.5,"sb_enter_animation_timing":"ease","sb_exit_animation":"slideShort","sb_exit_animation_speed":0.5,"sb_exit_animation_timing":"ease","background_color":"#246faf","background_image":"","background_position":"left top","background_repeat":"repeat","background_size":"","background_custom_size":"","background_blend_mode":"none","oc_scrollbar":"default","oc_scrollbar_background":"#f2f3f5","oc_scrollbar_handle_color":"#65bc7b","margin":"","padding":"","box_shadow":"no","box_shadow_position":"","box_shadow_blur":"0","box_shadow_spread":"0","box_shadow_color":"","border_radius":"","border_width":"","border_color":"","overlay":"yes","overlay_z_index":"","overlay_page_scrollbar":"yes","overlay_background_color":"rgba(0,0,0,0.8)","overlay_background_image":"","overlay_background_position":"left top","overlay_background_repeat":"repeat","overlay_background_size":"","overlay_background_custom_size":"","overlay_background_blend_mode":"none","overlay_close_on_click":"yes","close_on_anchor_click":"no","close_on_esc":"yes","auto_close_after_time":"","close_button":"yes","close_button_position":"right","show_close_button_after_time":"","close_button_margin":"","close_button_color":"var(--awb-color1)","close_button_color_hover":"","close_icon_size":"24","close_button_custom_icon":"","on_page_load":"no","time_on_page":"no","time_on_page_duration":"","on_scroll":"no","scroll_direction":"up","scroll_to":"position","scroll_position":"","scroll_element":"","on_click":"no","on_click_element":"","exit_intent":"no","after_inactivity":"no","inactivity_duration":"","on_add_to_cart":"no","publish_date_after":"","publish_date_until":"","frequency":"forever","frequency_xtimes":"","frequency_xdays":"","after_x_page_views":"no","number_of_page_views":"","after_x_sessions":"no","number_of_sessions":"","when_arriving_from":"","users":"all","users_roles":"","device":"","status_css_animations":"desktop","has_js_rules":false};var fusionNavIsCollapsed=function(e){var t,n;window.innerWidth{e.classList.remove("no-wrapper-transition")},400),e.classList.remove("loading")},fusionRunNavIsCollapsed=function(){var e,t=document.querySelectorAll(".awb-menu");for(e=0;e
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/wp-*.php","/wp-admin/*","/wp-content/uploads/*","/wp-content/*","/wp-content/plugins/*","/wp-content/themes/Avada/*","/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+/* <![CDATA[ */
+var frm_js = {"ajax_url":"https://www.dotmc.com/wp-admin/admin-ajax.php","images_url":"https://www.dotmc.com/wp-content/plugins/formidable/images","loading":"Loading\u2026","remove":"Remove","offset":"4","nonce":"e00f7ef2eb","id":"ID","no_results":"No results match","file_spam":"That file looks like Spam.","calc_error":"There is an error in the calculation in the field with key","empty_fields":"Please complete the preceding required fields before uploading a file.","focus_first_error":"1","include_alert_role":"1","include_resend_email":""};
+var frm_password_checks = {"eight-char":{"label":"Eight characters minimum","regex":"/^.{8,}$/","message":"Passwords require at least 8 characters"},"lowercase":{"label":"One lowercase letter","regex":"#[a-z]+#","message":"Passwords must include at least one lowercase letter"},"uppercase":{"label":"One uppercase letter","regex":"#[A-Z]+#","message":"Passwords must include at least one uppercase letter"},"number":{"label":"One number","regex":"#[0-9]+#","message":"Passwords must include at least one number"},"special-char":{"label":"One special character","regex":"/(?=.*[^a-zA-Z0-9])/","message":"Password is invalid"}};
+var frmCheckboxI18n = {"errorMsg":{"min_selections":"This field requires a minimum of %1$d selected options but only %2$d were submitted."}};
+//# sourceURL=formidable-js-extra
+/* ]]> */
+/* <![CDATA[ */
+window.frm_js.repeaterRowDeleteConfirmation = "Are you sure you want to delete this row?";
+window.frm_js.datepickerLibrary = "default";
+//# sourceURL=formidable-js-after
+/* ]]> */
+{"baseUrl":"https://s.w.org/images/core/emoji/17.0.2/72x72/","ext":".png","svgUrl":"https://s.w.org/images/core/emoji/17.0.2/svg/","svgExt":".svg","source":{"concatemoji":"https://www.dotmc.com/wp-includes/js/wp-emoji-release.min.js?ver=6.9.1"}}
+/* <![CDATA[ */
+/*! This file is auto-generated */
+const a=JSON.parse(document.getElementById("wp-emoji-settings").textContent),o=(window._wpemojiSettings=a,"wpEmojiSettingsSupports"),s=["flag","emoji"];function i(e){try{var t={supportTests:e,timestamp:(new Date).valueOf()};sessionStorage.setItem(o,JSON.stringify(t))}catch(e){}}function c(e,t,n){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);t=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data);e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(n,0,0);const a=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data);return t.every((e,t)=>e===a[t])}function p(e,t){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);var n=e.getImageData(16,16,1,1);for(let e=0;e{s[e]=t(o,e,n,a)}),s}function r(e){var t=document.createElement("script");t.src=e,t.defer=!0,document.head.appendChild(t)}a.supports={everything:!0,everythingExceptFlag:!0},new Promise(t=>{let n=function(){try{var e=JSON.parse(sessionStorage.getItem(o));if("object"==typeof e&&"number"==typeof e.timestamp&&(new Date).valueOf(){i(n=e.data),r.terminate(),t(n)})}catch(e){}i(n=f(s,u,c,p))}t(n)}).then(e=>{for(const n in e)a.supports[n]=e[n],a.supports.everything=a.supports.everything&&a.supports[n],"flag"!==n&&(a.supports.everythingExceptFlag=a.supports.everythingExceptFlag&&a.supports[n]);var t;a.supports.everythingExceptFlag=a.supports.everythingExceptFlag&&!a.supports.flag,a.supports.everything||((t=a.source||{}).concatemoji?r(t.concatemoji):t.wpemoji&&t.twemoji&&(r(t.twemoji),r(t.wpemoji)))});
+//# sourceURL=https://www.dotmc.com/wp-includes/js/wp-emoji-loader.min.js
+/* ]]> */
+/*<![CDATA[*/
+/*]]>*/
+	jQuery(document).ready( function($) {
+        // EIN pairs
+        var pairs = [
+            { 'dot_number': 'item_meta[219]', 'ein_field': 'item_meta[220]' }, // Form 2
+            { 'dot_number': 'item_meta[431]', 'ein_field': 'item_meta[537]' }, // Form 11
+        ];
+        setEinInput( pairs );
+        // OOS
+        var oos_isset = jQuery('.oos-ajax').length;
+        if( oos_isset > 0 ) {
+            var data = {
+                action: 'api_ajax_load_oos',
+                ein: jQuery("input[name='usdot']").val()
+            };
+            jQuery.post( '/wp-admin/admin-ajax.php', data, function( response ){
+                var val = response;
+                if( val ) {
+                    // Right sidebar
+                    jQuery('.oos-ajax').show();
+                    jQuery('.oos-ajax-val').html( val );
+                    // Hidden inputs
+                    //jQuery('input[name="item_meta[89]"]').val(val);
+                    //jQuery('input[name="item_meta[842]"]').val(val);
+                }
+            });
+        }
