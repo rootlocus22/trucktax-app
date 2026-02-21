@@ -210,10 +210,11 @@ export default function Home() {
           <section className="relative overflow-hidden rounded-3xl bg-[var(--color-midnight)] text-white shadow-2xl">
             <div className="absolute inset-0 z-0">
               <Image
-                src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1080&q=50&auto=format"
+                src="/hero-bg-truck.jpg"
                 alt="Highway and trucks at golden hour - life on the road"
                 fill
                 priority
+                fetchPriority="high"
                 quality={60}
                 className="object-cover opacity-50"
                 sizes="100vw"

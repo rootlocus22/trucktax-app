@@ -34,7 +34,12 @@ export default function FirebaseAnalytics() {
             }
         };
 
-        initAnalytics();
+        // Delay Firebase initialization to clear the main thread for LCP and TBT
+        const timer = setTimeout(() => {
+            initAnalytics();
+        }, 3000);
+
+        return () => clearTimeout(timer);
     }, []);
 
     return null;
