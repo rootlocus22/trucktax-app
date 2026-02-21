@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import Link from 'next/link';
 import { getUcrFee, UCR_ENTITY_TYPES, UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
 import DiscountedPrice from '@/components/DiscountedPrice';
@@ -9,6 +9,7 @@ import { Calculator, ArrowRight } from 'lucide-react';
 const SERVICE_PRICE = 79;
 
 export default function HomepageUcrCalculator() {
+  const formId = useId();
   const [entityType, setEntityType] = useState('carrier');
   const [powerUnits, setPowerUnits] = useState('');
   const [state, setState] = useState('');
@@ -25,9 +26,9 @@ export default function HomepageUcrCalculator() {
       </div>
       <div className="space-y-3">
         <div>
-          <label htmlFor="entityType" className="block text-xs font-medium text-white/80 mb-1">Entity type</label>
+          <label htmlFor={`${formId}-entityType`} className="block text-xs font-medium text-white/80 mb-1">Entity type</label>
           <select
-            id="entityType"
+            id={`${formId}-entityType`}
             value={entityType}
             onChange={(e) => setEntityType(e.target.value)}
             className="w-full rounded-lg border border-white/20 bg-white/10 text-white px-3 py-2.5 min-h-[48px] text-sm focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent touch-manipulation"
@@ -39,9 +40,9 @@ export default function HomepageUcrCalculator() {
         </div>
         {entityType === 'carrier' && (
           <div>
-            <label htmlFor="powerUnits" className="block text-xs font-medium text-white/80 mb-1">Power units</label>
+            <label htmlFor={`${formId}-powerUnits`} className="block text-xs font-medium text-white/80 mb-1">Power units</label>
             <input
-              id="powerUnits"
+              id={`${formId}-powerUnits`}
               type="number"
               min="0"
               value={powerUnits}
@@ -52,9 +53,9 @@ export default function HomepageUcrCalculator() {
           </div>
         )}
         <div>
-          <label htmlFor="state" className="block text-xs font-medium text-white/80 mb-1">State (optional)</label>
+          <label htmlFor={`${formId}-state`} className="block text-xs font-medium text-white/80 mb-1">State (optional)</label>
           <select
-            id="state"
+            id={`${formId}-state`}
             value={state}
             onChange={(e) => setState(e.target.value)}
             className="w-full rounded-lg border border-white/20 bg-white/10 text-white px-3 py-2.5 min-h-[48px] text-sm focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation"

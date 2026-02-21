@@ -12,9 +12,9 @@ export default function DiscountedPrice({ price, originalPrice = 99, className =
   }
   return (
     <span className={`inline-flex items-center gap-2 flex-wrap ${className}`}>
-      <span className="text-slate-400 line-through text-lg">${orig.toLocaleString()}</span>
+      <span className="text-slate-500 line-through text-lg">${orig.toLocaleString()}</span>
       <span className="font-bold text-[var(--color-orange)]">${p.toLocaleString()}</span>
-      <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">Discounted</span>
+      <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">Discounted</span>
     </span>
   );
 }

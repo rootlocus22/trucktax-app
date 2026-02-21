@@ -239,13 +239,13 @@ export default function Home() {
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 sm:items-center">
                   <Link
                     href="/ucr/file"
-                    className="group inline-flex items-center justify-between gap-3 min-h-[54px] sm:min-h-[50px] rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#ff8b3d] to-[#f07a2d] px-5 sm:px-6 py-3.5 sm:py-3 !text-white shadow-[0_8px_22px_rgba(255,139,61,0.32)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(255,139,61,0.4)] active:translate-y-0 touch-manipulation w-full sm:w-auto"
+                    className="group inline-flex items-center justify-between gap-3 min-h-[54px] sm:min-h-[50px] rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#ff8b3d] to-[#f07a2d] px-5 sm:px-6 py-3.5 sm:py-3 text-[var(--color-navy)] shadow-[0_8px_22px_rgba(255,139,61,0.32)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(255,139,61,0.4)] active:translate-y-0 touch-manipulation w-full sm:w-auto"
                   >
                     <span className="flex items-center gap-2.5 leading-tight">
-                      <span className="text-base sm:text-[15px] font-extrabold">Start UCR Filing</span>
+                      <span className="text-base sm:text-[15px] font-extrabold text-[#0f2647] tracking-tight">Start UCR Filing</span>
                       <span className="inline-flex items-center rounded-md bg-white/20 px-2 py-0.5 text-[11px] font-bold text-white/95">$0 upfront</span>
                     </span>
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 ring-1 ring-white/30 transition-transform duration-200 group-hover:translate-x-0.5">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 ring-1 ring-white/30 transition-transform duration-200 group-hover:translate-x-0.5 text-[#0f2647]">
                       <ChevronRight className="w-4 h-4" />
                     </span>
                   </Link>
@@ -538,7 +538,7 @@ export default function Home() {
                     className="flex h-full flex-col justify-between rounded-xl sm:rounded-2xl border-2 border-slate-200 bg-white p-5 sm:p-6 shadow-sm transition-all hover:-translate-y-1 sm:hover:-translate-y-2 hover:shadow-xl hover:border-[var(--color-orange)]/50 group"
                   >
                     <div className="space-y-4">
-                      <span className="inline-flex rounded-full bg-[var(--color-orange)]/10 text-[var(--color-orange)] px-3 py-1 text-xs font-bold uppercase tracking-wide">
+                      <span className="inline-flex rounded-full bg-[var(--color-orange)]/10 text-[var(--color-navy)] px-3 py-1 text-xs font-bold uppercase tracking-wide">
                         {guide.category}
                       </span>
                       <h3 className="text-xl font-bold text-[var(--color-text)] group-hover:text-[var(--color-orange)] transition-colors line-clamp-2">
@@ -587,10 +587,10 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                 <Link
                   href="/dashboard/new-filing"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-orange)] px-8 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-bold text-white shadow-xl shadow-orange-500/30 transition hover:bg-[#e66a15] active:scale-95 transform duration-200 touch-manipulation min-h-[48px] sm:min-h-[56px]"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-orange)] px-8 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-bold text-[var(--color-navy)] shadow-xl shadow-orange-500/30 transition hover:bg-[#e66a15] active:scale-95 transform duration-200 touch-manipulation min-h-[48px] sm:min-h-[56px]"
                 >
                   Start Filing Now
-                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-navy)]" />
                 </Link>
                 <Link
                   href="/tools/hvut-calculator"
