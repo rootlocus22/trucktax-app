@@ -148,7 +148,7 @@ export default function RootLayout({ children }) {
         <Providers>
           <div className="flex min-h-screen flex-col">
             <Header />
-            <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8 sm:py-16">
+            <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8 sm:py-16 min-h-[calc(100vh-100px)]">
               {children}
               <StickyUcrCta />
               <Analytics />
