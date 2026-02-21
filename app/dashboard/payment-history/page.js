@@ -57,7 +57,7 @@ export default function PaymentHistoryPage() {
           <p class="meta">Payment receipt / Invoice</p>
           <table>
             <tr><th>Date</th><td>${date}</td></tr>
-            <tr><th>Description</th><td>${payment.description || 'Payment'}</td></tr>
+            <tr><th>Description</th><td>${payment.description || (payment.filingType === 'ucr' || payment.type === 'ucr_filing' ? 'UCR Registration' : 'IRS Form 2290')}</td></tr>
             <tr><th>Amount</th><td>$${Number(payment.amount || 0).toLocaleString()}</td></tr>
             <tr><th>Status</th><td>${payment.status || 'paid'}</td></tr>
             ${payment.filingId ? `<tr><th>Filing</th><td>${payment.filingId}</td></tr>` : ''}
