@@ -132,7 +132,7 @@ export default function RootLayout({ children }) {
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
         <Script id="structured-data-website" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
-        <Script id="microsoft-clarity" strategy="afterInteractive">
+        <Script id="microsoft-clarity" strategy="lazyOnload">
           {`
             (function(c,l,a,r,i,t,y){
               c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -164,7 +164,7 @@ export default function RootLayout({ children }) {
                       <span className="text-xl font-bold tracking-tight text-white">QuickTruckTax</span>
                       <p className="text-xs text-blue-200 uppercase tracking-widest mt-1">Guides &amp; Resources</p>
                     </div>
-                    <div className="text-xs text-slate-400 leading-relaxed">
+                    <div className="text-sm text-slate-300 leading-relaxed">
                       <p>
                         This site provides educational content about Form 2290, HVUT, and trucking compliance. We are not the IRS, FMCSA, or any government agency.
                       </p>
@@ -173,7 +173,7 @@ export default function RootLayout({ children }) {
 
                   {/* Quick Links */}
                   <div className="space-y-4">
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Resources</h3>
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">Resources</h3>
                     <div className="flex flex-col gap-1">
                       <Link href="/ucr/file" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 font-medium min-h-[44px] py-2 touch-manipulation">
                         UCR Filing
@@ -193,7 +193,7 @@ export default function RootLayout({ children }) {
                     </div>
                   </div>
                   <div className="space-y-4">
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Legal</h3>
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">Legal</h3>
                     <div className="flex flex-col gap-1">
                       <Link href="/privacy-policy" className="text-sm text-slate-300 hover:text-white transition min-h-[44px] flex items-center touch-manipulation">Privacy Policy</Link>
                       <Link href="/terms" className="text-sm text-slate-300 hover:text-white transition min-h-[44px] flex items-center touch-manipulation">Terms of Service</Link>
@@ -203,12 +203,12 @@ export default function RootLayout({ children }) {
 
                 {/* Disclaimer & copyright */}
                 <div className="space-y-4 mb-8">
-                  <div className="text-xs text-slate-400 leading-relaxed space-y-2">
+                  <div className="text-sm text-slate-300 leading-relaxed space-y-2">
                     <p>The information and images on this website are the property of QuickTruckTax and may not be reproduced, reused, or appropriated without the express written consent of the owner.</p>
                     <p>QuickTruckTax is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement. We are not affiliated with any government authority such as the IRS, USDOT, or FMCSA.</p>
                   </div>
                 </div>
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-400">
                   <p>&copy; 2026 QuickTruckTax, All Rights Reserved.</p>
                   <div className="flex gap-6">
                     <Link href="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link>

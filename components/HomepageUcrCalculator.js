@@ -25,8 +25,9 @@ export default function HomepageUcrCalculator() {
       </div>
       <div className="space-y-3">
         <div>
-          <label className="block text-xs font-medium text-white/80 mb-1">Entity type</label>
+          <label htmlFor="entityType" className="block text-xs font-medium text-white/80 mb-1">Entity type</label>
           <select
+            id="entityType"
             value={entityType}
             onChange={(e) => setEntityType(e.target.value)}
             className="w-full rounded-lg border border-white/20 bg-white/10 text-white px-3 py-2.5 min-h-[48px] text-sm focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent touch-manipulation"
@@ -38,8 +39,9 @@ export default function HomepageUcrCalculator() {
         </div>
         {entityType === 'carrier' && (
           <div>
-            <label className="block text-xs font-medium text-white/80 mb-1">Power units</label>
+            <label htmlFor="powerUnits" className="block text-xs font-medium text-white/80 mb-1">Power units</label>
             <input
+              id="powerUnits"
               type="number"
               min="0"
               value={powerUnits}
@@ -50,8 +52,9 @@ export default function HomepageUcrCalculator() {
           </div>
         )}
         <div>
-          <label className="block text-xs font-medium text-white/80 mb-1">State (optional)</label>
+          <label htmlFor="state" className="block text-xs font-medium text-white/80 mb-1">State (optional)</label>
           <select
+            id="state"
             value={state}
             onChange={(e) => setState(e.target.value)}
             className="w-full rounded-lg border border-white/20 bg-white/10 text-white px-3 py-2.5 min-h-[48px] text-sm focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation"
