@@ -48,7 +48,7 @@ function recordUcrVisit(body) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sessionId, userId, ...body }),
     keepalive: true,
-  }).catch(() => {});
+  }).catch(() => { });
 }
 
 const STEPS = [
@@ -88,6 +88,7 @@ function UcrFileContent() {
   const [consentGiven, setConsentGiven] = useState(false);
   const [hasTrackedStart, setHasTrackedStart] = useState(false);
   const hasRecordedVisit = useRef(false);
+  const verificationAttempted = useRef(false);
 
   // Ensure UCR visit session id exists and persist user/email/step for abandon tracking
   useEffect(() => {
@@ -126,7 +127,7 @@ function UcrFileContent() {
         email: user.email || form.email || '',
         step: 1,
       }),
-    }).catch(() => {});
+    }).catch(() => { });
   }, [user, authLoading]);
 
   // Record step progress for analytics and abandon context
@@ -143,7 +144,7 @@ function UcrFileContent() {
         email: form.email || user.email || '',
         step,
       }),
-    }).catch(() => {});
+    }).catch(() => { });
   }, [step, user, form.email]);
 
   // On leave/hide: record abandon so we can send email after 5 min (unless they completed)
@@ -162,7 +163,7 @@ function UcrFileContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, userId, email, step, abandoned: true }),
         keepalive: true,
-      }).catch(() => {});
+      }).catch(() => { });
     };
     const onVisibilityChange = () => {
       if (document.visibilityState === 'hidden') handleAbandon();
@@ -220,6 +221,70 @@ function UcrFileContent() {
       console.warn('Could not restore confirmation:', e);
     }
   }, []);
+
+  // Handle Stripe Success Callback
+  useEffect(() => {
+    if (!user || verificationAttempted.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('success');
+    const sessionId = params.get('session_id');
+
+    if (success === '1' && sessionId) {
+      verificationAttempted.current = true;
+      setSubmittingFiling(true);
+      fetch('/api/stripe/verify-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) throw new Error(data.error);
+
+          // Remove draft if present
+          if (draftId) {
+            try {
+              const { deleteDraftFiling } = require('@/lib/draftHelpers');
+              deleteDraftFiling(draftId);
+            } catch (e) { }
+          }
+
+          const donePayload = {
+            filingId: data.filingId,
+            legalName: data.legalName,
+            dotNumber: data.dotNumber,
+            email: data.email,
+            total: data.total,
+            amountDueLater: form.plan === 'filing' ? 79 : 0
+          };
+
+          setConfirmationData(donePayload);
+          try {
+            sessionStorage.setItem('ucr_filing_confirmation', JSON.stringify(donePayload));
+            sessionStorage.setItem(UCR_VISIT_COMPLETED, '1');
+          } catch (e) { }
+
+          recordUcrVisit({ email: data.email || user.email, step: 6, completed: true });
+
+          fetch('/api/email/filing-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filingId: data.filingId, status: 'submitted' }),
+          }).catch(() => { });
+
+          window.history.replaceState({}, '', '/ucr/file');
+          setStep(6);
+        })
+        .catch(err => {
+          console.error('Verify session error:', err);
+          setLookupError('Failed to verify payment. Please contact support.');
+          setStep(5);
+        })
+        .finally(() => {
+          setSubmittingFiling(false);
+        });
+    }
+  }, [user, draftId, form.plan]);
 
   useEffect(() => {
     if (hasTrackedStart) return;
@@ -292,6 +357,40 @@ function UcrFileContent() {
     }
   };
 
+  const handleFileAnother = () => {
+    // Clear all UCR session storage to start fresh
+    sessionStorage.removeItem('ucr_filing_confirmation');
+    sessionStorage.removeItem(UCR_VISIT_KEY);
+    sessionStorage.removeItem(UCR_VISIT_STEP);
+    sessionStorage.removeItem(UCR_VISIT_COMPLETED);
+
+    // Reset local state to step 1
+    setConfirmationData(null);
+    setDraftId(null);
+    setConsentGiven(false);
+    setSubmittingFiling(false);
+    setLookupError('');
+    setFmcsaLookup(null);
+    setForm({
+      ...form, // Keep non-filing specific state if needed, but best to clear fields
+      legalName: '',
+      dba: '',
+      dotNumber: '',
+      entityType: 'carrier',
+      powerUnits: '',
+      state: '',
+      fleetOption: 'manual',
+      isAuthorized: false,
+      registrantName: '',
+    });
+    setStep(1);
+    hasRecordedVisit.current = false; // allow recording a new visit
+    setHasTrackedStart(false);
+
+    // Remove query params silently
+    window.history.replaceState({}, '', '/ucr/file');
+  };
+
   const handleNext = () => {
     const nextStep = step + 1;
     if (step < 6) {
@@ -307,11 +406,13 @@ function UcrFileContent() {
     if (!consentGiven) return;
     setSubmittingFiling(true);
     setLookupError('');
+
+    // The payload for the filing once they pay the government fee
     const payload = {
       userId: user.uid,
       filingType: 'ucr',
       filingYear: form.filingYear || 2026,
-      status: 'submitted',
+      status: 'pending_payment', // Changed from submitted
       priority: 'high',
       dotNumber: form.dotNumber,
       legalName: form.legalName,
@@ -328,57 +429,34 @@ function UcrFileContent() {
       total,
       paymentStatus: 'pending',
       paymentRequiredAtDownload: true,
-      amountDueOnCertificateDownload: servicePrice,
+      amountDueOnCertificateDownload: servicePrice, // They still pay service price later
     };
+
     try {
-      const filingId = await createFiling(payload);
-      const submittedEmailTemplate = getUcrSubmittedPayLaterEmailTemplate({
-        legalName: payload.legalName,
-        dotNumber: payload.dotNumber,
-        filingId,
-        amountDueLater: payload.servicePrice,
-      });
-
-      trackEvent('ucr_filing_submitted_pay_later', {
-        filingId,
-        plan: payload.plan,
-        servicePrice: payload.servicePrice,
-        powerUnits: payload.powerUnits,
-        state: payload.state,
-      });
-
-      if (draftId) {
-        try {
-          await deleteDraftFiling(draftId);
-        } catch (err) {
-          console.warn('Could not delete UCR draft after submit:', err);
-        }
-      }
-
-      const donePayload = {
-        filingId,
-        legalName: payload.legalName,
-        dotNumber: payload.dotNumber,
-        email: payload.email,
-        amountDueLater: payload.servicePrice,
-        emailSubject: submittedEmailTemplate.subject,
-      };
-      setConfirmationData(donePayload);
-      try {
-        sessionStorage.setItem('ucr_filing_confirmation', JSON.stringify(donePayload));
-        sessionStorage.setItem(UCR_VISIT_COMPLETED, '1');
-      } catch (e) { }
-      recordUcrVisit({ email: payload.email, step: 6, completed: true });
-      fetch('/api/email/filing-status', {
+      // 1. Send to Stripe checkout for the UCR Fee
+      const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filingId, status: 'submitted' }),
-      }).catch(() => {});
-      setStep(6);
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          amountCents: ucrFee * 100, // They ONLY pay the government fee upfront
+          planName: `2026 UCR Government Fee (${form.powerUnits} power units)`,
+          filingPayload: payload,
+          mode: 'ucr_filing'
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to initialize checkout');
+
+      // 2. Redirect to Stripe
+      window.location.href = data.url;
+
     } catch (err) {
       console.error('UCR submit error:', err);
-      setLookupError(err.message || 'Your filing could not be submitted. Please try again.');
-    } finally {
+      setLookupError(err.message || 'Payment initialization failed. Please try again.');
       setSubmittingFiling(false);
     }
   };
@@ -707,16 +785,16 @@ function UcrFileContent() {
             </div>
             <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
               <p className="text-sm text-emerald-800">
-                <strong>Pay-later protection:</strong> You can submit now with <strong>$0 upfront</strong>. We charge the service fee only after your UCR certificate is uploaded and ready for full download.
+                <strong>Split-Payment Model:</strong> To ensure prompt processing with the government, you only pay the official federal fee today. We only charge our service fee after your UCR certificate is generated and ready for full download.
               </p>
             </div>
           </div>
         )}
 
-        {/* Step 5: Submit filing (pay later) */}
+        {/* Step 5: Submit filing (pay govt fee upfront) */}
         {step === 5 && (
           <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-            <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Submit now, pay when certificate is ready</h2>
+            <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Pay Federal Fee to Submit</h2>
             {!user ? (
               <div className="text-center py-6">
                 <p className="text-slate-600 mb-4">Sign in or create an account to complete your UCR filing.</p>
@@ -727,12 +805,12 @@ function UcrFileContent() {
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
                   <div className="flex justify-between text-slate-600 mb-2"><span>UCR official fee (2026)</span><span>${ucrFee.toLocaleString()}</span></div>
                   <div className="flex justify-between text-slate-600 mb-2"><span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice}`}</span></div>
-                  <div className="flex justify-between font-bold text-lg pt-2 border-t border-slate-200 text-[var(--color-navy)]"><span>Due today</span><span>$0.00</span></div>
-                  <div className="flex justify-between text-sm text-slate-600 mt-2"><span>Pay on certificate download</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice.toLocaleString()}`}</span></div>
+                  <div className="flex justify-between font-bold text-lg pt-2 border-t border-slate-200 text-[var(--color-navy)]"><span>Due today (Govt Fee)</span><span>${ucrFee.toLocaleString()}</span></div>
+                  <div className="flex justify-between text-sm text-slate-600 mt-2"><span>Pay service fee on download</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice.toLocaleString()}`}</span></div>
                 </div>
-                <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                  <p className="text-sm text-emerald-800">
-                    <strong>File first, pay later:</strong> We process your UCR filing first. Once your certificate is ready, you can preview it in your dashboard and unlock the full download for {form.plan === 'filing' && servicePrice === 79 ? <><span className="text-slate-400 line-through">$99</span> <span className="font-bold text-[var(--color-orange)]">$79</span></> : `$${servicePrice}`}.
+                <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>Split-Payment Model:</strong> To ensure prompt processing of your registration with the federal system, the government fee must be paid upfront. <strong>You do not pay our service fee</strong> until your official certificate is generated and ready for download.
                   </p>
                 </div>
                 {lookupError && (
@@ -749,7 +827,7 @@ function UcrFileContent() {
                       className="mt-1 w-5 h-5 rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]"
                     />
                     <span className="text-sm text-slate-700 leading-snug">
-                      <strong>Authorization & Consent:</strong> I authorize QuickTruckTax to prepare and submit my UCR registration using the information provided. I understand that QuickTruckTax is an independent third-party filing service and is not affiliated with the government.
+                      <strong>Authorization & Consent:</strong> I authorize QuickTruckTax to pay the federal UCR fee on my behalf using the funds provided today. I understand that QuickTruckTax is an independent third-party filing service and is not affiliated with the government.
                     </span>
                   </label>
                 </div>
@@ -761,9 +839,9 @@ function UcrFileContent() {
                   className="mt-2 w-full bg-[var(--color-navy)] text-white py-4 min-h-[52px] rounded-xl font-bold touch-manipulation flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
                 >
                   {submittingFiling ? (
-                    <>Submitting your filing… <Loader2 className="w-5 h-5 animate-spin" /></>
+                    <>Proceeding to checkout… <Loader2 className="w-5 h-5 animate-spin" /></>
                   ) : (
-                    <>Submit filing now (pay later)</>
+                    <>Proceed to Payment (${ucrFee.toLocaleString()})</>
                   )}
                 </button>
               </>
@@ -806,8 +884,8 @@ function UcrFileContent() {
             <p className="text-slate-600 mb-8 max-w-lg mx-auto leading-relaxed">
               Our team will process your filing with the UCR board. Once your certificate is uploaded, you can preview it in your dashboard and unlock full download in one click.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/dashboard" className="inline-flex items-center justify-center min-h-[48px] bg-[var(--color-navy)] !text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-navy-200/50 transition touch-manipulation w-full sm:w-auto">Go to Dashboard</Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
+              <button type="button" onClick={handleFileAnother} className="inline-flex items-center justify-center min-h-[48px] bg-[var(--color-navy)] !text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-navy-200/50 transition touch-manipulation w-full sm:w-auto">File Another UCR</button>
               <Link href="/dashboard/filings" className="inline-flex items-center justify-center min-h-[48px] bg-[var(--color-orange)] !text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66a15] transition touch-manipulation w-full sm:w-auto">View my filings</Link>
               <button type="button" onClick={() => window.print()} className="inline-flex items-center justify-center min-h-[48px] bg-white border border-slate-200 text-slate-700 px-8 py-4 rounded-xl font-bold hover:bg-slate-50 transition touch-manipulation w-full sm:w-auto">Print receipt</button>
             </div>

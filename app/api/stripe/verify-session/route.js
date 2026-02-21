@@ -108,9 +108,11 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Pending filing not found or already completed' }, { status: 404 });
     }
 
-    const { filingPayload } = pendingSnap.data();
+    const { filingPayload, amountCents } = pendingSnap.data();
     const payload = { ...filingPayload };
     const userId = payload.userId;
+    // For UCR split-payments, the amount paid upfront is the government fee
+    const amountPaidUpfront = amountCents / 100;
     const servicePrice = payload.servicePrice ?? 0;
     const total = payload.total ?? 0;
 
@@ -121,8 +123,9 @@ export async function POST(request) {
     await filingIdRef.set({
       ...payload,
       stripeSessionId: sessionId,
-      paymentStatus: 'paid',
-      amountPaid: servicePrice,
+      status: 'submitted', // Update status from pending_payment to submitted now that govt fee is paid
+      paymentStatus: 'partial', // Mark as partial since service fee is still owed
+      amountPaid: amountPaidUpfront,
       paidAt: now,
       createdAt: now,
       updatedAt: now,
@@ -131,9 +134,9 @@ export async function POST(request) {
     await db.collection('payments').add({
       userId,
       filingId,
-      type: 'ucr_filing',
-      description: `UCR Filing – ${payload.legalName || 'Carrier'} (USDOT: ${payload.dotNumber})`,
-      amount: servicePrice,
+      type: 'ucr_filing_govt_fee', // Clarified payment type
+      description: `UCR Government Fee – ${payload.legalName || 'Carrier'} (USDOT: ${payload.dotNumber})`,
+      amount: amountPaidUpfront,
       total,
       currency: 'USD',
       stripeSessionId: sessionId,

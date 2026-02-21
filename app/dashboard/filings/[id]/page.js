@@ -194,8 +194,13 @@ export default function FilingDetailPage() {
   };
 
   const ucrUnlockPrice = Number(filing?.amountDueOnCertificateDownload ?? filing?.servicePrice ?? 79);
+  const totalAmountOwed = Number(filing?.total || 0);
+
+  // Under split-payment: amountPaid initially only covers government fee. 
+  // Certificate is only paid when amountPaid is >= totalAmountOwed.
   const isUcrCertificatePaid = filing?.paymentStatus === 'paid'
-    || Number(filing?.amountPaid || 0) >= ucrUnlockPrice;
+    || Number(filing?.amountPaid || 0) >= totalAmountOwed;
+
   const isUcrCertificateLocked = filing?.filingType === 'ucr'
     && Boolean(filing?.certificateUrl)
     && !isUcrCertificatePaid;
@@ -661,7 +666,7 @@ export default function FilingDetailPage() {
                         <>
                           {filing.ucrFee != null && (
                             <div className="flex items-start justify-between gap-2">
-                              <span className="text-[var(--color-muted)] min-w-[120px]">UCR fee:</span>
+                              <span className="text-[var(--color-muted)] min-w-[120px]">UCR Govt Fee:</span>
                               <span className="text-[var(--color-text)] font-medium">${Number(filing.ucrFee).toLocaleString()}</span>
                             </div>
                           )}
@@ -673,8 +678,19 @@ export default function FilingDetailPage() {
                           )}
                           {filing.total != null && (
                             <div className="flex items-start justify-between gap-2 pt-1 border-t border-slate-100">
-                              <span className="text-[var(--color-muted)] min-w-[120px]">Total paid:</span>
+                              <span className="text-[var(--color-muted)] min-w-[120px]">Total filing cost:</span>
                               <span className="text-[var(--color-text)] font-bold">${Number(filing.total).toLocaleString()}</span>
+                            </div>
+                          )}
+                          {(filing.amountPaid != null && filing.amountPaid > 0) && (
+                            <div className="flex items-start justify-between gap-2 pt-1">
+                              <span className="text-emerald-600 min-w-[120px] font-medium mt-1">Amount paid:</span>
+                              <div className="text-right">
+                                <span className="text-emerald-700 font-bold">${Number(filing.amountPaid).toLocaleString()}</span>
+                                <div className="text-[10px] text-emerald-600/80">
+                                  {filing.paymentStatus === 'partial' ? 'Govt Fee Only' : 'Fully Paid'}
+                                </div>
+                              </div>
                             </div>
                           )}
                         </>
