@@ -160,7 +160,7 @@ export default async function UcrStatePage({ params }) {
             <div className="py-20 px-6">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold text-[var(--color-navy)] mb-4">Federal 2026 UCR Government Fees</h2>
+                        <h2 className="text-3xl font-bold text-[var(--color-navy)] mb-4">Federal 2026 UCR Government Fees for {stateName}</h2>
                         <p className="text-lg text-slate-600 max-w-2xl mx-auto">Fees are identical across all states, determined strictly by the number of power units operating in interstate commerce.</p>
                     </div>
 
@@ -180,6 +180,48 @@ export default async function UcrStatePage({ params }) {
                                 <div className="text-slate-400 text-[10px] text-center">Power Units</div>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Deep Content Sections for SEO Thickness */}
+            <div className="py-16 px-6 bg-white border-t border-slate-200">
+                <div className="max-w-4xl mx-auto prose prose-lg prose-indigo">
+                    <h2 className="text-3xl font-bold text-[var(--color-navy)] mb-6">Comprehensive Guide to {stateName} UCR Compliance</h2>
+
+                    <h3 className="text-2xl font-bold text-slate-800 mt-10 mb-4">Who is Required to File UCR in {stateName}?</h3>
+                    <p className="text-slate-600 leading-relaxed mb-6">
+                        The Unified Carrier Registration (UCR) program is a federally mandated system. In {stateName}, any individual or company that operates commercial motor vehicles (CMVs) in interstate or international commerce must register. This requirement applies not only to motor carriers but also extends to freight forwarders, brokers, and leasing companies based in {stateName}.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-6">
+                        A commercial motor vehicle for UCR purposes is defined as any self-propelled or towed vehicle used on highways in interstate commerce that:
+                    </p>
+                    <ul className="list-disc pl-6 text-slate-600 mb-8 space-y-2">
+                        <li>Has a gross vehicle weight rating or gross vehicle weight of 10,001 pounds or more;</li>
+                        <li>Is designed to transport more than 10 passengers (including the driver) for compensation;</li>
+                        <li>Is designed to transport more than 15 passengers (including the driver) not for compensation; or</li>
+                        <li>Is used in transporting hazardous materials in a quantity requiring placarding.</li>
+                    </ul>
+
+                    <h3 className="text-2xl font-bold text-slate-800 mt-10 mb-4">Understanding Intrastate vs. Interstate Operations in {stateName}</h3>
+                    <p className="text-slate-600 leading-relaxed mb-6">
+                        A common source of confusion for {stateName} transportation companies is whether their operations classify as intrastate or interstate. If your vehicles <strong>never</strong> cross the {stateName} state border, and the cargo you are carrying originated within the state and terminates within the state, you are operating solely in intrastate commerce and are <em>not</em> required to file the federal UCR.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-8">
+                        However, if your commercial vehicles cross state lines into any neighboring state, or if the freight you carry is part of a continuous movement originating from or destined for another state or country (even if you physically stay within {stateName}), you are engaged in interstate commerce and must complete your 2026 UCR registration immediately.
+                    </p>
+
+                    <h3 className="text-2xl font-bold text-slate-800 mt-10 mb-4">Penalties for UCR Non-Compliance in {stateName}</h3>
+                    <p className="text-slate-600 leading-relaxed mb-6">
+                        Operating a commercial vehicle across state borders without an active UCR registration carries severe consequences. Department of Transportation (DOT) officers and {stateName} highway patrol routinely verify UCR status during roadside inspections and weigh station stops.
+                    </p>
+                    <div className="bg-red-50 border-l-4 border-red-500 p-6 my-6 rounded-r-xl">
+                        <h4 className="font-bold text-red-800 mb-2">Enforcement Actions Can Include:</h4>
+                        <ul className="list-disc pl-5 text-red-700 space-y-1">
+                            <li>Financial fines ranging from $100 to over $5,000 depending on the severity and history of non-compliance.</li>
+                            <li>Immediate vehicle detention or impoundment (the truck does not move until UCR fees and fines are paid).</li>
+                            <li>Negative impacts on your carrier safety score and increased likelihood of future audits.</li>
+                        </ul>
                     </div>
                 </div>
             </div>

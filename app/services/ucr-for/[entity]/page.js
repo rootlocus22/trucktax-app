@@ -108,6 +108,45 @@ export default async function UcrEntityPage({ params }) {
                 </div>
             </div>
 
+            {/* Deep Content Sections for SEO Thickness */}
+            <div className="py-16 px-6 bg-white border-t border-slate-200">
+                <div className="max-w-4xl mx-auto prose prose-lg prose-emerald">
+                    <h2 className="text-3xl font-bold text-[var(--color-navy)] mb-6">Comprehensive UCR Guide for {entityData.name}</h2>
+
+                    <h3 className="text-2xl font-bold text-slate-800 mt-10 mb-4">Why Do {entityData.name} Need a UCR Registration?</h3>
+                    <p className="text-slate-600 leading-relaxed mb-6">
+                        The Unified Carrier Registration (UCR) is often mistaken as a requirement exclusively for motor carriers operating large commercial trucks. However, the federal mandate explicitly encompasses <strong>{entityData.name.toLowerCase()}</strong> who operate in interstate or international commerce. Even if your business does not own, lease, or operate commercial motor vehicles directly, your role in arranging or facilitating the transportation of freight subjects you to UCR compliance.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-8">
+                        The UCR Act was established to replace the outdated Single State Registration System (SSRS). Its primary purpose is to generate revenue that states use exclusively for motor carrier safety programs and enforcement. By participating in the interstate freight network, {entityData.name.toLowerCase()} are legally required to contribute to this national safety fund.
+                    </p>
+
+                    <h3 className="text-2xl font-bold text-slate-800 mt-10 mb-4">How Are UCR Fees Calculated for {entityData.name}?</h3>
+                    <p className="text-slate-600 leading-relaxed mb-6">
+                        UCR fees are bracketed based on the total number of commercial motor vehicles a company operates in interstate commerce. The calculation is straightforward for motor carriers. But how does it work for {entityData.name.toLowerCase()} who might not operate any trucks?
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-6">
+                        Under UCR rules, brokers, freight forwarders, and leasing companies that do not operate commercial motor vehicles are placed in the lowest fee bracket (Tier 1). This tier covers entities operating zero to two (0-2) vehicles.
+                    </p>
+                    <div className="bg-emerald-50 border-l-4 border-emerald-500 p-6 my-6 rounded-r-xl">
+                        <h4 className="font-bold text-emerald-900 mb-2">2026 Tier 1 Fee Structure:</h4>
+                        <p className="text-emerald-800 font-medium">
+                            The official 2026 UCR government fee for the 0-2 vehicle bracket is exactly <strong>$46.00</strong>. This flat fee applies to the vast majority of non-asset-based {entityData.name.toLowerCase()}. QuickTruckTax adds a standard processing fee, allowing you to submit your registration today and defer payment until the official certificate is delivered to your dashboard.
+                        </p>
+                    </div>
+
+                    <h3 className="text-2xl font-bold text-slate-800 mt-10 mb-4">Penalties and Enforcement Risks</h3>
+                    <p className="text-slate-600 leading-relaxed mb-6">
+                        Ignoring the UCR mandate carries significant risks for {entityData.name.toLowerCase()}. Enforcement is handled at the state level by participating states, and the penalties for non-compliance can severely disrupt business operations.
+                    </p>
+                    <ul className="list-disc pl-6 text-slate-600 mb-8 space-y-2">
+                        <li><strong>Fines and Penalties:</strong> States can assess fines ranging from $100 up to $5,000 for entities caught operating without valid UCR registration.</li>
+                        <li><strong>Operational Suspension:</strong> Continued non-compliance can result in the suspension of your USDOT number and the revocation of your operating authority (MC number).</li>
+                        <li><strong>Audit Triggers:</strong> Failing to maintain UCR compliance is a red flag that can trigger comprehensive safety or compliance audits by the FMCSA.</li>
+                    </ul>
+                </div>
+            </div>
+
             {/* FAQ Section */}
             <div className="py-20 px-6 bg-slate-100">
                 <div className="max-w-3xl mx-auto">
