@@ -1,7 +1,7 @@
 export const metadata = {
-    title: 'Form 2290 Blog - Expert HVUT Filing Guides & Tips',
-    description: 'Comprehensive guides on IRS Form 2290 filing, HVUT deadlines, common mistakes, e-filing tips, and trucking tax compliance. Stay updated with the latest 2026 regulations.',
-    keywords: 'Form 2290 blog, HVUT guides, IRS Form 2290 tips, heavy vehicle use tax, trucking tax blog, Form 2290 deadline, e-file HVUT',
+    title: 'Blog – UCR, Form 2290 & Compliance Guides | QuickTruckTax',
+    description: 'UCR filing tips, Form 2290 guides, and trucking compliance. QuickTruckTax is primarily a UCR filing service; we also offer 2290, MCS-150, IFTA, compliance guides, due date calculators, and reminders.',
+    keywords: 'UCR blog, Form 2290 blog, HVUT guides, UCR filing tips, trucking compliance, Form 2290 deadline, e-file HVUT',
     alternates: {
         canonical: 'https://www.quicktrucktax.com/blog',
     },
@@ -18,8 +18,8 @@ export const metadata = {
         },
     },
     openGraph: {
-        title: 'Form 2290 Blog - Expert HVUT Filing Guides & Tips',
-        description: 'Comprehensive guides on IRS Form 2290 filing, HVUT deadlines, and trucking tax compliance.',
+        title: 'Blog – UCR, Form 2290 & Compliance Guides | QuickTruckTax',
+        description: 'UCR filing tips, Form 2290 guides, and trucking compliance. We\'re primarily a UCR filing service; we also offer 2290, MCS-150, IFTA, compliance guides, due date calculators, and reminders.',
         url: 'https://www.quicktrucktax.com/blog',
         siteName: 'QuickTruckTax',
         type: 'website',
@@ -29,7 +29,7 @@ export const metadata = {
                 url: 'https://www.quicktrucktax.com/quicktrucktax-logo.png',
                 width: 1280,
                 height: 720,
-                alt: 'QuickTruckTax Blog - Form 2290 & HVUT Guides',
+                alt: 'QuickTruckTax Blog – UCR & Compliance Guides',
                 type: 'image/png',
             },
         ],
@@ -38,8 +38,8 @@ export const metadata = {
         card: 'summary_large_image',
         site: '@quicktrucktax',
         creator: '@quicktrucktax',
-        title: 'Form 2290 Blog - Expert HVUT Filing Guides',
-        description: 'Comprehensive guides on IRS Form 2290 filing and trucking tax compliance.',
+        title: 'Blog – UCR, Form 2290 & Compliance Guides',
+        description: 'UCR filing tips, Form 2290 guides, and trucking compliance.',
         images: ['https://www.quicktrucktax.com/quicktrucktax-logo.png'],
     },
 };

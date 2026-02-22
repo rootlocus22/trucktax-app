@@ -262,7 +262,7 @@ export default function Header() {
                   </div>
                 ) : (
                   <>
-                    <Link href="/login" className={`inline-flex items-center gap-2 min-h-[44px] px-3 py-2 rounded-lg text-sm font-semibold transition touch-manipulation ${isScrolled ? 'text-slate-600 hover:bg-slate-100' : 'text-white/90 hover:bg-white/10'}`}>
+                    <Link href="/login" className={`inline-flex items-center gap-2 min-h-[44px] px-3 py-2 rounded-lg text-sm font-semibold transition touch-manipulation ${isScrolled ? 'text-slate-600 hover:bg-slate-100' : 'bg-white !text-[var(--color-navy)] hover:bg-blue-50'}`}>
                       <LogIn className="w-4 h-4" /> Log in
                     </Link>
                     <Link href="/signup" className={`inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-lg text-sm font-semibold transition shadow-md touch-manipulation ${isScrolled ? 'bg-[var(--color-orange)] !text-white hover:bg-[#e66a15]' : 'bg-white !text-[var(--color-navy)] hover:bg-blue-50'}`}>
@@ -272,7 +272,7 @@ export default function Header() {
                 )
               )}
               {!user && (
-                <Link href="/ucr/file" className={`inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-lg text-sm font-bold touch-manipulation ${isScrolled ? 'bg-[var(--color-orange)] !text-white hover:bg-[#e66a15]' : 'bg-white/20 !text-white hover:bg-white/30'}`}>
+                <Link href="/ucr/file" className={`inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-lg text-sm font-bold touch-manipulation ${isScrolled ? 'bg-[var(--color-orange)] !text-white hover:bg-[#e66a15]' : 'bg-[var(--color-orange)] !text-white hover:bg-[#e66a15] shadow-md'}`}>
                   <FileText className="w-4 h-4" /> Start UCR Filing
                 </Link>
               )}

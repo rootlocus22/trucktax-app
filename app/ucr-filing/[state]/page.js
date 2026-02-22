@@ -229,7 +229,7 @@ export default function UcrFilingStatePage({ params }) {
           <div className="bg-blue-50 p-4 border-t border-blue-100 text-sm text-blue-800 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-blue-600 shrink-0" />
             <p className="m-0">
-              <strong>Important:</strong> Brokers, Freight Forwarders, and Leasing companies pay the Tier 1 flat fee of <strong>$37.00</strong> regardless of revenue, plus processing.
+              <strong>Important:</strong> Brokers, Freight Forwarders, and Leasing companies pay the Tier 1 flat fee of <strong>$46.00</strong> regardless of revenue, plus processing.
             </p>
           </div>
         </section>

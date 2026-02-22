@@ -75,6 +75,15 @@ export default function DeadlinePage() {
                             </div>
                         </div>
                     </div>
+                    <p className="text-blue-100 text-sm mt-6 max-w-xl mx-auto">
+                        QuickTruckTax is primarily a UCR filing service; we also offer Form 2290 e-filing.
+                    </p>
+                    <Link
+                        href="/services/form-2290-filing"
+                        className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/30 px-8 py-4 rounded-xl font-bold mt-4 transition"
+                    >
+                        We also e-file Form 2290 – $34.99, instant Schedule 1 <ArrowRight className="w-5 h-5" />
+                    </Link>
                 </div>
             </div>
 
@@ -127,11 +136,12 @@ export default function DeadlinePage() {
                             <p className="text-blue-200 mb-8 max-w-xl text-lg">
                                 The IRS charges 4.5% of the total tax due for every month you are late (up to 5 months). Don't let a $550 tax bill turn into a $700 headache.
                             </p>
+                            <p className="text-white/80 text-sm mb-4">We&apos;re primarily a UCR filing service; we also e-file Form 2290.</p>
                             <Link
                                 href="/services/form-2290-filing"
                                 className="inline-flex items-center gap-2 bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#ff7a20] transition hover:shadow-lg hover:scale-105 transform duration-200"
                             >
-                                E-file Now to Avoid Penalties <ArrowRight className="w-5 h-5" />
+                                E-file Form 2290 – Avoid Penalties <ArrowRight className="w-5 h-5" />
                             </Link>
                         </div>
                     </div>

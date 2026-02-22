@@ -59,7 +59,7 @@ export default function UcrForTypePage({ params }) {
         name: `What is the exact ${UCR_REGISTRATION_YEAR} UCR fee for ${op.title.toLowerCase()}?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: isFlatFeeType ? `The ${UCR_REGISTRATION_YEAR} UCR fee for ${op.title.toLowerCase()} is $37.00 (Tier 1 flat rate). This is a fixed fee regardless of how much revenue you generate. Using QuickTruckTax's expedited service adds a small processing fee for instant database syncing.` : `UCR fees for ${op.title.toLowerCase()} depend entirely on the number of commercial power units operated in interstate commerce over the last year. The fees range from $37 for 1-2 trucks up to thousands for massive fleets.`,
+          text: isFlatFeeType ? `The ${UCR_REGISTRATION_YEAR} UCR fee for ${op.title.toLowerCase()} is $46.00 (Tier 1 flat rate). This is a fixed fee regardless of how much revenue you generate. Using QuickTruckTax's expedited service adds a small processing fee for instant database syncing.` : `UCR fees for ${op.title.toLowerCase()} depend entirely on the number of commercial power units operated in interstate commerce over the last year. The fees range from $46 for 0-2 power units up to thousands for massive fleets.`,
         },
       },
       {
@@ -187,7 +187,7 @@ export default function UcrForTypePage({ params }) {
                 <div>
                   <h4 className="text-green-900 font-bold m-0 text-lg mb-1">The Silver Lining: Fixed Flat Rates</h4>
                   <p className="text-green-800 m-0 text-sm leading-relaxed">
-                    Because you do not operate vehicles, the UCR board places all brokers and freight forwarders strictly into <strong>Tier 1</strong>. For {UCR_REGISTRATION_YEAR}, your federal base fee is legally capped at <strong>$37.00</strong>. You will never pay the massive fleet fees that carriers are forced to pay.
+                    Because you do not operate vehicles, the UCR board places all brokers and freight forwarders strictly into <strong>Tier 1</strong>. For {UCR_REGISTRATION_YEAR}, your federal base fee is legally capped at <strong>$46.00</strong>. You will never pay the massive fleet fees that carriers are forced to pay.
                   </p>
                 </div>
               </div>
@@ -202,7 +202,7 @@ export default function UcrForTypePage({ params }) {
                 If you lease equipment <em>without</em> drivers to interstate motor carriers, you are still considered a motor carrier under UCR definitions. However, if your lease agreements stipulate that the lessee (the company renting the truck) is responsible for UCR fees and compliance, you might not have to include those specific leased vehicles in your count.
               </p>
               <p>
-                Regardless of your lessee counting, the FMCSA typically requires the leasing corporation itself to maintain a baseline UCR registration. By default, leasing companies are placed into the highly affordable <strong>Tier 1 Bracket ($37.00 base fee)</strong>.
+                Regardless of your lessee counting, the FMCSA typically requires the leasing corporation itself to maintain a baseline UCR registration. By default, leasing companies are placed into the highly affordable <strong>Tier 1 Bracket ($46.00 base fee)</strong>.
               </p>
             </>
           ) : (

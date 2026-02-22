@@ -5,6 +5,18 @@
 
 ---
 
+## ✅ Recent Fixes (Feb 2026 – UCR & Traffic)
+
+Applied after GSC review (3-month data: 2 total clicks; many UCR/2290/IFTA queries with impressions but 0 clicks).
+
+1. **Homepage UCR link** – CTA that pointed to `/services/ucr-renewal` (404) was updated to `/services/ucr-registration` in `app/page.js`.
+2. **UCR section metadata** – Added `app/ucr/layout.js` with default metadata (title, description, canonical, openGraph) for “file UCR”, “UCR renewal”, “unified carrier registration” so `/ucr/file` and other `/ucr/*` routes get proper SEO when they don’t override with their own metadata.
+3. **Duplicate UCR renewal guide** – Removed the second `ucr-renewal-guide` entry from `lib/guides.js` (the 2024-dated block with full body/faq). The canonical guide remains at `app/insights/ucr-renewal-guide`; the sitemap now has a single URL for that guide.
+
+**Next steps to convert UCR/2290 impressions into serious customers:** continue Phase 1 (canonicalization, homepage/meta overhaul), strengthen on-page content for zero-click queries (UCR renewal, 2290 due date, IFTA software), and keep a clear path from UCR/2290 content to the filing and pricing pages.
+
+---
+
 ## 🔴 Critical Issues Identified
 
 ### 1. **Zero Click-Through Rate (CTR)**

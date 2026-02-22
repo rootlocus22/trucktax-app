@@ -6,11 +6,12 @@ import HomepageUcrCalculator from "@/components/HomepageUcrCalculator";
 import RedirectLoggedInToDashboard from "@/components/RedirectLoggedInToDashboard";
 
 export const metadata = {
-  title: "UCR Filing & Renewal Service – Fast, Simple & Compliant | QuickTruckTax",
-  description: "File your UCR registration online with $0 upfront. We complete your filing first, then you pay when your UCR certificate is ready to download.",
+  title: "UCR Filing & Renewal – $0 Upfront, Pay When Ready | QuickTruckTax",
+  description: "File your UCR registration online with $0 upfront. We complete your filing first, then you pay when your UCR certificate is ready. Plus 2290, MCS-150, IFTA, compliance guides, due date calculators, and reminders.",
+  alternates: { canonical: "https://www.quicktrucktax.com" },
   openGraph: {
-    title: "UCR Filing & Renewal Service – Fast, Simple & Compliant | QuickTruckTax",
-    description: "File your UCR registration online with $0 upfront. We complete your filing first, then you pay when your UCR certificate is ready to download.",
+    title: "UCR Filing & Renewal – $0 Upfront, Pay When Ready | QuickTruckTax",
+    description: "File your UCR registration online with $0 upfront. We complete your filing first; pay when your certificate is ready. Plus 2290, MCS-150, IFTA, compliance guides, due date calculators, and reminders.",
     url: "https://www.quicktrucktax.com",
   },
 };
@@ -45,7 +46,7 @@ const services = [
     description: "File now with no upfront charge. Pay only when your UCR certificate is ready.",
     price: "$0 upfront",
     image: "/dashboard-mockup-v2.png",
-    href: "/services/ucr-renewal",
+    href: "/services/ucr-registration",
     features: ["Fast Processing", "Multi-State Support", "Bulk Renewals"]
   },
   {
@@ -230,10 +231,10 @@ export default function Home() {
                   File First, Pay Later
                 </div>
                 <h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl text-white">
-                  The Smart <span className="block text-blue-200">UCR Filing &amp; Compliance</span> Platform for Truckers
+                  UCR Filing &amp; <span className="block text-blue-200">Renewal for Truckers</span>
                 </h1>
                 <p className="text-lg leading-8 text-slate-300 max-w-xl">
-                  Submit your UCR in minutes with no upfront payment. We complete your filing first, and you only pay when your certificate is uploaded and ready to download.
+                  File your UCR with $0 upfront—we complete your filing first, and you pay only when your certificate is ready to download. Plus Form 2290, MCS-150, IFTA, compliance guides, due date calculators, and reminders.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 sm:items-center">

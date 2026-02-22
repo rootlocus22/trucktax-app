@@ -34,9 +34,16 @@ export default function UcrRenewalGuide() {
                             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
                                 The Ultimate Guide to UCR Renewal (2026)
                             </h1>
-                            <p className="text-lg text-blue-100 max-w-2xl mx-auto mb-8 font-medium">
+                            <p className="text-lg text-blue-100 max-w-2xl mx-auto mb-4 font-medium">
                                 Step-by-step instructions on how to renew your Unified Carrier Registration, update fleet info, and navigate the latest pricing brackets.
                             </p>
+                            <p className="text-blue-200/90 text-sm mb-6">We&apos;re your UCR filing partner—file with $0 upfront, pay when your certificate is ready.</p>
+                            <Link
+                                href="/ucr/file"
+                                className="inline-flex items-center gap-2 bg-[var(--color-orange)] text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-95 transition shadow-lg"
+                            >
+                                Renew UCR Now – $0 Upfront <ChevronRight className="w-5 h-5" />
+                            </Link>
                         </div>
                         {/* Wavy bottom edge */}
                         <div className="absolute bottom-0 w-full overflow-hidden leading-none rotate-180 transform">
@@ -79,30 +86,34 @@ export default function UcrRenewalGuide() {
                                         <tbody>
                                             <tr className="bg-white border-b">
                                                 <td className="px-6 py-4 font-semibold text-slate-900">Tier 1: 0 to 2</td>
-                                                <td className="px-6 py-4">$37.00</td>
+                                                <td className="px-6 py-4">$46.00</td>
                                             </tr>
                                             <tr className="bg-slate-50 border-b">
                                                 <td className="px-6 py-4 font-semibold text-slate-900">Tier 2: 3 to 5</td>
-                                                <td className="px-6 py-4">$111.00</td>
+                                                <td className="px-6 py-4">$138.00</td>
                                             </tr>
                                             <tr className="bg-white border-b">
                                                 <td className="px-6 py-4 font-semibold text-slate-900">Tier 3: 6 to 20</td>
-                                                <td className="px-6 py-4">$221.00</td>
+                                                <td className="px-6 py-4">$276.00</td>
                                             </tr>
                                             <tr className="bg-slate-50 border-b">
                                                 <td className="px-6 py-4 font-semibold text-slate-900">Tier 4: 21 to 100</td>
-                                                <td className="px-6 py-4">$769.00</td>
+                                                <td className="px-6 py-4">$963.00</td>
                                             </tr>
-                                            <tr className="bg-white">
+                                            <tr className="bg-white border-b">
                                                 <td className="px-6 py-4 font-semibold text-slate-900">Tier 5: 101 to 1,000</td>
-                                                <td className="px-6 py-4">$3,665.00</td>
+                                                <td className="px-6 py-4">$4,592.00</td>
+                                            </tr>
+                                            <tr className="bg-slate-50">
+                                                <td className="px-6 py-4 font-semibold text-slate-900">Tier 6: 1,001+</td>
+                                                <td className="px-6 py-4">$44,836.00</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                             <p className="text-sm text-slate-500 mt-2 mb-8">
-                                * Note: Brokers and Leasing Companies who do not operate trucks are required to pay the Tier 1 fee ($37.00). QuickTruckTax charges a nominal processing fee to guarantee instant cross-referencing with federal databases.
+                                * Note: Brokers and Leasing Companies who do not operate trucks are required to pay the Tier 1 fee ($46.00). QuickTruckTax charges a nominal processing fee to guarantee instant cross-referencing with federal databases.
                             </p>
 
                             <h2>How to Update UCR Truck Info During Renewal</h2>
