@@ -86,6 +86,10 @@ function UcrFileContent() {
   const [lookupError, setLookupError] = useState('');
   const [fmcsaLookup, setFmcsaLookup] = useState(null); // { name, dba, address: { street, city, state, zip } } after successful lookup
   const [consentGiven, setConsentGiven] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [billing, setBilling] = useState({ name: '', address: '', city: '', state: '', postalCode: '' });
+  const [ach, setAch] = useState({ accountType: 'personal', routingNumber: '', accountNumber: '', accountNumberConfirm: '' });
+  const [achConsent, setAchConsent] = useState(false);
   const [hasTrackedStart, setHasTrackedStart] = useState(false);
   const hasRecordedVisit = useRef(false);
   const verificationAttempted = useRef(false);
@@ -403,16 +407,16 @@ function UcrFileContent() {
 
   const handleSubmitFiling = async () => {
     if (!user) return;
-    if (!consentGiven) return;
+    if (paymentMethod === 'card' && !consentGiven) return;
+    if (paymentMethod === 'ach' && !achConsent) return;
     setSubmittingFiling(true);
     setLookupError('');
 
-    // The payload for the filing once they pay the government fee
     const payload = {
       userId: user.uid,
       filingType: 'ucr',
       filingYear: form.filingYear || 2026,
-      status: 'pending_payment', // Changed from submitted
+      status: paymentMethod === 'ach' ? 'pending_ach' : 'pending_payment',
       priority: 'high',
       dotNumber: form.dotNumber,
       legalName: form.legalName,
@@ -429,36 +433,82 @@ function UcrFileContent() {
       total,
       paymentStatus: 'pending',
       paymentRequiredAtDownload: true,
-      amountDueOnCertificateDownload: servicePrice, // They still pay service price later
+      amountDueOnCertificateDownload: servicePrice,
     };
 
     try {
-      // 1. Send to Stripe checkout for the UCR Fee
-      const res = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.uid,
-          amountCents: ucrFee * 100, // They ONLY pay the government fee upfront
-          planName: `2026 UCR Government Fee (${form.powerUnits} power units)`,
-          filingPayload: payload,
-          mode: 'ucr_filing'
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to initialize checkout');
-
-      // 2. Redirect to Stripe
-      window.location.href = data.url;
-
+      if (paymentMethod === 'ach') {
+        if (ach.accountNumber !== ach.accountNumberConfirm) {
+          setLookupError('Account numbers do not match.');
+          setSubmittingFiling(false);
+          return;
+        }
+        const res = await fetch('/api/ucr/submit-ach', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.uid,
+            filingPayload: payload,
+            billing: {
+              name: billing.name,
+              address: billing.address,
+              city: billing.city,
+              state: billing.state,
+              postalCode: billing.postalCode,
+            },
+            ach: {
+              accountType: ach.accountType,
+              routingNumber: ach.routingNumber.replace(/\D/g, ''),
+              accountNumber: ach.accountNumber.replace(/\s/g, ''),
+            },
+            consentGiven: achConsent,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'ACH submission failed');
+        setConfirmationData({
+          filingId: data.filingId,
+          legalName: data.legalName,
+          dotNumber: data.dotNumber,
+          email: data.email,
+          total: data.total,
+          amountDueLater: data.amountDueLater,
+        });
+        setStep(6);
+      } else {
+        const res = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.uid,
+            amountCents: ucrFee * 100,
+            planName: `2026 UCR Government Fee (${form.powerUnits} power units)`,
+            filingPayload: payload,
+            mode: 'ucr_filing'
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to initialize checkout');
+        window.location.href = data.url;
+      }
     } catch (err) {
       console.error('UCR submit error:', err);
-      setLookupError(err.message || 'Payment initialization failed. Please try again.');
+      setLookupError(err.message || (paymentMethod === 'ach' ? 'Submission failed. Please try again.' : 'Payment initialization failed. Please try again.'));
       setSubmittingFiling(false);
     }
+  };
+
+  const applyMcs150AddressToBilling = (type) => {
+    if (!fmcsaLookup?.address) return;
+    const a = fmcsaLookup.address;
+    setBilling(prev => ({
+      ...prev,
+      address: a.street || prev.address,
+      city: a.city || prev.city,
+      state: a.state || prev.state,
+      postalCode: a.zip || prev.postalCode,
+      name: form.registrantName || form.legalName || prev.name,
+    }));
   };
 
   if (authLoading || !user) {
@@ -799,10 +849,10 @@ function UcrFileContent() {
               </div>
             )}
 
-            {/* Step 5: Submit filing (pay govt fee upfront) */}
+            {/* Step 5: Submit filing — Card (we collect & file) or ACH (UCR.gov debits) */}
             {step === 5 && (
               <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-                <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Pay Federal Fee to Submit</h2>
+                <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Payment & Submit</h2>
                 {!user ? (
                   <div className="text-center py-6">
                     <p className="text-slate-600 mb-4">Sign in or create an account to complete your UCR filing.</p>
@@ -816,42 +866,136 @@ function UcrFileContent() {
                       <div className="flex justify-between font-bold text-lg pt-2 border-t border-slate-200 text-[var(--color-navy)]"><span>Due today (Govt Fee)</span><span>${ucrFee.toLocaleString()}</span></div>
                       <div className="flex justify-between text-sm text-slate-600 mt-2"><span>Pay service fee on download</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice.toLocaleString()}`}</span></div>
                     </div>
-                    <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
-                      <p className="text-sm text-blue-800">
-                        <strong>Split-Payment Model:</strong> To ensure prompt processing of your registration with the federal system, the government fee must be paid upfront. <strong>You do not pay our service fee</strong> until your official certificate is generated and ready for download.
-                      </p>
-                    </div>
-                    {lookupError && (
-                      <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-xl border border-red-100 mb-4">
-                        <AlertCircle className="w-4 h-4" /> {lookupError}
+
+                    <div className="mb-6">
+                      <p className="text-sm font-semibold text-[var(--color-text)] mb-3">How do you want to pay the federal UCR fee?</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod('card')}
+                          className={`p-4 rounded-xl border-2 text-left transition ${paymentMethod === 'card' ? 'border-[var(--color-navy)] bg-blue-50 ring-1 ring-[var(--color-navy)]' : 'border-slate-200 hover:bg-slate-50'}`}
+                        >
+                          <div className="font-bold text-[var(--color-text)]">Credit / Debit Card</div>
+                          <div className="text-xs text-slate-600 mt-1">We collect the fee and file for you. Pay now, then we submit to UCR.</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPaymentMethod('ach');
+                            if (!billing.name) setBilling(prev => ({ ...prev, name: form.registrantName || form.legalName || prev.name }));
+                          }}
+                          className={`p-4 rounded-xl border-2 text-left transition ${paymentMethod === 'ach' ? 'border-[var(--color-navy)] bg-blue-50 ring-1 ring-[var(--color-navy)]' : 'border-slate-200 hover:bg-slate-50'}`}
+                        >
+                          <div className="font-bold text-[var(--color-text)]">ACH / eCheck</div>
+                          <div className="text-xs text-slate-600 mt-1">Provide bank details; we send them to UCR so they can debit your account directly.</div>
+                        </button>
                       </div>
-                    )}
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
-                      <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={consentGiven}
-                          onChange={(e) => setConsentGiven(e.target.checked)}
-                          className="mt-1 w-5 h-5 rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]"
-                        />
-                        <span className="text-sm text-slate-700 leading-snug">
-                          <strong>Authorization & Consent:</strong> I authorize QuickTruckTax to pay the federal UCR fee on my behalf using the funds provided today. I understand that QuickTruckTax is an independent third-party filing service and is not affiliated with the government.
-                        </span>
-                      </label>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={handleSubmitFiling}
-                      disabled={submittingFiling || !consentGiven}
-                      className="mt-2 w-full bg-[var(--color-navy)] text-white py-4 min-h-[52px] rounded-xl font-bold touch-manipulation flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
-                    >
-                      {submittingFiling ? (
-                        <>Proceeding to checkout… <Loader2 className="w-5 h-5 animate-spin" /></>
-                      ) : (
-                        <>Proceed to Payment (${ucrFee.toLocaleString()})</>
-                      )}
-                    </button>
+                    {paymentMethod === 'card' && (
+                      <>
+                        <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                          <p className="text-sm text-blue-800">
+                            <strong>Split-Payment Model:</strong> The government fee is paid upfront by card. <strong>You do not pay our service fee</strong> until your certificate is ready for download.
+                          </p>
+                        </div>
+                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
+                          <label className="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" checked={consentGiven} onChange={(e) => setConsentGiven(e.target.checked)} className="mt-1 w-5 h-5 rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]" />
+                            <span className="text-sm text-slate-700 leading-snug">
+                              <strong>Authorization & Consent:</strong> I authorize QuickTruckTax to pay the federal UCR fee on my behalf using the funds provided today. I understand that QuickTruckTax is an independent third-party filing service and is not affiliated with the government.
+                            </span>
+                          </label>
+                        </div>
+                        <button type="button" onClick={handleSubmitFiling} disabled={submittingFiling || !consentGiven} className="mt-2 w-full bg-[var(--color-navy)] text-white py-4 min-h-[52px] rounded-xl font-bold touch-manipulation flex items-center justify-center gap-2 disabled:opacity-50 transition-all">
+                          {submittingFiling ? <>Proceeding to checkout… <Loader2 className="w-5 h-5 animate-spin" /></> : <>Proceed to Payment (${ucrFee.toLocaleString()})</>}
+                        </button>
+                      </>
+                    )}
+
+                    {paymentMethod === 'ach' && (
+                      <>
+                        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                          <p className="text-sm text-amber-800">
+                            We will collect your billing and bank information and provide it to our filing agent so that UCR can debit the ${ucrFee.toLocaleString()} federal fee directly from your account. No card charge today.
+                          </p>
+                        </div>
+
+                        <h3 className="text-sm font-bold text-[var(--color-text)] mb-3">Billing information (name on receipt)</h3>
+                        {fmcsaLookup?.address && (
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            <button type="button" onClick={() => applyMcs150AddressToBilling('principal')} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-50">Use Principal Address from MCS-150</button>
+                            <button type="button" onClick={() => applyMcs150AddressToBilling('mailing')} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-50">Use Mailing Address from MCS-150</button>
+                          </div>
+                        )}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                          <div className="sm:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Name (on receipt) *</label>
+                            <input type="text" value={billing.name} onChange={(e) => setBilling(prev => ({ ...prev, name: e.target.value }))} placeholder="ARTHUR J KENYON" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Address *</label>
+                            <input type="text" value={billing.address} onChange={(e) => setBilling(prev => ({ ...prev, address: e.target.value }))} placeholder="628 ADAMS STREET" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">City *</label>
+                            <input type="text" value={billing.city} onChange={(e) => setBilling(prev => ({ ...prev, city: e.target.value }))} placeholder="KETCHIKAN" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">State *</label>
+                            <input type="text" value={billing.state} onChange={(e) => setBilling(prev => ({ ...prev, state: e.target.value.toUpperCase().slice(0, 2) }))} placeholder="AK" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" maxLength={2} />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Postal Code *</label>
+                            <input type="text" value={billing.postalCode} onChange={(e) => setBilling(prev => ({ ...prev, postalCode: e.target.value.replace(/\D/g, '').slice(0, 10) }))} placeholder="99901" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" />
+                          </div>
+                        </div>
+
+                        <h3 className="text-sm font-bold text-[var(--color-text)] mb-3">Bank account (ACH / eCheck)</h3>
+                        <div className="flex gap-4 mb-4">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="achType" checked={ach.accountType === 'personal'} onChange={() => setAch(prev => ({ ...prev, accountType: 'personal' }))} className="text-[var(--color-navy)]" />
+                            <span className="text-sm font-medium">Personal ACH</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="achType" checked={ach.accountType === 'company'} onChange={() => setAch(prev => ({ ...prev, accountType: 'company' }))} className="text-[var(--color-navy)]" />
+                            <span className="text-sm font-medium">Company ACH</span>
+                          </label>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Routing # *</label>
+                            <input type="text" inputMode="numeric" value={ach.routingNumber} onChange={(e) => setAch(prev => ({ ...prev, routingNumber: e.target.value.replace(/\D/g, '').slice(0, 9) }))} placeholder="9 digits" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" maxLength={9} />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Account # *</label>
+                            <input type="text" inputMode="numeric" value={ach.accountNumber} onChange={(e) => setAch(prev => ({ ...prev, accountNumber: e.target.value }))} placeholder="Account number" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Re-type Account # *</label>
+                            <input type="text" inputMode="numeric" value={ach.accountNumberConfirm} onChange={(e) => setAch(prev => ({ ...prev, accountNumberConfirm: e.target.value }))} placeholder="Re-enter account number" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" />
+                          </div>
+                        </div>
+
+                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
+                          <label className="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" checked={achConsent} onChange={(e) => setAchConsent(e.target.checked)} className="mt-1 w-5 h-5 rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]" />
+                            <span className="text-sm text-slate-700 leading-snug">
+                              <strong>I agree to the terms described below.</strong> I hereby authorize UCR to electronically debit my account (and, if necessary, electronically credit my account) using the account details listed above. I understand that the ACH transactions I authorize comply with all applicable law. I understand that this authorization will remain in full force and effect unless I notify UCR that I wish to revoke it. I understand that if I revoke the authorization, UCR may be limited in its ability to accept payment for or authorize a refund for my UCR registration, if applicable. I also authorize QuickTruckTax to provide my billing and bank information to our filing agent so that my UCR registration can be submitted and paid on UCR.gov.
+                            </span>
+                          </label>
+                        </div>
+
+                        {lookupError && (
+                          <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-xl border border-red-100 mb-4">
+                            <AlertCircle className="w-4 h-4" /> {lookupError}
+                          </div>
+                        )}
+                        <button type="button" onClick={handleSubmitFiling} disabled={submittingFiling || !achConsent} className="mt-2 w-full bg-[var(--color-navy)] text-white py-4 min-h-[52px] rounded-xl font-bold touch-manipulation flex items-center justify-center gap-2 disabled:opacity-50 transition-all">
+                          {submittingFiling ? <>Submitting… <Loader2 className="w-5 h-5 animate-spin" /></> : <>Submit with ACH (${ucrFee.toLocaleString()} debited by UCR)</>}
+                        </button>
+                      </>
+                    )}
                   </>
                 )}
               </div>
