@@ -82,14 +82,17 @@ export default async function StateCompliancePage({ params }) {
                             Trucking Compliance in <span className="text-[var(--color-orange)]">{name}</span>
                         </h1>
                         <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                            File Form 2290 for just $34.99. Get Instant SMS Alerts and Free VIN Corrections.
+                            File UCR for {name} with $0 upfront. We also have a Form 2290 guide—we don&apos;t file 2290; we focus on UCR.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
-                                href="/services/form-2290-filing"
+                                href="/ucr/file"
                                 className="bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#ff7a20] transition shadow-lg shadow-orange-900/20 flex items-center justify-center gap-2"
                             >
-                                File 2290 for {code} <ArrowRight className="w-5 h-5" />
+                                File UCR <ArrowRight className="w-5 h-5" />
+                            </Link>
+                            <Link href="/services/form-2290-filing" className="bg-white/10 border border-white/30 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/20 transition flex items-center justify-center gap-2">
+                                Form 2290 guide
                             </Link>
                         </div>
                     </div>
@@ -121,10 +124,10 @@ export default async function StateCompliancePage({ params }) {
                             </div>
                             <div className="grow text-center md:text-left">
                                 <h3 className="text-xl font-bold text-[var(--color-navy)] mb-2">IRS Form 2290 (HVUT)</h3>
-                                <p className="text-slate-600">Federal tax for vehicles 55,000 lbs+. Includes <strong>Free VIN Corrections</strong> and <strong>Instant SMS Alerts</strong>.</p>
+                                <p className="text-slate-600">Federal tax for vehicles 55,000 lbs+. We don&apos;t file 2290—see our guide for deadlines and how to e-file.</p>
                             </div>
                             <Link href="/services/form-2290-filing" className="shrink-0 px-6 py-2 bg-slate-100 text-blue-900 font-bold rounded-lg hover:bg-slate-200 transition">
-                                File for $34.99
+                                Form 2290 guide
                             </Link>
                         </div>
 

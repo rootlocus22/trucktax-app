@@ -168,16 +168,17 @@ export default function FAQPage() {
 
                 {/* CTA Section */}
                 <div className="mt-16 bg-gradient-to-br from-[#173b63] to-[#0f172a] rounded-3xl p-12 text-center text-white">
-                    <h2 className="text-3xl font-bold mb-4">Ready to File Your Form 2290?</h2>
+                    <h2 className="text-3xl font-bold mb-4">Ready to File UCR?</h2>
                     <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
-                        File in 5 minutes and get your IRS-stamped Schedule 1 instantly. No hidden fees, just simple, secure e-filing.
+                        We file UCR—$0 upfront, pay when your certificate is ready. For Form 2290, see our guide or use an IRS-approved provider.
                     </p>
                     <Link
-                        href="/services/form-2290-filing"
+                        href="/ucr/file"
                         className="inline-block bg-[#f97316] hover:bg-[#ea580c] text-white font-bold py-4 px-8 rounded-full transition-all hover:scale-105 shadow-lg"
                     >
-                        Start Filing Now →
+                        Start UCR Filing →
                     </Link>
+                    <Link href="/services/form-2290-filing" className="inline-block ml-4 text-blue-200 hover:text-white font-semibold">Form 2290 guide</Link>
                 </div>
 
                 {/* Additional Resources */}

@@ -117,13 +117,16 @@ export default function StatusCheckPage() {
                             <ShieldCheck className="w-6 h-6 text-green-500" /> Switch to Concierge
                         </div>
                         <p className="text-slate-600 mb-6 text-sm">
-                            Next time, file with QuickTruckTax. We keep your Schedule 1 saved forever in your secure portal so you never lose it.
+                            We focus on UCR filing—file with us and we keep your certificate in your secure portal. For Form 2290, see our guide or use an IRS-approved provider.
                         </p>
                         <Link
-                            href="/services/form-2290-filing"
+                            href="/ucr/file"
                             className="block w-full text-center bg-[var(--color-navy)] !text-white py-3 rounded-lg font-bold hover:bg-slate-800 transition"
                         >
-                            Create Free Account
+                            File UCR with us
+                        </Link>
+                        <Link href="/services/form-2290-filing" className="block w-full text-center border border-slate-300 text-slate-700 py-3 rounded-lg font-semibold mt-2 hover:bg-slate-50 transition">
+                            Form 2290 guide
                         </Link>
                     </div>
                 </div>

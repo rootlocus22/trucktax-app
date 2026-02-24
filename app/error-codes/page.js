@@ -50,7 +50,10 @@ export default function ErrorCodesIndex() {
                     Our support team fixes IRS rejections all day long. Chat with us for free help.
                 </p>
                 <Link href="/services/form-2290-filing" className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition">
-                    Get Live Support
+                    Form 2290 guide
+                </Link>
+                <Link href="/ucr/file" className="inline-flex items-center gap-2 bg-[var(--color-orange)] text-white px-6 py-3 rounded-lg font-bold hover:opacity-90 transition ml-3">
+                    File UCR
                 </Link>
             </div>
         </div>

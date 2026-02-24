@@ -34,12 +34,12 @@ const categoryOrder = [
 
 const services = [
   {
-    title: "Form 2290 E-Filing",
-    description: "File your HVUT tax return in minutes. Get IRS-stamped Schedule 1 instantly.",
-    price: "$34.99",
+    title: "Form 2290 Guide",
+    description: "Learn about HVUT, deadlines, and how to e-file. We focus on UCR filing; we don't file 2290.",
+    price: "Free guide",
     image: "/schedule1-mockup.png",
     href: "/services/form-2290-filing",
-    features: ["Expert Review", "Fast Processing", "Free VIN Corrections"]
+    features: ["Deadlines & rates", "How to e-file", "IRS resources"]
   },
   {
     title: "UCR Registration",

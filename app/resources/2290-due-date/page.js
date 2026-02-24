@@ -82,7 +82,7 @@ export default function DeadlinePage() {
                         href="/services/form-2290-filing"
                         className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/30 px-8 py-4 rounded-xl font-bold mt-4 transition"
                     >
-                        We also e-file Form 2290 – $34.99, instant Schedule 1 <ArrowRight className="w-5 h-5" />
+                        Form 2290 guide & how to e-file <ArrowRight className="w-5 h-5" />
                     </Link>
                 </div>
             </div>
@@ -141,7 +141,7 @@ export default function DeadlinePage() {
                                 href="/services/form-2290-filing"
                                 className="inline-flex items-center gap-2 bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#ff7a20] transition hover:shadow-lg hover:scale-105 transform duration-200"
                             >
-                                E-file Form 2290 – Avoid Penalties <ArrowRight className="w-5 h-5" />
+                                Form 2290 guide & e-file options <ArrowRight className="w-5 h-5" />
                             </Link>
                         </div>
                     </div>

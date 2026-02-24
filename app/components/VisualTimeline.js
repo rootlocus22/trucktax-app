@@ -30,8 +30,11 @@ export default function VisualTimeline() {
                 </div>
             </div>
             <div className="mt-8 text-center">
-                <a href="/services/form-2290-filing" className="inline-block bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 transition">
-                    Start Step 1 Now
+                <a href="/ucr/file" className="inline-block bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 transition">
+                    Start UCR Filing
+                </a>
+                <a href="/services/form-2290-filing" className="inline-block ml-3 border border-slate-300 text-slate-700 font-bold py-3 px-8 rounded-lg hover:bg-slate-50 transition">
+                    Form 2290 guide
                 </a>
             </div>
         </div>

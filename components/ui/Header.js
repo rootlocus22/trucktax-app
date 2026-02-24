@@ -72,7 +72,7 @@ export default function Header() {
   ];
 
   const quickLinks = [
-    { href: '/services/form-2290-filing', label: 'File Form 2290', icon: FileText },
+    { href: '/services/form-2290-filing', label: 'Form 2290 Guide', icon: FileText },
     { href: '/services/mcs-150-update', label: 'MCS-150 Update', icon: Truck },
     { href: '/services/ucr-registration', label: 'UCR Registration', icon: ShieldCheck },
     { href: '/insights/trucking-compliance-calendar', label: 'Compliance Calendar', icon: Calendar },

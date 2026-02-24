@@ -13,7 +13,7 @@ export async function GET() {
     // Core/Service pages with metadata
     const corePages = [
         { url: '/', title: 'QuickTruckTax - Form 2290 E-Filing & HVUT Compliance', description: 'E-file Form 2290 online and get your stamped Schedule 1 in minutes. HVUT compliance made simple for truckers.', type: 'core', keywords: ['form 2290', 'hvut', 'trucking tax'] },
-        { url: '/services/form-2290-filing', title: 'Form 2290 E-Filing Service', description: 'Fast and secure Form 2290 e-filing with instant Schedule 1.', type: 'service', keywords: ['e-file form 2290', 'file 2290 online', 'hvut filing'] },
+        { url: '/services/form-2290-filing', title: 'Form 2290 Guide', description: 'Learn about Form 2290 (HVUT): deadlines, rates, how to e-file. We file UCR, not 2290.', type: 'service', keywords: ['form 2290', 'hvut', '2290 due date', '2290 guide'] },
         { url: '/services/vin-correction', title: 'VIN Correction Service', description: 'Fix VIN errors on your Form 2290 quickly and easily.', type: 'service', keywords: ['vin correction', 'form 2290 vin fix'] },
         { url: '/services/suspended-vehicle', title: 'Suspended Vehicle Filing', description: 'File for suspended vehicle status if under 5,000 miles.', type: 'service', keywords: ['suspended vehicle', 'form 2290 suspension'] },
         { url: '/services/agricultural-logging', title: 'Agricultural & Logging Vehicles', description: 'Special HVUT rules for agricultural and logging vehicles.', type: 'service', keywords: ['agricultural vehicle', 'logging truck tax'] },

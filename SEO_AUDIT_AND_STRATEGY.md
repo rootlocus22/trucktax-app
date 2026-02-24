@@ -13,7 +13,13 @@ Applied after GSC review (3-month data: 2 total clicks; many UCR/2290/IFTA queri
 2. **UCR section metadata** – Added `app/ucr/layout.js` with default metadata (title, description, canonical, openGraph) for “file UCR”, “UCR renewal”, “unified carrier registration” so `/ucr/file` and other `/ucr/*` routes get proper SEO when they don’t override with their own metadata.
 3. **Duplicate UCR renewal guide** – Removed the second `ucr-renewal-guide` entry from `lib/guides.js` (the 2024-dated block with full body/faq). The canonical guide remains at `app/insights/ucr-renewal-guide`; the sitemap now has a single URL for that guide.
 
-**Next steps to convert UCR/2290 impressions into serious customers:** continue Phase 1 (canonicalization, homepage/meta overhaul), strengthen on-page content for zero-click queries (UCR renewal, 2290 due date, IFTA software), and keep a clear path from UCR/2290 content to the filing and pricing pages.
+4. **Form 2290 “we don’t sell it” strategy (Feb 2026)** – QuickTruckTax is primarily a UCR filing service and does not file Form 2290. To avoid misleading Google and users:
+   - **`/services/form-2290-filing`** was repurposed from a “we file 2290” service page into an **educational guide only**: title/meta now say “Form 2290 Guide – What It Is, Deadlines, How to E-File”; prominent disclaimer: “QuickTruckTax does not file Form 2290. We are a UCR filing service.” Content is learning-only; primary CTA is “Start UCR Filing.” Removed Service schema with offers/pricing; kept FAQ schema.
+   - **Homepage** services card for 2290 now says “Form 2290 Guide” and “We focus on UCR filing; we don’t file 2290” (no price).
+   - **Header** quick link changed from “File Form 2290” to “Form 2290 Guide.”
+   - **Internal links** across the site (2290-due-date, error-codes, comparisons, check-2290-status, faq, state pages, [slug] dynamic pages, VisualTimeline, seo-data, sitemap) updated so CTAs no longer say “File 2290” or “$34.99”; they now point to the guide or to “File UCR” where appropriate. Dynamic [slug] meta titles/descriptions no longer promise “File Form 2290 Online $34.99” and instead use “Form 2290 Guide” / “Learn deadlines and how to e-file.”
+
+**Next steps:** Continue Phase 1, strengthen on-page for zero-click queries, and keep a clear path from content to UCR filing.
 
 ---
 
