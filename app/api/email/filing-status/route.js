@@ -40,19 +40,19 @@ export async function POST(req) {
     const amount = filing.servicePrice ?? filing.amountDueOnCertificateDownload ?? 79;
 
     if (status === 'submitted') {
-      const { subject, html } = getFilingSubmittedEmailTemplate({ legalName, filingId });
+      const { subject, html } = getFilingSubmittedEmailTemplate({ legalName, filingId, email: to });
       await sendEmail(to, subject, html);
       return NextResponse.json({ ok: true, email: 'submitted' });
     }
 
     if (status === 'processing') {
-      const { subject, html } = getFilingProcessingStartedEmailTemplate({ legalName, filingId });
+      const { subject, html } = getFilingProcessingStartedEmailTemplate({ legalName, filingId, email: to });
       await sendEmail(to, subject, html);
       return NextResponse.json({ ok: true, email: 'processing_started' });
     }
 
     if (status === 'completed') {
-      const { subject, html } = getFilingCompletedPayDownloadEmailTemplate({ legalName, filingId, amount });
+      const { subject, html } = getFilingCompletedPayDownloadEmailTemplate({ legalName, filingId, amount, email: to });
       await sendEmail(to, subject, html);
       return NextResponse.json({ ok: true, email: 'completed_pay_download' });
     }

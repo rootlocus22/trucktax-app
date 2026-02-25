@@ -35,6 +35,7 @@ export async function POST(req) {
 
     const { subject, html } = getWelcomeEmailTemplate({
       displayName: userData?.displayName || email?.split('@')[0] || '',
+      email,
     });
     await sendEmail(email, subject, html);
     await userRef.set(

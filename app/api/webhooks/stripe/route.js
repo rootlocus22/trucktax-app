@@ -173,13 +173,14 @@ async function sendInvoiceEmail(userId, filingId, amount) {
                 registrantName = fd.registrantName || null;
             }
         }
-        const { subject, html } = getInvoiceEmailTemplate({ amount, filingId, legalName });
+        const { subject, html } = getInvoiceEmailTemplate({ amount, filingId, legalName, email: to });
         await sendEmail(to, subject, html);
 
         // Post-payment thank-you (brand touchpoint)
         const thankYou = getPostDownloadThankYouEmailTemplate({
             legalName: legalName || '',
             registrantName: registrantName || user?.displayName || '',
+            email: to,
         });
         await sendEmail(to, thankYou.subject, thankYou.html, thankYou.plainText || undefined);
     } catch (err) {

@@ -4,6 +4,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { sendEmail } from '@/lib/ses';
 import { logAnalytics } from '@/lib/analytics';
 import { getAbandonEmailTemplate } from '@/lib/emailTemplates';
+import { isUnsubscribed } from '@/lib/unsubscribedEmails';
 
 const COLLECTION = 'ucr_visits';
 const ABANDON_DELAY_MS = 5 * 60 * 1000; // 5 minutes
@@ -43,8 +44,21 @@ export async function GET(req) {
         continue;
       }
 
+      if (await isUnsubscribed(to)) {
+        skipped++;
+        await docSnap.ref.update({
+          abandonEmailSent: true,
+          abandonEmailSkippedReason: 'unsubscribed',
+          updatedAt: Timestamp.now(),
+        });
+        continue;
+      }
+
       try {
-        const { subject, html } = getAbandonEmailTemplate({ firstName: data.registrantName || '' });
+        const { subject, html } = getAbandonEmailTemplate({
+          firstName: data.registrantName ? data.registrantName.trim().split(/\s+/)[0] : '',
+          email: to,
+        });
         await sendEmail(to, subject, html);
         await docSnap.ref.update({
           abandonEmailSent: true,

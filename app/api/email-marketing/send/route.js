@@ -3,6 +3,7 @@ import { adminAuth } from '@/lib/firebase-admin';
 import { getEmailMarketingAllowedEmails, isEmailAllowed } from '@/lib/emailMarketingAllowlist';
 import { sendEmail } from '@/lib/ses';
 import { getCampaignById, getDefaultCampaignId } from '@/lib/emailCampaigns';
+import { isUnsubscribed } from '@/lib/unsubscribedEmails';
 
 function parseCustomerData(raw) {
   if (!raw || typeof raw !== 'object') return null;
@@ -60,11 +61,21 @@ export async function POST(req) {
       );
     }
 
+    if (await isUnsubscribed(customer.email)) {
+      return NextResponse.json({
+        ok: true,
+        sent: false,
+        reason: 'unsubscribed',
+        sentTo: customer.email,
+        message: 'Skipped; this email is unsubscribed from marketing.',
+      });
+    }
+
     const { subject, html, plainText } = campaign.getTemplate(customer);
 
     await sendEmail(customer.email, subject, html, plainText || undefined);
 
-    return NextResponse.json({ ok: true, sentTo: customer.email, subject, campaignId: campaign.id });
+    return NextResponse.json({ ok: true, sent: true, sentTo: customer.email, subject, campaignId: campaign.id });
   } catch (err) {
     console.error('[email-marketing/send]', err);
     return NextResponse.json({ error: err.message || 'Failed to send email' }, { status: 500 });
