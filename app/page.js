@@ -4,6 +4,7 @@ import { complianceGuides } from "@/lib/guides";
 import { ShieldCheck, ChevronRight, Calculator, CheckCircle, Lock, Award, FileText, Download, Clock, Edit3, Users, LayoutGrid, ArrowRight, Search, MessageSquare } from "lucide-react";
 import HomepageUcrCalculator from "@/components/HomepageUcrCalculator";
 import RedirectLoggedInToDashboard from "@/components/RedirectLoggedInToDashboard";
+import UcrDeadlineBanner from "@/components/UcrDeadlineBanner";
 
 export const metadata = {
   title: "UCR Filing & Renewal – $0 Upfront, Pay When Ready | QuickTruckTax",
@@ -54,7 +55,7 @@ const services = [
     description: "Keep your FMCSA registration current with easy online updates.",
     price: "Free",
     image: "/smart_filing_features_1764806445772.png",
-    href: "/services/mcs150-update",
+    href: "/services/mcs-150-update",
     features: ["Instant Updates", "PDF Generation", "No Paperwork"]
   },
   {
@@ -62,7 +63,7 @@ const services = [
     description: "File your International Fuel Tax Agreement returns efficiently.",
     price: "Starting at $25",
     image: "/fleet_management_dashboard_1764806426862.png",
-    href: "/services/ifta-filing",
+    href: "/services/ifta-irp",
     features: ["Multi-State Filing", "Mileage Tracking", "Quick Processing"]
   }
 ];
@@ -286,11 +287,8 @@ export default function Home() {
             </div>
           </section>
 
-          {/* UCR Urgency Banner */}
-          <div className="bg-amber-500 text-white py-3 px-4 text-center text-sm font-semibold">
-            🚛 2026 UCR registration is open. File before Dec 31 with $0 upfront — pay later after your certificate is ready.{' '}
-            <Link href="/ucr/file" className="underline ml-1 inline-block py-2 touch-manipulation font-bold">Start UCR Filing →</Link>
-          </div>
+          {/* UCR Urgency Banner — Phase 5: Oct–Dec shows countdown / last chance; rest of year static + link to Oct 1 guide */}
+          <UcrDeadlineBanner />
 
           {/* TRUST BANNER */}
           <div className="bg-white border-y border-slate-100 py-8">

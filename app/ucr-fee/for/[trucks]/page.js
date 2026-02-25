@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getUcrFee, UCR_FEE_BRACKETS_2026, UCR_REGISTRATION_YEAR, UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
 import { UCR_FLEET_SIZES } from '@/lib/ucr-seo-data';
+import { getBracketGroup, BRACKET_COPY, BRACKET_FAQS } from '@/lib/ucr-fee-content';
 import DiscountedPrice from '@/components/DiscountedPrice';
 import { Calculator, Truck, CheckCircle } from 'lucide-react';
 
@@ -36,6 +37,9 @@ export default function UcrFeeForTrucksPage({ params }) {
   const { fee, bracket } = getUcrFee(n, 'carrier');
   const servicePrice = UCR_SERVICE_PLANS.filing.price;
   const total = fee + servicePrice;
+  const group = getBracketGroup(n);
+  const copy = BRACKET_COPY[group] || BRACKET_COPY['1-2'];
+  const bracketFaqs = BRACKET_FAQS[group] || BRACKET_FAQS['1-2'];
 
   const faqSchema = {
     '@context': 'https://schema.org',
@@ -57,6 +61,11 @@ export default function UcrFeeForTrucksPage({ params }) {
           text: `If you operate ${n} commercial motor vehicle${n === 1 ? '' : 's'} in interstate commerce, you must register for UCR. The fee is based on the number of power units you have.`,
         },
       },
+      ...bracketFaqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.q,
+        acceptedAnswer: { '@type': 'Answer', text: faq.a },
+      })),
     ],
   };
 
@@ -79,6 +88,17 @@ export default function UcrFeeForTrucksPage({ params }) {
         <p className="text-lg text-slate-600 mb-8">
           See the official UCR registration fee for {n} power unit{n === 1 ? '' : 's'}, plus our filing service total. High-intent, straight to the number.
         </p>
+
+        {/* Phase 4: Unique content per bracket (200+ words) */}
+        <section className="prose prose-slate max-w-none mb-8">
+          <h2 className="text-xl font-bold text-slate-800 mt-0">{copy.heading}</h2>
+          <p className="text-slate-600 lead">{copy.intro}</p>
+          {copy.body.map((paragraph, idx) => (
+            <p key={idx} className="text-slate-600">
+              {paragraph}
+            </p>
+          ))}
+        </section>
 
         <section className="bg-white border border-slate-200 rounded-xl p-8 mb-8 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
@@ -134,8 +154,22 @@ export default function UcrFeeForTrucksPage({ params }) {
           </div>
         </section>
 
+        {/* Bracket-specific FAQs — Phase 4 */}
+        <section className="bg-slate-50 border border-slate-200 rounded-xl p-6 mb-8">
+          <h2 className="text-lg font-bold text-slate-800 mb-4">Frequently asked for {bracket.label}</h2>
+          <div className="space-y-4">
+            {bracketFaqs.map((faq, idx) => (
+              <div key={idx} className="bg-white p-4 rounded-lg border border-slate-100">
+                <h3 className="text-sm font-bold text-slate-800 mb-1">{faq.q}</h3>
+                <p className="text-sm text-slate-600 m-0">{faq.a}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <div className="flex flex-wrap gap-4 mt-8 pt-6 border-t border-slate-200">
           <p className="w-full text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">More UCR resources</p>
+          <Link href="/ucr/guides" className="text-[var(--color-navy)] font-semibold hover:underline">UCR Guides</Link>
           <Link href="/insights/complete-guide-ucr-filing-2026" className="text-[var(--color-navy)] font-semibold hover:underline">Complete 2026 UCR Guide</Link>
           <Link href="/insights/who-needs-ucr-registration" className="text-[var(--color-navy)] font-semibold hover:underline">Who Needs a UCR?</Link>
           <Link href="/insights/ucr-deadlines-penalties-explained" className="text-[var(--color-navy)] font-semibold hover:underline">UCR Penalties Explained</Link>

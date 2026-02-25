@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { slugToState, UCR_STATE_SLUGS } from '@/lib/ucr-seo-data';
-import { getUcrFee, UCR_FEE_BRACKETS_2026, UCR_REGISTRATION_YEAR, UCR_DEADLINE_DEC } from '@/lib/ucr-fees';
+import { getUcrFee, UCR_FEE_BRACKETS_2026, UCR_REGISTRATION_YEAR, UCR_DEADLINE_DEC, UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
 import { ShieldCheck, Calculator, FileText, AlertTriangle, CheckCircle, MapPin, Truck, ArrowRight, Clock, ShieldAlert } from 'lucide-react';
 import Image from 'next/image';
 
@@ -32,44 +32,58 @@ export default function UcrFilingStatePage({ params }) {
 
   const stateName = stateInfo.name;
   const participates = ["Alaska", "Arizona", "DC", "Florida", "Hawaii", "Maryland", "Nevada", "New Jersey", "Oregon", "Vermont", "Wyoming"].includes(stateName) ? false : true;
+  const oneTruckFee = getUcrFee(1, 'carrier').fee;
+  const servicePrice = UCR_SERVICE_PLANS.filing.price;
+  const exampleTotal = oneTruckFee + servicePrice;
 
+  const faqBase = [
+    {
+      '@type': 'Question',
+      name: `Who needs a UCR in ${stateName}?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `Any interstate motor carrier, broker, freight forwarder, or leasing company operating commercial vehicles in or through ${stateName} must register for UCR. Intrastate-only carriers in ${stateName} may be exempt depending on specific ${stateName} DOT state rules, but crossing the state line triggers the federal requirement.`,
+      },
+    },
+    {
+      '@type': 'Question',
+      name: `What is the UCR deadline for ${stateName}?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `The UCR registration deadline for ${UCR_REGISTRATION_YEAR} is December 31. Registration opens October 1 of the preceding year. You must file before the Jan 1st deadline to legally operate and avoid fines at weigh stations.`,
+      },
+    },
+    {
+      '@type': 'Question',
+      name: `Does ${stateName} enforce UCR penalties?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `Yes, operating without a valid UCR can result in heavy roadside fines, citations, and out-of-service orders. Law enforcement and DOT weigh stations monitor UCR status electronically across state borders.`,
+      },
+    },
+    {
+      '@type': 'Question',
+      name: `Can I file my UCR instantly online?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `Yes, you can calculate your exact fee tier and submit your ${UCR_REGISTRATION_YEAR} registration securely online using a third-party compliance platform like QuickTruckTax in under 5 minutes.`,
+      },
+    },
+  ];
+  if (!participates) {
+    faqBase.push({
+      '@type': 'Question',
+      name: `Where do ${stateName} truckers file UCR?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `${stateName} is a non-participating UCR state. If you're based in ${stateName} but run in interstate commerce, you still must register for UCR. You file through the UCR Plan (typically selecting a neighboring participating state as your base state for fee payment). QuickTruckTax can help you complete your UCR filing regardless of your base state.`,
+      },
+    });
+  }
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: `Who needs a UCR in ${stateName}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Any interstate motor carrier, broker, freight forwarder, or leasing company operating commercial vehicles in or through ${stateName} must register for UCR. Intrastate-only carriers in ${stateName} may be exempt depending on specific ${stateName} DOT state rules, but crossing the state line triggers the federal requirement.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `What is the UCR deadline for ${stateName}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `The UCR registration deadline for ${UCR_REGISTRATION_YEAR} is December 31. Registration opens October 1 of the preceding year. You must file before the Jan 1st deadline to legally operate and avoid fines at weigh stations.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `Does ${stateName} enforce UCR penalties?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Yes, operating without a valid UCR can result in heavy roadside fines, citations, and out-of-service orders. Law enforcement and DOT weigh stations monitor UCR status electronically across state borders.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `Can I file my UCR instantly online?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Yes, you can calculate your exact fee tier and submit your ${UCR_REGISTRATION_YEAR} registration securely online using a third-party compliance platform like QuickTruckTax in under 5 minutes.`,
-        }
-      }
-    ],
+    mainEntity: faqBase,
   };
 
   return (
@@ -200,6 +214,12 @@ export default function UcrFilingStatePage({ params }) {
           <p>
             The federal UCR fee is standardized across the country based on the size of your fleet. <strong>The fee is not prorated.</strong> Unlike state-specific fuel taxes, your UCR obligation is determined by the total number of commercial vehicles you operate in interstate commerce, regardless of where they are physically registered.
           </p>
+          <div className="not-prose my-6 rounded-xl bg-teal-50 border border-teal-200 p-5">
+            <p className="font-semibold text-slate-800 m-0 mb-1">Example total cost</p>
+            <p className="text-slate-600 m-0 text-sm">
+              A {stateName} carrier with 1 truck: ${oneTruckFee} UCR fee + ${servicePrice} filing service = <strong>${exampleTotal} total</strong>. File with $0 upfront—pay when your certificate is ready.
+            </p>
+          </div>
         </div>
 
         {/* FEE TABLE - HIGH ENGAGEMENT */}

@@ -44,6 +44,13 @@ export const metadata = {
     },
 };
 
+import UcrCtaBanner from '@/components/UcrCtaBanner';
+
 export default function BlogLayout({ children }) {
-    return children;
+    return (
+        <>
+            {children}
+            <UcrCtaBanner />
+        </>
+    );
 }

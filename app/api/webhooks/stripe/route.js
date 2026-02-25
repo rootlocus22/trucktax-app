@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
 import { sendEmail } from '@/lib/ses';
-import { getInvoiceEmailTemplate } from '@/lib/emailTemplates';
+import { getInvoiceEmailTemplate, getPostDownloadThankYouEmailTemplate } from '@/lib/emailTemplates';
 
 // Lazy initialization to avoid build-time errors
 function getStripe() {
@@ -164,13 +164,25 @@ async function sendInvoiceEmail(userId, filingId, amount) {
         if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return;
 
         let legalName = null;
+        let registrantName = null;
         if (filingId) {
             const filingSnap = await adminDb.collection('filings').doc(filingId).get();
-            if (filingSnap.exists) legalName = filingSnap.data().legalName || null;
+            if (filingSnap.exists) {
+                const fd = filingSnap.data();
+                legalName = fd.legalName || null;
+                registrantName = fd.registrantName || null;
+            }
         }
         const { subject, html } = getInvoiceEmailTemplate({ amount, filingId, legalName });
         await sendEmail(to, subject, html);
+
+        // Post-payment thank-you (brand touchpoint)
+        const thankYou = getPostDownloadThankYouEmailTemplate({
+            legalName: legalName || '',
+            registrantName: registrantName || user?.displayName || '',
+        });
+        await sendEmail(to, thankYou.subject, thankYou.html, thankYou.plainText || undefined);
     } catch (err) {
-        console.error('Failed to send invoice email:', err);
+        console.error('Failed to send invoice/thank-you email:', err);
     }
 }

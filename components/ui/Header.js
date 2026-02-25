@@ -66,6 +66,7 @@ export default function Header() {
     { href: '/', label: 'Home' },
     { href: '/services', label: 'Services' },
     { href: '/insights', label: 'Guides' },
+    { href: '/ucr/guides', label: 'UCR Guides' },
     { href: '/resources', label: 'Resources' },
     { href: '/tools', label: 'Tools' },
     { href: '/blog', label: 'Blog' },

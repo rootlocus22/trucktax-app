@@ -181,6 +181,9 @@ export default function RootLayout({ children }) {
                       <Link href="/tools/ucr-calculator" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
                         UCR Fee Calculator
                       </Link>
+                      <Link href="/ucr/dispatcher" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
+                        File UCR for Multiple Trucks
+                      </Link>
                       <Link href="/insights/trucking-compliance-calendar" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
                         Compliance Calendar
                       </Link>

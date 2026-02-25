@@ -20,9 +20,9 @@ export async function generateMetadata({ params }) {
     const name = stateData.name;
 
     return {
-        title: `Form 2290 & IFTA Filing in ${name} | Trucking Compliance`,
-        description: `File your IRS Form 2290 (HVUT) and report IFTA fuel taxes in ${name}. Simple, secure online filing for ${name} owner-operators and fleets.`,
-        keywords: `form 2290 ${name}, ifta filing ${name}, truck tax ${name}, ${name} dot compliance, irp registration ${name}`,
+        title: `UCR & Trucking Compliance in ${name} | File UCR, 2290 Guide, IFTA`,
+        description: `File UCR for ${name} with $0 upfront. Compliance guide: UCR, Form 2290 deadlines, IFTA, and MCS-150 for ${name} owner-operators and fleets.`,
+        keywords: `ucr filing ${name}, trucking compliance ${name}, form 2290 ${name}, ifta ${name}, ${name} dot compliance`,
         alternates: {
             canonical: `https://www.quicktrucktax.com/insights/state/${state}`,
         },
@@ -42,16 +42,20 @@ export default async function StateCompliancePage({ params }) {
 
     const faqData = [
         {
+            question: `Do ${name} truckers need UCR?`,
+            answer: `Yes. If you operate in interstate commerce (cross state lines), you must register for UCR regardless of your base state. File by December 31. QuickTruckTax helps you file UCR for ${name} with $0 upfront.`
+        },
+        {
             question: `Do I need to file Form 2290 in ${name}?`,
-            answer: `Yes. Determining if you owe the Heavy Vehicle Use Tax (HVUT) is a federal requirement, regardless of your base state. If you operate a vehicle with a gross weight of 55,000 lbs or more on public highways in ${name}, you must file Form 2290 with the IRS.`
+            answer: `HVUT (Form 2290) is a federal requirement. If you run vehicles 55,000+ lbs on public highways in ${name}, you must file 2290 with the IRS. See our Form 2290 guide for deadlines and how to e-file.`
         },
         {
             question: `How do I get IRP Apportioned Plates in ${name}?`,
-            answer: `You must register through the ${stateData.agency}. You'll need your stamped Schedule 1 (proof of 2290 payment) to complete your IRP registration and get your apportioned plates.`
+            answer: `Register through the ${stateData.agency}. You'll need your stamped Schedule 1 (proof of 2290 payment) to complete IRP registration and get apportioned plates.`
         },
         {
             question: `When are ${name} IFTA taxes due?`,
-            answer: `${name} follows the standard IFTA quarterly reporting schedule: April 30, July 31, October 31, and January 31.`
+            answer: `${name} follows the standard IFTA quarterly schedule: April 30, July 31, October 31, and January 31.`
         }
     ];
 
@@ -60,11 +64,11 @@ export default async function StateCompliancePage({ params }) {
             <SchemaMarkup
                 type="Service"
                 data={{
-                    name: `${name} Trucking Compliance Services`,
-                    description: `Federal and State trucking compliance filing services for ${name} carriers.`,
-                    catalogName: `${name} Truck Tax`,
+                    name: `${name} UCR & Trucking Compliance`,
+                    description: `UCR filing and compliance guides for ${name} carriers. File UCR with $0 upfront; learn about Form 2290, IFTA, and MCS-150.`,
+                    catalogName: `QuickTruckTax`,
                     offers: [
-                        { name: "Form 2290 Filing", price: "34.99" },
+                        { name: "UCR Filing", price: "79" },
                         { name: "MCS-150 Update", price: "49.00" }
                     ]
                 }}

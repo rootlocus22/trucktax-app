@@ -105,6 +105,32 @@ export default function InsightsIndex() {
         </div>
       </section>
 
+      {/* UCR hub CTA — Phase 1: conversion pathway from guides */}
+      <section className="rounded-2xl border-2 border-[var(--color-orange)]/30 bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-navy-soft)] p-6 text-white shadow-lg sm:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold mb-1">UCR Filing Due by December 31</h2>
+            <p className="text-blue-100 text-sm sm:text-base">
+              All guides, deadlines, and fees in one place. File with $0 upfront.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/ucr/guides"
+              className="inline-flex items-center rounded-xl bg-white text-[var(--color-navy)] px-5 py-3 font-bold text-sm hover:bg-blue-50 transition"
+            >
+              UCR Guides
+            </Link>
+            <Link
+              href="/ucr/file"
+              className="inline-flex items-center rounded-xl bg-[var(--color-orange)] text-white px-5 py-3 font-bold text-sm hover:bg-[#e66a15] transition"
+            >
+              Start UCR Filing
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <section className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-lg shadow-[rgba(15,38,71,0.08)] sm:p-10">
         <div className="space-y-6">
           <div>

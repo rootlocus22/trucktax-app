@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
 import { getEmailMarketingAllowedEmails, isEmailAllowed } from '@/lib/emailMarketingAllowlist';
-import { sendEmail } from '@/lib/ses';
 import { getCampaignById, getDefaultCampaignId } from '@/lib/emailCampaigns';
 
 function parseCustomerData(raw) {
@@ -17,6 +16,7 @@ function parseCustomerData(raw) {
   };
 }
 
+/** POST: return { subject, html } for the given campaign + customerData (no send). Auth required. */
 export async function POST(req) {
   try {
     const authHeader = req.headers.get('authorization');
@@ -32,21 +32,16 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const callerEmail = decoded.email;
-    if (!callerEmail) {
-      return NextResponse.json({ error: 'No email on account' }, { status: 400 });
-    }
-
     const allowedEmails = await getEmailMarketingAllowedEmails();
-    if (!isEmailAllowed(allowedEmails, callerEmail)) {
-      return NextResponse.json({ error: 'Access denied. Your email is not on the allowlist.' }, { status: 403 });
+    if (!isEmailAllowed(allowedEmails, decoded.email)) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     const body = await req.json().catch(() => ({}));
     const customer = parseCustomerData(body.customerData ?? body);
     if (!customer) {
       return NextResponse.json(
-        { error: 'Invalid customer data. Provide an object with at least "email" (e.g. { email, legalName, registrantName }).' },
+        { error: 'Invalid customer data. Provide an object with at least "email".' },
         { status: 400 }
       );
     }
@@ -54,19 +49,13 @@ export async function POST(req) {
     const campaignId = body.campaignId && String(body.campaignId).trim() || getDefaultCampaignId();
     const campaign = getCampaignById(campaignId);
     if (!campaign) {
-      return NextResponse.json(
-        { error: `Unknown campaign: ${campaignId}. Use one of: customer_follow_up, welcome, abandon_ucr, ucr_seasonal_reminder, ucr_deadline_reminder, post_download_thank_you` },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: `Unknown campaign: ${campaignId}` }, { status: 400 });
     }
 
-    const { subject, html, plainText } = campaign.getTemplate(customer);
-
-    await sendEmail(customer.email, subject, html, plainText || undefined);
-
-    return NextResponse.json({ ok: true, sentTo: customer.email, subject, campaignId: campaign.id });
+    const { subject, html } = campaign.getTemplate(customer);
+    return NextResponse.json({ subject, html });
   } catch (err) {
-    console.error('[email-marketing/send]', err);
-    return NextResponse.json({ error: err.message || 'Failed to send email' }, { status: 500 });
+    console.error('[email-marketing/preview]', err);
+    return NextResponse.json({ error: err.message || 'Failed to generate preview' }, { status: 500 });
   }
 }

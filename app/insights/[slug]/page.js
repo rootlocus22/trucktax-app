@@ -98,6 +98,12 @@ export default async function GuidePage({ params }) {
               </span>
               <span className="hidden sm:inline">•</span>
               <span>{guide.estimatedReadMinutes}-minute read</span>
+              {guide.category === "UCR" && (
+                <>
+                  <span className="hidden sm:inline">•</span>
+                  <span>Reviewed by QuickTruckTax compliance team</span>
+                </>
+              )}
             </div>
           </div>
           <div className="relative h-52 w-full sm:h-64">

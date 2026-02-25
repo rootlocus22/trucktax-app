@@ -21,6 +21,9 @@ import {
   Loader2,
   AlertCircle,
   Info,
+  ShieldCheck,
+  Lock,
+  Award,
 } from 'lucide-react';
 
 const UCR_VISIT_KEY = 'ucr_visit_session_id';
@@ -538,6 +541,9 @@ function UcrFileContent() {
           <p className="text-white/80 text-sm mt-4 max-w-2xl">
             Complete your Unified Carrier Registration in under 5 minutes.
           </p>
+          <p className="text-white/60 text-xs mt-2 max-w-2xl">
+            Not affiliated with FMCSA or DOT — independent filing service.
+          </p>
           {/* Visual stepper: one after another, only completed/current clickable */}
           <div className="mt-6 flex items-center justify-between gap-0 overflow-x-auto no-scrollbar">
             {STEPS.map((s, idx) => {
@@ -574,6 +580,12 @@ function UcrFileContent() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-8 sm:py-10 pb-24 sm:pb-10">
+        {/* Trust strip — Phase 2 E-E-A-T */}
+        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-slate-500 text-sm mb-6">
+          <span className="flex items-center gap-2"><ShieldCheck className="w-5 h-5" /> McAfee SECURE</span>
+          <span className="flex items-center gap-2"><Lock className="w-5 h-5" /> 256-Bit SSL</span>
+          <span className="flex items-center gap-2"><Award className="w-5 h-5" /> Expert review</span>
+        </div>
         {verificationAttempted.current && submittingFiling ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-12 shadow-sm text-center mt-8">
             <Loader2 className="w-12 h-12 text-[var(--color-navy)] animate-spin mx-auto mb-6" />
