@@ -95,7 +95,7 @@ export function ConsumerLayout({ children }) {
                 <ul className="space-y-2 text-sm text-white/70">
                   <li><Link href="/insights/trucking-compliance-calendar" className="hover:text-white transition">Compliance Calendar</Link></li>
                   <li><Link href="/insights/form-2290-checklist-download" className="hover:text-white transition">Form 2290 Checklist</Link></li>
-                  <li><Link href="/tools/hvut-calculator" className="hover:text-white transition">HVUT Calculator</Link></li>
+                  <li><Link href="/tools/ucr-calculator" className="hover:text-white transition">UCR Calculator</Link></li>
                 </ul>
               </div>
               <div>

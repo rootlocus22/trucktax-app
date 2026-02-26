@@ -19,28 +19,35 @@ export default function HomepageUcrCalculator() {
   const total = ucrFee + SERVICE_PRICE;
 
   return (
-    <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 sm:p-6 shadow-2xl">
+    <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
+      {/* Absolute Badge */}
+      <div className="absolute top-0 right-0 bg-[var(--color-orange)] text-white text-[10px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-wider shadow-lg">
+        $0 Upfront
+      </div>
+
       <div className="flex items-center gap-2 text-white font-semibold mb-4">
         <Calculator className="w-5 h-5 text-[var(--color-orange)]" />
-        UCR Fee Calculator
+        Official 2026 UCR Estimator
       </div>
-      <div className="space-y-3">
+
+      <div className="space-y-4">
         <div>
-          <label htmlFor={`${formId}-entityType`} className="block text-xs font-medium text-white/80 mb-1">Entity type</label>
+          <label htmlFor={`${formId}-entityType`} className="block text-xs font-bold text-white/70 mb-1.5 uppercase tracking-wider">Entity type</label>
           <select
             id={`${formId}-entityType`}
             value={entityType}
             onChange={(e) => setEntityType(e.target.value)}
-            className="w-full rounded-lg border border-white/20 bg-white/10 text-white px-3 py-2.5 min-h-[48px] text-sm focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent touch-manipulation"
+            className="w-full rounded-lg border border-white/20 bg-white/10 text-white px-3 py-2.5 min-h-[48px] text-sm focus:ring-2 focus:ring-[var(--color-orange)] focus:border-transparent outline-none transition-all cursor-pointer"
           >
             {UCR_ENTITY_TYPES.map((t) => (
               <option key={t.value} value={t.value} className="text-slate-900">{t.label}</option>
             ))}
           </select>
         </div>
+
         {entityType === 'carrier' && (
-          <div>
-            <label htmlFor={`${formId}-powerUnits`} className="block text-xs font-medium text-white/80 mb-1">Power units</label>
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+            <label htmlFor={`${formId}-powerUnits`} className="block text-xs font-bold text-white/70 mb-1.5 uppercase tracking-wider">Number of Power Units</label>
             <input
               id={`${formId}-powerUnits`}
               type="number"
@@ -48,53 +55,57 @@ export default function HomepageUcrCalculator() {
               value={powerUnits}
               onChange={(e) => setPowerUnits(e.target.value)}
               placeholder="e.g. 5"
-              className="w-full rounded-lg border border-white/20 bg-white/10 text-white px-3 py-2.5 min-h-[48px] text-sm placeholder-white/50 focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation"
+              className="w-full rounded-lg border border-white/20 bg-white/10 text-white px-3 py-2.5 min-h-[48px] text-sm placeholder-white/30 focus:ring-2 focus:ring-[var(--color-orange)] outline-none transition-all"
             />
           </div>
         )}
+
         <div>
-          <label htmlFor={`${formId}-state`} className="block text-xs font-medium text-white/80 mb-1">State (optional)</label>
+          <label htmlFor={`${formId}-state`} className="block text-xs font-bold text-white/70 mb-1.5 uppercase tracking-wider">Base State (Optional)</label>
           <select
             id={`${formId}-state`}
             value={state}
             onChange={(e) => setState(e.target.value)}
-            className="w-full rounded-lg border border-white/20 bg-white/10 text-white px-3 py-2.5 min-h-[48px] text-sm focus:ring-2 focus:ring-[var(--color-orange)] touch-manipulation"
+            className="w-full rounded-lg border border-white/20 bg-white/10 text-white px-3 py-2.5 min-h-[48px] text-sm focus:ring-2 focus:ring-[var(--color-orange)] outline-none transition-all cursor-pointer"
           >
-            <option value="" className="text-slate-900">Select state</option>
-            <option value="texas" className="text-slate-900">Texas</option>
-            <option value="california" className="text-slate-900">California</option>
-            <option value="florida" className="text-slate-900">Florida</option>
-            <option value="georgia" className="text-slate-900">Georgia</option>
-            <option value="ohio" className="text-slate-900">Ohio</option>
-            <option value="illinois" className="text-slate-900">Illinois</option>
-            <option value="pennsylvania" className="text-slate-900">Pennsylvania</option>
-            <option value="north-carolina" className="text-slate-900">North Carolina</option>
-            <option value="michigan" className="text-slate-900">Michigan</option>
-            <option value="new-york" className="text-slate-900">New York</option>
-            <option value="other" className="text-slate-900">Other</option>
+            <option value="" className="text-slate-900">Select State</option>
+            {['Texas', 'California', 'Florida', 'Georgia', 'Ohio', 'Illinois', 'Pennsylvania', 'North Carolina', 'Michigan', 'New York'].map(s => (
+              <option key={s} value={s.toLowerCase().replace(' ', '-')} className="text-slate-900">{s}</option>
+            ))}
           </select>
         </div>
       </div>
-      <div className="mt-4 pt-4 border-t border-white/20 space-y-1 text-sm">
-        <div className="flex justify-between text-white/90">
-          <span>UCR fee (2026)</span>
-          <span className="font-semibold text-white">${ucrFee.toLocaleString()}</span>
+
+      <div className="mt-6 p-4 rounded-xl bg-white/5 border border-white/10 space-y-2">
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-white/60">State/Federal Fee:</span>
+          <span className="text-white font-mono">${ucrFee.toLocaleString()}</span>
         </div>
-        <div className="flex justify-between text-white/90 items-center">
-          <span>Filing service</span>
-          <span className="font-semibold text-white"><DiscountedPrice price={SERVICE_PRICE} originalPrice={99} className="[&_.line-through]:text-white/60 [&_.text-slate-400]:text-white/60 [&_.text-emerald-600]:text-[var(--color-orange)] [&_.bg-emerald-50]:bg-white/20 [&_.text-emerald-600]:text-white" /></span>
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-white/60">Filing Service:</span>
+          <div className="flex items-center gap-2">
+            <span className="text-white/30 line-through text-xs font-mono">$99</span>
+            <span className="text-[var(--color-orange)] font-mono">$79</span>
+          </div>
         </div>
-        <div className="flex justify-between text-lg font-bold text-[var(--color-orange)] pt-1">
-          <span>Total</span>
-          <span>${total.toLocaleString()}</span>
+        <div className="h-px bg-white/10 my-2" />
+        <div className="flex justify-between items-center">
+          <span className="text-white font-bold uppercase tracking-widest text-xs">Total to File:</span>
+          <span className="text-white text-xl font-black font-mono">${total.toLocaleString()}</span>
         </div>
       </div>
+
       <Link
-        href={state ? `/ucr-filing/${state}` : '/ucr/file'}
-        className="mt-4 flex items-center justify-center gap-2 w-full min-h-[52px] bg-[var(--color-orange)] hover:bg-[#e66a15] !text-white font-bold py-3.5 rounded-xl transition touch-manipulation"
+        href={state ? `/ucr-filing/${state}` : '/ucr-filing/new'}
+        className="mt-4 flex items-center justify-center gap-2 w-full min-h-[56px] bg-[var(--color-orange)] hover:bg-[#ff7a20] text-[#0f2647] font-black rounded-xl transition-all shadow-xl shadow-orange-500/20 active:scale-95 group uppercase tracking-tight"
       >
-        Start UCR Filing – <span className="inline-flex items-center gap-1.5"><span className="line-through opacity-80">$99</span> <span className="font-bold">$79</span></span> <ArrowRight className="w-4 h-4" />
+        File 2026 UCR Now
+        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
       </Link>
+
+      <p className="mt-3 text-[10px] text-white/40 text-center">
+        Guaranteed compliant with 2026 UCR Board brackets.
+      </p>
     </div>
   );
 }
