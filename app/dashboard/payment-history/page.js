@@ -59,6 +59,7 @@ export default function PaymentHistoryPage() {
             28 Geary St STE 650<br/>
             San Francisco, CA 94108<br/>
             support@quicktrucktax.com<br/>
+            +1 (347) 801-8631<br/>
             <br/>
             Official Service Receipt
           </p>

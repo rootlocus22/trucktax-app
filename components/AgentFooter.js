@@ -8,6 +8,7 @@ export function AgentFooter() {
           <p>&copy; {new Date().getFullYear()} QuickTruckTax Agent Portal</p>
           <div className="text-center sm:text-right">
             <p><span className="font-semibold">Vendax Systems LLC</span> • 28 Geary St STE 650 Suite #500, San Francisco, CA 94108, USA</p>
+            <p><a href="mailto:support@quicktrucktax.com" className="text-[var(--color-navy)] hover:underline">support@quicktrucktax.com</a> • <a href="tel:+13478018631" className="text-[var(--color-navy)] hover:underline">+1 (347) 801-8631</a></p>
           </div>
         </div>
       </div>

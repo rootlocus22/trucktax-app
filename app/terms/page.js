@@ -6,6 +6,8 @@ export const metadata = {
 };
 
 const CONTACT_EMAIL = 'support@quicktrucktax.com';
+const CONTACT_PHONE = '+1 (347) 801-8631';
+const CONTACT_PHONE_TEL = 'tel:+13478018631';
 const ADDRESS = '28 Geary St STE 650 Suite #500, San Francisco, California 94108, United States';
 
 export default function TermsPage() {
@@ -156,11 +158,12 @@ export default function TermsPage() {
 
                     <section>
             <h2 className="text-xl font-bold text-slate-900 mb-4">Contact Us</h2>
-            <p>If you have questions about these Terms, contact QuickTruckTax at <a href={`mailto:${CONTACT_EMAIL}`} className="text-[var(--color-navy)] hover:underline">{CONTACT_EMAIL}</a>.</p>
+            <p>If you have questions about these Terms, contact QuickTruckTax at <a href={`mailto:${CONTACT_EMAIL}`} className="text-[var(--color-navy)] hover:underline">{CONTACT_EMAIL}</a> or <a href={CONTACT_PHONE_TEL} className="text-[var(--color-navy)] hover:underline">{CONTACT_PHONE}</a>.</p>
             <address className="mt-4 not-italic bg-slate-100 p-4 rounded-lg text-sm">
               <strong>QuickTruckTax</strong><br />
               {ADDRESS}<br />
-              Email: <a href={`mailto:${CONTACT_EMAIL}`} className="text-[var(--color-navy)] hover:underline">{CONTACT_EMAIL}</a>
+              Email: <a href={`mailto:${CONTACT_EMAIL}`} className="text-[var(--color-navy)] hover:underline">{CONTACT_EMAIL}</a><br />
+              Phone: <a href={CONTACT_PHONE_TEL} className="text-[var(--color-navy)] hover:underline">{CONTACT_PHONE}</a>
                         </address>
                     </section>
                 </div>

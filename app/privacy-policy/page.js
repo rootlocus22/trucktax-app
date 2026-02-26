@@ -6,6 +6,8 @@ export const metadata = {
 };
 
 const CONTACT_EMAIL = 'support@quicktrucktax.com';
+const CONTACT_PHONE = '+1 (347) 801-8631';
+const CONTACT_PHONE_TEL = 'tel:+13478018631';
 const PRIVACY_EMAIL = 'privacy@quicktrucktax.com';
 const ADDRESS = '28 Geary St STE 650 Suite #500, San Francisco, California 94108, United States';
 
@@ -107,6 +109,7 @@ export default function PrivacyPage() {
                             <strong>QuickTruckTax</strong><br />
                             {ADDRESS}<br />
                             General: <a href={`mailto:${CONTACT_EMAIL}`} className="text-[var(--color-navy)] hover:underline">{CONTACT_EMAIL}</a><br />
+                            Phone: <a href={CONTACT_PHONE_TEL} className="text-[var(--color-navy)] hover:underline">{CONTACT_PHONE}</a><br />
                             Privacy: <a href={`mailto:${PRIVACY_EMAIL}`} className="text-[var(--color-navy)] hover:underline">{PRIVACY_EMAIL}</a>
                         </address>
                     </section>
@@ -123,6 +126,7 @@ export default function PrivacyPage() {
                     <Link href="/refund-policy" className="text-[var(--color-navy)] hover:underline">Refund Policy</Link>
                     <Link href="/privacy-policy" className="text-[var(--color-navy)] hover:underline">Privacy Policy</Link>
                     <a href={`mailto:${CONTACT_EMAIL}`} className="text-[var(--color-navy)] hover:underline">Contact Us</a>
+                    <a href={CONTACT_PHONE_TEL} className="text-[var(--color-navy)] hover:underline">{CONTACT_PHONE}</a>
                 </div>
             </div>
         </div>

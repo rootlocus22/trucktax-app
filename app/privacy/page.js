@@ -54,7 +54,9 @@ export default function PrivacyPolicyPage() {
                 <section>
                     <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Contact Us</h2>
                     <p>
-                        If you have questions about this Privacy Policy, please contact us at support@quicktrucktax.com.
+                        If you have questions about this Privacy Policy, please contact us at{' '}
+                        <a href="mailto:support@quicktrucktax.com" className="text-[var(--color-navy)] hover:underline">support@quicktrucktax.com</a>
+                        {' '}or call us at <a href="tel:+13478018631" className="text-[var(--color-navy)] hover:underline">+1 (347) 801-8631</a>.
                     </p>
                 </section>
             </div>

@@ -75,7 +75,7 @@ export function ConsumerLayout({ children }) {
                 </button>
               </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-8">
               <div>
                 <h3 className="font-semibold mb-4">QuickTruckTax</h3>
                 <p className="text-sm text-white/70">
@@ -104,6 +104,13 @@ export function ConsumerLayout({ children }) {
                   <li><Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link></li>
                   <li><Link href="/terms" className="hover:text-white transition">Terms of Service</Link></li>
                   <li><Link href="/refund-policy" className="hover:text-white transition">Refund Policy</Link></li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-4">Contact</h3>
+                <ul className="space-y-2 text-sm text-white/70">
+                  <li><a href="mailto:support@quicktrucktax.com" className="hover:text-white transition">support@quicktrucktax.com</a></li>
+                  <li><a href="tel:+13478018631" className="hover:text-white transition">+1 (347) 801-8631</a></li>
                 </ul>
               </div>
             </div>

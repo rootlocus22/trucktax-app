@@ -687,8 +687,11 @@ export default function DashboardPage() {
                 <div className="bg-[var(--color-navy)] rounded-2xl p-6 text-white shadow-lg">
                   <h4 className="font-bold text-lg mb-2">Need Help?</h4>
                   <p className="text-sm text-white/90 mb-5">Our compliance team can assist with your registrations.</p>
-                  <a href="mailto:support@quicktrucktax.com" className="block w-full bg-white !text-[var(--color-navy)] py-3 rounded-xl text-sm font-semibold text-center hover:bg-slate-100 transition">
-                    Contact support
+                  <a href="mailto:support@quicktrucktax.com" className="block w-full bg-white !text-[var(--color-navy)] py-3 rounded-xl text-sm font-semibold text-center hover:bg-slate-100 transition mb-2">
+                    Email support
+                  </a>
+                  <a href="tel:+13478018631" className="block w-full bg-white/20 border border-white/40 !text-white py-3 rounded-xl text-sm font-semibold text-center hover:bg-white/30 transition">
+                    Call +1 (347) 801-8631
                   </a>
                 </div>
               </div>

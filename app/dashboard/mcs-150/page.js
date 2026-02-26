@@ -1527,7 +1527,7 @@ export default function MCS150Page() {
                     <User className="w-6 h-6 text-orange-400" />
                 </div>
                 <div className="text-sm text-orange-900">
-                    We will reach out to you for your driver's license or you can email us a copy of your driver's license at <span className="font-bold underline">support@quicktrucktax.com</span>. The FMCSA requires your driver's license along with the MCS-150 filing for verification.
+                    We will reach out to you for your driver's license or you can email us at <a href="mailto:support@quicktrucktax.com" className="font-bold underline text-[var(--color-navy)] hover:underline">support@quicktrucktax.com</a> or call <a href="tel:+13478018631" className="font-bold underline text-[var(--color-navy)] hover:underline">+1 (347) 801-8631</a>. The FMCSA requires your driver's license along with the MCS-150 filing for verification.
                 </div>
             </div>
 

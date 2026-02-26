@@ -111,7 +111,7 @@ export default function FAQPage() {
                 },
                 {
                     q: 'What customer support do you offer?',
-                    a: 'We offer live chat support, email support, and phone support during extended hours, especially during peak season (July-September).'
+                    a: 'We offer live chat support, email at support@quicktrucktax.com, and US phone support at +1 (347) 801-8631 during extended hours, especially during peak season (July-September).'
                 },
                 {
                     q: 'Can I file in Spanish?',
