@@ -4,6 +4,7 @@ import { ArrowLeft, Calendar, FileWarning, ShieldAlert, ChevronRight, Clock } fr
 export const metadata = {
     title: 'UCR Registration Deadlines & Penalties Explained | QuickTruckTax',
     description: 'Missing your UCR filing deadline can result in massive fines and vehicle detainment. Learn the 2026 deadlines and exact penalties for Unified Carrier Registration non-compliance.',
+    alternates: { canonical: 'https://www.quicktrucktax.com/insights/ucr-deadlines-penalties-explained' },
 };
 
 export default function UcrPenaltiesGuide() {

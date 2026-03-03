@@ -33,8 +33,7 @@ Allow: /*.webp$
 Sitemap: https://www.quicktrucktax.com/sitemap.xml
 Sitemap: https://www.quicktrucktax.com/sitemap-twotwoninezero.xml
 
-# Crawl delay (optional, adjust as needed)
-Crawl-delay: 1
+# Note: Crawl-delay removed — Google ignores it; it can slow other crawlers and indexing.
 
 # Additional bots
 User-agent: Googlebot

@@ -3,8 +3,14 @@ import { ArrowLeft, CheckCircle, RefreshCcw, DollarSign, Clock, AlertTriangle, C
 import Image from 'next/image';
 
 export const metadata = {
-    title: 'How to Renew Your UCR Registration for 2026 | QuickTruckTax',
-    description: 'A complete step-by-step guide to UCR renewal, 2026 UCR fees, updating truck info, and avoiding roadside out-of-service penalties for missed deadlines.',
+    title: 'UCR Renewal 2026: Cost, Deadline & How to Renew UCR Registration Online',
+    description: 'UCR renewal opens Oct 1. See 2026 UCR renewal cost by fleet size, December 31 deadline, and how to renew UCR registration online in minutes. $0 upfront.',
+    alternates: { canonical: 'https://www.quicktrucktax.com/insights/ucr-renewal-guide' },
+    openGraph: {
+        title: 'UCR Renewal 2026: Cost, Deadline & How to Renew Online | QuickTruckTax',
+        description: 'Renew your UCR registration for 2026. Fee brackets, deadline, and step-by-step renewal. File with $0 upfront.',
+        url: 'https://www.quicktrucktax.com/insights/ucr-renewal-guide',
+    },
 };
 
 export default function UcrRenewalGuide() {

@@ -2,8 +2,9 @@ import Link from 'next/link';
 import { ArrowLeft, CheckCircle, Calculator, ChevronRight, FileText } from 'lucide-react';
 
 export const metadata = {
-    title: 'The Complete Guide to UCR Filing (2026 Registration Year)',
-    description: 'Everything you need to know about Unified Carrier Registration (UCR) for 2026. Learn about deadlines, fees, who needs to file, and how to stay compliant.',
+    title: 'The Complete Guide to UCR Filing (2026 Registration Year) | QuickTruckTax',
+    description: 'Everything you need to know about Unified Carrier Registration (UCR) for 2026. Deadlines, fees, who must file, and how to file UCR online. $0 upfront.',
+    alternates: { canonical: 'https://www.quicktrucktax.com/insights/complete-guide-ucr-filing-2026' },
 };
 
 export default function CompleteUcrGuide() {
