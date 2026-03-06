@@ -5,49 +5,49 @@ const ucrRawData = [
         title: "The Ultimate Guide to Unified Carrier Registration (UCR) for 2026",
         slug: "ucr-ultimate-guide-2026",
         category: "UCR Registration",
-        date: "March 4, 2026",
+        date: "February 17, 2026",
         excerpt: "Everything you need to know about the 2026 UCR filing season, including fee brackets, enforcement dates, and compliance requirements for interstate carriers."
     },
     {
         title: "UCR vs. DOT Number: Understanding the Difference",
         slug: "ucr-vs-dot-number-difference",
         category: "Compliance",
-        date: "March 2, 2026",
+        date: "September 13, 2025",
         excerpt: "Many new owner-operators confuse UCR with DOT registration. Learn why you need both and how they work together to keep you legal."
     },
     {
         title: "Who Needs UCR? A Checklist for Trucking Businesses",
         slug: "who-needs-ucr-checklist",
         category: "UCR Registration",
-        date: "February 25, 2026",
+        date: "January 5, 2025",
         excerpt: "Not every truck on the road needs UCR. Use our quick checklist to determine if your operation falls under federal UCR mandates."
     },
     {
         title: "Common UCR Filing Mistakes and How to Avoid Them",
         slug: "common-ucr-filing-mistakes",
         category: "Guides",
-        date: "February 15, 2026",
+        date: "April 25, 2025",
         excerpt: "Incorrect fleet counts and wrong bracket selections can lead to overpayment or fines. Stay compliant with these expert tips."
     },
     {
         title: "How to Check Your UCR Registration Status Online",
         slug: "check-ucr-status-online",
         category: "Guides",
-        date: "February 10, 2026",
+        date: "January 3, 2026",
         excerpt: "Need proof of UCR compliance for a roadside inspection or a new contract? Here is the fastest way to verify your status."
     },
     {
         title: "What Happens if You Miss the UCR Deadline?",
         slug: "missed-ucr-deadline-consequences",
         category: "Compliance",
-        date: "January 20, 2026",
+        date: "February 16, 2025",
         excerpt: "UCR enforcement is strict. Learn about the potential fines, roadside delays, and impact on your safety rating if you fail to register."
     },
     {
         title: "UCR Fees for 2026: A Breakdown by Fleet Size",
         slug: "ucr-fees-2026-fleet-size",
         category: "UCR Registration",
-        date: "January 5, 2026",
+        date: "February 7, 2026",
         excerpt: "Federal authorities have updated the fee structure for the 2026 season. Find out exactly what your business owes based on your number of power units."
     }
 ];
@@ -597,13 +597,7 @@ export const generateUcrPosts = () => {
             readTime: "8 min",
             image: postImage,
             date: post.date,
-            dateISO: post.date.includes('March 4') ? '2026-03-04' :
-                post.date.includes('March 2') ? '2026-03-02' :
-                    post.date.includes('February 25') ? '2026-02-25' :
-                        post.date.includes('February 15') ? '2026-02-15' :
-                            post.date.includes('February 10') ? '2026-02-10' :
-                                post.date.includes('January 20') ? '2026-01-20' :
-                                    post.date.includes('January 5') ? '2026-01-05' : '2026-01-01',
+            dateISO: new Date(post.date).toISOString().split('T')[0],
             keywords: ["UCR", "Unified Carrier Registration", "trucking compliance", "UCR fees", "interstate carrier"],
             tableOfContents: toc,
             content: getUcrContent(post)
