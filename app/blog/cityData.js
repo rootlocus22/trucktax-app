@@ -15,8 +15,8 @@ export const generateCityPosts = () => {
                 image: '/blog/blog-banner.webp',
                 category: 'IRS Form 2290',
                 readTime: '4 min',
-                date: 'February 2026',
-                dateISO: '2026-02-10',
+                date: 'February 12, 2025',
+                dateISO: '2025-01-20',
                 keywords: [`Form 2290 ${city}`, `HVUT ${city} ${state.abbr}`, `truck taxes ${city}`, `IRS office ${city}`, `trucking jobs ${city}`],
                 tableOfContents: [
                     { id: 'local-reqs', title: `Filing Form 2290 in ${city}` },
