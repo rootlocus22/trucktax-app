@@ -3,18 +3,21 @@ import { generateStatePosts } from './stateData';
 import { generateVehiclePosts } from './vehicleData';
 import { generateCityPosts } from './cityData';
 import { generateTopicPosts } from './topicData';
+import { generateUcrPosts } from './ucrData';
 import { iftaPosts } from './iftaData';
 
 const statePosts = generateStatePosts();
 const vehiclePosts = generateVehiclePosts();
 const cityPosts = generateCityPosts();
 const topicPosts = generateTopicPosts();
+const ucrPosts = generateUcrPosts();
 
 export const blogPosts = [
   ...statePosts,
   ...vehiclePosts,
   ...cityPosts,
   ...topicPosts,
+  ...ucrPosts,
   ...iftaPosts,
   {
     id: 'truckers-guide-dot-audits-record-keeping',
@@ -22,8 +25,9 @@ export const blogPosts = [
     excerpt: 'Dreading a DOT audit? Learn exactly what records to keep, how long to keep them, and how to pass an inspection with flying colors.',
     category: 'Compliance',
     readTime: '8 min',
-    date: 'November 2025',
-    dateISO: '2025-11-27',
+    image: '/blog/blog-banner.webp',
+    date: 'March 2026',
+    dateISO: '2026-03-02',
     keywords: ['DOT audit checklist', 'trucking record keeping', 'schedule 1 retention', 'IFTA records', 'driver qualification file'],
     tableOfContents: [
       { id: 'audit-types', title: 'Types of DOT Audits' },
@@ -164,12 +168,13 @@ export const blogPosts = [
   },
   {
     id: 'file-form-2290-from-phone-guide',
-    title: 'How to File Form 2290 From Your Phone (2025 Edition)',
+    title: 'How to File Form 2290 From Your Phone (2026 Edition)',
     excerpt: 'No computer? No problem. Learn how to file your HVUT return and get your Schedule 1 in minutes using just your smartphone.',
+    image: '/blog/blog-banner.webp',
     category: 'Guides',
     readTime: '6 min',
-    date: 'November 2025',
-    dateISO: '2025-11-27',
+    date: 'November 2026',
+    dateISO: '2026-11-27',
     keywords: ['file 2290 on phone', 'mobile form 2290', 'truck tax app', 'file hvut mobile', 'iphone form 2290'],
     tableOfContents: [
       { id: 'why-mobile', title: 'Why File on Mobile?' },

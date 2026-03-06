@@ -97,7 +97,7 @@ export default function HomepageUcrCalculator() {
 
       <Link
         href={state ? `/ucr-filing/${state}` : '/ucr-filing/new'}
-        className="mt-4 flex items-center justify-center gap-2 w-full min-h-[56px] bg-[var(--color-orange)] hover:bg-[#ff7a20] text-[#0f2647] font-black rounded-xl transition-all shadow-xl shadow-orange-500/20 active:scale-95 group uppercase tracking-tight"
+        className="mt-4 flex items-center justify-center gap-2 w-full min-h-[56px] bg-[var(--color-orange)] hover:bg-[#ff7a20] text-[#0f2647] font-bold rounded-xl transition-all shadow-xl shadow-orange-500/20 active:scale-95 group uppercase tracking-tight"
       >
         File 2026 UCR Now
         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
