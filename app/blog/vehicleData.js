@@ -79,8 +79,8 @@ export const generateVehiclePosts = () => {
         image: '/blog/blog-banner.webp',
         category: 'Vehicle Guides',
         readTime: '4 min',
-        date: 'February 2026',
-        dateISO: '2026-02-15',
+        date: 'May 25, 2024',
+        dateISO: '2024-05-25',
         keywords: [`Form 2290 ${vehicle.type}`, `HVUT for ${vehicle.type}`, `tax exemptions for ${vehicle.type}`, 'heavy vehicle use tax exceptions'],
         tableOfContents: [
             { id: 'do-i-file', title: `Do ${vehicle.type} Need to File?` },

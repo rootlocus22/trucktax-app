@@ -59,8 +59,8 @@ export const generateStatePosts = () => {
         image: '/blog/blog-banner.webp',
         category: 'IRS Form 2290',
         readTime: '5 min',
-        date: 'March 2026',
-        dateISO: '2026-03-01',
+        date: 'March 7, 2023',
+        dateISO: '2023-03-07',
         keywords: [`Form 2290 ${state.name}`, `HVUT ${state.name}`, `${state.dmv} schedule 1`, `trucking in ${state.name}`, `IRP renewal ${state.name}`],
         tableOfContents: [
             { id: 'state-reqs', title: `${state.name} Filing Requirements` },
