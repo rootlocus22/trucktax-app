@@ -3,53 +3,60 @@ import React from 'react';
 const ucrRawData = [
     {
         title: "The Ultimate Guide to Unified Carrier Registration (UCR) for 2026",
+        slug: "ucr-ultimate-guide-2026",
         category: "UCR Registration",
-        date: "March 4, 2026",
+        date: "February 17, 2026",
         excerpt: "Everything you need to know about the 2026 UCR filing season, including fee brackets, enforcement dates, and compliance requirements for interstate carriers."
     },
     {
         title: "UCR vs. DOT Number: Understanding the Difference",
+        slug: "ucr-vs-dot-number-difference",
         category: "Compliance",
-        date: "March 2, 2026",
+        date: "September 13, 2025",
         excerpt: "Many new owner-operators confuse UCR with DOT registration. Learn why you need both and how they work together to keep you legal."
     },
     {
         title: "Who Needs UCR? A Checklist for Trucking Businesses",
+        slug: "who-needs-ucr-checklist",
         category: "UCR Registration",
-        date: "February 25, 2026",
+        date: "January 5, 2025",
         excerpt: "Not every truck on the road needs UCR. Use our quick checklist to determine if your operation falls under federal UCR mandates."
     },
     {
         title: "Common UCR Filing Mistakes and How to Avoid Them",
+        slug: "common-ucr-filing-mistakes",
         category: "Guides",
-        date: "February 15, 2026",
+        date: "April 25, 2025",
         excerpt: "Incorrect fleet counts and wrong bracket selections can lead to overpayment or fines. Stay compliant with these expert tips."
     },
     {
         title: "How to Check Your UCR Registration Status Online",
+        slug: "check-ucr-status-online",
         category: "Guides",
-        date: "February 10, 2026",
+        date: "January 3, 2026",
         excerpt: "Need proof of UCR compliance for a roadside inspection or a new contract? Here is the fastest way to verify your status."
     },
     {
         title: "What Happens if You Miss the UCR Deadline?",
+        slug: "missed-ucr-deadline-consequences",
         category: "Compliance",
-        date: "January 20, 2026",
+        date: "February 16, 2025",
         excerpt: "UCR enforcement is strict. Learn about the potential fines, roadside delays, and impact on your safety rating if you fail to register."
     },
     {
         title: "UCR Fees for 2026: A Breakdown by Fleet Size",
+        slug: "ucr-fees-2026-fleet-size",
         category: "UCR Registration",
-        date: "January 5, 2026",
+        date: "February 7, 2026",
         excerpt: "Federal authorities have updated the fee structure for the 2026 season. Find out exactly what your business owes based on your number of power units."
     }
 ];
 
 const getUcrContent = (post) => {
-    const id = post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const id = post.slug;
 
     switch (id) {
-        case 'the-ultimate-guide-to-unified-carrier-registration-ucr-for-2026':
+        case 'ucr-ultimate-guide-2026':
             return (
                 <>
                     <div className="bg-amber-50 border-l-4 border-amber-400 p-6 mb-8">
@@ -133,7 +140,7 @@ const getUcrContent = (post) => {
                 </>
             );
 
-        case 'ucr-vs-dot-number-understanding-the-difference':
+        case 'ucr-vs-dot-number-difference':
             return (
                 <>
                     <div className="bg-blue-50 border-l-4 border-blue-500 p-6 mb-8">
@@ -210,7 +217,7 @@ const getUcrContent = (post) => {
                 </>
             );
 
-        case 'who-needs-ucr-a-checklist-for-trucking-businesses':
+        case 'who-needs-ucr-checklist':
             return (
                 <>
                     <div className="bg-emerald-50 border-l-4 border-emerald-500 p-6 mb-8">
@@ -233,7 +240,7 @@ const getUcrContent = (post) => {
 
                     <h2 id="ucr-checklist" className="text-3xl font-black mt-12 mb-6 text-[var(--color-midnight)]">The UCR Mandatory Checklist</h2>
                     <p className="mb-4">You are required to register for UCR if you answer "YES" to any of the following:</p>
-                    
+
                     <div className="space-y-4 mb-10">
                         {[
                             { q: "Do you operate across state lines?", desc: "Even one-time trips into another state for business count." },
@@ -261,7 +268,7 @@ const getUcrContent = (post) => {
                     <div className="bg-slate-900 text-white p-8 rounded-3xl mb-10 shadow-xl border border-white/5 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-sky)] opacity-10 rounded-full blur-3xl -mr-10 -mt-10"></div>
                         <h3 className="text-xl font-bold mb-4 text-[var(--color-sky)] flex items-center gap-2">
-                             Expert Tip
+                            Expert Tip
                         </h3>
                         <p className="opacity-90 leading-relaxed text-lg">
                             "Even if your home state doesn't participate in the UCR plan, you must still register if you operate in other states that do. All 41 participating states expect interstate carriers to be registered."
@@ -282,7 +289,7 @@ const getUcrContent = (post) => {
                 </>
             );
 
-        case 'common-ucr-filing-mistakes-and-how-to-avoid-them':
+        case 'common-ucr-filing-mistakes':
             return (
                 <>
                     <div className="bg-rose-50 border-l-4 border-rose-500 p-6 mb-8">
@@ -337,7 +344,7 @@ const getUcrContent = (post) => {
                 </>
             );
 
-        case 'how-to-check-your-ucr-registration-status-online':
+        case 'check-ucr-status-online':
             return (
                 <>
                     <div className="bg-sky-50 border-l-4 border-sky-400 p-6 mb-8">
@@ -396,7 +403,7 @@ const getUcrContent = (post) => {
                 </>
             );
 
-        case 'what-happens-if-you-miss-the-ucr-deadline':
+        case 'missed-ucr-deadline-consequences':
             return (
                 <>
                     <div className="bg-amber-50 border-l-4 border-amber-600 p-6 mb-8">
@@ -445,7 +452,7 @@ const getUcrContent = (post) => {
                 </>
             );
 
-        case 'ucr-fees-for-2026-a-breakdown-by-fleet-size':
+        case 'ucr-fees-2026-fleet-size':
             return (
                 <>
                     <div className="bg-blue-50 border-l-4 border-blue-600 p-6 mb-8">
@@ -529,15 +536,15 @@ const getUcrContent = (post) => {
 
 export const generateUcrPosts = () => {
     return ucrRawData.map(post => {
-        const id = post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-        
+        const id = post.slug;
+
         // Dynamic image selection based on ID
         let postImage = "/blog/blog-banner.webp";
-        if (id.includes('ultimate-guide')) postImage = "/blog/ucr/ucr-guide-2026.webp";
-        else if (id.includes('vs-dot')) postImage = "/blog/ucr/ucr-vs-dot.webp";
-        else if (id.includes('who-needs-ucr')) postImage = "/blog/ucr/who-needs-ucr.webp";
-        else if (id.includes('mistakes')) postImage = "/blog/ucr/ucr-mistakes.webp";
-        else if (id.includes('status-online')) postImage = "/blog/ucr/ucr-status.webp";
+        if (id === 'ucr-ultimate-guide-2026') postImage = "/blog/ucr/ucr-guide-2026.webp";
+        else if (id === 'ucr-vs-dot-number-difference') postImage = "/blog/ucr/ucr-vs-dot.webp";
+        else if (id === 'who-needs-ucr-checklist') postImage = "/blog/ucr/who-needs-ucr.webp";
+        else if (id === 'common-ucr-filing-mistakes') postImage = "/blog/ucr/ucr-mistakes.webp";
+        else if (id === 'check-ucr-status-online') postImage = "/blog/ucr/ucr-status.webp";
 
         // Dynamic Table of Contents
         let toc = [
@@ -546,36 +553,36 @@ export const generateUcrPosts = () => {
             { id: 'expert-advice', title: 'Expert Advice' },
         ];
 
-        if (id.includes('vs-dot')) {
+        if (id === 'ucr-vs-dot-number-difference') {
             toc = [
                 { id: 'dot-definition', title: 'What is a USDOT Number?' },
                 { id: 'ucr-definition', title: 'What is UCR?' },
                 { id: 'working-together', title: 'How They Work Together' },
             ];
-        } else if (id.includes('who-needs-ucr')) {
+        } else if (id === 'who-needs-ucr-checklist') {
             toc = [
                 { id: 'general-rule', title: 'The General Rule' },
                 { id: 'ucr-checklist', title: 'Mandatory Checklist' },
                 { id: 'exemptions', title: 'Common Exemptions' },
             ];
-        } else if (id.includes('mistakes')) {
+        } else if (id === 'common-ucr-filing-mistakes') {
             toc = [
                 { id: 'counting-mistakes', title: 'Fleet Counting Mistakes' },
                 { id: 'year-confusion', title: 'Filing Year Confusion' },
                 { id: 'avoid-mistakes', title: 'How to Avoid All Errors' },
             ];
-        } else if (id.includes('status-online')) {
+        } else if (id === 'check-ucr-status-online') {
             toc = [
                 { id: 'why-check', title: 'Regular Verification' },
                 { id: 'check-steps', title: 'Steps to Verify Status' },
             ];
-        } else if (id.includes('miss-the-ucr-deadline')) {
+        } else if (id === 'missed-ucr-deadline-consequences') {
             toc = [
                 { id: 'fines', title: 'Financial Penalties' },
                 { id: 'out-of-service', title: 'Out-of-Service Risk' },
                 { id: 'csa-impact', title: 'CSA Score Impact' },
             ];
-        } else if (id.includes('fees-for-2026')) {
+        } else if (id === 'ucr-fees-2026-fleet-size') {
             toc = [
                 { id: 'fee-brackets', title: '2026 Fee Brackets' },
                 { id: 'calculating-units', title: 'Calculating Power Units' },
@@ -590,11 +597,7 @@ export const generateUcrPosts = () => {
             readTime: "8 min",
             image: postImage,
             date: post.date,
-            dateISO: post.date.includes('March') ? '2026-03-04' :
-                post.date.includes('February') ? '2026-02-15' :
-                    post.date.includes('January') ? '2026-01-05' :
-                        post.date.includes('December') ? '2025-12-15' :
-                            post.date.includes('November') ? '2025-11-15' : '2025-10-01',
+            dateISO: new Date(post.date).toISOString().split('T')[0],
             keywords: ["UCR", "Unified Carrier Registration", "trucking compliance", "UCR fees", "interstate carrier"],
             tableOfContents: toc,
             content: getUcrContent(post)
