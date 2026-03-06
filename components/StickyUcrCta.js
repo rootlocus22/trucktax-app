@@ -37,13 +37,13 @@ export default function StickyUcrCta() {
             <FileCheck className="w-5 h-5 text-[var(--color-orange)]" />
           </div>
           <div className="min-w-0">
-            <p className="font-black text-sm sm:text-lg tracking-tight text-white">Need to file your 2026 UCR?</p>
+            <p className="font-medium text-sm sm:text-lg tracking-tight text-white">Need to file your 2026 UCR?</p>
             <p className="text-xs text-white/50 font-medium">Simple. Fast. <span className="text-[var(--color-orange)] font-bold">$0 Upfront.</span></p>
           </div>
         </div>
         <Link
           href="/ucr/file"
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[52px] bg-[var(--color-orange)] hover:bg-[#ff7a20] text-[#0f2647] font-black px-8 py-3 rounded-xl transition-all shadow-xl shadow-orange-500/20 active:scale-95 text-sm sm:text-base group uppercase tracking-tight"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[52px] bg-[var(--color-orange)] !text-white hover:bg-[#e66a15] font-bold px-8 py-3 rounded-xl transition-all shadow-xl shadow-orange-500/20 active:scale-95 text-sm sm:text-base group uppercase tracking-tight"
         >
           File 2026 UCR Now
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
