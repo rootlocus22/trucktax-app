@@ -10,12 +10,13 @@ export const generateCityPosts = () => {
 
             cityPosts.push({
                 id: `form-2290-filing-in-${citySlug}-${state.abbr.toLowerCase()}`,
-                title: `Form 2290 Filing in ${city}, ${state.abbr} (2025 Guide)`,
+                title: `Form 2290 Filing in ${city}, ${state.abbr} (2026 Guide)`,
                 excerpt: `Trucking in ${city}? Here is your local guide to filing IRS Form 2290, finding weigh stations near ${city}, and handling ${state.dmv} registration.`,
-                category: 'City Guides',
+                image: '/blog/blog-banner.webp',
+                category: 'IRS Form 2290',
                 readTime: '4 min',
-                date: 'November 2025',
-                dateISO: '2025-11-27',
+                date: 'February 2026',
+                dateISO: '2026-02-10',
                 keywords: [`Form 2290 ${city}`, `HVUT ${city} ${state.abbr}`, `truck taxes ${city}`, `IRS office ${city}`, `trucking jobs ${city}`],
                 tableOfContents: [
                     { id: 'local-reqs', title: `Filing Form 2290 in ${city}` },

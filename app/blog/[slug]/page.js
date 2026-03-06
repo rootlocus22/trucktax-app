@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { blogPosts } from '../blogData';
 import StickyFileCTA from '@/app/components/StickyFileCTA';
+import { Calendar, Clock, ChevronRight, Hash, Share2, ArrowLeft } from 'lucide-react';
 
 export async function generateStaticParams() {
   return blogPosts.map((post) => ({
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }) {
   return {
     title: post.title,
     description: post.excerpt,
-    keywords: post.keywords.join(', '),
+    keywords: post.keywords?.join(', '),
     authors: [{ name: 'QuickTruckTax Team' }],
     creator: 'QuickTruckTax',
     publisher: 'QuickTruckTax',
@@ -59,9 +60,9 @@ export async function generateMetadata({ params }) {
       locale: 'en_US',
       images: [
         {
-          url: `${baseUrl}/quicktrucktax-logo.png`,
-          width: 1280,
-          height: 720,
+          url: post.image || `${baseUrl}/blog/blog-banner.webp`,
+          width: 1200,
+          height: 628,
           alt: `${post.title} - QuickTruckTax`,
           type: 'image/png',
         },
@@ -73,7 +74,7 @@ export async function generateMetadata({ params }) {
       creator: '@quicktrucktax',
       title: post.title,
       description: post.excerpt,
-      images: [`${baseUrl}/quicktrucktax-logo.png`],
+      images: [post.image || `${baseUrl}/blog/blog-banner.webp`],
     },
   };
 }
@@ -95,7 +96,7 @@ export default async function BlogPost({ params }) {
     '@type': 'Article',
     headline: post.title,
     description: post.excerpt,
-    image: `${baseUrl}/quicktrucktax-logo.png`,
+    image: post.image || `${baseUrl}/blog/blog-banner.webp`,
     datePublished: post.dateISO,
     dateModified: post.dateISO,
     author: {
@@ -117,7 +118,7 @@ export default async function BlogPost({ params }) {
       '@type': 'WebPage',
       '@id': blogUrl,
     },
-    keywords: post.keywords.join(', '),
+    keywords: post.keywords?.join(', '),
     articleSection: post.category,
     wordCount: post.readTime,
   };
@@ -150,7 +151,6 @@ export default async function BlogPost({ params }) {
 
   return (
     <>
-      {/* JSON-LD Structured Data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -160,122 +160,231 @@ export default async function BlogPost({ params }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      <article className="min-h-screen bg-[var(--color-page)]">
-        {/* Breadcrumb */}
-        <div className="bg-[var(--color-card)] border-b border-[var(--color-border)]">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center text-sm text-[var(--color-muted)]">
-              <Link href="/" className="hover:text-[var(--color-navy)]">Home</Link>
-              <span className="mx-2">/</span>
-              <Link href="/blog" className="hover:text-[var(--color-navy)]">Blog</Link>
-              <span className="mx-2">/</span>
-              <span className="text-[var(--color-text)] font-medium">{post.category}</span>
-            </div>
-          </div>
+      <article className="min-h-screen bg-slate-50">
+        {/* Progress bar - Hidden on mobile */}
+        <div className="fixed top-[var(--header-height)] left-0 w-full h-1 bg-slate-200 z-50">
+          <div className="h-full bg-[var(--color-sky)] w-0" id="reading-progress"></div>
         </div>
 
-        {/* Hero Section */}
-        <header className="relative bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy-soft)] text-white py-20 overflow-hidden">
-          <div className="absolute inset-0 z-0 opacity-20">
-            <Image
-              src="/hero-truck-sunset.png"
-              alt="Trucking background"
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-4 mb-4">
-              <span className="bg-[var(--color-sky)]/20 backdrop-blur-sm px-4 py-1 rounded-full text-sm font-semibold text-[var(--color-sky)]">
-                {post.category}
-              </span>
-              <span className="text-white/80">{post.readTime} read</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{post.title}</h1>
-            <p className="text-xl text-white/90 mb-6">{post.excerpt}</p>
-            <div className="flex items-center gap-4 text-sm">
-              <span>📅 {post.date}</span>
-              <span>✍️ QuickTruckTax Team</span>
+        {/* Hero Section - Full Width Design */}
+        <header className="relative bg-[var(--color-midnight)] text-white overflow-hidden">
+          <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_30%_50%,var(--color-sky),transparent)]"></div>
+
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 md:py-20 lg:py-24">
+            <div className="flex flex-col lg:flex-row gap-12 items-center">
+              <div className="flex-1 space-y-6">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Link href="/blog" className="flex items-center gap-1.5 text-[var(--color-sky)] font-bold text-xs uppercase tracking-widest hover:text-white transition-colors">
+                    <ArrowLeft className="w-3 h-3" />
+                    Back to Blog
+                  </Link>
+                  <span className="w-1 h-1 rounded-full bg-slate-500"></span>
+                  <span className="px-3 py-1 rounded-full bg-[var(--color-sky)] text-[10px] font-black text-white uppercase tracking-[0.2em] shadow-lg shadow-blue-500/20">
+                    {post.category}
+                  </span>
+                </div>
+
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
+                  {post.title}
+                </h1>
+
+                <p className="text-xl text-slate-300 leading-relaxed max-w-3xl">
+                  {post.excerpt}
+                </p>
+
+                <div className="flex flex-wrap items-center gap-6 pt-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-[var(--color-sky)]" />
+                    {post.date}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-[var(--color-orange)]" />
+                    {post.readTime} Read
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Share2 className="w-4 h-4" />
+                    Share Article
+                  </div>
+                </div>
+              </div>
+
+              {/* Standardized Banner Image */}
+              <div className="w-full lg:w-[450px] aspect-[1200/628] relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+                <Image
+                  src={post.image || '/blog/blog-banner.webp'}
+                  alt={post.title}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </div>
             </div>
           </div>
         </header>
 
-        {/* Content */}
-        <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
-          <div className="bg-[var(--color-card)] rounded-lg shadow-lg p-8 md:p-12 border border-[var(--color-border)]">
-            {/* Table of Contents */}
-            {post.tableOfContents && post.tableOfContents.length > 0 && (
-              <nav className="bg-[var(--color-page-alt)] rounded-lg p-6 mb-8 border border-[var(--color-border)]">
-                <h2 className="text-xl font-bold mb-4 text-[var(--color-navy)]">📋 Table of Contents</h2>
-                <ul className="space-y-2">
-                  {post.tableOfContents.map((item, idx) => (
-                    <li key={idx}>
-                      <a href={`#${item.id}`} className="text-[var(--color-navy)] hover:text-[var(--color-orange)] hover:underline transition-colors">
-                        {item.title}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            )}
+        {/* Content & Sidebar Layout */}
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+          <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
 
-            {/* Blog Content */}
-            <div className="prose prose-lg max-w-none text-[var(--color-text)]">
-              {post.content}
-            </div>
+            {/* Main Content */}
+            <main className="flex-1 min-w-0">
+              <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 md:p-10 lg:p-12">
 
-            {/* Keywords Section */}
-            <div className="mt-12 pt-8 border-t border-[var(--color-border)]">
-              <h3 className="text-lg font-bold mb-4 text-[var(--color-text)]">Related Keywords:</h3>
-              <div className="flex flex-wrap gap-2">
-                {post.keywords.map((keyword, idx) => (
-                  <span key={idx} className="bg-[var(--color-page-alt)] text-[var(--color-navy)] px-3 py-1 rounded-full text-sm font-medium">
-                    {keyword}
-                  </span>
-                ))}
+                {/* Blog Content Rendering */}
+                <div className="prose prose-slate prose-lg max-w-none 
+                  prose-headings:text-[var(--color-midnight)] prose-headings:font-black prose-headings:tracking-tight
+                  prose-p:text-slate-600 prose-p:leading-relaxed
+                  prose-strong:text-[var(--color-midnight)] prose-strong:font-bold
+                  prose-li:text-slate-600
+                  prose-img:rounded-2xl prose-img:shadow-xl
+                  prose-blockquote:border-l-[var(--color-sky)] prose-blockquote:bg-slate-50 prose-blockquote:p-6 prose-blockquote:rounded-r-2xl prose-blockquote:not-italic
+                  ">
+                  {post.content}
+                </div>
+
+                {/* Tags / Keywords */}
+                <div className="mt-16 pt-10 border-t border-slate-100">
+                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6">Article Topics</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {post.keywords?.map((keyword, idx) => (
+                      <span key={idx} className="flex items-center gap-1 text-xs bg-slate-50 text-slate-500 px-3 py-1.5 rounded-lg border border-slate-100 font-bold hover:bg-slate-100 transition-colors">
+                        <Hash className="w-3 h-3" />
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
 
-            {/* CTA Box */}
-            <div className="mt-12 bg-gradient-to-r from-[var(--color-midnight)] to-[var(--color-navy-soft)] text-white rounded-lg p-8 text-center shadow-lg">
-              <h3 className="text-2xl font-bold mb-4">Ready to File Your Form 2290?</h3>
-              <p className="mb-6 text-white/90">
-                Stop reading, start filing! E-file your Form 2290 in minutes and get your Schedule 1 instantly.
-              </p>
-              <Link
-                href="/tools/hvut-calculator"
-                className="inline-block bg-[var(--color-orange)] text-white px-8 py-3 rounded-lg font-bold hover:bg-[var(--color-orange)]/90 transition-colors shadow-md"
-              >
-                Calculate Your HVUT Tax Now →
-              </Link>
+              {/* Author Section */}
+              <div className="mt-12 bg-white rounded-3xl p-8 border border-slate-100 flex flex-col md:flex-row gap-8 items-center shadow-sm">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-midnight)] flex items-center justify-center text-white font-black text-3xl">
+                  QT
+                </div>
+                <div className="flex-1 text-center md:text-left">
+                  <h4 className="text-xl font-bold text-[var(--color-midnight)] mb-2">Written by QuickTruckTax Compliance Team</h4>
+                  <p className="text-slate-500 text-sm leading-relaxed">
+                    Our team of industry experts and tax professionals works tirelessly to bring you the most accurate and up-to-date information regarding IRS Form 2290 and trucking compliance for the 2026 tax year.
+                  </p>
+                </div>
+              </div>
+            </main>
+
+            {/* Sidebar */}
+            <aside className="lg:w-80 flex-shrink-0">
+              <div className="sticky top-24 space-y-8">
+
+                {/* Table of Contents - Dynamic */}
+                {post.tableOfContents && post.tableOfContents.length > 0 && (
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 border-b border-slate-100 pb-2 flex items-center gap-2">
+                      Table of Contents
+                    </h3>
+                    <nav className="space-y-1">
+                      {post.tableOfContents.map((item, idx) => (
+                        <a
+                          key={idx}
+                          href={`#${item.id}`}
+                          className="group flex items-start gap-3 py-2 text-sm text-slate-600 hover:text-[var(--color-sky)] transition-all font-medium"
+                        >
+                          <span className="mt-1.5 w-1 h-1 rounded-full bg-slate-300 group-hover:bg-[var(--color-sky)] transition-colors"></span>
+                          {item.title}
+                        </a>
+                      ))}
+                    </nav>
+                  </div>
+                )}
+
+                {/* Contextual CTA */}
+                <div className="bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-midnight)] rounded-2xl p-6 shadow-xl border border-white/5 text-white overflow-hidden relative group">
+                  <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[var(--color-orange)]/20 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700"></div>
+                  <h3 className="text-xl font-bold mb-4 relative z-10 leading-tight">Fast 2290 Filing for 2026</h3>
+                  <p className="text-slate-300 text-xs mb-6 relative z-10 leading-relaxed uppercase tracking-wider font-bold">
+                    Join 50,000+ drivers who trust us for instant Schedule 1.
+                  </p>
+                  <Link
+                    href="https://www.expresstrucktax.com"
+                    target="_blank"
+                    className="block w-full py-3 bg-[var(--color-orange)] text-white text-center rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-orange-500 transition-all shadow-lg shadow-orange-500/20 relative z-10"
+                  >
+                    File Your 2290 Now
+                  </Link>
+                </div>
+
+                {/* Related Posts */}
+                {post.relatedPosts && post.relatedPosts.length > 0 && (
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 border-b border-slate-100 pb-2">
+                      Keep Reading
+                    </h3>
+                    <div className="space-y-4">
+                      {post.relatedPosts.slice(0, 3).map((relatedId) => {
+                        const related = blogPosts.find((p) => p.id === relatedId);
+                        return related ? (
+                          <Link
+                            key={related.id}
+                            href={`/blog/${related.id}`}
+                            className="block group"
+                          >
+                            <div className="text-[10px] font-black text-[var(--color-sky)] uppercase tracking-wider mb-1">
+                              {related.category}
+                            </div>
+                            <h4 className="text-sm font-bold text-[var(--color-midnight)] group-hover:text-[var(--color-sky)] transition-colors line-clamp-2 leading-snug">
+                              {related.title}
+                            </h4>
+                          </Link>
+                        ) : null;
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        {/* Global Related Posts Bottom - Grid */}
+        <section className="bg-slate-100 border-t border-slate-200 py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-black text-[var(--color-midnight)] mb-12 flex items-center gap-4 tracking-tight">
+              More Insights for your Fleet
+              <span className="flex-1 h-px bg-slate-200"></span>
+            </h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              {blogPosts
+                .filter(p => p.category === post.category && p.id !== post.id)
+                .slice(0, 3)
+                .map((relatedPost) => (
+                  <Link
+                    key={relatedPost.id}
+                    href={`/blog/${relatedPost.id}`}
+                    className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200/50"
+                  >
+                    <div className="relative h-40 overflow-hidden">
+                      <Image
+                        src={relatedPost.image || '/blog/blog-banner.webp'}
+                        alt={relatedPost.title}
+                        fill
+                        className="object-cover transition-transform group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="p-6">
+                      <h4 className="font-bold text-[var(--color-midnight)] group-hover:text-[var(--color-sky)] transition-colors line-clamp-2 leading-snug">
+                        {relatedPost.title}
+                      </h4>
+                      <p className="mt-3 text-xs text-slate-400 flex items-center gap-2 font-bold uppercase tracking-widest">
+                        <Clock className="w-3 h-3" />
+                        {relatedPost.readTime} Read
+                      </p>
+                    </div>
+                  </Link>
+                ))}
             </div>
           </div>
+        </section>
 
-          {/* Related Posts */}
-          {post.relatedPosts && post.relatedPosts.length > 0 && (
-            <section className="mt-12">
-              <h2 className="text-3xl font-bold mb-6 text-[var(--color-text)]">Related Articles</h2>
-              <div className="grid md:grid-cols-3 gap-6">
-                {post.relatedPosts.map((relatedId) => {
-                  const related = blogPosts.find((p) => p.id === relatedId);
-                  return related ? (
-                    <Link
-                      key={related.id}
-                      href={`/blog/${related.id}`}
-                      className="bg-[var(--color-card)] rounded-lg shadow-md hover:shadow-xl transition-shadow p-6 border border-[var(--color-border)]"
-                    >
-                      <div className="text-sm text-[var(--color-orange)] font-semibold mb-2">{related.category}</div>
-                      <h3 className="font-bold mb-2 hover:underline text-[var(--color-text)]">{related.title}</h3>
-                      <p className="text-sm text-[var(--color-muted)]">{related.readTime} read</p>
-                    </Link>
-                  ) : null;
-                })}
-              </div>
-            </section>
-          )}
-        </main>
-
-        {/* Sticky CTA - appears on scroll */}
+        {/* Dynamic Sticky CTA */}
         <StickyFileCTA />
       </article>
     </>

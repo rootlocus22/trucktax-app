@@ -3,11 +3,27 @@ import Image from 'next/image';
 import { ArrowRight, Truck, FileText, BadgeCheck, DollarSign, Map, Calculator, ShieldCheck, Zap, CheckCircle } from 'lucide-react';
 
 export const metadata = {
-    title: 'UCR Registration Services | QuickTruckTax',
+    title: 'UCR Registration Services | File UCR Online',
     description: 'Federal-compliant UCR registration and comprehensive trucking compliance guides including Form 2290 and IFTA filing.',
     keywords: 'trucking services, form 2290 filing, ucr registration, ifta filing, trucking compliance',
     alternates: {
         canonical: 'https://www.quicktrucktax.com/services',
+    },
+    openGraph: {
+        title: "UCR Registration Services | QuickTruckTax",
+        description:
+            "Federal-compliant UCR registration and comprehensive trucking compliance guides including Form 2290 and IFTA filing.",
+        url: "https://www.quicktrucktax.com/services",
+        siteName: "QuickTruckTax",
+        type: "website",
+        images: [
+            {
+                url: "https://www.quicktrucktax.com/quicktrucktax-logo-new.png",
+                width: 1280,
+                height: 720,
+                alt: "QuickTruckTax Resources",
+            },
+        ],
     },
 };
 
@@ -72,11 +88,11 @@ export default function ServicesPage() {
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4">
-                            <Link href="/ucr/file" className="inline-flex items-center justify-center bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66a15] transition shadow-[0_0_20px_rgba(255,139,61,0.4)] group text-lg">
+                            <Link href="/ucr/file" className="inline-flex items-center justify-center bg-[var(--color-orange)] text-white px-8 py-4 rounded-xl font-medium hover:bg-[#e66a15] transition shadow-[0_0_20px_rgba(255,139,61,0.4)] group text-lg">
                                 Start UCR Filing
                                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                             </Link>
-                            <Link href="/tools/ucr-calculator" className="inline-flex justify-center items-center bg-white/10 hover:bg-white/20 text-white border border-white/30 px-6 py-4 rounded-xl font-bold transition text-lg">
+                            <Link href="/tools/ucr-calculator" className="inline-flex justify-center items-center bg-white/10 hover:bg-white/20 text-white border border-white/30 px-6 py-4 rounded-xl font-medium transition text-lg">
                                 <Calculator className="w-5 h-5 mr-2" /> Calculate UCR Fee
                             </Link>
                         </div>
@@ -153,7 +169,7 @@ export default function ServicesPage() {
 
             {/* Bottom Final CTA */}
             <div className="py-20 px-6 bg-[var(--color-navy)] relative overflow-hidden text-center">
-                <div className="absolute inset-0 opacity-10 bg-[url('/hero-truck.svg')] bg-repeat space-x-4"></div>
+                <div className="absolute inset-0 opacity-10 bg-[url('/ucr-filing.webp')] bg-repeat space-x-4"></div>
                 <div className="relative z-10 max-w-3xl mx-auto">
                     <h2 className="text-3xl font-bold text-white mb-6">Need UCR Answers Now?</h2>
                     <p className="text-lg text-blue-100 mb-8">

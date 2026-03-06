@@ -74,12 +74,13 @@ export const vehicleData = [
 export const generateVehiclePosts = () => {
     return vehicleData.map(vehicle => ({
         id: `form-2290-guide-for-${vehicle.slug}`,
-        title: `Form 2290 Guide for ${vehicle.type} (2025)`,
+        title: `Form 2290 Guide for ${vehicle.type} (2026)`,
         excerpt: `Do ${vehicle.type} need to pay HVUT? Learn about special exemptions, mileage limits, and how to save money on your taxes.`,
+        image: '/blog/blog-banner.webp',
         category: 'Vehicle Guides',
         readTime: '4 min',
-        date: 'November 2025',
-        dateISO: '2025-11-27',
+        date: 'February 2026',
+        dateISO: '2026-02-15',
         keywords: [`Form 2290 ${vehicle.type}`, `HVUT for ${vehicle.type}`, `tax exemptions for ${vehicle.type}`, 'heavy vehicle use tax exceptions'],
         tableOfContents: [
             { id: 'do-i-file', title: `Do ${vehicle.type} Need to File?` },
