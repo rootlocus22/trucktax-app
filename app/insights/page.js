@@ -68,165 +68,173 @@ export default function InsightsIndex() {
   }));
 
   return (
-    <div className="flex flex-col gap-12 sm:gap-16">
+    <div className="min-h-screen bg-slate-50">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] px-4 py-14 text-white shadow-xl shadow-[rgba(10,23,43,0.2)] sm:px-6 lg:px-8">
+
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[var(--color-midnight)] via-[var(--color-navy)] to-[var(--color-navy-soft)] py-20 lg:py-28 text-white">
         <div className="absolute left-0 top-0 h-60 w-60 -translate-x-1/3 -translate-y-1/3 rounded-full bg-[var(--color-orange)]/30 blur-3xl" />
-        <div className="relative z-10 grid gap-10 lg:grid-cols-[1.6fr,1fr] lg:items-center">
-          <div className="space-y-5">
-            <span className="inline-flex rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-[var(--color-sand)]">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-10 lg:grid-cols-[1.6fr,1fr] lg:items-center">
+          <div className="space-y-6">
+            <span className="inline-flex rounded-full bg-white/10 backdrop-blur-md px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.3em] text-[var(--color-orange)] border border-white/10">
               Compliance playbooks
             </span>
-            <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl">
-              Every filing explained—Form 2290, UCR, MCS-150, IFTA, and more.
+            <h1 className="text-3xl font-bold leading-[1.15] text-white sm:text-4xl lg:text-5xl xl:text-6xl">
+              Every filing explained—<span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20]">Form 2290, UCR, MCS-150, IFTA</span>, and more.
             </h1>
-            <p className="text-base leading-7 text-white/80 sm:text-lg">
+            <p className="text-lg leading-relaxed text-blue-100/90 max-w-2xl">
               Explore the QuickTruckTax knowledge base to keep your fleet compliant. Each guide is updated for the 2025 season with practical checklists, timelines, and audit preparation tips.
             </p>
-            <Link
-              href="/insights/trucking-compliance-calendar"
-              className="inline-flex w-fit items-center rounded-full bg-[var(--color-orange)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#ff7a20]"
-            >
-              Download the compliance calendar
-            </Link>
-          </div>
-          <div className="relative h-52 w-full sm:h-64">
-            <div className="absolute inset-0 rounded-3xl bg-[var(--color-sky)]/25 blur-3xl" />
-            <Image
-              src="/hero-truck.svg"
-              alt="QuickTruckTax compliance illustration"
-              fill
-              className="relative rounded-3xl object-cover"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* UCR hub CTA — Phase 1: conversion pathway from guides */}
-      <section className="rounded-2xl border-2 border-[var(--color-orange)]/30 bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-navy-soft)] p-6 text-white shadow-lg sm:p-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold mb-1">UCR Filing Due by December 31</h2>
-            <p className="text-blue-100 text-sm sm:text-base">
-              All guides, deadlines, and fees in one place. File with $0 upfront.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/ucr/guides"
-              className="inline-flex items-center rounded-xl bg-white text-[var(--color-navy)] px-5 py-3 font-bold text-sm hover:bg-blue-50 transition"
-            >
-              UCR Guides
-            </Link>
-            <Link
-              href="/ucr/file"
-              className="inline-flex items-center rounded-xl bg-[var(--color-orange)] text-white px-5 py-3 font-bold text-sm hover:bg-[#e66a15] transition"
-            >
-              Start UCR Filing
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-lg shadow-[rgba(15,38,71,0.08)] sm:p-10">
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-semibold text-[var(--color-text)] mb-4">Comprehensive Compliance Knowledge Base</h2>
-            <p className="text-base leading-7 text-[var(--color-muted)] mb-4">
-              Our guides are written by compliance experts and updated annually to reflect the latest IRS regulations, FMCSA requirements, and state-specific rules. Each guide provides actionable steps, real-world examples, and practical checklists to help you navigate complex trucking compliance requirements.
-            </p>
-            <p className="text-base leading-7 text-[var(--color-muted)]">
-              Whether you're filing Form 2290 for the first time, renewing UCR registration, updating your MCS-150, or managing IFTA quarterly returns, these guides break down each process into clear, manageable steps. Many guides include downloadable resources, FAQ sections, and links to official government forms and portals.
-            </p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-3 pt-4 border-t border-[var(--color-border)]">
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-[var(--color-text)]">Step-by-Step Instructions</h3>
-              <p className="text-sm text-[var(--color-muted)]">
-                Every guide includes detailed workflows with screenshots, form examples, and deadline reminders to ensure accurate filings.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-[var(--color-text)]">2025-2026 Updated</h3>
-              <p className="text-sm text-[var(--color-muted)]">
-                All guides reflect current tax rates, filing deadlines, and regulatory changes for the current compliance year.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-[var(--color-text)]">Audit-Ready Documentation</h3>
-              <p className="text-sm text-[var(--color-muted)]">
-                Learn what records to keep, how long to retain them, and how to organize documentation for IRS or DOT audits.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {guidesByCategory.map(({ category, guides }) => (
-        <section key={category} className="space-y-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-2xl font-semibold text-[var(--color-text)] sm:text-3xl">{category}</h2>
-            <span className="text-sm text-[var(--color-muted)]">
-              {guides.length} guide{guides.length === 1 ? "" : "s"} available
-            </span>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            {guides.map((guide) => (
-              <article
-                key={guide.slug}
-                className="flex h-full flex-col justify-between rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-lg shadow-[rgba(15,38,71,0.08)] transition hover:-translate-y-1 hover:border-[var(--color-sky)]/60 hover:shadow-xl"
+            <div className="pt-4">
+              <Link
+                href="/insights/trucking-compliance-calendar"
+                className="inline-flex items-center rounded-xl bg-[var(--color-orange)] px-8 py-4 text-base font-bold text-white shadow-lg transition hover:bg-[#ff7a20] hover:-translate-y-0.5"
               >
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-[var(--color-text)]">
-                    <Link href={`/insights/${guide.slug}`}>{guide.title}</Link>
-                  </h3>
-                  <p className="text-sm text-[var(--color-muted)]">{guide.description}</p>
-                </div>
-                <div className="mt-6 flex flex-wrap items-center gap-3 text-xs text-[var(--color-muted)]">
-                  <span>{guide.estimatedReadMinutes}-minute read</span>
-                  <span>•</span>
-                  <span>
-                    Updated {new Date(guide.updatedAt).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </span>
-                </div>
-              </article>
+                Download the Compliance Calendar
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content Container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 flex flex-col gap-20">
+
+        {/* UCR hub CTA */}
+        <section className="rounded-3xl border border-[var(--color-orange)]/20 bg-[var(--color-midnight)] p-8 text-white shadow-2xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-orange)]/5 to-transparent opacity-50" />
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+            <div className="max-w-xl">
+              <h2 className="text-2xl font-bold mb-2 flex items-center gap-3">
+                <span className="w-2 h-2 rounded-full bg-[var(--color-orange)] animate-pulse" />
+                UCR Filing Due by December 31
+              </h2>
+              <p className="text-blue-100/80 text-base leading-relaxed">
+                All guides, deadlines, and fees in one place. File with $0 upfront and stay compliant with FMCSA regulations.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-4">
+              <Link
+                href="/ucr/guides"
+                className="inline-flex items-center justify-center rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white px-7 py-4 font-bold text-sm hover:bg-white/20 transition min-w-[160px]"
+              >
+                Explore UCR Guides
+              </Link>
+              <Link
+                href="/ucr/file"
+                className="inline-flex items-center justify-center rounded-xl bg-[var(--color-orange)] text-white px-7 py-4 font-bold text-sm hover:bg-[#e66a15] shadow-lg transition hover:-translate-y-0.5 min-w-[160px]"
+              >
+                Start UCR Filing
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-white p-8 sm:p-12 shadow-sm">
+          <div className="grid lg:grid-cols-2 gap-12 lg:items-start">
+            <div className="space-y-6">
+              <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Comprehensive Compliance Knowledge Base</h2>
+              <div className="space-y-4 text-base leading-relaxed text-slate-600">
+                <p>
+                  Our guides are written by compliance experts and updated annually to reflect the latest IRS regulations, FMCSA requirements, and state-specific rules.
+                </p>
+                <p>
+                  Whether you're filing Form 2290 for the first time, renewing UCR registration, or managing IFTA quarterly returns, these guides break down each process into clear, manageable steps.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-1 divide-y divide-slate-100">
+              <div className="pt-0 group">
+                <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-orange)]" />
+                  Step-by-Step Instructions
+                </h3>
+                <p className="text-sm text-slate-500">
+                  Detailed workflows with screenshots, form examples, and deadline reminders.
+                </p>
+              </div>
+              <div className="pt-6 group">
+                <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-orange)]" />
+                  2025-2026 Updated
+                </h3>
+                <p className="text-sm text-slate-500">
+                  Reflecting current tax rates and regulatory changes for the current year.
+                </p>
+              </div>
+              <div className="pt-6 group">
+                <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-orange)]" />
+                  Audit-Ready Documentation
+                </h3>
+                <p className="text-sm text-slate-500">
+                  Learn record-keeping requirements to stay DOT-audit prepared.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {guidesByCategory.map(({ category, guides }) => (
+          <section key={category} className="space-y-8">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between border-b border-slate-200 pb-4">
+              <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl tracking-tight">{category}</h2>
+              <span className="text-sm font-semibold text-slate-400 uppercase tracking-widest">
+                {guides.length} Resources
+              </span>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {guides.map((guide) => (
+                <article
+                  key={guide.slug}
+                  className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-[var(--color-orange)]/30 hover:-translate-y-1 group"
+                >
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-[var(--color-orange)] transition-colors">
+                      <Link href={`/insights/${guide.slug}`}>{guide.title}</Link>
+                    </h3>
+                    <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">{guide.description}</p>
+                  </div>
+                  <div className="mt-8 flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-slate-400 pt-4 border-t border-slate-50">
+                    <span>{guide.estimatedReadMinutes} Min Read</span>
+                    <span className="text-[var(--color-orange)] group-hover:translate-x-1 transition-transform">Read Guide →</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ))}
+
+        {/* State Guides Directory */}
+        <section className="space-y-8 pt-12 border-t border-slate-200">
+          <div className="flex flex-col gap-4 text-center max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">State-Specific Filing Guides</h2>
+            <p className="text-lg text-slate-600">
+              Find specific HVUT, IFTA, and registration rules for your base jurisdiction.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {usStates.map((state) => (
+              <Link
+                key={state.code}
+                href={`/insights/state/${state.name.toLowerCase().replace(/\s+/g, '-')}`}
+                className="group flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-white hover:border-[var(--color-orange)] hover:shadow-md transition-all duration-200"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-[10px] font-black text-slate-400 group-hover:bg-[var(--color-orange)] group-hover:text-white transition-colors">
+                  {state.code}
+                </span>
+                <span className="text-sm font-semibold text-slate-700 group-hover:text-[var(--color-navy)]">
+                  {state.name}
+                </span>
+              </Link>
             ))}
           </div>
         </section>
-      ))}
-
-      {/* State Guides Directory */}
-      <section className="space-y-6 pt-8 border-t border-[var(--color-border)]">
-        <div className="flex flex-col gap-2">
-          <h2 className="text-2xl font-semibold text-[var(--color-text)] sm:text-3xl">State-Specific Filing Guides</h2>
-          <p className="text-base text-[var(--color-muted)]">
-            Find specific HVUT, IFTA, and registration rules for your base jurisdiction.
-          </p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {usStates.map((state) => (
-            <Link
-              key={state.code}
-              href={`/insights/state/${state.name.toLowerCase().replace(/\s+/g, '-')}`}
-              className="group flex items-center gap-3 p-3 rounded-xl border border-[var(--color-border)] bg-white hover:border-[var(--color-navy)] hover:shadow-md transition"
-            >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-[var(--color-navy)] group-hover:bg-[var(--color-navy)] group-hover:text-white transition-colors">
-                {state.code}
-              </span>
-              <span className="text-sm font-medium text-[var(--color-text)] group-hover:text-[var(--color-navy)]">
-                {state.name}
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
+      </div>
     </div>
   );
 }
+

@@ -35,7 +35,7 @@ export default function UcrCtaBanner() {
                 <Calendar className="w-6 h-6 text-[var(--color-orange)]" />
               </div>
               <div className="space-y-0.5">
-                <p className="font-black text-sm sm:text-lg tracking-tight">Need to file your 2026 UCR?</p>
+                <p className="font-bold text-sm sm:text-lg tracking-tight">Need to file your 2026 UCR?</p>
                 <p className="text-xs sm:text-sm text-white/50 font-medium tracking-wide">Get it done in minutes. <span className="text-[var(--color-orange)] font-bold">$0 Upfront to start.</span></p>
               </div>
             </div>

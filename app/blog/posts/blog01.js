@@ -4,8 +4,9 @@ export const blog01 = {
   excerpt: 'Missed last year\'s deadline? Avoid $550+ fines with this comprehensive roadmap to Form 2290 filing.',
   category: 'Getting Started',
   readTime: '12 min',
-  date: 'November 2025',
-  dateISO: '2025-11-18',
+  image: '/blog/blog-banner.webp',
+  date: 'November 2026',
+  dateISO: '2026-11-18',
   keywords: ['IRS Form 2290', 'HVUT filing', 'e-file Form 2290', 'beginner guide', 'Form 2290 step-by-step 2026', 'heavy vehicle use tax'],
   tableOfContents: [
     { id: 'what-is-form-2290', title: 'What is Form 2290 and Who Needs to File?' },

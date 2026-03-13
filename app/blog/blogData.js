@@ -3,18 +3,21 @@ import { generateStatePosts } from './stateData';
 import { generateVehiclePosts } from './vehicleData';
 import { generateCityPosts } from './cityData';
 import { generateTopicPosts } from './topicData';
+import { generateUcrPosts } from './ucrData';
 import { iftaPosts } from './iftaData';
 
 const statePosts = generateStatePosts();
 const vehiclePosts = generateVehiclePosts();
 const cityPosts = generateCityPosts();
 const topicPosts = generateTopicPosts();
+const ucrPosts = generateUcrPosts();
 
 export const blogPosts = [
   ...statePosts,
   ...vehiclePosts,
   ...cityPosts,
   ...topicPosts,
+  ...ucrPosts,
   ...iftaPosts,
   {
     id: 'truckers-guide-dot-audits-record-keeping',
@@ -22,8 +25,9 @@ export const blogPosts = [
     excerpt: 'Dreading a DOT audit? Learn exactly what records to keep, how long to keep them, and how to pass an inspection with flying colors.',
     category: 'Compliance',
     readTime: '8 min',
-    date: 'November 2025',
-    dateISO: '2025-11-27',
+    image: '/blog/blog-banner.webp',
+    date: 'February 13, 2026',
+    dateISO: '2025-12-28',
     keywords: ['DOT audit checklist', 'trucking record keeping', 'schedule 1 retention', 'IFTA records', 'driver qualification file'],
     tableOfContents: [
       { id: 'audit-types', title: 'Types of DOT Audits' },
@@ -164,12 +168,13 @@ export const blogPosts = [
   },
   {
     id: 'file-form-2290-from-phone-guide',
-    title: 'How to File Form 2290 From Your Phone (2025 Edition)',
+    title: 'How to File Form 2290 From Your Phone (2026 Edition)',
     excerpt: 'No computer? No problem. Learn how to file your HVUT return and get your Schedule 1 in minutes using just your smartphone.',
+    image: '/blog/blog-banner.webp',
     category: 'Guides',
     readTime: '6 min',
-    date: 'November 2025',
-    dateISO: '2025-11-27',
+    date: 'February 25, 2025',
+    dateISO: '2026-01-08',
     keywords: ['file 2290 on phone', 'mobile form 2290', 'truck tax app', 'file hvut mobile', 'iphone form 2290'],
     tableOfContents: [
       { id: 'why-mobile', title: 'Why File on Mobile?' },
@@ -297,8 +302,8 @@ export const blogPosts = [
     excerpt: 'Waiting on your Schedule 1? Here are 3 fast ways to check your Form 2290 status with the IRS or your e-file provider.',
     category: 'Guides',
     readTime: '5 min',
-    date: 'November 2025',
-    dateISO: '2025-11-27',
+    date: 'September 6, 2025',
+    dateISO: '2025-11-22',
     keywords: ['check form 2290 status', 'IRS Form 2290 status', 'where is my schedule 1', 'check hvut status', 'form 2290 pending'],
     tableOfContents: [
       { id: 'why-check', title: 'Why Is My Status Important?' },
@@ -431,8 +436,8 @@ export const blogPosts = [
     excerpt: 'Missed last year\'s deadline? Avoid $550+ fines with this comprehensive roadmap to Form 2290 filing.',
     category: 'Getting Started',
     readTime: '12 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'January 25, 2026',
+    dateISO: '2025-06-09',
     keywords: ['IRS Form 2290', 'HVUT filing', 'e-file Form 2290', 'beginner guide', 'Form 2290 step-by-step 2026', 'heavy vehicle use tax'],
     tableOfContents: [
       { id: 'what-is-form-2290', title: 'What is Form 2290 and Who Needs to File?' },
@@ -888,8 +893,8 @@ export const blogPosts = [
     excerpt: 'VIN typos cost $100s—discover how 80% of truckers make avoidable errors and learn prevention strategies.',
     category: 'Tips & Tricks',
     readTime: '10 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'February 18, 2025',
+    dateISO: '2025-02-21',
     keywords: ['Form 2290 mistakes', 'HVUT errors', 'IRS penalties', 'avoid Form 2290 errors', 'Form 2290 rejection', 'VIN errors'],
     tableOfContents: [
       { id: 'mistake-1', title: 'Mistake #1: Incorrect or Incomplete VIN' },
@@ -1085,8 +1090,8 @@ export const blogPosts = [
     excerpt: 'August 31 sneaks up fast—plan now for zero disruptions with our complete deadline calendar.',
     category: 'Deadlines',
     readTime: '8 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'January 11, 2026',
+    dateISO: '2025-12-13',
     keywords: ['Form 2290 deadline', 'HVUT due date', 'late filing penalties', '2026 Form 2290 deadline', 'August 31 deadline', 'Form 2290 calendar'],
     tableOfContents: [
       { id: 'key-deadlines', title: 'Key Filing Deadlines for 2026' },
@@ -1402,8 +1407,8 @@ export const blogPosts = [
     excerpt: 'Solo haulers: Cut filing time from hours to minutes with these essential e-filing strategies.',
     category: 'Owner-Operators',
     readTime: '11 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'January 28, 2025',
+    dateISO: '2025-02-19',
     keywords: ['Form 2290 owner operator', 'HVUT e-file', 'solo trucker', 'owner operator HVUT guide', 'independent trucker Form 2290', 'single truck filing'],
     tableOfContents: [
       { id: 'owner-operator-basics', title: 'Form 2290 Basics for Owner-Operators' },
@@ -1787,8 +1792,8 @@ export const blogPosts = [
     excerpt: 'Under 5,000 miles? Suspend and save—full rules and credit claiming process explained.',
     category: 'Tax Savings',
     readTime: '9 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'May 24, 2025',
+    dateISO: '2025-07-15',
     keywords: ['Suspended vehicles', 'low mileage HVUT', 'Form 2290 credits', '5000 mile suspension', 'mileage exemption', 'Form 2290 tax savings'],
     tableOfContents: [
       { id: 'what-is-suspension', title: 'What is Vehicle Suspension?' },
@@ -2175,8 +2180,8 @@ export const blogPosts = [
     excerpt: 'Manage 100+ trucks? Learn how to bulk e-file in under 30 minutes with zero errors.',
     category: 'Fleet Management',
     readTime: '13 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'November 19, 2025',
+    dateISO: '2025-01-08',
     keywords: ['Bulk filing HVUT', 'Form 2290 fleet', 'multiple vehicles', 'fleet HVUT filing', 'bulk e-file Form 2290', 'trucking company taxes'],
     tableOfContents: [
       { id: 'bulk-filing-basics', title: 'What is Bulk Filing?' },
@@ -2653,8 +2658,8 @@ export const blogPosts = [
     excerpt: '55,000 lbs threshold—decode A-H categories easily with our comprehensive weight guide.',
     category: 'Basics',
     readTime: '10 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'November 14, 2025',
+    dateISO: '2026-01-18',
     keywords: ['Heavy truck HVUT', 'taxable gross weight', 'Form 2290 categories', 'weight categories A-H', '55000 lbs threshold', 'truck weight calculation'],
     tableOfContents: [
       { id: 'what-qualifies', title: 'What Qualifies as a Heavy Truck?' },
@@ -3025,8 +3030,8 @@ export const blogPosts = [
     excerpt: 'Theft hit your rig? Reclaim up to $550 per truck with proper documentation.',
     category: 'Refunds & Credits',
     readTime: '11 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'February 18, 2025',
+    dateISO: '2025-10-27',
     keywords: ['Form 2290 refund', 'stolen truck HVUT', 'destroyed vehicle', 'HVUT credit claim', 'Form 2290 credits', 'tax refund heavy vehicle'],
     tableOfContents: [
       { id: 'eligible-refunds', title: 'When Are You Eligible for Credits?' },
@@ -3380,8 +3385,8 @@ export const blogPosts = [
     excerpt: 'IRP stalled? Link your Form 2290 for seamless apportioned plate renewals.',
     category: 'Compliance',
     readTime: '12 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'February 14, 2025',
+    dateISO: '2025-07-13',
     keywords: ['Form 2290 IRP', 'HVUT apportioned plates', 'trucking compliance', 'IRP renewal Form 2290', 'interstate registration', 'Schedule 1 IRP'],
     tableOfContents: [
       { id: 'what-is-irp', title: 'What is IRP and How Does it Relate to Form 2290?' },
@@ -3702,8 +3707,8 @@ export const blogPosts = [
     excerpt: 'AI spots errors before IRS does—discover how to future-proof your HVUT filings.',
     category: 'Technology',
     readTime: '10 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'February 21, 2026',
+    dateISO: '2025-12-16',
     keywords: ['AI Form 2290', 'HVUT automation', 'e-file software', 'automated Form 2290', 'AI tax filing', 'trucking technology'],
     tableOfContents: [
       { id: 'ai-revolution', title: 'The AI Revolution in Tax Filing' },
@@ -4081,8 +4086,8 @@ export const blogPosts = [
     excerpt: 'Timber haulers: Leverage 7,500-mile agricultural rules for maximum savings.',
     category: 'Industry Specific',
     readTime: '9 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'December 24, 2025',
+    dateISO: '2025-06-28',
     keywords: ['Logging vehicles HVUT', 'Form 2290 agriculture', 'timber truck tax', 'logging exemptions', '7500 mile rule', 'forestry truck HVUT'],
     tableOfContents: [
       { id: 'logging-qualification', title: 'Do Logging Trucks Qualify for Exemptions?' },
@@ -4437,8 +4442,8 @@ export const blogPosts = [
     excerpt: 'Stuck in traffic? E-file via mobile app in just 5 minutes from anywhere.',
     category: 'Technology',
     readTime: '8 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'June 24, 2025',
+    dateISO: '2025-03-08',
     keywords: ['Mobile Form 2290', 'HVUT on the go', 'trucker app filing', 'mobile e-file', 'smartphone Form 2290', 'road tax filing'],
     tableOfContents: [
       { id: 'mobile-advantages', title: 'Why File from Your Phone?' },
@@ -4880,8 +4885,8 @@ export const blogPosts = [
     excerpt: 'Wrong VIN? Amend free and fast—no downtime with our correction guide.',
     category: 'Troubleshooting',
     readTime: '7 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'February 1, 2026',
+    dateISO: '2025-01-01',
     keywords: ['VIN correction Form 2290', 'HVUT VIN errors', 'IRS rejection fixes', 'amend Form 2290', 'VIN typo correction', 'Form 2290 amendment'],
     tableOfContents: [
       { id: 'common-vin-errors', title: 'Common VIN Entry Errors' },
@@ -5292,8 +5297,8 @@ export const blogPosts = [
     excerpt: 'Rates up 5%? Budget now with our comprehensive category calculator and forecasts.',
     category: 'Tax Rates',
     readTime: '11 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'June 7, 2025',
+    dateISO: '2025-10-19',
     keywords: ['HVUT rates 2026', 'Form 2290 tax brackets', 'heavy vehicle tax', '2026 HVUT changes', 'Form 2290 cost', 'tax rate increases'],
     tableOfContents: [
       { id: 'rate-table-2026', title: '2026 HVUT Rate Table' },
@@ -5544,8 +5549,8 @@ export const blogPosts = [
     excerpt: 'No more waiting weeks—get IRS stamps in minutes with e-filing.',
     category: 'E-Filing',
     readTime: '8 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'January 12, 2026',
+    dateISO: '2025-10-18',
     keywords: ['Schedule 1 Form 2290', 'stamped HVUT proof', 'instant IRS approval', 'Schedule 1 receipt', 'Form 2290 proof', 'IRS stamped schedule'],
     tableOfContents: [
       { id: 'what-is-schedule-1', title: 'What is Schedule 1?' },
@@ -5825,8 +5830,8 @@ export const blogPosts = [
     excerpt: '5% monthly fines add up—learn strategies to stay ahead and avoid costly penalties.',
     category: 'Penalties',
     readTime: '10 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'February 28, 2025',
+    dateISO: '2025-04-02',
     keywords: ['HVUT late penalties', 'Form 2290 extension', 'avoid trucking fines', 'late filing penalty', 'IRS penalties Form 2290', 'penalty calculator'],
     tableOfContents: [
       { id: 'penalty-breakdown', title: 'HVUT Penalty Structure' },
@@ -6112,8 +6117,8 @@ export const blogPosts = [
     excerpt: 'Bought a used semi? Report correctly to avoid double taxation and penalties.',
     category: 'Vehicle Acquisition',
     readTime: '9 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'January 14, 2026',
+    dateISO: '2025-06-25',
     keywords: ['Used vehicle Form 2290', 'HVUT acquisition', 'used truck tax', 'buying used truck HVUT', 'Form 2290 transfer', 'pre-owned vehicle tax'],
     tableOfContents: [
       { id: 'buying-used', title: 'Form 2290 When Buying Used Trucks' },
@@ -6350,8 +6355,8 @@ export const blogPosts = [
     excerpt: 'Farm rigs qualify for extra miles—don\'t overpay on your agricultural vehicles.',
     category: 'Industry Specific',
     readTime: '10 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'September 4, 2025',
+    dateISO: '2025-06-14',
     keywords: ['Agricultural HVUT', 'Form 2290 7500 miles', 'farm truck suspension', 'ag vehicle exemption', 'farming truck tax', 'agricultural exemption'],
     tableOfContents: [
       { id: 'ag-qualification', title: 'What Qualifies as an Agricultural Vehicle?' },
@@ -6585,8 +6590,8 @@ export const blogPosts = [
     excerpt: 'Early birds save 20% on stress—plan your Q4 trucking tax strategy now.',
     category: 'Tax Planning',
     readTime: '11 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'January 14, 2026',
+    dateISO: '2025-07-19',
     keywords: ['Early Form 2290 filing', 'HVUT tax planning', 'year-end trucking tax', 'Q4 tax strategy', 'Form 2290 planning', 'trucking tax preparation'],
     tableOfContents: [
       { id: 'benefits-early-filing', title: 'Benefits of Filing Early' },
@@ -6849,8 +6854,8 @@ export const blogPosts = [
     excerpt: 'Federal + state = confusion? Unravel the overlaps between HVUT, IFTA, and state taxes.',
     category: 'Compliance',
     readTime: '13 min',
-    date: 'November 2025',
-    dateISO: '2025-11-18',
+    date: 'January 9, 2026',
+    dateISO: '2025-07-05',
     keywords: ['Form 2290 state taxes', 'HVUT vs IFTA', 'multi-state compliance', 'federal vs state trucking tax', 'interstate tax obligations', 'UCR vs HVUT'],
     tableOfContents: [
       { id: 'federal-vs-state', title: 'Federal HVUT vs State Taxes' },

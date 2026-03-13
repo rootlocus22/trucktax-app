@@ -31,36 +31,44 @@ export default function UcrDeadlineBanner({ className = '' }) {
   const isLastWeek = daysLeft <= 7;
 
   return (
-    <div className={`bg-amber-500 text-white py-3 px-4 text-center text-sm font-semibold ${className}`}>
-      {showBanner ? (
-        isDecember && (isLastWeek || daysLeft <= 14) ? (
-          <>
-            🚛 <strong>Last chance</strong> to file UCR before the December 31 deadline. $0 upfront — pay when your certificate is ready.{' '}
-            <Link href="/ucr/file" className="underline ml-1 inline-block py-2 touch-manipulation font-bold">Start UCR Filing →</Link>
-            {' · '}
-            <Link href="/insights/ucr-deadlines-penalties-explained" className="underline inline-block py-2 touch-manipulation">UCR penalties</Link>
-          </>
-        ) : (
-          <>
-            🚛 {daysLeft > 0 ? (
-              <strong>{daysLeft} day{daysLeft !== 1 ? 's' : ''} left</strong>
+    <div className={`w-full bg-orange-50 border-y border-orange-100 py-3 sm:py-4 ${className}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-center sm:text-left">
+        <div className="flex items-center gap-2 sm:gap-3 text-slate-700 text-sm sm:text-[15px] font-medium">
+          <span className="text-xl">🚛</span>
+          <span>
+            {showBanner ? (
+              isDecember && (isLastWeek || daysLeft <= 14) ? (
+                <>
+                  🚛 <strong>Last chance</strong> to file UCR before the December 31 deadline. $0 upfront — pay when your certificate is ready.
+                </>
+              ) : (
+                <>
+                  🚛 <strong>{daysLeft > 0 ? `${daysLeft} days left` : 'Deadline today'}</strong> to file UCR for {registrationYear} — Dec 31 deadline. $0 upfront.
+                </>
+              )
             ) : (
-              <strong>Deadline today</strong>
-            )}{' '}
-            to file UCR for {registrationYear} — Dec 31 deadline. $0 upfront.{' '}
-            <Link href="/ucr/file" className="underline ml-1 inline-block py-2 touch-manipulation font-bold">Start UCR Filing →</Link>
-            {' · '}
-            <Link href="/insights/ucr-registration-opens-october-1" className="underline inline-block py-2 touch-manipulation">What to prepare</Link>
-          </>
-        )
-      ) : (
-        <>
-          🚛 UCR registration is open. File before Dec 31 with $0 upfront — pay when your certificate is ready.{' '}
-          <Link href="/ucr/file" className="underline ml-1 inline-block py-2 touch-manipulation font-bold">Start UCR Filing →</Link>
-          {' · '}
-          <Link href="/insights/ucr-registration-opens-october-1" className="underline inline-block py-2 touch-manipulation">UCR opens Oct 1 — what to prepare</Link>
-        </>
-      )}
+              <>
+                UCR registration is open. File before Dec 31 with $0 upfront — pay when your certificate is ready.
+              </>
+            )}
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+          <Link
+            href="/ucr/file"
+            className="inline-flex items-center justify-center bg-[var(--color-orange)] !text-white px-5 py-2 rounded-xl font-bold text-sm transition hover:bg-[#f07a2d] hover:shadow-lg hover:shadow-orange-500/20 active:scale-95"
+          >
+            Start UCR Filing →
+          </Link>
+          <div className="hidden sm:block h-4 w-px bg-orange-200" />
+          <Link
+            href={showBanner && isDecember && (isLastWeek || daysLeft <= 14) ? "/insights/ucr-deadlines-penalties-explained" : "/insights/ucr-registration-opens-october-1"}
+            className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors underline sm:no-underline"
+          >
+            {showBanner && isDecember && (isLastWeek || daysLeft <= 14) ? "UCR penalties" : "UCR opens Oct 1 — what to prepare"}
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

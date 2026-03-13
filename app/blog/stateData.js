@@ -54,12 +54,13 @@ export const stateData = [
 export const generateStatePosts = () => {
     return stateData.map(state => ({
         id: `form-2290-filing-guide-${state.name.toLowerCase().replace(/\s+/g, '-')}`,
-        title: `Form 2290 Filing Guide for ${state.name} Truckers (2025)`,
+        title: `Form 2290 Filing Guide for ${state.name} Truckers (2026)`,
         excerpt: `Everything ${state.name} truckers need to know about HVUT compliance, ${state.dmv} registration, and IRP renewals in ${state.cities[0]} and beyond.`,
-        category: 'State Guides',
+        image: '/blog/blog-banner.webp',
+        category: 'IRS Form 2290',
         readTime: '5 min',
-        date: 'November 2025',
-        dateISO: '2025-11-27',
+        date: 'April 14, 2025',
+        dateISO: '2025-03-10',
         keywords: [`Form 2290 ${state.name}`, `HVUT ${state.name}`, `${state.dmv} schedule 1`, `trucking in ${state.name}`, `IRP renewal ${state.name}`],
         tableOfContents: [
             { id: 'state-reqs', title: `${state.name} Filing Requirements` },

@@ -43,7 +43,7 @@ export default function UcrPricingPage() {
           </ul>
           <Link
             href="/ucr/file"
-            className="block w-full text-center py-4 rounded-xl font-bold border-2 border-[var(--color-navy)] text-[var(--color-navy)] hover:bg-[var(--color-navy)] hover:text-white transition"
+            className="block w-full text-center py-4 rounded-xl font-bold border-2 border-[var(--color-navy)] text-[var(--color-navy)] hover:bg-[var(--color-navy)] hover:!text-white transition"
           >
             Get Started
           </Link>
