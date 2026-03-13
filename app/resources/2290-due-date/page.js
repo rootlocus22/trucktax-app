@@ -3,8 +3,8 @@ import { Calendar, AlertTriangle, Clock, CheckCircle, ArrowRight } from 'lucide-
 import SchemaMarkup from '@/components/seo/SchemaMarkup';
 
 export const metadata = {
-    title: '2290 Filing Deadline 2025-2026 | When is Form 2290 Due? | QuickTruckTax',
-    description: 'When is Form 2290 due? The deadline is August 31st. Check due dates for new vehicles, penalties for late filing, and how to file instantly. Avoid IRS fines.',
+    title: '2290 Due Date 2026 | Form 2290 Deadline & When is 2290 Due | QuickTruckTax',
+    description: '2290 due date: August 31st every year. Form 2290 due date for 2026, new vehicle deadlines, late penalties. Check 2290 status and file instantly.',
     keywords: '2290 filing deadline, when is 2290 due, form 2290 due date 2025, late filing penalty 2290, hvut deadline',
     alternates: {
         canonical: 'https://www.quicktrucktax.com/resources/2290-due-date',
@@ -13,6 +13,10 @@ export const metadata = {
 
 export default function DeadlinePage() {
     const faqData = [
+        {
+            question: "When is the Form 2290 due date?",
+            answer: "The general Form 2290 due date is August 31st every year for vehicles first used in July. For 2026, the deadline is August 31, 2026. If August 31 falls on a weekend or holiday, the IRS extends to the next business day."
+        },
         {
             question: "When is the Form 2290 due date for 2025?",
             answer: "For the tax period beginning July 1, 2025, the Form 2290 filing deadline is September 2, 2025 (since August 31st falls on a Sunday and September 1st is Labor Day)."
@@ -78,12 +82,20 @@ export default function DeadlinePage() {
                     <p className="text-blue-100 text-sm mt-6 max-w-xl mx-auto">
                         QuickTruckTax is primarily a UCR filing service; we also offer Form 2290 e-filing.
                     </p>
-                    <Link
-                        href="/services/form-2290-filing"
-                        className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/30 px-8 py-4 rounded-xl font-bold mt-4 transition"
-                    >
-                        Form 2290 guide & how to e-file <ArrowRight className="w-5 h-5" />
-                    </Link>
+                    <div className="flex flex-wrap gap-3 justify-center mt-4">
+                        <Link
+                            href="/tools/check-2290-status"
+                            className="inline-flex items-center gap-2 bg-[var(--color-orange)] hover:bg-[#e66a15] text-white px-6 py-3 rounded-xl font-bold transition"
+                        >
+                            Check 2290 Status <ArrowRight className="w-4 h-4" />
+                        </Link>
+                        <Link
+                            href="/services/form-2290-filing"
+                            className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/30 px-6 py-3 rounded-xl font-bold transition"
+                        >
+                            Form 2290 guide & e-file
+                        </Link>
+                    </div>
                 </div>
             </div>
 
@@ -144,6 +156,12 @@ export default function DeadlinePage() {
                                 Form 2290 guide & e-file options <ArrowRight className="w-5 h-5" />
                             </Link>
                         </div>
+                    </div>
+
+                    {/* UCR CTA - internal link */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+                        <p className="text-slate-700 mb-2 font-medium">Need UCR too?</p>
+                        <p className="text-slate-600 text-sm mb-3">Truckers often need both Form 2290 and UCR. <Link href="/insights/ucr-renewal-guide" className="text-[var(--color-navy)] font-semibold hover:underline">Renew your UCR</Link> by December 31—<Link href="/ucr/file" className="text-[var(--color-navy)] font-semibold hover:underline">file with $0 upfront</Link>.</p>
                     </div>
 
                     {/* FAQ Content */}

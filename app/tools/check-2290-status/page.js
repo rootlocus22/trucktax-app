@@ -3,17 +3,24 @@ import { Search, CheckCircle, Clock, XCircle, ArrowRight, ShieldCheck } from 'lu
 import SchemaMarkup from '@/components/seo/SchemaMarkup';
 
 export const metadata = {
-    title: 'Check Form 2290 Status | Track Your Schedule 1 | QuickTruckTax',
-    description: 'Check the status of your Form 2290 filing instantly. Track your Schedule 1 status, download stamped copies, and fix rejected returns.',
+    title: 'Check 2290 Status & Form 2290 Filing Status (IRS Schedule 1)',
+    description: 'Check Form 2290 status and track your Schedule 1 in minutes. See if the IRS accepted your return and get your stamped copy.',
     keywords: 'form 2290 status, check 2290 status, track schedule 1, 2290 status check, irs 2290 status',
     alternates: {
         canonical: 'https://www.quicktrucktax.com/tools/check-2290-status',
     },
 };
 
+const CHECK_2290_FAQ = [
+    { question: "How do I check my Form 2290 status?", answer: "If you filed with QuickTruckTax, enter your email or application ID on our status check page to see real-time updates. The IRS typically processes e-filed returns within 5–15 minutes." },
+    { question: "Where is my Schedule 1?", answer: "Once the IRS accepts your Form 2290, your stamped Schedule 1 is available in your QuickTruckTax dashboard. Download and save it for state registration and roadside inspections." },
+    { question: "What does 'Form 2290 status' mean?", answer: "Your Form 2290 status can be Pending (sent to IRS, awaiting response), Accepted (IRS approved—Schedule 1 ready), or Rejected (error found—correct and re-transmit)." },
+];
+
 export default function StatusCheckPage() {
     return (
         <div className="bg-slate-50 min-h-screen">
+            <SchemaMarkup type="FAQPage" data={CHECK_2290_FAQ} />
             <SchemaMarkup
                 type="Service"
                 data={{

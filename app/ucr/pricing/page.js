@@ -2,16 +2,24 @@ import Link from 'next/link';
 import { UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
 import DiscountedPrice from '@/components/DiscountedPrice';
 import { CheckCircle, ArrowRight } from 'lucide-react';
+import SchemaMarkup from '@/components/seo/SchemaMarkup';
+
+const UCR_PRICING_FAQ = [
+    { question: "What is the UCR renewal cost?", answer: "UCR cost is based on fleet size. Official 2026 fees: 0–2 vehicles $46, 3–5 $138, 6–20 $276, 21–100 $963, 101–1,000 $4,592, 1,001+ $44,836. Our filing service is $79 plus the official UCR fee." },
+    { question: "What is the UCR fee schedule for 2026?", answer: "The 2026 UCR fee schedule by fleet size: Tier 1 (0–2 vehicles) $46, Tier 2 (3–5) $138, Tier 3 (6–20) $276, Tier 4 (21–100) $963, Tier 5 (101–1,000) $4,592, Tier 6 (1,001+) $44,836." },
+    { question: "How much does UCR filing cost with QuickTruckTax?", answer: "Our UCR filing service is $79 (discounted from $99) plus the official UCR fee based on your fleet size. File with $0 upfront—you pay when your certificate is ready." },
+];
 
 export const metadata = {
-  title: 'UCR Pricing | $99 discounted to $79 Filing & $99 UCR Pro | QuickTruckTax',
-  description: 'Simple UCR pricing. UCR Filing Service $99 discounted to $79, or UCR Pro $99. Fee calculation, submission assistance, confirmation tracking, compliance storage.',
+  title: 'UCR Fee Schedule 2026 & Pricing – Official Brackets + $79 Filing',
+  description: '2026 UCR fee schedule by fleet size (official brackets). Our UCR filing service $79. See your total cost and file with $0 upfront.',
   alternates: { canonical: 'https://www.quicktrucktax.com/ucr/pricing' },
 };
 
 export default function UcrPricingPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
+      <SchemaMarkup type="FAQPage" data={UCR_PRICING_FAQ} />
       <div className="text-center mb-12">
         <h1 className="text-3xl sm:text-4xl font-bold text-[var(--color-text)] mb-2">UCR Pricing</h1>
         <p className="text-[var(--color-muted)]">Simple. No hidden fees. Official UCR fee + our service.</p>

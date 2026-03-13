@@ -1,6 +1,13 @@
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, RefreshCcw, DollarSign, Clock, AlertTriangle, ChevronRight, Truck } from 'lucide-react';
 import Image from 'next/image';
+import SchemaMarkup from '@/components/seo/SchemaMarkup';
+
+const UCR_RENEWAL_FAQ = [
+    { question: "What is the UCR renewal cost?", answer: "UCR renewal cost depends on fleet size. For 2026: 0–2 vehicles $46, 3–5 vehicles $138, 6–20 vehicles $276, 21–100 vehicles $963, 101–1,000 vehicles $4,592, 1,001+ vehicles $44,836. QuickTruckTax charges a $79 filing fee plus the official UCR fee." },
+    { question: "When is the UCR renewal deadline?", answer: "You must renew UCR by December 31st of the preceding year. For 2026 UCR, the deadline is December 31, 2025. Registration opens October 1 each year." },
+    { question: "How do I renew my UCR registration online?", answer: "Enter your DOT or MC number at QuickTruckTax, verify your fleet size and fee bracket, pay securely, and receive your proof of payment instantly. File with $0 upfront—you pay when your certificate is ready." },
+];
 
 export const metadata = {
     title: 'UCR Renewal 2026: Cost, Deadline & How to Renew UCR Registration Online',
@@ -16,6 +23,7 @@ export const metadata = {
 export default function UcrRenewalGuide() {
     return (
         <div className="bg-slate-50 min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+            <SchemaMarkup type="FAQPage" data={UCR_RENEWAL_FAQ} />
             <div className="max-w-4xl mx-auto">
                 <Link
                     href="/insights"
@@ -207,6 +215,12 @@ export default function UcrRenewalGuide() {
                             <p className="text-center text-sm text-slate-500 font-medium">
                                 Have questions? Check out our <Link href="/insights/who-needs-ucr-registration">Who Needs a UCR guide</Link> if you are unsure about your filing status.
                             </p>
+                            <div className="mt-8 pt-8 border-t border-slate-200">
+                                <p className="text-sm text-slate-600 mb-3 font-medium">Related compliance:</p>
+                                <p className="text-slate-600 text-sm">
+                                    Need Form 2290? See our <Link href="/resources/2290-due-date" className="text-[var(--color-navy)] font-medium hover:underline">2290 due date</Link> guide and <Link href="/tools/check-2290-status" className="text-[var(--color-navy)] font-medium hover:underline">check 2290 status</Link> tool.
+                                </p>
+                            </div>
 
                         </div>
                     </div>

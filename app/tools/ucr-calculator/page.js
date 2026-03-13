@@ -1,8 +1,8 @@
 import UcrCalculatorClient from './UcrCalculatorClient';
 
 export const metadata = {
-  title: 'UCR Fee Calculator | 2026 Unified Carrier Registration | QuickTruckTax',
-  description: 'Calculate your UCR fee by fleet size. Official 2026 brackets. See total with our UCR Filing or UCR Pro service.',
+  title: 'UCR Calculator 2026 – UCR Fee by Fleet Size (Official Brackets)',
+  description: 'Free UCR calculator: see your exact 2026 UCR fee by fleet size in seconds. Official brackets. Then file UCR online with $0 upfront.',
   alternates: { canonical: 'https://www.quicktrucktax.com/tools/ucr-calculator' },
 };
 

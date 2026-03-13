@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { complianceGuides } from "@/lib/guides";
 import ComplianceAlertSignup from "@/app/components/ComplianceAlertSignup";
@@ -148,6 +149,28 @@ export default async function GuidePage({ params }) {
             </div>
           </section>
         ) : null}
+      </section>
+
+      {/* Internal links to UCR renewal + file */}
+      <section className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-lg sm:p-8">
+        <h2 className="text-lg font-semibold text-[var(--color-text)] mb-3">Staying compliant?</h2>
+        <p className="text-[var(--color-muted)] text-sm mb-4">
+          Renew your UCR registration for 2026 and file with $0 upfront.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/insights/ucr-renewal-guide"
+            className="inline-flex items-center rounded-xl bg-[var(--color-navy)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-midnight)] transition"
+          >
+            UCR renewal guide
+          </Link>
+          <Link
+            href="/ucr/file"
+            className="inline-flex items-center rounded-xl border-2 border-[var(--color-navy)] px-5 py-2.5 text-sm font-semibold text-[var(--color-navy)] hover:bg-[var(--color-navy)] hover:text-white transition"
+          >
+            File UCR now
+          </Link>
+        </div>
       </section>
 
       {/* Email Signup for Compliance Alerts */}
