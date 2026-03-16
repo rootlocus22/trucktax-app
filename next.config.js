@@ -13,16 +13,10 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      // ----- Redirect old easyucr.com to easyucr.com -----
+      // ----- Apex to www: easyucr.com → www.easyucr.com -----
       {
         source: '/:path*',
         has: [{ type: 'host', value: 'easyucr.com' }],
-        destination: 'https://www.easyucr.com/:path*',
-        permanent: true,
-      },
-      {
-        source: '/:path*',
-        has: [{ type: 'host', value: 'www.easyucr.com' }],
         destination: 'https://www.easyucr.com/:path*',
         permanent: true,
       },
