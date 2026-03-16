@@ -123,14 +123,14 @@ async function generateContent(slug, type, context, fixIssues = null) {
     
     2. **tips_html**: 
        - Provide 5-7 detailed, actionable tips.
-       - Include at least one tip about e-filing benefits or using QuickTruckTax service.
+       - Include at least one tip about e-filing benefits or using easyucr.com service.
        - Format as a stylized list with <strong> emphasis on key points.
 
     3. **meta_title**: 
        - MUST be 50-60 characters exactly
        - Include primary keyword (Form 2290, HVUT, etc.)
        - Include value prop: "$34.99", "File Online", "Get Schedule 1 in Minutes"
-       - Format: "[Primary Keyword] + [Value Prop] | QuickTruckTax"
+       - Format: "[Primary Keyword] + [Value Prop] | easyucr.com"
        - Example: "Form 2290 for 60,000 lb Truck in Texas | File Online $34.99"
 
     4. **meta_description**:

@@ -304,7 +304,7 @@ export default function SEOAdminPage() {
                                             <td className="px-4 py-3 max-w-xs">
                                                 <div className="font-medium text-slate-800 truncate text-sm">{page.title}</div>
                                                 <a
-                                                    href={`https://www.quicktrucktax.com${page.url}`}
+                                                    href={`https://www.easyucr.com${page.url}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="text-xs text-blue-600 hover:underline flex items-center gap-1"

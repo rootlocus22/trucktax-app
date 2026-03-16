@@ -39,8 +39,8 @@ const TruckAnimation = () => {
                                 {/* Magic Ring around icons */}
                                 <div className="absolute inset-0 bg-blue-400/20 blur-xl rounded-full animate-ping"></div>
                                 <div className="relative bg-white/90 backdrop-blur-sm px-4 py-2 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-blue-100/50 flex items-center gap-2 transform hover:scale-110 transition-transform">
-                                    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-[10px] text-white font-bold shadow-sm">2290</div>
-                                    <span className="text-xs font-bold text-slate-800 tracking-tight">IRS Form 2290</span>
+                                    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-[10px] text-white font-bold shadow-sm">UCR</div>
+                                    <span className="text-xs font-bold text-slate-800 tracking-tight">UCR Registration</span>
                                 </div>
                             </div>
                             <div className="w-0.5 h-4 bg-gradient-to-b from-blue-200 to-transparent"></div>

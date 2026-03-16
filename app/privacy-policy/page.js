@@ -1,14 +1,14 @@
 import Link from 'next/link';
 
 export const metadata = {
-    title: 'Privacy Policy | QuickTruckTax',
+    title: 'Privacy Policy | easyucr.com',
     description: 'How we collect, use, and protect your data.',
 };
 
-const CONTACT_EMAIL = 'support@quicktrucktax.com';
+const CONTACT_EMAIL = 'support@vendaxsystemlabs.com';
 const CONTACT_PHONE = '+1 (347) 801-8631';
 const CONTACT_PHONE_TEL = 'tel:+13478018631';
-const PRIVACY_EMAIL = 'privacy@quicktrucktax.com';
+const PRIVACY_EMAIL = 'support@vendaxsystemlabs.com';
 const ADDRESS = '28 Geary St STE 650 Suite #500, San Francisco, California 94108, United States';
 
 export default function PrivacyPage() {
@@ -25,7 +25,7 @@ export default function PrivacyPage() {
                     <section>
                         <h2 className="text-xl font-bold text-slate-900 mb-4">1. Introduction</h2>
                         <p>
-                            QuickTruckTax ("we," "us," or "our") We respect your privacy and are committed to protecting the sensitive personal and business information you trust us with. This Privacy Policy explains how we collect, use, disclosure, and safeguard your information when you use our website and services.
+                            easyucr.com ("we," "us," or "our") We respect your privacy and are committed to protecting the sensitive personal and business information you trust us with. This Privacy Policy explains how we collect, use, disclosure, and safeguard your information when you use our website and services.
                         </p>
                     </section>
 
@@ -106,7 +106,7 @@ export default function PrivacyPage() {
                             If you have any questions about this Privacy Policy, please contact us:
                         </p>
                         <address className="mt-4 not-italic bg-slate-100 p-4 rounded-lg text-sm">
-                            <strong>QuickTruckTax</strong><br />
+                            <strong>easyucr.com</strong><br />
                             {ADDRESS}<br />
                             General: <a href={`mailto:${CONTACT_EMAIL}`} className="text-[var(--color-navy)] hover:underline">{CONTACT_EMAIL}</a><br />
                             Phone: <a href={CONTACT_PHONE_TEL} className="text-[var(--color-navy)] hover:underline">{CONTACT_PHONE}</a><br />
@@ -117,9 +117,9 @@ export default function PrivacyPage() {
 
                 {/* Footer disclaimer */}
                 <div className="mt-12 pt-8 border-t border-slate-200 text-xs text-slate-500 space-y-2">
-                    <p>The information and images on this website are the property of QuickTruckTax and may not be reproduced, reused, or appropriated without the express written consent of the owner.</p>
-                    <p>QuickTruckTax is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement. We are not affiliated with any government authority such as the IRS, USDOT, or FMCSA.</p>
-                    <p className="pt-2">&copy; 2026 QuickTruckTax, All Rights Reserved.</p>
+                    <p>The information and images on this website are the property of easyucr.com and may not be reproduced, reused, or appropriated without the express written consent of the owner.</p>
+                    <p>easyucr.com is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement. We are not affiliated with any government authority such as the IRS, USDOT, or FMCSA.</p>
+                    <p className="pt-2">&copy; 2026 easyucr.com, All Rights Reserved.</p>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-4 text-sm">
                     <Link href="/terms" className="text-[var(--color-navy)] hover:underline">Terms &amp; Conditions</Link>

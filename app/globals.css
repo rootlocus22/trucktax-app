@@ -1,35 +1,38 @@
 @import "tailwindcss";
 
+/* Trust & Road theme - trucking compliance */
 :root {
-  --color-page: #f4f7fb;
-  --color-page-alt: #eef2fb;
+  --color-page: #f8f9fa;
+  --color-page-alt: #f1f3f5;
   --color-card: #ffffff;
-  --color-midnight: #0f2647;
-  --color-navy: #173b63;
-  --color-navy-soft: #1f4f82;
+  --color-midnight: #0d2137;
+  --color-navy: #153a5e;
+  --color-navy-soft: #1d4a73;
   --color-sky: #39c6ff;
   --color-cyan: #1dd6c3;
-  --color-orange: #ff8b3d;
-  --color-orange-soft: #fff1e7;
-  --color-orange-hover: #f07a2d;
+  --color-orange: #ff7a2e;
+  --color-orange-soft: #fff5ef;
+  --color-orange-hover: #e66a15;
   --color-amber: #ffc24a;
   --color-sand: #ffe7d1;
-  --color-text: #1b2838;
+  --color-text: #1a2432;
   --color-muted: #5c6b80;
-  --color-border: rgba(20, 53, 94, 0.14);
-  --color-border-strong: rgba(20, 53, 94, 0.24);
+  --color-border: rgba(13, 33, 55, 0.12);
+  --color-border-strong: rgba(13, 33, 55, 0.2);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
 @theme inline {
   --color-background: var(--color-page);
   --color-foreground: var(--color-text);
-  --font-sans: var(--font-golos-text);
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  background: linear-gradient(180deg, var(--color-page) 0%, var(--color-page-alt) 45%, #ffffff 100%);
+  background: linear-gradient(180deg, var(--color-page) 0%, var(--color-page-alt) 40%, #ffffff 100%);
   color: var(--color-text);
-  font-family: var(--font-sans), "Golos Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-sans), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -94,8 +97,16 @@ strong {
 input,
 select,
 textarea {
-  font-family: var(--font-sans), "Golos Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-sans), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 16px;
+}
+
+/* Trust & Road: soft card shadows */
+.shadow-card {
+  box-shadow: var(--shadow-card);
+}
+.shadow-card-hover:hover {
+  box-shadow: var(--shadow-card-hover);
 }
 
 /* Typography Scale - Inspired by ExpressTruckTax */

@@ -285,7 +285,7 @@ export default function BusinessesPage() {
 
             <div className="flex flex-wrap items-center gap-3">
               <Link
-                href="/dashboard/upload-schedule1"
+                href="/ucr/file"
                 className="inline-flex items-center justify-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-900/10 border border-white/10"
               >
                 <Sparkles className="w-4 h-4 text-emerald-400" strokeWidth={3} />
@@ -455,7 +455,7 @@ export default function BusinessesPage() {
                     {/* Management Actions */}
                     <div className="col-span-1 lg:col-span-3 flex items-center justify-end gap-3">
                     <Link
-                      href={`/dashboard/new-filing?businessId=${business.id}`}
+                      href="/ucr/file"
                         className="min-w-[140px] text-center px-4 py-2 bg-[#14b8a6] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-all shadow-md shadow-teal-500/10 active:scale-95"
                     >
                         Use for Filing

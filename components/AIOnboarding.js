@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     Sparkles,
-    Upload,
+    FileText,
     ChevronRight,
     X,
     CheckCircle,
@@ -47,7 +47,7 @@ export function AIOnboarding({ onDismiss }) {
                                 Welcome to the future of <span className="text-emerald-400">Truck Tax.</span>
                             </h2>
                             <p className="text-blue-100/70 text-sm font-medium leading-relaxed">
-                                We've combined decades of tax expertise with advanced AI to make your 2290 filing faster than ever.
+                                We've combined decades of compliance expertise with advanced AI to make your UCR filing faster than ever.
                             </p>
                         </div>
 
@@ -76,46 +76,24 @@ export function AIOnboarding({ onDismiss }) {
                                 </h3>
                                 <div className="space-y-4">
                                     <button
-                                        onClick={() => router.push('/dashboard/upload-schedule1')}
+                                        onClick={() => router.push('/ucr/file')}
                                         className="w-full group relative bg-slate-50 border-2 border-slate-200 p-6 rounded-2xl text-left hover:border-emerald-500 hover:bg-emerald-50/30 transition-all duration-300"
                                     >
                                         <div className="flex items-center gap-5">
                                             <div className="w-14 h-14 rounded-2xl bg-[#173b63] text-white flex items-center justify-center shadow-lg shadow-blue-900/20 group-hover:scale-110 transition-transform">
-                                                <Upload size={28} />
+                                                <FileText size={28} />
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <h4 className="font-black text-xl text-slate-900">The Fast Lane</h4>
-                                                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-600 rounded text-[9px] font-black uppercase tracking-widest">Recommended</span>
+                                                    <h4 className="font-black text-xl text-slate-900">File UCR</h4>
+                                                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-600 rounded text-[9px] font-black uppercase tracking-widest">Start Here</span>
                                                 </div>
-                                                <p className="text-slate-500 text-sm font-medium">Upload a previous Schedule 1. AI extracts everything in seconds.</p>
+                                                <p className="text-slate-500 text-sm font-medium">Complete your UCR registration in under 10 minutes.</p>
                                             </div>
                                             <ChevronRight className="text-slate-300 group-hover:text-emerald-500 transition-colors" />
                                         </div>
                                     </button>
 
-                                    <button
-                                        onClick={() => router.push('/dashboard/new-filing')}
-                                        className="w-full group relative bg-white border-2 border-slate-200 p-6 rounded-2xl text-left hover:border-[var(--color-orange)] hover:bg-orange-50/30 transition-all duration-300"
-                                    >
-                                        <div className="flex items-center gap-5">
-                                            <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center group-hover:bg-[var(--color-orange)] group-hover:text-white transition-all">
-                                                <Truck size={28} />
-                                            </div>
-                                            <div className="flex-1">
-                                                <h4 className="font-black text-xl text-slate-900 mb-1">Guided Filing</h4>
-                                                <p className="text-slate-500 text-sm font-medium">Starting fresh? We'll guide you through a simple step-by-step process.</p>
-                                            </div>
-                                            <ChevronRight className="text-slate-300 group-hover:text-[var(--color-orange)] transition-colors" />
-                                        </div>
-                                    </button>
-
-                                    <button
-                                        onClick={() => setStep('why-ai')}
-                                        className="w-full text-center py-4 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] hover:text-slate-600 transition-colors"
-                                    >
-                                        Why should I use AI?
-                                    </button>
                                 </div>
                             </div>
                         ) : (
@@ -148,10 +126,10 @@ export function AIOnboarding({ onDismiss }) {
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => router.push('/dashboard/upload-schedule1')}
+                                    onClick={() => router.push('/ucr/file')}
                                     className="mt-10 w-full py-4 bg-[#173b63] text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-[#1e4b7e] transition-all shadow-xl shadow-blue-900/20"
                                 >
-                                    Try AI Upload Now
+                                    Start UCR Filing
                                 </button>
                             </div>
                         )}

@@ -4,19 +4,19 @@ import Image from 'next/image';
 import SchemaMarkup from '@/components/seo/SchemaMarkup';
 
 const UCR_RENEWAL_FAQ = [
-    { question: "What is the UCR renewal cost?", answer: "UCR renewal cost depends on fleet size. For 2026: 0–2 vehicles $46, 3–5 vehicles $138, 6–20 vehicles $276, 21–100 vehicles $963, 101–1,000 vehicles $4,592, 1,001+ vehicles $44,836. QuickTruckTax charges a $79 filing fee plus the official UCR fee." },
+    { question: "What is the UCR renewal cost?", answer: "UCR renewal cost depends on fleet size. For 2026: 0–2 vehicles $46, 3–5 vehicles $138, 6–20 vehicles $276, 21–100 vehicles $963, 101–1,000 vehicles $4,592, 1,001+ vehicles $44,836. easyucr.com charges a $79 filing fee plus the official UCR fee." },
     { question: "When is the UCR renewal deadline?", answer: "You must renew UCR by December 31st of the preceding year. For 2026 UCR, the deadline is December 31, 2025. Registration opens October 1 each year." },
-    { question: "How do I renew my UCR registration online?", answer: "Enter your DOT or MC number at QuickTruckTax, verify your fleet size and fee bracket, pay securely, and receive your proof of payment instantly. File with $0 upfront—you pay when your certificate is ready." },
+    { question: "How do I renew my UCR registration online?", answer: "Enter your DOT or MC number at easyucr.com, verify your fleet size and fee bracket, pay securely, and receive your proof of payment instantly. File with $0 upfront—you pay when your certificate is ready." },
 ];
 
 export const metadata = {
     title: 'UCR Renewal 2026: Cost, Deadline & How to Renew UCR Registration Online',
     description: 'UCR renewal opens Oct 1. See 2026 UCR renewal cost by fleet size, December 31 deadline, and how to renew UCR registration online in minutes. $0 upfront.',
-    alternates: { canonical: 'https://www.quicktrucktax.com/insights/ucr-renewal-guide' },
+    alternates: { canonical: 'https://www.easyucr.com/insights/ucr-renewal-guide' },
     openGraph: {
-        title: 'UCR Renewal 2026: Cost, Deadline & How to Renew Online | QuickTruckTax',
+        title: 'UCR Renewal 2026: Cost, Deadline & How to Renew Online | easyucr.com',
         description: 'Renew your UCR registration for 2026. Fee brackets, deadline, and step-by-step renewal. File with $0 upfront.',
-        url: 'https://www.quicktrucktax.com/insights/ucr-renewal-guide',
+        url: 'https://www.easyucr.com/insights/ucr-renewal-guide',
     },
 };
 
@@ -127,7 +127,7 @@ export default function UcrRenewalGuide() {
                                 </div>
                             </div>
                             <p className="text-sm text-slate-500 mt-2 mb-8">
-                                * Note: Brokers and Leasing Companies who do not operate trucks are required to pay the Tier 1 fee ($46.00). QuickTruckTax charges a nominal processing fee to guarantee instant cross-referencing with federal databases.
+                                * Note: Brokers and Leasing Companies who do not operate trucks are required to pay the Tier 1 fee ($46.00). easyucr.com charges a nominal processing fee to guarantee instant cross-referencing with federal databases.
                             </p>
 
                             <h2>How to Update UCR Truck Info During Renewal</h2>
@@ -172,7 +172,7 @@ export default function UcrRenewalGuide() {
 
                             <h2>How to Renew UCR Online Instantly</h2>
                             <p>
-                                The fastest and most secure way to process your <strong>unified carrier registration renewal</strong> is through an authorized third-party provider like QuickTruckTax.
+                                The fastest and most secure way to process your <strong>unified carrier registration renewal</strong> is through an authorized third-party provider like easyucr.com.
                             </p>
 
                             <div className="grid md:grid-cols-3 gap-6 my-10">
@@ -215,12 +215,6 @@ export default function UcrRenewalGuide() {
                             <p className="text-center text-sm text-slate-500 font-medium">
                                 Have questions? Check out our <Link href="/insights/who-needs-ucr-registration">Who Needs a UCR guide</Link> if you are unsure about your filing status.
                             </p>
-                            <div className="mt-8 pt-8 border-t border-slate-200">
-                                <p className="text-sm text-slate-600 mb-3 font-medium">Related compliance:</p>
-                                <p className="text-slate-600 text-sm">
-                                    Need Form 2290? See our <Link href="/resources/2290-due-date" className="text-[var(--color-navy)] font-medium hover:underline">2290 due date</Link> guide and <Link href="/tools/check-2290-status" className="text-[var(--color-navy)] font-medium hover:underline">check 2290 status</Link> tool.
-                                </p>
-                            </div>
 
                         </div>
                     </div>

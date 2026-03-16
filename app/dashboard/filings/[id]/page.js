@@ -379,8 +379,8 @@ export default function FilingDetailPage() {
           <div className="flex items-center gap-3">
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
               <StatusIcon className={`w-3 h-3 ${statusConfig.iconColor}`} />
-              {statusConfig.label}
-            </span>
+            {statusConfig.label}
+          </span>
             {(filing.status === 'submitted' || filing.status === 'processing') && (
               <div className="flex items-center gap-2 text-xs text-slate-600">
                 <div className="relative flex h-2 w-2">
@@ -396,38 +396,38 @@ export default function FilingDetailPage() {
         {/* Compact Status Banner */}
         <div className={`mb-4 rounded-lg border-2 p-4 flex items-start gap-3 ${filing.status === 'action_required'
           ? 'bg-orange-50 border-orange-200'
-          : filing.status === 'completed'
+            : filing.status === 'completed'
             ? 'bg-green-50 border-green-200'
             : 'bg-blue-50 border-blue-200'
           }`}>
           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${filing.status === 'action_required'
-            ? 'bg-orange-100 text-orange-600'
-            : filing.status === 'completed'
+                ? 'bg-orange-100 text-orange-600'
+                : filing.status === 'completed'
               ? 'bg-green-100 text-green-600'
               : 'bg-blue-100 text-blue-600'
-            }`}>
-            {filing.status === 'action_required' ? (
+                }`}>
+                {filing.status === 'action_required' ? (
               <AlertCircle className="w-5 h-5" />
-            ) : filing.status === 'completed' ? (
+                ) : filing.status === 'completed' ? (
               <CheckCircle className="w-5 h-5" />
-            ) : (
+                ) : (
               <Clock className="w-5 h-5" />
-            )}
-          </div>
+                )}
+              </div>
           <div className="flex-1 min-w-0">
             <h2 className={`text-base font-bold mb-1 ${filing.status === 'action_required' ? 'text-orange-900' : filing.status === 'completed' ? 'text-green-900' : 'text-blue-900'
-              }`}>
-              {filing.status === 'action_required'
-                ? 'Action Required'
-                : filing.status === 'completed'
+                }`}>
+                {filing.status === 'action_required'
+                  ? 'Action Required'
+                  : filing.status === 'completed'
                   ? 'Filing Accepted'
                   : 'Processing Filing'}
-            </h2>
+              </h2>
             <p className={`text-sm ${filing.status === 'action_required' ? 'text-orange-800' : filing.status === 'completed' ? 'text-green-800' : 'text-blue-800'
-              }`}>
-              {filing.status === 'action_required'
+                }`}>
+                {filing.status === 'action_required'
                 ? 'We need additional information. Please check the notes below.'
-                : filing.status === 'completed'
+                  : filing.status === 'completed'
                   ? (filing.filingType === 'ucr' && isUcrCertificateLocked
                     ? 'Your filing is complete. Preview your certificate below and unlock download when ready.'
                     : 'Your filing has been accepted and documents are available below.')
@@ -456,18 +456,18 @@ export default function FilingDetailPage() {
                 </a>
               )
             ) : filing.status === 'completed' && filing.finalSchedule1Url && (
-              <a
-                href={filing.finalSchedule1Url}
-                target="_blank"
-                rel="noopener noreferrer"
+                  <a
+                    href={filing.finalSchedule1Url}
+                    target="_blank"
+                    rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 mt-2 bg-green-600 text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-green-700 transition"
               >
                 <Download className="w-4 h-4" />
                 Download Schedule 1
               </a>
             )}
+            </div>
           </div>
-        </div>
 
         {/* Main Content Grid - Compact Layout */}
         <div className="grid lg:grid-cols-3 gap-4">
@@ -493,15 +493,15 @@ export default function FilingDetailPage() {
                 </div>
                 <div className="bg-white rounded-lg border border-orange-100 p-3 space-y-2">
                   {filing.requiredAction === 'upload_document' && (
-                    <input
-                      type="file"
-                      onChange={(e) => setResponseFile(e.target.files[0])}
+                        <input
+                          type="file"
+                          onChange={(e) => setResponseFile(e.target.files[0])}
                       className="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-orange-50 file:text-orange-700"
-                    />
+                        />
                   )}
-                  <textarea
-                    value={responseText}
-                    onChange={(e) => setResponseText(e.target.value)}
+                    <textarea
+                      value={responseText}
+                      onChange={(e) => setResponseText(e.target.value)}
                     placeholder={filing.requiredAction === 'correct_info' ? 'Enter correct information...' : 'Type your response...'}
                     rows={2}
                     className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-orange-500"
@@ -526,7 +526,7 @@ export default function FilingDetailPage() {
                 <div className="flex items-center gap-2 mb-4">
                   <Building2 className="w-4 h-4 text-[var(--color-orange)]" />
                   <h2 className="text-sm font-semibold text-[var(--color-text)]">Business Information</h2>
-                </div>
+                  </div>
                 {filing.filingType === 'ucr' ? (
                   <div className="space-y-3 text-sm">
                     <div className="flex items-start justify-between gap-2">
@@ -537,14 +537,14 @@ export default function FilingDetailPage() {
                           <button onClick={() => handleCopy(filing.legalName, 'legalName')} className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)]" title="Copy">
                             {copied === 'legalName' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                           </button>
-                        )}
-                      </div>
-                    </div>
+                    )}
+                  </div>
+                  </div>
                     {(filing.dba != null && filing.dba !== '') && (
                       <div className="flex items-start justify-between gap-2">
                         <span className="text-[var(--color-muted)] min-w-[120px]">DBA:</span>
                         <span className="text-[var(--color-text)] font-medium">{filing.dba}</span>
-                      </div>
+                </div>
                     )}
                     <div className="flex items-start justify-between gap-2">
                       <span className="text-[var(--color-muted)] min-w-[120px]">USDOT:</span>
@@ -554,96 +554,96 @@ export default function FilingDetailPage() {
                           <button onClick={() => handleCopy(filing.dotNumber, 'dotNumber')} className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)]" title="Copy">
                             {copied === 'dotNumber' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                           </button>
-                        )}
-                      </div>
-                    </div>
+                    )}
+                  </div>
+                  </div>
                     {filing.state && (
                       <div className="flex items-start justify-between gap-2">
                         <span className="text-[var(--color-muted)] min-w-[120px]">State:</span>
                         <span className="text-[var(--color-text)] font-medium">{filing.state}</span>
-                      </div>
+                </div>
                     )}
                     {filing.registrantName && (
                       <div className="flex items-start justify-between gap-2">
                         <span className="text-[var(--color-muted)] min-w-[120px]">Registrant:</span>
                         <span className="text-[var(--color-text)] font-medium">{filing.registrantName}</span>
-                      </div>
+              </div>
                     )}
                     {filing.email && (
                       <div className="flex items-start justify-between gap-2">
                         <span className="text-[var(--color-muted)] min-w-[120px]">Email:</span>
                         <span className="text-[var(--color-text)] truncate text-right">{filing.email}</span>
-                      </div>
+            </div>
                     )}
                     {filing.phone && (
                       <div className="flex items-start justify-between gap-2">
                         <span className="text-[var(--color-muted)] min-w-[120px]">Phone:</span>
                         <span className="text-[var(--color-text)] font-medium">{filing.phone}</span>
-                      </div>
+          </div>
                     )}
-                  </div>
+        </div>
                 ) : business ? (
-                  <div className="space-y-2.5 text-xs">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-[var(--color-muted)] min-w-[100px]">Name:</span>
-                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                        <span className="text-[var(--color-text)] font-medium truncate">{business.businessName}</span>
+              <div className="space-y-2.5 text-xs">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[var(--color-muted)] min-w-[100px]">Name:</span>
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <span className="text-[var(--color-text)] font-medium truncate">{business.businessName}</span>
                         <button onClick={() => handleCopy(business.businessName, 'businessName')} className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)] transition" title="Copy">
                           {copied === 'businessName' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-[var(--color-muted)] min-w-[100px]">EIN:</span>
-                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                        <span className="text-[var(--color-text)] font-medium font-mono">{business.ein}</span>
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[var(--color-muted)] min-w-[100px]">EIN:</span>
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <span className="text-[var(--color-text)] font-medium font-mono">{business.ein}</span>
                         <button onClick={() => handleCopy(business.ein, 'ein')} className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)] transition" title="Copy">
                           {copied === 'ein' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                        </button>
-                      </div>
-                    </div>
-                    {business.address && (
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="text-[var(--color-muted)] min-w-[100px]">Address:</span>
-                        <span className="text-[var(--color-text)] flex-1 text-right">{business.address}</span>
-                      </div>
-                    )}
-                    {business.phone && (
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="text-[var(--color-muted)] min-w-[100px]">Phone:</span>
-                        <span className="text-[var(--color-text)] flex-1 text-right">{business.phone}</span>
-                      </div>
-                    )}
-                    {business.signingAuthorityName && (
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="text-[var(--color-muted)] min-w-[100px]">Signing Authority:</span>
-                        <span className="text-[var(--color-text)] flex-1 text-right">
-                          {business.signingAuthorityName}
-                          {business.signingAuthorityTitle && ` (${business.signingAuthorityTitle})`}
-                        </span>
-                      </div>
-                    )}
+                    </button>
                   </div>
-                ) : (
-                  <p className="text-sm text-[var(--color-muted)]">No business information for this filing.</p>
+                </div>
+                {business.address && (
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[100px]">Address:</span>
+                    <span className="text-[var(--color-text)] flex-1 text-right">{business.address}</span>
+                  </div>
+                )}
+                {business.phone && (
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[100px]">Phone:</span>
+                    <span className="text-[var(--color-text)] flex-1 text-right">{business.phone}</span>
+                  </div>
+                )}
+                {business.signingAuthorityName && (
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[var(--color-muted)] min-w-[100px]">Signing Authority:</span>
+                    <span className="text-[var(--color-text)] flex-1 text-right">
+                      {business.signingAuthorityName}
+                      {business.signingAuthorityTitle && ` (${business.signingAuthorityTitle})`}
+                    </span>
+                  </div>
                 )}
               </div>
+                ) : (
+                  <p className="text-sm text-[var(--color-muted)]">No business information for this filing.</p>
+            )}
+          </div>
 
-              {/* Filing Details */}
+          {/* Filing Details */}
               <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <Calendar className="w-4 h-4 text-[var(--color-orange)]" />
-                  <h2 className="text-sm font-semibold text-[var(--color-text)]">Filing Details</h2>
-                </div>
+              <Calendar className="w-4 h-4 text-[var(--color-orange)]" />
+              <h2 className="text-sm font-semibold text-[var(--color-text)]">Filing Details</h2>
+            </div>
                 <div className="space-y-3 text-sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-[var(--color-muted)] min-w-[120px]">Filing Type:</span>
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-[var(--color-muted)] min-w-[120px]">Filing Type:</span>
                     <span className="text-[var(--color-text)] font-medium">
                       {filing.filingType === 'ucr' ? 'UCR Registration' : filing.filingType === 'amendment' && filing.amendmentType
                         ? (filing.amendmentType === 'vin_correction' ? 'VIN Correction Amendment' : filing.amendmentType === 'weight_increase' ? 'Weight Increase Amendment' : filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded Amendment' : 'Amendment')
                         : filing.filingType === 'refund' ? 'Refund (Form 8849)' : 'Standard Filing'}
-                    </span>
-                  </div>
+                </span>
+              </div>
                   {filing.filingType === 'ucr' ? (
                     <>
                       <div className="flex items-start justify-between gap-2">
@@ -698,34 +698,34 @@ export default function FilingDetailPage() {
                     </>
                   ) : (
                     <>
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="text-[var(--color-muted)] min-w-[120px]">Tax Year:</span>
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-[var(--color-muted)] min-w-[120px]">Tax Year:</span>
                         <span className="text-[var(--color-text)] font-medium">{filing.taxYear ?? '—'}</span>
-                      </div>
-                      {filing.filingType !== 'amendment' && (
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="text-[var(--color-muted)] min-w-[120px]">First Used:</span>
+              </div>
+              {filing.filingType !== 'amendment' && (
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[var(--color-muted)] min-w-[120px]">First Used:</span>
                           <span className="text-[var(--color-text)] font-medium">{filing.firstUsedMonth ?? '—'}</span>
-                        </div>
+                </div>
                       )}
                     </>
-                  )}
-                  {filing.createdAt && (
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-[var(--color-muted)] min-w-[120px]">Submitted:</span>
-                      <span className="text-[var(--color-text)]">
+              )}
+              {filing.createdAt && (
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[var(--color-muted)] min-w-[120px]">Submitted:</span>
+                  <span className="text-[var(--color-text)]">
                         {(filing.createdAt?.toDate?.() || filing.createdAt).toLocaleDateString?.('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) ?? '—'}
-                      </span>
-                    </div>
-                  )}
-                  {filing.updatedAt && (
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-[var(--color-muted)] min-w-[120px]">Last Updated:</span>
-                      <span className="text-[var(--color-text)]">
+                  </span>
+                </div>
+              )}
+              {filing.updatedAt && (
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[var(--color-muted)] min-w-[120px]">Last Updated:</span>
+                  <span className="text-[var(--color-text)]">
                         {(filing.updatedAt?.toDate?.() || filing.updatedAt).toLocaleDateString?.('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) ?? '—'}
-                      </span>
-                    </div>
-                  )}
+                  </span>
+                </div>
+              )}
                   {/* Payment Summary for VIN Corrections - Integrated */}
                   {filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction' && (
                     <>
@@ -733,7 +733,7 @@ export default function FilingDetailPage() {
                         <div className="flex items-start justify-between gap-2">
                           <span className="text-[var(--color-muted)] min-w-[120px]">IRS Tax:</span>
                           <span className="font-bold text-[var(--color-text)]">$0.00</span>
-                        </div>
+            </div>
                         <div className="flex items-start justify-between gap-2">
                           <span className="text-[var(--color-muted)] min-w-[120px]">Service Fee:</span>
                           <span className="font-bold text-[var(--color-orange)]">
@@ -759,121 +759,121 @@ export default function FilingDetailPage() {
                     </>
                   )}
                 </div>
-              </div>
+          </div>
+        </div>
+
+        {/* Amendment Details Section (if amendment) */}
+        {filing.filingType === 'amendment' && filing.amendmentType && (
+          <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
+            <div className="flex items-center gap-2 mb-3">
+              {filing.amendmentType === 'vin_correction' && '📝'}
+              {filing.amendmentType === 'weight_increase' && '⚖️'}
+              {filing.amendmentType === 'mileage_exceeded' && '🛣️'}
+              <h2 className="text-sm font-semibold text-[var(--color-text)]">
+                Amendment Details
+              </h2>
             </div>
 
-            {/* Amendment Details Section (if amendment) */}
-            {filing.filingType === 'amendment' && filing.amendmentType && (
-              <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  {filing.amendmentType === 'vin_correction' && '📝'}
-                  {filing.amendmentType === 'weight_increase' && '⚖️'}
-                  {filing.amendmentType === 'mileage_exceeded' && '🛣️'}
-                  <h2 className="text-sm font-semibold text-[var(--color-text)]">
-                    Amendment Details
-                  </h2>
+            {filing.amendmentType === 'vin_correction' && (
+              <div className="space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="bg-red-50 border border-red-200 rounded p-3">
+                    <div className="text-xs text-red-600 mb-1">Original VIN (Incorrect)</div>
+                    <div className="font-mono font-bold text-red-700 line-through">
+                      {filing.amendmentDetails?.vinCorrection?.originalVIN || 'N/A'}
+                    </div>
+                  </div>
+                  <div className="bg-green-50 border border-green-200 rounded p-3">
+                    <div className="text-xs text-green-600 mb-1">Corrected VIN</div>
+                    <div className="font-mono font-bold text-green-700">
+                      {filing.amendmentDetails?.vinCorrection?.correctedVIN || 'N/A'}
+                    </div>
+                  </div>
                 </div>
-
-                {filing.amendmentType === 'vin_correction' && (
-                  <div className="space-y-3">
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      <div className="bg-red-50 border border-red-200 rounded p-3">
-                        <div className="text-xs text-red-600 mb-1">Original VIN (Incorrect)</div>
-                        <div className="font-mono font-bold text-red-700 line-through">
-                          {filing.amendmentDetails?.vinCorrection?.originalVIN || 'N/A'}
-                        </div>
-                      </div>
-                      <div className="bg-green-50 border border-green-200 rounded p-3">
-                        <div className="text-xs text-green-600 mb-1">Corrected VIN</div>
-                        <div className="font-mono font-bold text-green-700">
-                          {filing.amendmentDetails?.vinCorrection?.correctedVIN || 'N/A'}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-blue-700">
-                      ✓ VIN correction completed - No additional tax was due
-                    </div>
-                  </div>
-                )}
-
-                {filing.amendmentType === 'weight_increase' && (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-3 gap-3 items-center">
-                      <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
-                        <div className="text-xs text-gray-600 mb-1">Original Category</div>
-                        <div className="text-xl font-bold text-gray-700">
-                          {filing.amendmentDetails?.weightIncrease?.originalWeightCategory || 'N/A'}
-                        </div>
-                      </div>
-                      <div className="text-center text-2xl text-orange-600">→</div>
-                      <div className="bg-orange-50 border border-orange-200 rounded p-3 text-center">
-                        <div className="text-xs text-orange-600 mb-1">New Category</div>
-                        <div className="text-xl font-bold text-orange-700">
-                          {filing.amendmentDetails?.weightIncrease?.newWeightCategory || 'N/A'}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="grid sm:grid-cols-2 gap-3 text-xs">
-                      <div>
-                        <span className="text-[var(--color-muted)]">Month of Increase:</span>
-                        <span className="font-medium ml-2">{filing.amendmentDetails?.weightIncrease?.increaseMonth || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="text-[var(--color-muted)]">Additional Tax Paid:</span>
-                        <span className="font-bold text-orange-600 ml-2">
-                          ${filing.amendmentDetails?.weightIncrease?.additionalTaxDue?.toFixed(2) || '0.00'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {filing.amendmentType === 'mileage_exceeded' && (
-                  <div className="space-y-3">
-                    <div className="grid sm:grid-cols-2 gap-3 text-xs">
-                      <div>
-                        <span className="text-[var(--color-muted)]">Vehicle Type:</span>
-                        <span className="font-medium ml-2">
-                          {filing.amendmentDetails?.mileageExceeded?.isAgriculturalVehicle ? 'Agricultural' : 'Standard'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-[var(--color-muted)]">Mileage Limit:</span>
-                        <span className="font-medium ml-2">
-                          {filing.amendmentDetails?.mileageExceeded?.originalMileageLimit?.toLocaleString() || 'N/A'} miles
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-[var(--color-muted)]">Actual Mileage:</span>
-                        <span className="font-bold text-purple-600 ml-2">
-                          {filing.amendmentDetails?.mileageExceeded?.actualMileageUsed?.toLocaleString() || 'N/A'} miles
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-[var(--color-muted)]">Month Exceeded:</span>
-                        <span className="font-medium ml-2">{filing.amendmentDetails?.mileageExceeded?.exceededMonth || 'N/A'}</span>
-                      </div>
-                    </div>
-                    <div className="bg-purple-50 border border-purple-200 rounded p-2 text-xs text-purple-700">
-                      ℹ️ Full HVUT tax was calculated and paid for this vehicle
-                    </div>
-                  </div>
-                )}
+                <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-blue-700">
+                  ✓ VIN correction completed - No additional tax was due
+                </div>
               </div>
             )}
+
+            {filing.amendmentType === 'weight_increase' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-3 items-center">
+                  <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
+                    <div className="text-xs text-gray-600 mb-1">Original Category</div>
+                    <div className="text-xl font-bold text-gray-700">
+                      {filing.amendmentDetails?.weightIncrease?.originalWeightCategory || 'N/A'}
+                    </div>
+                  </div>
+                  <div className="text-center text-2xl text-orange-600">→</div>
+                  <div className="bg-orange-50 border border-orange-200 rounded p-3 text-center">
+                    <div className="text-xs text-orange-600 mb-1">New Category</div>
+                    <div className="text-xl font-bold text-orange-700">
+                      {filing.amendmentDetails?.weightIncrease?.newWeightCategory || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-[var(--color-muted)]">Month of Increase:</span>
+                    <span className="font-medium ml-2">{filing.amendmentDetails?.weightIncrease?.increaseMonth || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[var(--color-muted)]">Additional Tax Paid:</span>
+                    <span className="font-bold text-orange-600 ml-2">
+                      ${filing.amendmentDetails?.weightIncrease?.additionalTaxDue?.toFixed(2) || '0.00'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {filing.amendmentType === 'mileage_exceeded' && (
+              <div className="space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-[var(--color-muted)]">Vehicle Type:</span>
+                    <span className="font-medium ml-2">
+                      {filing.amendmentDetails?.mileageExceeded?.isAgriculturalVehicle ? 'Agricultural' : 'Standard'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[var(--color-muted)]">Mileage Limit:</span>
+                    <span className="font-medium ml-2">
+                      {filing.amendmentDetails?.mileageExceeded?.originalMileageLimit?.toLocaleString() || 'N/A'} miles
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[var(--color-muted)]">Actual Mileage:</span>
+                    <span className="font-bold text-purple-600 ml-2">
+                      {filing.amendmentDetails?.mileageExceeded?.actualMileageUsed?.toLocaleString() || 'N/A'} miles
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[var(--color-muted)]">Month Exceeded:</span>
+                    <span className="font-medium ml-2">{filing.amendmentDetails?.mileageExceeded?.exceededMonth || 'N/A'}</span>
+                  </div>
+                </div>
+                <div className="bg-purple-50 border border-purple-200 rounded p-2 text-xs text-purple-700">
+                  ℹ️ Full HVUT tax was calculated and paid for this vehicle
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
             {/* Vehicles / Fleet (UCR uses power units) */}
             <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Truck className="w-4 h-4 text-[var(--color-orange)]" />
-                <h2 className="text-sm font-semibold text-[var(--color-text)]">
+            <Truck className="w-4 h-4 text-[var(--color-orange)]" />
+            <h2 className="text-sm font-semibold text-[var(--color-text)]">
                   {filing.filingType === 'ucr'
                     ? 'Fleet / Power Units'
                     : filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction'
-                      ? 'VIN Information'
-                      : `Vehicles (${vehicles.length})`}
-                </h2>
-              </div>
+                ? 'VIN Information'
+                : `Vehicles (${vehicles.length})`}
+            </h2>
+          </div>
 
               {filing.filingType === 'ucr' ? (
                 <div className="space-y-3 text-sm">
@@ -889,78 +889,78 @@ export default function FilingDetailPage() {
                   )}
                 </div>
               ) : filing.filingType === 'amendment' && filing.amendmentType === 'vin_correction' ? (
-                // For VIN corrections, show VINs from amendment details
-                <div className="grid sm:grid-cols-2 gap-2.5">
-                  <div className="bg-red-50 border border-red-200 rounded p-3">
-                    <div className="text-xs text-red-600 mb-1">Original VIN (Incorrect)</div>
-                    <div className="font-mono font-bold text-red-700 line-through">
-                      {filing.amendmentDetails?.vinCorrection?.originalVIN || 'N/A'}
-                    </div>
-                  </div>
-                  <div className="bg-green-50 border border-green-200 rounded p-3">
-                    <div className="text-xs text-green-600 mb-1">Corrected VIN</div>
-                    <div className="font-mono font-bold text-green-700">
-                      {filing.amendmentDetails?.vinCorrection?.correctedVIN || 'N/A'}
-                    </div>
-                  </div>
+            // For VIN corrections, show VINs from amendment details
+            <div className="grid sm:grid-cols-2 gap-2.5">
+              <div className="bg-red-50 border border-red-200 rounded p-3">
+                <div className="text-xs text-red-600 mb-1">Original VIN (Incorrect)</div>
+                <div className="font-mono font-bold text-red-700 line-through">
+                  {filing.amendmentDetails?.vinCorrection?.originalVIN || 'N/A'}
                 </div>
-              ) : vehicles.length > 0 ? (
-                <div className="grid sm:grid-cols-2 gap-2.5">
-                  {vehicles.map((vehicle) => (
-                    <div
-                      key={vehicle.id}
-                      className="bg-[var(--color-page-alt)] rounded border border-[var(--color-border)] p-3"
-                    >
-                      <div className="space-y-1.5 text-xs">
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="text-[var(--color-muted)] min-w-[80px]">VIN:</span>
-                          <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                            <span className="text-[var(--color-text)] font-medium font-mono truncate">{vehicle.vin}</span>
-                            <button
-                              onClick={() => handleCopy(vehicle.vin, `vin-${vehicle.id}`)}
-                              className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)] transition"
-                              title="Copy VIN"
-                            >
-                              {copied === `vin-${vehicle.id}` ? (
-                                <Check className="w-3 h-3" />
-                              ) : (
-                                <Copy className="w-3 h-3" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
+              </div>
+              <div className="bg-green-50 border border-green-200 rounded p-3">
+                <div className="text-xs text-green-600 mb-1">Corrected VIN</div>
+                <div className="font-mono font-bold text-green-700">
+                  {filing.amendmentDetails?.vinCorrection?.correctedVIN || 'N/A'}
+                </div>
+              </div>
+            </div>
+          ) : vehicles.length > 0 ? (
+            <div className="grid sm:grid-cols-2 gap-2.5">
+              {vehicles.map((vehicle) => (
+                <div
+                  key={vehicle.id}
+                  className="bg-[var(--color-page-alt)] rounded border border-[var(--color-border)] p-3"
+                >
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[var(--color-muted)] min-w-[80px]">VIN:</span>
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        <span className="text-[var(--color-text)] font-medium font-mono truncate">{vehicle.vin}</span>
+                        <button
+                          onClick={() => handleCopy(vehicle.vin, `vin-${vehicle.id}`)}
+                          className="flex-shrink-0 text-[var(--color-muted)] hover:text-[var(--color-orange)] transition"
+                          title="Copy VIN"
+                        >
+                          {copied === `vin-${vehicle.id}` ? (
+                            <Check className="w-3 h-3" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-[var(--color-muted)]">Weight:</span>
                           <span className="font-semibold text-[var(--color-text)]">{vehicle.grossWeightCategory}</span>
-                        </div>
-                        {vehicle.isSuspended && (
+                    </div>
+                    {vehicle.isSuspended && (
                           <div className="flex items-center gap-1 pt-1 border-t border-[var(--color-border)]">
-                            <AlertCircle className="w-3 h-3 text-orange-600" />
+                        <AlertCircle className="w-3 h-3 text-orange-600" />
                             <span className="text-xs font-semibold text-orange-600">Suspended</span>
-                          </div>
-                        )}
+                      </div>
+                    )}
                         {/* Show amendment-specific info */}
-                        {filing.filingType === 'amendment' && filing.amendmentType === 'weight_increase' &&
-                          filing.amendmentDetails?.weightIncrease?.vehicleId === vehicle.id && (
+                    {filing.filingType === 'amendment' && filing.amendmentType === 'weight_increase' &&
+                      filing.amendmentDetails?.weightIncrease?.vehicleId === vehicle.id && (
                             <div className="pt-1.5 mt-1.5 border-t border-[var(--color-border)] bg-orange-50 rounded p-2 text-xs">
                               <span className="font-semibold text-orange-700">
                                 {filing.amendmentDetails.weightIncrease.originalWeightCategory} → {filing.amendmentDetails.weightIncrease.newWeightCategory}
                               </span>
-                            </div>
-                          )}
-                        {filing.filingType === 'amendment' && filing.amendmentType === 'mileage_exceeded' &&
-                          filing.amendmentDetails?.mileageExceeded?.vehicleId === vehicle.id && (
+                        </div>
+                      )}
+                    {filing.filingType === 'amendment' && filing.amendmentType === 'mileage_exceeded' &&
+                      filing.amendmentDetails?.mileageExceeded?.vehicleId === vehicle.id && (
                             <div className="pt-1.5 mt-1.5 border-t border-[var(--color-border)] bg-purple-50 rounded p-2 text-xs">
                               <span className="font-semibold text-purple-700">
                                 {filing.amendmentDetails.mileageExceeded.actualMileageUsed?.toLocaleString()} mi (Exceeded)
                               </span>
-                            </div>
-                          )}
-                      </div>
-                    </div>
-                  ))}
+                        </div>
+                      )}
+                  </div>
                 </div>
-              ) : (
+              ))}
+            </div>
+          ) : (
                 <div className="text-sm text-[var(--color-muted)] italic">No vehicles</div>
               )}
             </div>
@@ -986,8 +986,8 @@ export default function FilingDetailPage() {
                   />
                   {isUcrCertificateLocked && (
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/35 to-white/95 backdrop-blur-[2px]" />
-                  )}
-                </div>
+          )}
+        </div>
 
                 <div className="mt-3">
                   {isUcrCertificateLocked ? (
@@ -1021,33 +1021,33 @@ export default function FilingDetailPage() {
             )}
 
             {/* Documents */}
-            {filing.inputDocuments && filing.inputDocuments.length > 0 && (
+        {filing.inputDocuments && filing.inputDocuments.length > 0 && (
               <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-4">
-                <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-3">
                   <FileText className="w-4 h-4 text-amber-600" />
                   <h2 className="text-sm font-bold text-slate-900">Documents ({filing.inputDocuments.length})</h2>
-                </div>
+            </div>
                 <div className="grid sm:grid-cols-2 gap-2">
-                  {filing.inputDocuments.map((url, index) => (
-                    <a
-                      key={index}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+              {filing.inputDocuments.map((url, index) => (
+                <a
+                  key={index}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                       className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition text-xs"
                     >
                       <FileText className="w-3.5 h-3.5 text-slate-600" />
                       <span className="font-medium text-slate-900 flex-1">Document {index + 1}</span>
                       <Download className="w-3.5 h-3.5 text-slate-400" />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
             {unlockError && (
               <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">
                 {unlockError}
-              </div>
+      </div>
             )}
           </div>
 

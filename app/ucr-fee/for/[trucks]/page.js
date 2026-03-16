@@ -21,12 +21,12 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }) {
   const n = parseTrucksParam(params.trucks);
-  if (!n) return { title: 'UCR Fee | QuickTruckTax' };
+  if (!n) return { title: 'UCR Fee | easyucr.com' };
   const { fee } = getUcrFee(n, 'carrier');
   return {
-    title: `UCR Fee for ${n} Truck${n === 1 ? '' : 's'} – ${UCR_REGISTRATION_YEAR} Registration | QuickTruckTax`,
+    title: `UCR Fee for ${n} Truck${n === 1 ? '' : 's'} – ${UCR_REGISTRATION_YEAR} Registration | easyucr.com`,
     description: `UCR fee for ${n} power unit${n === 1 ? '' : 's'}: $${fee.toLocaleString()} (${UCR_REGISTRATION_YEAR}). See bracket, total with filing service. Start your UCR filing.`,
-    alternates: { canonical: `https://www.quicktrucktax.com/ucr-fee/for/${n === 1 ? '1-truck' : n + '-trucks'}` },
+    alternates: { canonical: `https://www.easyucr.com/ucr-fee/for/${n === 1 ? '1-truck' : n + '-trucks'}` },
   };
 }
 

@@ -5,7 +5,7 @@
 
 // Import strategy
 const { generateAllPages } = require('./generate-1000-pages-strategy');
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.quicktrucktax.com';
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.easyucr.com';
 
 // Configuration
 const BATCH_SIZE = 10; // Generate 10 pages per batch

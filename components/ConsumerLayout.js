@@ -55,7 +55,7 @@ export function ConsumerLayout({ children }) {
               onClick={toggleFooter}
               className="w-full flex items-center justify-between text-sm text-white/70 hover:text-white transition"
             >
-              <span>&copy; {new Date().getFullYear()} QuickTruckTax, All Rights Reserved.</span>
+              <span>&copy; {new Date().getFullYear()} easyucr.com, All Rights Reserved.</span>
               <ChevronUp className="h-4 w-4" />
             </button>
           </div>
@@ -77,9 +77,9 @@ export function ConsumerLayout({ children }) {
             )}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-8">
               <div>
-                <h3 className="font-semibold mb-4">QuickTruckTax</h3>
+                <h3 className="font-semibold mb-4">easyucr.com</h3>
                 <p className="text-sm text-white/70">
-                  Form 2290 and trucking compliance guides and resources.
+                  UCR filing and trucking compliance guides and resources.
                 </p>
               </div>
               <div>
@@ -93,8 +93,8 @@ export function ConsumerLayout({ children }) {
               <div>
                 <h3 className="font-semibold mb-4">Resources</h3>
                 <ul className="space-y-2 text-sm text-white/70">
-                  <li><Link href="/insights/trucking-compliance-calendar" className="hover:text-white transition">Compliance Calendar</Link></li>
-                  <li><Link href="/insights/form-2290-checklist-download" className="hover:text-white transition">Form 2290 Checklist</Link></li>
+                  <li><Link href="/insights/ucr-registration-opens-october-1" className="hover:text-white transition">UCR Calendar</Link></li>
+                  <li><Link href="/insights/ucr-renewal-guide" className="hover:text-white transition">UCR Renewal Guide</Link></li>
                   <li><Link href="/tools/ucr-calculator" className="hover:text-white transition">UCR Calculator</Link></li>
                 </ul>
               </div>
@@ -109,17 +109,17 @@ export function ConsumerLayout({ children }) {
               <div>
                 <h3 className="font-semibold mb-4">Contact</h3>
                 <ul className="space-y-2 text-sm text-white/70">
-                  <li><a href="mailto:support@quicktrucktax.com" className="hover:text-white transition">support@quicktrucktax.com</a></li>
+                  <li><a href="mailto:support@vendaxsystemlabs.com" className="hover:text-white transition">support@vendaxsystemlabs.com</a></li>
                   <li><a href="tel:+13478018631" className="hover:text-white transition">+1 (347) 801-8631</a></li>
                 </ul>
               </div>
             </div>
             <div className="border-t border-white/10 mt-12 pt-8 space-y-6">
               <div className="text-xs text-white/60 leading-relaxed space-y-2 text-center max-w-3xl mx-auto">
-                <p>The information and images on this website are the property of QuickTruckTax and may not be reproduced, reused, or appropriated without the express written consent of the owner.</p>
-                <p>QuickTruckTax is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement. We are not a government agency and are not affiliated with any government authority such as the UCR Board, IRS, USDOT, or FMCSA.</p>
+                <p>The information and images on this website are the property of easyucr.com and may not be reproduced, reused, or appropriated without the express written consent of the owner.</p>
+                <p>easyucr.com is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement. We are not a government agency and are not affiliated with any government authority such as the UCR Board, IRS, USDOT, or FMCSA.</p>
               </div>
-              <p className="text-center text-sm text-white/50">&copy; 2026 QuickTruckTax, All Rights Reserved.</p>
+              <p className="text-center text-sm text-white/50">&copy; 2026 easyucr.com, All Rights Reserved.</p>
             </div>
           </div>
         )}

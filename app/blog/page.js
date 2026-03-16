@@ -72,7 +72,7 @@ export default function BlogPage() {
               Insights for the <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-sky)] to-white">Trucking Industry</span>
             </h1>
             <p className="text-lg md:text-xl text-slate-300 mb-8 leading-relaxed">
-              Your comprehensive resource for IRS Form 2290 filing, UCR registration, HVUT compliance, and trucking tax strategies.
+              Your comprehensive resource for UCR registration and trucking compliance.
               Stay ahead with expert guides and real-time regulatory updates.
             </p>
 
@@ -362,15 +362,14 @@ export default function BlogPage() {
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">Ready for <span className="text-white border-b-2 border-[var(--color-sky)]">2026 Filing?</span></h2>
           <p className="text-lg text-slate-300 mb-8 max-w-xl mx-auto font-medium">
-            Join the most trusted platform for heavy vehicle tax filing. Accurate, fast, and IRS-authorized.
+            Join the most trusted platform for UCR filing. Accurate, fast, and compliant.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="https://www.expresstrucktax.com"
-              target="_blank"
+              href="/ucr/file"
               className="w-full sm:w-auto px-8 py-3.5 bg-[var(--color-orange)] !text-white rounded-xl font-medium uppercase tracking-widest text-xs hover:bg-[var(--color-orange)]/90 transition-all shadow-xl shadow-orange-500/20"
             >
-              Start Your 2290 Now
+              Start UCR Filing Now
             </Link>
             <Link
               href="/tools"

@@ -62,7 +62,7 @@ function PaymentSuccessContent() {
                             <div>
                                 <h2 className="text-4xl font-black text-slate-900 tracking-tighter mb-4">Payment Verified!</h2>
                                 <p className="text-slate-500 font-medium leading-relaxed">
-                                    Your transaction was successful. Your Form 2290 filing is now being processed by our compliance team.
+                                    Your transaction was successful. Your UCR filing is now being processed by our compliance team.
                                 </p>
                             </div>
 
@@ -97,7 +97,7 @@ function PaymentSuccessContent() {
                             </div>
                             <div className="pt-6">
                                 <Link
-                                    href="/dashboard/new-filing"
+                                    href="/ucr/file"
                                     className="w-full inline-flex items-center justify-center gap-3 px-10 py-4.5 bg-[#ff8b3d] text-white !text-white rounded-2xl font-black hover:bg-[#f07a2d] transition-all hover:shadow-xl hover:shadow-orange-500/20"
                                 >
                                     Try Secure Checkout Again

@@ -42,7 +42,7 @@ export default function ComplianceAlertSignup() {
                 phone: formData.phone || null,
                 submittedAt: serverTimestamp(),
                 source: 'compliance_calendar_signup',
-                alertTypes: ['hvut', 'ifta', 'ucr', 'mcs150']
+                alertTypes: ['ucr']
             });
             setStatus('success');
         } catch (error) {
@@ -60,7 +60,7 @@ export default function ComplianceAlertSignup() {
                 </div>
                 <h2 className="text-xl font-bold text-green-800 mb-2">You're all set!</h2>
                 <p className="text-green-700 text-sm">
-                    We'll send you deadline reminders for Form 2290, IFTA, UCR, and MCS-150 updates.
+                    We'll send you UCR deadline reminders.
                 </p>
             </aside>
         );
@@ -76,7 +76,7 @@ export default function ComplianceAlertSignup() {
             </div>
 
             <p className="text-sm text-[var(--color-muted)] mb-6">
-                Get free email and SMS reminders before your HVUT, IFTA, UCR, and MCS-150 deadlines. No spam, just timely alerts.
+                Get free email and SMS reminders before your UCR deadline. No spam, just timely alerts.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">

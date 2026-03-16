@@ -25,13 +25,13 @@ export async function generateMetadata({ params }) {
     description: guide.description,
     keywords: guide.keywords,
     alternates: {
-      canonical: `https://www.quicktrucktax.com/insights/${guide.slug}`,
+      canonical: `https://www.easyucr.com/insights/${guide.slug}`,
     },
     openGraph: {
       title: guide.title,
       description: guide.description,
       type: "article",
-      url: `https://www.quicktrucktax.com/insights/${guide.slug}`,
+      url: `https://www.easyucr.com/insights/${guide.slug}`,
       section: guide.category,
       tags: guide.keywords,
     },
@@ -55,17 +55,17 @@ export default async function GuidePage({ params }) {
     datePublished: guide.updatedAt,
     author: {
       "@type": "Organization",
-      name: "QuickTruckTax",
+      name: "easyucr.com",
     },
     publisher: {
       "@type": "Organization",
-      name: "QuickTruckTax",
+      name: "easyucr.com",
       logo: {
         "@type": "ImageObject",
-        url: "https://www.quicktrucktax.com/favicon.ico",
+        url: "https://www.easyucr.com/favicon.ico",
       },
     },
-    mainEntityOfPage: `https://www.quicktrucktax.com/insights/${guide.slug}`,
+    mainEntityOfPage: `https://www.easyucr.com/insights/${guide.slug}`,
     about: guide.keywords,
   };
 
@@ -102,7 +102,7 @@ export default async function GuidePage({ params }) {
               {guide.category === "UCR" && (
                 <>
                   <span className="hidden sm:inline">•</span>
-                  <span>Reviewed by QuickTruckTax compliance team</span>
+                  <span>Reviewed by easyucr.com compliance team</span>
                 </>
               )}
             </div>
@@ -111,7 +111,7 @@ export default async function GuidePage({ params }) {
             <div className="absolute inset-0 rounded-3xl bg-[var(--color-orange)]/25 blur-3xl" />
             <Image
               src="/hero-truck.svg"
-              alt="QuickTruckTax compliance illustration"
+              alt="easyucr.com compliance illustration"
               fill
               className="relative rounded-3xl object-cover"
             />

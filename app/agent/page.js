@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { subscribeToAgentQueue } from '@/lib/db';
-import { getAmendmentTypeConfig } from '@/lib/amendmentHelpers';
 import {
   ShieldCheck,
   Bell,
@@ -26,7 +25,7 @@ export default function AgentQueuePage() {
   const { userData } = useAuth();
   const router = useRouter();
   const [filings, setFilings] = useState([]);
-  const [activeTab, setActiveTab] = useState('eforms');
+  const activeTab = 'ucr';
   const [loading, setLoading] = useState(true);
   const [alarm, setAlarm] = useState(null);
 
@@ -109,17 +108,7 @@ export default function AgentQueuePage() {
     }
   };
 
-  const filteredFilings = filings.filter(f => {
-    if (activeTab === 'mcs') {
-      // Show if standalone MCS filing OR has MCS upsell data
-      // And ensure it is not fully completed
-      const isMcsRequest = f.filingType === 'mcs150' || (f.mcs150Status && f.mcs150Status !== 'completed');
-      return isMcsRequest && f.mcs150Status !== 'completed';
-    } else {
-      // E-Forms: Show everything NOT standalone MCS-150
-      return f.filingType !== 'mcs150';
-    }
-  });
+  const filteredFilings = filings.filter(f => f.filingType === 'ucr');
 
   return (
     <ProtectedRoute requiredRole="agent">
@@ -137,36 +126,15 @@ export default function AgentQueuePage() {
             Active Queue
           </h1>
           <p className="text-sm text-[var(--color-muted)]">
-            Manage Form 2290 filing requests
+            Manage UCR filing requests
           </p>
         </div>
 
-        {/* Tabs */}
         <div className="flex border-b border-[var(--color-border)] mb-6">
-          <button
-            onClick={() => setActiveTab('eforms')}
-            className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'eforms'
-              ? 'border-[var(--color-navy)] text-[var(--color-navy)]'
-              : 'border-transparent text-[var(--color-muted)] hover:text-[var(--color-text)]'
-              }`}
-          >
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              E-Form Requests
-            </div>
-          </button>
-          <button
-            onClick={() => setActiveTab('mcs')}
-            className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'mcs'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-[var(--color-muted)] hover:text-[var(--color-text)]'
-              }`}
-          >
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4" />
-              MCS Requests
-            </div>
-          </button>
+          <div className="px-6 py-3 text-sm font-medium border-b-2 border-[var(--color-navy)] text-[var(--color-navy)] flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            UCR Filings
+          </div>
         </div>
 
         {/* Alarm Notification */}
@@ -203,10 +171,10 @@ export default function AgentQueuePage() {
               <FileText className="w-8 h-8 text-[var(--color-muted)]" />
             </div>
             <h2 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)] mb-2">
-              No {activeTab === 'mcs' ? 'MCS requests' : 'filings'} in queue
+              No UCR filings in queue
             </h2>
             <p className="text-sm text-[var(--color-muted)]">
-              All {activeTab === 'mcs' ? 'requests' : 'filings'} have been processed.
+              All filings have been processed.
             </p>
           </div>
         ) : (
@@ -225,7 +193,7 @@ export default function AgentQueuePage() {
                       Type
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-[var(--color-text)] uppercase tracking-wider">
-                      {activeTab === 'mcs' ? 'Details' : 'Vehicles'}
+                      Vehicles
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-[var(--color-text)] uppercase tracking-wider">
                       Status
@@ -240,19 +208,9 @@ export default function AgentQueuePage() {
                 </thead>
                 <tbody className="divide-y divide-[var(--color-border)]">
                   {filteredFilings.map((filing) => {
-                    const statusConfig = activeTab === 'mcs'
-                      ? (filing.mcs150Status === 'submitted' ? { label: 'New Request', icon: AlertCircle, bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' } : getStatusConfig(filing.mcs150Status))
-                      : getStatusConfig(filing.status);
+                    const statusConfig = getStatusConfig(filing.status);
                     const StatusIcon = statusConfig.icon;
-
-                    // Get filing type config
-                    const filingTypeConfig = activeTab === 'mcs'
-                      ? { label: 'MCS-150', shortLabel: 'MCS', icon: <ShieldCheck className="w-3 h-3" />, color: 'blue' }
-                      : (filing.filingType === 'amendment' && filing.amendmentType
-                        ? getAmendmentTypeConfig(filing.amendmentType)
-                        : filing.filingType === 'refund'
-                          ? { label: 'Refund', shortLabel: 'Refund', icon: '💰', color: 'green' }
-                          : { label: 'Standard', shortLabel: 'Standard', icon: '✓', color: 'blue' });
+                    const filingTypeConfig = { label: 'UCR', shortLabel: 'UCR', icon: <ShieldCheck className="w-3 h-3" />, color: 'teal' };
 
                     return (
                       <tr key={filing.id} className="hover:bg-[var(--color-page-alt)] transition">

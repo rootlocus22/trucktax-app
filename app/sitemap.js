@@ -4,35 +4,31 @@ import usStates from '@/data/us-states.json';
 import { getPseoRoutes } from "@/lib/pseo/data";
 import { errorCodes } from "@/lib/error-codes";
 import { UCR_STATE_SLUGS, UCR_FLEET_SIZES, UCR_OPERATOR_TYPES } from "@/lib/ucr-seo-data";
+import { UCR_STATES } from "@/lib/states";
 
-const baseUrl = "https://www.quicktrucktax.com";
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.easyucr.com";
 
 /**
- * Sitemap configuration for QuickTruckTax
+ * Sitemap configuration for easyucr.com
  * Generates sitemap.xml for all pages, blogs, and guides
  * Updated: 2026-01-03 (SEO Expansion)
  */
 export default function sitemap() {
   const now = new Date().toISOString();
 
-  // Core & Service Hub pages
+  // Core & Service Hub pages (UCR only)
   const coreRoutes = [
     { path: "", priority: 1.0, changeFrequency: "daily" },
-    { path: "/services/form-2290-filing", priority: 0.8, changeFrequency: "weekly" },
-    { path: "/services/vin-correction", priority: 1.0, changeFrequency: "weekly" },
-    { path: "/services/suspended-vehicle", priority: 0.9, changeFrequency: "weekly" },
-    { path: "/services/agricultural-logging", priority: 0.9, changeFrequency: "weekly" },
-    { path: "/services/mcs-150-update", priority: 0.9, changeFrequency: "weekly" },
-    { path: "/services/ucr-registration", priority: 0.9, changeFrequency: "weekly" },
-    { path: "/services/form-8849-refund", priority: 0.8, changeFrequency: "weekly" },
-    { path: "/services/ifta-irp", priority: 0.8, changeFrequency: "weekly" },
     { path: "/pricing", priority: 0.9, changeFrequency: "weekly" },
+    { path: "/how-it-works", priority: 0.9, changeFrequency: "monthly" },
+    { path: "/learn", priority: 0.9, changeFrequency: "weekly" },
+    { path: "/compare", priority: 0.9, changeFrequency: "weekly" },
+    { path: "/states", priority: 0.9, changeFrequency: "weekly" },
+    { path: "/services/ucr-registration", priority: 0.9, changeFrequency: "weekly" },
     { path: "/blog", priority: 0.9, changeFrequency: "daily" },
     { path: "/insights", priority: 0.9, changeFrequency: "weekly" },
     { path: "/tools", priority: 0.8, changeFrequency: "weekly" },
-    { path: "/tools/hvut-calculator", priority: 0.8, changeFrequency: "monthly" },
     { path: "/tools/ucr-calculator", priority: 0.9, changeFrequency: "monthly" },
-    { path: "/tools/ifta-calculator", priority: 0.8, changeFrequency: "monthly" },
     { path: "/ucr/file", priority: 0.95, changeFrequency: "weekly" },
     { path: "/ucr/guides", priority: 0.9, changeFrequency: "weekly" },
     { path: "/ucr/pricing", priority: 0.9, changeFrequency: "weekly" },
@@ -41,8 +37,6 @@ export default function sitemap() {
     { path: "/refund-policy", priority: 0.7, changeFrequency: "monthly" },
     { path: "/privacy-policy", priority: 0.7, changeFrequency: "monthly" },
     { path: "/error-codes", priority: 0.8, changeFrequency: "weekly" },
-    { path: "/comparisons", priority: 0.8, changeFrequency: "weekly" },
-    { path: "/comparisons/vs-express-truck-tax", priority: 0.8, changeFrequency: "monthly" },
   ].map(({ path, priority, changeFrequency }) => ({
     url: `${baseUrl}${path || "/"}`,
     lastModified: now,
@@ -114,8 +108,33 @@ export default function sitemap() {
     priority: 0.85,
   }));
 
+  // SEO Learn hub pages
+  const learnRoutes = [
+    '/learn/what-is-ucr', '/learn/ucr-fees-2026', '/learn/ucr-deadline-2026',
+    '/learn/ucr-vs-dot-number', '/learn/ucr-for-owner-operators', '/learn/ucr-for-brokers',
+    '/learn/ucr-for-freight-forwarders', '/learn/do-i-need-ucr', '/learn/late-ucr-filing',
+    '/learn/non-ucr-states',
+  ].map((path) => ({ url: `${baseUrl}${path}`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 }));
+
+  // SEO Compare pages
+  const compareRoutes = [
+    '/compare/easyucr-vs-jj-keller', '/compare/easyucr-vs-foley',
+    '/compare/cheapest-ucr-filing-service', '/compare/ucr-filing-no-upfront-fee',
+  ].map((path) => ({ url: `${baseUrl}${path}`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 }));
+
+  // SEO States pages (app/states/[state])
+  const statesRoutes = UCR_STATES.map((s) => ({
+    url: `${baseUrl}/states/${s.slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  }));
+
   return [
     ...coreRoutes,
+    ...learnRoutes,
+    ...compareRoutes,
+    ...statesRoutes,
     ...stateRoutes,
     ...ucrStateRoutes,
     ...ucrFleetRoutes,

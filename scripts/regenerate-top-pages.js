@@ -27,7 +27,7 @@ const topPages = [
   { slug: '2290-tax-for-58000-lb-truck-in-california', type: 'state-calculator', context: { state: 'California', weight: '58000' } },
 ];
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.quicktrucktax.com';
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.easyucr.com';
 
 async function regeneratePage(page, index, total) {
   const { slug, type, context } = page;

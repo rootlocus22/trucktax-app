@@ -115,27 +115,7 @@ export default function AgentWorkStationPage() {
     alert('Copied to clipboard!');
   };
 
-  const loadMcs150SubmissionPdf = async (submissionId) => {
-    try {
-      const idToken = await user?.getIdToken(true);
-      if (!idToken) return;
-
-      const response = await fetch(`/api/mcs150/get-submission?id=${submissionId}`, {
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.submission?.pdfUrl) {
-          setMcs150SubmissionPdfUrl(data.submission.pdfUrl);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading MCS-150 submission PDF:', error);
-    }
-  };
+  const loadMcs150SubmissionPdf = async () => { /* UCR-only: MCS-150 removed */ };
 
   const handleStatusChange = async (newStatus) => {
     setSaving(true);
@@ -242,7 +222,7 @@ export default function AgentWorkStationPage() {
       formData.append('file', ucrCertificateFile);
       formData.append('filingId', params.id);
       formData.append('type', 'ucr_certificate');
-      const res = await fetch('/api/upload-schedule1', {
+      const res = await fetch('/api/upload-ucr-certificate', {
         method: 'POST',
         headers: { Authorization: `Bearer ${idToken}` },
         body: formData,
@@ -298,7 +278,7 @@ export default function AgentWorkStationPage() {
       formData.append('filingId', params.id);
       formData.append('isFinal', 'true'); // Flag to indicate this is the final Schedule 1
 
-      const uploadResponse = await fetch('/api/upload-schedule1', {
+      const uploadResponse = await fetch('/api/upload-ucr-certificate', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -376,7 +356,7 @@ export default function AgentWorkStationPage() {
       formData.append('filingId', params.id);
       formData.append('type', 'mcs_confirmation');
 
-      const uploadResponse = await fetch('/api/upload-schedule1', {
+      const uploadResponse = await fetch('/api/upload-ucr-certificate', {
         // Re-using the schedule1 upload endpoint for now, or we'd create a new one. 
         // Assuming general document upload support or we'll just rename the param.
         // For now, let's assume we need to use a general upload or similar logic.

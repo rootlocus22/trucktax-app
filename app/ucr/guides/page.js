@@ -4,17 +4,17 @@ import GovernmentDisclaimer from '@/components/GovernmentDisclaimer';
 import { FileText, Calculator, ArrowRight, BookOpen, ShieldCheck, Lock, Award, ExternalLink } from 'lucide-react';
 
 export const metadata = {
-  title: 'UCR Filing Guides & Deadlines | QuickTruckTax',
+  title: 'UCR Filing Guides & Deadlines | easyucr.com',
   description:
     'Expert guides on Unified Carrier Registration: who must file, 2026 deadlines, fees, renewal, and how to file UCR online. File with $0 upfront.',
   alternates: {
-    canonical: 'https://www.quicktrucktax.com/ucr/guides',
+    canonical: 'https://www.easyucr.com/ucr/guides',
   },
   openGraph: {
-    title: 'UCR Filing Guides & Deadlines | QuickTruckTax',
+    title: 'UCR Filing Guides & Deadlines | easyucr.com',
     description:
       'Guides on UCR registration, deadlines, fees, and renewal. File UCR online with $0 upfront.',
-    url: 'https://www.quicktrucktax.com/ucr/guides',
+    url: 'https://www.easyucr.com/ucr/guides',
   },
 };
 
@@ -122,7 +122,7 @@ export default function UcrGuidesPage() {
           <div className="max-w-xl space-y-3">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Ready to secure your 2026 UCR?</h2>
             <p className="text-blue-100/80 text-lg leading-relaxed">
-              $0 upfront—pay only when your certificate is ready. Join over 10,000 carriers who trust QuickTruckTax.
+              $0 upfront—pay only when your certificate is ready. Join over 10,000 carriers who trust easyucr.com.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 shrink-0">
@@ -142,7 +142,7 @@ export default function UcrGuidesPage() {
           {[
             { label: 'UCR Pricing', href: '/ucr/pricing', icon: FileText },
             { label: 'Multiple Trucks', href: '/ucr/dispatcher', icon: BookOpen },
-            { label: 'Form 2290 Dates', href: '/resources/2290-due-date', icon: Calculator },
+            { label: 'UCR Deadline', href: '/learn/ucr-deadline-2026', icon: Calculator },
             { label: 'All Compliance', href: '/insights', icon: ArrowRight }
           ].map((item, idx) => (
             <Link

@@ -4,60 +4,37 @@ import { complianceGuides } from "@/lib/guides";
 import usStates from "@/data/us-states.json";
 
 export const metadata = {
-  title: "Trucking Compliance Guides | QuickTruckTax",
+  title: "UCR Guides | easyucr.com",
   description:
-    "Browse detailed guides for Form 2290, UCR, MCS-150, IFTA, and trucking administration tasks. Expert advice for owner-operators and fleet managers.",
+    "UCR filing guides, renewal deadlines, fee brackets, and compliance tips. Everything you need for Unified Carrier Registration.",
   alternates: {
-    canonical: "https://www.quicktrucktax.com/insights",
+    canonical: "https://www.easyucr.com/insights",
   },
   openGraph: {
-    title: "Trucking Compliance Guides | QuickTruckTax",
-    description:
-      "Browse detailed guides for Form 2290, UCR, MCS-150, IFTA, and trucking administration tasks.",
-    url: "https://www.quicktrucktax.com/insights",
-    siteName: "QuickTruckTax",
+    title: "UCR Guides | easyucr.com",
+    description: "UCR filing guides, renewal deadlines, fee brackets, and compliance tips.",
+    url: "https://www.easyucr.com/insights",
+    siteName: "easyucr.com",
     type: "website",
-    images: [
-      {
-        url: "https://www.quicktrucktax.com/quicktrucktax-logo-new.png",
-        width: 1280,
-        height: 720,
-        alt: "QuickTruckTax Compliance Guides",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Trucking Compliance Guides | QuickTruckTax",
-    description:
-      "Browse detailed guides for Form 2290, UCR, MCS-150, IFTA, and trucking administration tasks.",
-    images: ["https://www.quicktrucktax.com/quicktrucktax-logo-new.png"],
+    title: "UCR Guides | easyucr.com",
+    description: "UCR filing guides, renewal deadlines, fee brackets, and compliance tips.",
   },
 };
 
-const categoryOrder = [
-  "Form 2290 / HVUT",
-  "UCR",
-  "FMCSA / MCS-150",
-  "IFTA & Fuel Taxes",
-  "Business & Administration",
-  "Resources",
-];
+const categoryOrder = ["UCR"];
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
-  name: "Trucking Compliance Guides",
-  description:
-    "Browse detailed guides for Form 2290, UCR, MCS-150, IFTA, and trucking administration tasks.",
-  url: "https://www.quicktrucktax.com/insights",
+  name: "UCR Guides",
+  description: "UCR filing guides, renewal deadlines, fee brackets, and compliance tips.",
+  url: "https://www.easyucr.com/insights",
   publisher: {
     "@type": "Organization",
-    name: "QuickTruckTax",
-    logo: {
-      "@type": "ImageObject",
-      url: "https://www.quicktrucktax.com/quicktrucktax-logo-new.png",
-    },
+    name: "easyucr.com",
   },
 };
 
@@ -80,20 +57,20 @@ export default function InsightsIndex() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-10 lg:grid-cols-[1.6fr,1fr] lg:items-center">
           <div className="space-y-6">
             <span className="inline-flex rounded-full bg-white/10 backdrop-blur-md px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.3em] text-[var(--color-orange)] border border-white/10">
-              Compliance playbooks
+              UCR guides
             </span>
             <h1 className="text-3xl font-bold leading-[1.15] text-white sm:text-4xl lg:text-5xl xl:text-6xl">
-              Every filing explained—<span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20]">Form 2290, UCR, MCS-150, IFTA</span>, and more.
+              UCR filing guides—<span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20]">renewal, fees, deadlines</span>.
             </h1>
             <p className="text-lg leading-relaxed text-blue-100/90 max-w-2xl">
-              Explore the QuickTruckTax knowledge base to keep your fleet compliant. Each guide is updated for the 2025 season with practical checklists, timelines, and audit preparation tips.
+              Everything you need for Unified Carrier Registration. Updated for 2026 with fee brackets, deadlines, and step-by-step filing tips.
             </p>
             <div className="pt-4">
               <Link
-                href="/insights/trucking-compliance-calendar"
+                href="/ucr/file"
                 className="inline-flex items-center rounded-xl bg-[var(--color-orange)] px-8 py-4 text-base font-bold text-white shadow-lg transition hover:bg-[#ff7a20] hover:-translate-y-0.5"
               >
-                Download the Compliance Calendar
+                File UCR Now
               </Link>
             </div>
           </div>
@@ -136,13 +113,13 @@ export default function InsightsIndex() {
         <section className="rounded-3xl border border-slate-200 bg-white p-8 sm:p-12 shadow-sm">
           <div className="grid lg:grid-cols-2 gap-12 lg:items-start">
             <div className="space-y-6">
-              <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Comprehensive Compliance Knowledge Base</h2>
+              <h2 className="text-3xl font-bold text-slate-900 tracking-tight">UCR Knowledge Base</h2>
               <div className="space-y-4 text-base leading-relaxed text-slate-600">
                 <p>
-                  Our guides are written by compliance experts and updated annually to reflect the latest IRS regulations, FMCSA requirements, and state-specific rules.
+                  Our guides cover UCR renewal, fee brackets, deadlines, and who needs to file. Updated for 2026.
                 </p>
                 <p>
-                  Whether you're filing Form 2290 for the first time, renewing UCR registration, or managing IFTA quarterly returns, these guides break down each process into clear, manageable steps.
+                  Whether you're renewing UCR registration or filing for the first time, these guides break down each step clearly.
                 </p>
               </div>
             </div>
@@ -153,25 +130,25 @@ export default function InsightsIndex() {
                   Step-by-Step Instructions
                 </h3>
                 <p className="text-sm text-slate-500">
-                  Detailed workflows with screenshots, form examples, and deadline reminders.
+                  Clear workflows, fee brackets, and deadline reminders for UCR filing.
                 </p>
               </div>
               <div className="pt-6 group">
                 <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-orange)]" />
-                  2025-2026 Updated
+                  2026 Updated
                 </h3>
                 <p className="text-sm text-slate-500">
-                  Reflecting current tax rates and regulatory changes for the current year.
+                  Current UCR fee brackets and regulatory requirements.
                 </p>
               </div>
               <div className="pt-6 group">
                 <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-orange)]" />
-                  Audit-Ready Documentation
+                  Audit-Ready
                 </h3>
                 <p className="text-sm text-slate-500">
-                  Learn record-keeping requirements to stay DOT-audit prepared.
+                  Record-keeping requirements for UCR compliance.
                 </p>
               </div>
             </div>
@@ -211,9 +188,9 @@ export default function InsightsIndex() {
         {/* State Guides Directory */}
         <section className="space-y-8 pt-12 border-t border-slate-200">
           <div className="flex flex-col gap-4 text-center max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">State-Specific Filing Guides</h2>
+            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">UCR by State</h2>
             <p className="text-lg text-slate-600">
-              Find specific HVUT, IFTA, and registration rules for your base jurisdiction.
+              Find UCR filing info for your base state.
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">

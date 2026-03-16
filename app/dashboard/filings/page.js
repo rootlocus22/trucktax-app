@@ -100,20 +100,8 @@ export default function FilingsListPage() {
   };
 
   const getFilingTypeInfo = (filing) => {
-    if (filing.filingType === 'ucr') {
-      const year = filing.filingYear || new Date().getFullYear();
-      return { label: `UCR ${year}`, icon: ShieldCheck, image: null, color: 'text-teal-700', bg: 'bg-teal-50' };
-    }
-    if (filing.filingType === 'amendment') {
-      const type = filing.amendmentType === 'vin_correction' ? 'VIN Correction' :
-        filing.amendmentType === 'weight_increase' ? 'Weight Increase' :
-          filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded' : 'Amendment';
-      return { label: type, icon: null, image: '/assets/icons/amendment.png', color: 'text-purple-600', bg: 'bg-purple-50' };
-    }
-    if (filing.filingType === 'refund') {
-      return { label: 'Refund (8849)', icon: null, image: '/assets/icons/refund.png', color: 'text-green-600', bg: 'bg-green-50' };
-    }
-    return { label: 'Form 2290', icon: null, image: '/assets/icons/form2290.png', color: 'text-blue-600', bg: 'bg-blue-50' };
+    const year = filing.filingYear || filing.taxYear || new Date().getFullYear();
+    return { label: `UCR ${year}`, icon: ShieldCheck, image: null, color: 'text-teal-700', bg: 'bg-teal-50' };
   };
 
   const filteredFilings = filings.filter((filing) => {
@@ -388,8 +376,8 @@ export default function FilingsListPage() {
     const ucrPowerUnits = Number(filing.powerUnits || 0);
     const resumeUrl = filing.isDraft || filingStatus === 'draft' || filingStatus === 'pending_payment'
       ? filing.workflowType === 'upload'
-        ? `/dashboard/upload-schedule1?draft=${filing.draftId || filing.id}`
-        : `/dashboard/new-filing?draft=${filing.draftId || filing.id}`
+        ? `/ucr/file?draft=${filing.draftId || filing.id}`
+        : `/ucr/file`
       : `/dashboard/filings/${filing.id}`;
     return (
       <div key={filing.id || filing.draftId} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 relative overflow-hidden">

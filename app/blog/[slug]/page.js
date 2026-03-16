@@ -21,16 +21,16 @@ export async function generateMetadata({ params }) {
     };
   }
 
-  const baseUrl = 'https://www.quicktrucktax.com';
+  const baseUrl = 'https://www.easyucr.com';
   const blogUrl = `${baseUrl}/blog/${post.id}`;
 
   return {
     title: post.title,
     description: post.excerpt,
     keywords: post.keywords?.join(', '),
-    authors: [{ name: 'QuickTruckTax Team' }],
-    creator: 'QuickTruckTax',
-    publisher: 'QuickTruckTax',
+    authors: [{ name: 'easyucr.com Team' }],
+    creator: 'easyucr.com',
+    publisher: 'easyucr.com',
     alternates: {
       canonical: blogUrl,
     },
@@ -50,11 +50,11 @@ export async function generateMetadata({ params }) {
       title: post.title,
       description: post.excerpt,
       url: blogUrl,
-      siteName: 'QuickTruckTax',
+      siteName: 'easyucr.com',
       type: 'article',
       publishedTime: post.dateISO,
       modifiedTime: post.dateISO,
-      authors: ['QuickTruckTax Team'],
+      authors: ['easyucr.com Team'],
       section: post.category,
       tags: post.keywords,
       locale: 'en_US',
@@ -63,15 +63,15 @@ export async function generateMetadata({ params }) {
           url: post.image || `${baseUrl}/blog/blog-banner.webp`,
           width: 1200,
           height: 628,
-          alt: `${post.title} - QuickTruckTax`,
+          alt: `${post.title} - easyucr.com`,
           type: 'image/png',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      site: '@quicktrucktax',
-      creator: '@quicktrucktax',
+      site: '@easyucr',
+      creator: '@easyucr',
       title: post.title,
       description: post.excerpt,
       images: [post.image || `${baseUrl}/blog/blog-banner.webp`],
@@ -87,7 +87,7 @@ export default async function BlogPost({ params }) {
     notFound();
   }
 
-  const baseUrl = 'https://www.quicktrucktax.com';
+  const baseUrl = 'https://www.easyucr.com';
   const blogUrl = `${baseUrl}/blog/${post.id}`;
 
   // JSON-LD structured data for SEO
@@ -101,12 +101,12 @@ export default async function BlogPost({ params }) {
     dateModified: post.dateISO,
     author: {
       '@type': 'Organization',
-      name: 'QuickTruckTax',
+      name: 'easyucr.com',
       url: baseUrl,
     },
     publisher: {
       '@type': 'Organization',
-      name: 'QuickTruckTax',
+      name: 'easyucr.com',
       logo: {
         '@type': 'ImageObject',
         url: `${baseUrl}/quicktrucktax-logo.png`,
@@ -263,9 +263,9 @@ export default async function BlogPost({ params }) {
                   QT
                 </div>
                 <div className="flex-1 text-center md:text-left">
-                  <h4 className="text-xl font-bold text-[var(--color-midnight)] mb-2">Written by QuickTruckTax Compliance Team</h4>
+                  <h4 className="text-xl font-bold text-[var(--color-midnight)] mb-2">Written by easyucr.com Compliance Team</h4>
                   <p className="text-slate-500 text-sm leading-relaxed">
-                    Our team of industry experts and tax professionals works tirelessly to bring you the most accurate and up-to-date information regarding IRS Form 2290 and trucking compliance for the 2026 tax year.
+                    Our team of industry experts and compliance professionals works tirelessly to bring you the most accurate and up-to-date information regarding UCR registration and trucking compliance for the 2026 registration year.
                   </p>
                 </div>
               </div>
@@ -299,16 +299,15 @@ export default async function BlogPost({ params }) {
                 {/* Contextual CTA */}
                 <div className="bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-midnight)] rounded-2xl p-6 shadow-xl border border-white/5 text-white overflow-hidden relative group">
                   <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[var(--color-orange)]/20 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700"></div>
-                  <h3 className="text-xl font-bold mb-4 relative z-10 leading-tight">Fast 2290 Filing for 2026</h3>
+                  <h3 className="text-xl font-bold mb-4 relative z-10 leading-tight">Fast UCR Filing for 2026</h3>
                   <p className="text-slate-300 text-xs mb-6 relative z-10 leading-relaxed uppercase tracking-wider font-bold">
-                    Join 50,000+ drivers who trust us for instant Schedule 1.
+                    Join 50,000+ drivers who trust us for instant UCR confirmation.
                   </p>
                   <Link
-                    href="https://www.expresstrucktax.com"
-                    target="_blank"
+                    href="/ucr/file"
                     className="block w-full py-3 bg-[var(--color-orange)] text-white text-center rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-orange-500 transition-all shadow-lg shadow-orange-500/20 relative z-10"
                   >
-                    File Your 2290 Now
+                    File UCR Now
                   </Link>
                 </div>
 

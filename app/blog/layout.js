@@ -1,9 +1,9 @@
 export const metadata = {
-    title: 'Blog – UCR, Form 2290 & Compliance Guides',
-    description: 'UCR filing tips, Form 2290 guides, and trucking compliance. QuickTruckTax is primarily a UCR filing service; we also offer 2290, MCS-150, IFTA, compliance guides, due date calculators, and reminders.',
-    keywords: 'UCR blog, Form 2290 blog, HVUT guides, UCR filing tips, trucking compliance, Form 2290 deadline, e-file HVUT',
+    title: 'Blog – UCR & Trucking Compliance Guides',
+    description: 'UCR filing tips, renewal guides, and trucking compliance. easyucr.com is a UCR filing service.',
+    keywords: 'UCR blog, UCR filing tips, trucking compliance, UCR deadline, UCR renewal',
     alternates: {
-        canonical: 'https://www.quicktrucktax.com/blog',
+        canonical: 'https://www.easyucr.com/blog',
     },
     robots: {
         index: true,
@@ -18,29 +18,29 @@ export const metadata = {
         },
     },
     openGraph: {
-        title: 'Blog – UCR, Form 2290 & Compliance Guides',
-        description: 'UCR filing tips, Form 2290 guides, and trucking compliance. We\'re primarily a UCR filing service; we also offer 2290, MCS-150, IFTA, compliance guides, due date calculators, and reminders.',
-        url: 'https://www.quicktrucktax.com/blog',
-        siteName: 'QuickTruckTax',
+        title: 'Blog – UCR & Compliance Guides',
+        description: 'UCR filing tips and trucking compliance guides. We\'re a UCR filing service with compliance guides, due date calculators, and reminders.',
+        url: 'https://www.easyucr.com/blog',
+        siteName: 'easyucr.com',
         type: 'website',
         locale: 'en_US',
         images: [
             {
-                url: 'https://www.quicktrucktax.com/quicktrucktax-logo.png',
+                url: 'https://www.easyucr.com/quicktrucktax-logo.png',
                 width: 1280,
                 height: 720,
-                alt: 'QuickTruckTax Blog – UCR & Compliance Guides',
+                alt: 'easyucr.com Blog – UCR & Compliance Guides',
                 type: 'image/png',
             },
         ],
     },
     twitter: {
         card: 'summary_large_image',
-        site: '@quicktrucktax',
-        creator: '@quicktrucktax',
-        title: 'Blog – UCR, Form 2290 & Compliance Guides',
-        description: 'UCR filing tips, Form 2290 guides, and trucking compliance.',
-        images: ['https://www.quicktrucktax.com/quicktrucktax-logo.png'],
+        site: '@easyucr',
+        creator: '@easyucr',
+        title: 'Blog – UCR & Compliance Guides',
+        description: 'UCR filing tips and trucking compliance guides.',
+        images: ['https://www.easyucr.com/quicktrucktax-logo.png'],
     },
 };
 

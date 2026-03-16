@@ -28,7 +28,7 @@ const TO = process.argv[2] || 'mawbea04@yahoo.com';
 const LEGAL_NAME = process.argv[3] || 'G5 TRUCKING LLC';
 const REGISTRANT_NAME = process.argv[4] || 'Belinda Snyder';
 
-const BRAND = 'QuickTruckTax';
+const BRAND = 'easyucr.com';
 const NAVY = '#173b63';
 const MIDNIGHT = '#0f2647';
 const ORANGE = '#ff8b3d';
@@ -54,7 +54,7 @@ function buildFollowUpEmail(legalName, registrantName) {
     <p style="color: ${TEXT};">Your UCR filing for ${legalName || 'your business'} is saved—you can pick up right where you left off whenever you're ready. No rush.</p>
     <p style="color: ${TEXT};">If you have questions or feedback, just reply to this email. We read every message.</p>
     <p style="color: ${TEXT}; margin-bottom: 24px;">Thanks again.</p>
-    <p><a href="https://quicktrucktax.com/ucr/file" style="display: inline-block; background: ${ORANGE}; color: #fff !important; padding: 14px 26px; border-radius: 12px; text-decoration: none; font-weight: bold;">Continue your UCR filing</a></p>
+    <p><a href="https://easyucr.com/ucr/file" style="display: inline-block; background: ${ORANGE}; color: #fff !important; padding: 14px 26px; border-radius: 12px; text-decoration: none; font-weight: bold;">Continue your UCR filing</a></p>
     <p style="color: ${MUTED}; font-size: 14px; margin-top: 24px;">The ${BRAND} team</p>
   `;
 
@@ -72,7 +72,7 @@ function buildFollowUpEmail(legalName, registrantName) {
 </body>
 </html>`;
 
-  const plainText = `${greeting}\n\nThanks for getting started with ${BRAND}. We wanted to reach out and say we're here if you need anything.\n\nYour UCR filing for ${legalName || 'your business'} is saved—you can pick up right where you left off whenever you're ready. No rush.\n\nIf you have questions or feedback, just reply to this email. We read every message.\n\nThanks again.\n\nThe ${BRAND} team\n\nContinue your filing: https://quicktrucktax.com/ucr/file`;
+  const plainText = `${greeting}\n\nThanks for getting started with ${BRAND}. We wanted to reach out and say we're here if you need anything.\n\nYour UCR filing for ${legalName || 'your business'} is saved—you can pick up right where you left off whenever you're ready. No rush.\n\nIf you have questions or feedback, just reply to this email. We read every message.\n\nThanks again.\n\nThe ${BRAND} team\n\nContinue your filing: https://easyucr.com/ucr/file`;
 
   return { subject, html, plainText };
 }

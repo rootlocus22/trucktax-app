@@ -2,9 +2,9 @@ import Link from 'next/link';
 import { ArrowLeft, Calendar, FileWarning, ShieldAlert, ChevronRight, Clock } from 'lucide-react';
 
 export const metadata = {
-    title: 'UCR Registration Deadlines & Penalties Explained | QuickTruckTax',
+    title: 'UCR Registration Deadlines & Penalties Explained | easyucr.com',
     description: 'Missing your UCR filing deadline can result in massive fines and vehicle detainment. Learn the 2026 deadlines and exact penalties for Unified Carrier Registration non-compliance.',
-    alternates: { canonical: 'https://www.quicktrucktax.com/insights/ucr-deadlines-penalties-explained' },
+    alternates: { canonical: 'https://www.easyucr.com/insights/ucr-deadlines-penalties-explained' },
 };
 
 export default function UcrPenaltiesGuide() {
@@ -108,7 +108,7 @@ export default function UcrPenaltiesGuide() {
                             <ol className="space-y-4">
                                 <li><strong>File Early:</strong> Registration opens October 1st. Don't wait until Christmas week when systems crash or offices close.</li>
                                 <li><strong>Ensure Data Accuracy:</strong> If you declare you have 3 trucks on your UCR, but DOT records show you operating 5, you can be fined for under-reporting. Sync your data carefully.</li>
-                                <li><strong>Use an Assistance Service:</strong> Services like QuickTruckTax keep a record of your data and email you immediate PDF confirmations so you have physical proof in the cab of your truck if algorithms are slow to update.</li>
+                                <li><strong>Use an Assistance Service:</strong> Services like easyucr.com keep a record of your data and email you immediate PDF confirmations so you have physical proof in the cab of your truck if algorithms are slow to update.</li>
                             </ol>
 
                             <p className="mt-8">

@@ -7,7 +7,7 @@ export const metadata = {
     description: 'Learn how to file your annual UCR registration online with $0 upfront. We file first, then you pay when your UCR certificate is ready.',
     keywords: 'ucr registration guide, ucr renewal, unified carrier registration, file ucr online instructions, interstate carrier registration info',
     alternates: {
-        canonical: 'https://www.quicktrucktax.com/services/ucr-registration',
+        canonical: 'https://www.easyucr.com/services/ucr-registration',
     },
 };
 
@@ -157,7 +157,7 @@ export default function UCRServicePage() {
                             </div>
                         ))}
                     </div>
-                    <p className="text-center text-slate-400 text-xs mt-8">* Official UCR Plan government fees. QuickTruckTax service filing fees apply separately.</p>
+                    <p className="text-center text-slate-400 text-xs mt-8">* Official UCR Plan government fees. easyucr.com service filing fees apply separately.</p>
                     <div className="mt-8 p-6 bg-indigo-50 rounded-xl border border-indigo-100 max-w-3xl mx-auto text-center">
                         <h3 className="font-bold text-[var(--color-navy)] mb-2">Why wait to pay?</h3>
                         <p className="text-slate-600 text-sm">We process your Unified Carrier Registration without any upfront service charge. You only pay for our service when your official UCR certificate is securely processed and ready for download.</p>

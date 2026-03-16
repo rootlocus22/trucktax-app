@@ -13,7 +13,7 @@ import { ArrowRight, FileText } from 'lucide-react';
 export default function StickyFileCTA({
     href = '/resources',
     ctaText = 'Explore Resources',
-    subtitle = 'Guides, checklists & tools for Form 2290'
+    subtitle = 'Guides, checklists & tools for UCR'
 }) {
     const [isVisible, setIsVisible] = useState(false);
 
@@ -48,7 +48,7 @@ export default function StickyFileCTA({
                                 <FileText className="w-5 h-5 text-[var(--color-orange)]" />
                             </div>
                             <div className="text-center sm:text-left">
-                                <p className="font-semibold text-sm sm:text-base">Form 2290 guides &amp; tools</p>
+                                <p className="font-semibold text-sm sm:text-base">UCR guides &amp; tools</p>
                                 <p className="text-xs sm:text-sm text-white/70">{subtitle}</p>
                             </div>
                         </div>

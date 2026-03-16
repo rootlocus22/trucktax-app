@@ -29,7 +29,7 @@ export async function generateMetadata({ params }) {
         title: `2026 UCR Registration for ${entityData.name} | Avoid Fines`,
         description: `Mandatory Unified Carrier Registration (UCR) guide for ${entityData.name.toLowerCase()}. File your 2026 UCR online instantly with $0 upfront. Pay later when certificate is ready.`,
         alternates: {
-            canonical: `https://www.quicktrucktax.com/services/ucr-for/${normalizedEntity}`,
+            canonical: `https://www.easyucr.com/services/ucr-for/${normalizedEntity}`,
         },
     };
 }
@@ -131,7 +131,7 @@ export default async function UcrEntityPage({ params }) {
                     <div className="bg-emerald-50 border-l-4 border-emerald-500 p-6 my-6 rounded-r-xl">
                         <h4 className="font-bold text-emerald-900 mb-2">2026 Tier 1 Fee Structure:</h4>
                         <p className="text-emerald-800 font-medium">
-                            The official 2026 UCR government fee for the 0-2 vehicle bracket is exactly <strong>$46.00</strong>. This flat fee applies to the vast majority of non-asset-based {entityData.name.toLowerCase()}. QuickTruckTax adds a standard processing fee, allowing you to submit your registration today and defer payment until the official certificate is delivered to your dashboard.
+                            The official 2026 UCR government fee for the 0-2 vehicle bracket is exactly <strong>$46.00</strong>. This flat fee applies to the vast majority of non-asset-based {entityData.name.toLowerCase()}. easyucr.com adds a standard processing fee, allowing you to submit your registration today and defer payment until the official certificate is delivered to your dashboard.
                         </p>
                     </div>
 

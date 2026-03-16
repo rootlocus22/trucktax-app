@@ -476,12 +476,12 @@ const getUcrContent = (post) => {
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                                 {[
-                                    { size: "0 - 2", tier: "Tier 1", fee: "$37.00" },
-                                    { size: "3 - 5", tier: "Tier 2", fee: "$111.00" },
-                                    { size: "6 - 20", tier: "Tier 3", fee: "$221.00" },
-                                    { size: "21 - 100", tier: "Tier 4", fee: "$769.00" },
-                                    { size: "101 - 1,000", tier: "Tier 5", fee: "$3,670.00" },
-                                    { size: "1,001+", tier: "Tier 6", fee: "$35,836.00" }
+                                    { size: "0 - 2", tier: "Tier 1", fee: "$46.00" },
+                                    { size: "3 - 5", tier: "Tier 2", fee: "$138.00" },
+                                    { size: "6 - 20", tier: "Tier 3", fee: "$276.00" },
+                                    { size: "21 - 100", tier: "Tier 4", fee: "$963.00" },
+                                    { size: "101 - 1,000", tier: "Tier 5", fee: "$4,592.00" },
+                                    { size: "1,001+", tier: "Tier 6", fee: "$44,836.00" }
                                 ].map((row, idx) => (
                                     <tr key={idx} className="hover:bg-slate-50 transition-colors">
                                         <td className="py-4 px-6 font-bold text-[var(--color-midnight)]">{row.size}</td>

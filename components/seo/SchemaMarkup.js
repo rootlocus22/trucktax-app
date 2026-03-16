@@ -10,8 +10,8 @@ export default function SchemaMarkup({ type, data }) {
             "name": data.name,
             "provider": {
                 "@type": "Organization",
-                "name": "QuickTruckTax",
-                "url": "https://www.quicktrucktax.com"
+                "name": "easyucr.com",
+                "url": "https://www.easyucr.com"
             },
             "description": data.description,
             "areaServed": "US",

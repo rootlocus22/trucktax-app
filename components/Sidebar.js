@@ -59,7 +59,7 @@ export function Sidebar({ children }) {
           <Link href="/dashboard" className="flex items-center space-x-2 group">
             <div className="flex flex-col">
               <span className="text-lg font-bold tracking-tight text-[var(--color-text)] group-hover:text-[var(--color-orange)] transition">
-                QuickTruckTax
+                easyucr.com
               </span>
               <span className="text-[9px] font-medium uppercase tracking-[0.15em] text-[var(--color-muted)]">
                 Filing Made Simple
@@ -71,7 +71,7 @@ export function Sidebar({ children }) {
           <Link href="/dashboard" className="flex items-center space-x-2">
             <div className="flex flex-col">
               <span className="text-lg font-bold tracking-tight text-[var(--color-text)]">
-                QuickTruckTax
+                easyucr.com
               </span>
               <span className="text-[9px] font-medium uppercase tracking-[0.15em] text-[var(--color-muted)]">
                 Filing Made Simple

@@ -28,10 +28,10 @@ import {
 import { useState } from 'react';
 
 const spotlightSlugs = [
-  "form-2290-ultimate-guide",
   "ucr-renewal-guide",
-  "mcs150-update-guide",
-  "ifta-filing-basics",
+  "complete-guide-ucr-filing-2026",
+  "who-needs-ucr-registration",
+  "ucr-deadlines-penalties-explained",
 ];
 
 const categoryOrder = [
@@ -43,7 +43,7 @@ const categoryOrder = [
 ];
 
 const stats = [
-  { label: "HVUT & compliance topics", value: "230+" },
+  { label: "UCR & compliance topics", value: "50+" },
   { label: "2025 deadlines covered", value: "100%" },
   { label: "Actionable templates", value: "15" },
 ];
@@ -52,7 +52,7 @@ const testimonials = [
   {
     name: "John D.",
     role: "Owner-Operator",
-    content: "I used to dread filing my 2290. QuickTruckTax made it so simple. I was done in 5 minutes on my phone while waiting for a load.",
+    content: "I used to dread UCR renewal. easyucr.com made it so simple. I was done in 5 minutes on my phone while waiting for a load.",
     rating: 5
   },
   {
@@ -75,7 +75,7 @@ const faqs = [
     answer: "In most cases, you will receive your IRS-stamped Schedule 1 within minutes of submitting your return. The IRS processes e-filed returns very quickly."
   },
   {
-    question: "Is QuickTruckTax a legitimate service?",
+    question: "Is easyucr.com a legitimate service?",
     answer: "Yes. We are a private concierge and technology service. Your data is transmitted securely using encrypted channels. We are not the IRS or any government agency."
   },
   {
@@ -135,11 +135,11 @@ export function LandingPage() {
   const organizationJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'QuickTruckTax',
-    url: 'https://quicktrucktax.com',
-    logo: 'https://quicktrucktax.com/quicktrucktax-logo-new.png',
-    image: 'https://quicktrucktax.com/quicktrucktax-logo-new.png',
-    description: 'QuickTruckTax helps carriers, owner-operators, and brokers stay compliant with HVUT, UCR, MCS-150, and fuel tax filings.',
+    name: 'easyucr.com',
+    url: 'https://easyucr.com',
+    logo: 'https://easyucr.com/quicktrucktax-logo-new.png',
+    image: 'https://easyucr.com/quicktrucktax-logo-new.png',
+    description: 'easyucr.com helps carriers, owner-operators, and brokers stay compliant with UCR registration and trucking compliance.',
     sameAs: [
       'https://twitter.com/quicktrucktax',
     ],
@@ -175,13 +175,13 @@ export function LandingPage() {
                 Leading Third-Party E-file Provider
               </div>
               <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-[4.25rem] font-bold leading-[1.1] drop-shadow-2xl tracking-tight">
-                File Form 2290 <br />
+                File UCR <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20]">
                   In Minutes.
                 </span>
               </h1>
               <p className="text-lg sm:text-xl lg:text-[1.375rem] leading-relaxed text-white/80 max-w-xl drop-shadow-md font-normal">
-                The fastest, most secure way to get your Schedule 1. No hidden fees, just simple filing for modern owner-operators.
+                The fastest, most secure way to get your UCR confirmation. No hidden fees, just simple filing for modern owner-operators.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -219,7 +219,7 @@ export function LandingPage() {
                 <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-[var(--color-midnight)]/80 backdrop-blur-xl">
                   <Image
                     src="/dashboard-mockup-v2.png"
-                    alt="QuickTruckTax Dashboard"
+                    alt="easyucr.com Dashboard"
                     width={800}
                     height={600}
                     className="w-full h-auto"
@@ -291,7 +291,7 @@ export function LandingPage() {
               <div className="bg-[var(--color-navy)] text-white rounded-3xl p-8 shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-orange)] rounded-full blur-[80px] opacity-20 -mr-16 -mt-16"></div>
                 <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2 relative z-10">
-                  <CheckCircle className="w-6 h-6 text-[var(--color-orange)]" /> QuickTruckTax
+                  <CheckCircle className="w-6 h-6 text-[var(--color-orange)]" /> easyucr.com
                 </h3>
                 <ul className="space-y-4 relative z-10">
                   <li className="flex items-start gap-3">

@@ -51,7 +51,7 @@ export function AgentHeader() {
             </div>
             <div>
               <div className="text-sm font-semibold text-[var(--color-text)]">Agent Portal</div>
-              <div className="text-xs text-[var(--color-muted)]">QuickTruckTax</div>
+              <div className="text-xs text-[var(--color-muted)]">easyucr.com</div>
             </div>
           </Link>
 

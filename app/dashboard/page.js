@@ -133,16 +133,8 @@ export default function DashboardPage() {
   };
 
   const getFilingTypeInfo = (filing) => {
-    if (filing.filingType === 'amendment') {
-      const type = filing.amendmentType === 'vin_correction' ? 'VIN Correction' :
-        filing.amendmentType === 'weight_increase' ? 'Weight Increase' :
-          filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded' : 'Amendment';
-      return { label: type, image: '/assets/icons/amendment.png', color: 'text-purple-600', bg: 'bg-purple-50' };
-    }
-    if (filing.filingType === 'refund') {
-      return { label: 'Refund (8849)', image: '/assets/icons/refund.png', color: 'text-green-600', bg: 'bg-green-50' };
-    }
-    return { label: 'Form 2290', image: '/assets/icons/form2290.png', color: 'text-blue-600', bg: 'bg-blue-50' };
+    const year = filing.filingYear || filing.taxYear || new Date().getFullYear();
+    return { label: `UCR ${year}`, image: null, color: 'text-teal-600', bg: 'bg-teal-50' };
   };
 
   const stats = useMemo(() => ({
@@ -181,16 +173,8 @@ export default function DashboardPage() {
 
   // Helper function to get return number display
   const getReturnNumber = (filing) => {
-    if (filing.filingType === 'amendment') {
-      const type = filing.amendmentType === 'vin_correction' ? 'VIN Correction Amendment' :
-        filing.amendmentType === 'weight_increase' ? 'Weight Increase Amendment' :
-          filing.amendmentType === 'mileage_exceeded' ? 'Mileage Exceeded Amendment' : '2290 Amendment';
-      return `${type}-${filing.id?.slice(-7) || 'N/A'}`;
-    }
-    if (filing.filingType === 'refund') {
-      return `Refund (8849)-${filing.id?.slice(-7) || 'N/A'}`;
-    }
-    return `Form 2290-${filing.id?.slice(-7) || 'N/A'}`;
+    const year = filing.filingYear || filing.taxYear || new Date().getFullYear();
+    return `UCR ${year}-${filing.id?.slice(-7) || 'N/A'}`;
   };
 
   // Helper function to get first used month
@@ -687,7 +671,7 @@ export default function DashboardPage() {
                 <div className="bg-[var(--color-navy)] rounded-2xl p-6 text-white shadow-lg">
                   <h4 className="font-bold text-lg mb-2">Need Help?</h4>
                   <p className="text-sm text-white/90 mb-5">Our compliance team can assist with your registrations.</p>
-                  <a href="mailto:support@quicktrucktax.com" className="block w-full bg-white !text-[var(--color-navy)] py-3 rounded-xl text-sm font-semibold text-center hover:bg-slate-100 transition mb-2">
+                  <a href="mailto:support@vendaxsystemlabs.com" className="block w-full bg-white !text-[var(--color-navy)] py-3 rounded-xl text-sm font-semibold text-center hover:bg-slate-100 transition mb-2">
                     Email support
                   </a>
                   <a href="tel:+13478018631" className="block w-full bg-white/20 border border-white/40 !text-white py-3 rounded-xl text-sm font-semibold text-center hover:bg-white/30 transition">

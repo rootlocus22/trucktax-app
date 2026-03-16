@@ -13,14 +13,14 @@ import {
 export const metadata = {
   title: 'File UCR for Multiple Trucks | Dispatcher & Fleet Bulk UCR Filing',
   description:
-    'File UCR for multiple clients or your fleet. How dispatchers and fleet managers handle bulk UCR filing for 3–20+ trucks. $0 upfront. Annual checklist: 2290, UCR, MCS-150, IFTA.',
+    'File UCR for multiple clients or your fleet. How dispatchers and fleet managers handle bulk UCR filing for 3–20+ trucks. $0 upfront.',
   alternates: {
-    canonical: 'https://www.quicktrucktax.com/ucr/dispatcher',
+    canonical: 'https://www.easyucr.com/ucr/dispatcher',
   },
   openGraph: {
     title: 'File UCR for Multiple Trucks | Dispatcher & Bulk UCR',
     description: 'Bulk UCR filing for dispatchers and fleets. File for multiple clients or trucks. $0 upfront.',
-    url: 'https://www.quicktrucktax.com/ucr/dispatcher',
+    url: 'https://www.easyucr.com/ucr/dispatcher',
   },
 };
 
@@ -65,10 +65,10 @@ export default function UcrDispatcherPage() {
           </h2>
           <div className="prose prose-slate max-w-none text-slate-600">
             <p className="text-lg">
-              <strong>Dispatchers and compliance coordinators</strong> who file UCR (and often Form 2290, MCS-150, IFTA) for multiple owner-operators or small carriers. You need a fast, reliable way to get everyone current before the December 31 deadline.
+              <strong>Dispatchers and compliance coordinators</strong> who file UCR for multiple owner-operators or small carriers. You need a fast, reliable way to get everyone current before the December 31 deadline.
             </p>
             <p>
-              <strong>Fleet managers and small trucking companies</strong> with 3–20 power units. You have one UCR registration per legal entity, but you may also handle 2290 and MCS-150 updates for the same business—keeping everything in one workflow saves time and avoids missed deadlines.
+              <strong>Fleet managers and small trucking companies</strong> with 3–20 power units. You have one UCR registration per legal entity. Keeping everything in one workflow saves time and avoids missed deadlines.
             </p>
             <p>
               <strong>Accountants and bookkeepers</strong> who support trucking clients. You already track tax and registration due dates; adding UCR to the annual checklist ensures clients stay compliant and avoid state and federal penalties.
@@ -115,7 +115,7 @@ export default function UcrDispatcherPage() {
           </h2>
           <div className="prose prose-slate max-w-none text-slate-600">
             <p>
-              UCR fees are set by the UCR Plan and your state—they vary by <strong>number of power units</strong> (trucks) in the fleet. There is no “bulk discount” from the government; each carrier pays the fee that matches their bracket. QuickTruckTax does not charge upfront: you file, we process, and the carrier (or you on their behalf) pays only when the certificate is ready.
+              UCR fees are set by the UCR Plan and your state—they vary by <strong>number of power units</strong> (trucks) in the fleet. There is no “bulk discount” from the government; each carrier pays the fee that matches their bracket. easyucr.com does not charge upfront: you file, we process, and the carrier (or you on their behalf) pays only when the certificate is ready.
             </p>
             <p>
               For <strong>3–5 trucks</strong>, the typical fee bracket is in the lower tier; for <strong>6–20 trucks</strong>, a higher bracket applies. Use our <Link href="/tools/ucr-calculator" className="text-[var(--color-navy)] font-semibold hover:underline">UCR Fee Calculator</Link> to see the exact amount for each client. Filing multiple carriers is simple: run through the wizard once per carrier and keep a list of USDOT numbers and fee brackets so you can batch your workflow.
@@ -131,10 +131,10 @@ export default function UcrDispatcherPage() {
           </h2>
           <div className="prose prose-slate max-w-none text-slate-600">
             <p>
-              Many owner-operators confuse UCR with Form 2290 or state registration. In short: <strong>UCR is the annual Unified Carrier Registration</strong> required for anyone operating in interstate commerce. It’s due by December 31 each year; the registration year runs January 1–December 31. If they have a USDOT number and run across state lines, they almost certainly need UCR.
+              Many owner-operators confuse UCR with state registration. In short: <strong>UCR is the annual Unified Carrier Registration</strong> required for anyone operating in interstate commerce. It’s due by December 31 each year; the registration year runs January 1–December 31. If they have a USDOT number and run across state lines, they almost certainly need UCR.
             </p>
             <p>
-              You can tell them: “UCR is separate from 2290. You need both. We’ll get your UCR filed so you’re legal—no upfront cost; you pay when your certificate is ready.” Point them to our <Link href="/ucr/guides" className="text-[var(--color-navy)] font-semibold hover:underline">UCR guides</Link> if they want to read more about who must file and deadlines.
+              You can tell them: “We’ll get your UCR filed so you’re legal—no upfront cost; you pay when your certificate is ready.” Point them to our <Link href="/ucr/guides" className="text-[var(--color-navy)] font-semibold hover:underline">UCR guides</Link> if they want to read more about who must file and deadlines.
             </p>
           </div>
         </section>
@@ -143,7 +143,7 @@ export default function UcrDispatcherPage() {
         <section>
           <h2 className="text-2xl font-bold text-[var(--color-navy)] mb-6 flex items-center gap-3">
             <ClipboardList className="w-8 h-8 text-[var(--color-orange)]" />
-            2290 + UCR + MCS-150 + IFTA Annual Checklist
+            UCR Annual Checklist
           </h2>
           <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
             <p className="text-slate-600 mb-6">
@@ -153,25 +153,7 @@ export default function UcrDispatcherPage() {
               <li className="flex items-start gap-3">
                 <CheckCircle className="w-6 h-6 text-emerald-500 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-slate-800">Form 2290 (HVUT)</strong> — Due after first use in the new tax year (e.g. September 2 for July use). Required for trucks 55,000+ lbs. QuickTruckTax files 2290 and delivers Schedule 1.
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <CheckCircle className="w-6 h-6 text-emerald-500 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="text-slate-800">UCR</strong> — Due by December 31. One registration per carrier (legal entity). File at <Link href="/ucr/file" className="text-[var(--color-navy)] font-semibold hover:underline">QuickTruckTax UCR</Link> with $0 upfront.
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <CheckCircle className="w-6 h-6 text-emerald-500 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="text-slate-800">MCS-150 (Biennial Update)</strong> — Due every 24 months from your USDOT registration date. Keeps your DOT record current. We offer <Link href="/services/mcs-150-update" className="text-[var(--color-navy)] font-semibold hover:underline">MCS-150 update</Link> assistance.
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <CheckCircle className="w-6 h-6 text-emerald-500 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="text-slate-800">IFTA / IRP</strong> — Fuel and registration credentials vary by state. See our <Link href="/services/ifta-irp" className="text-[var(--color-navy)] font-semibold hover:underline">IFTA & IRP</Link> resources for due dates and renewals.
+                  <strong className="text-slate-800">UCR</strong> — Due by December 31. One registration per carrier (legal entity). File at <Link href="/ucr/file" className="text-[var(--color-navy)] font-semibold hover:underline">easyucr.com UCR</Link> with $0 upfront.
                 </div>
               </li>
             </ul>

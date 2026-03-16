@@ -11,17 +11,17 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }) {
   const stateInfo = slugToState(params.state);
-  if (!stateInfo) return { title: 'UCR Filing | QuickTruckTax' };
+  if (!stateInfo) return { title: 'UCR Filing | easyucr.com' };
 
   const name = stateInfo.name;
   return {
-    title: `UCR Filing ${name} – ${UCR_REGISTRATION_YEAR} Registration & Fee | QuickTruckTax`,
+    title: `UCR Filing ${name} – ${UCR_REGISTRATION_YEAR} Registration & Fee | easyucr.com`,
     description: `File your Unified Carrier Registration (UCR) in ${name}. Instantly calculate ${UCR_REGISTRATION_YEAR} fees, review deadlines, and start your federal-compliant filing securely.`,
-    alternates: { canonical: `https://www.quicktrucktax.com/ucr-filing/${params.state}` },
+    alternates: { canonical: `https://www.easyucr.com/ucr-filing/${params.state}` },
     openGraph: {
       title: `Complete ${name} UCR Filing Guide – ${UCR_REGISTRATION_YEAR} Edition`,
       description: `Understand the rules for operating interstate in ${name}. Calculate your exact UCR tier fee and process your federal registration securely.`,
-      url: `https://www.quicktrucktax.com/ucr-filing/${params.state}`,
+      url: `https://www.easyucr.com/ucr-filing/${params.state}`,
     },
   };
 }
@@ -66,7 +66,7 @@ export default function UcrFilingStatePage({ params }) {
       name: `Can I file my UCR instantly online?`,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: `Yes, you can calculate your exact fee tier and submit your ${UCR_REGISTRATION_YEAR} registration securely online using a third-party compliance platform like QuickTruckTax in under 5 minutes.`,
+        text: `Yes, you can calculate your exact fee tier and submit your ${UCR_REGISTRATION_YEAR} registration securely online using a third-party compliance platform like easyucr.com in under 5 minutes.`,
       },
     },
   ];
@@ -76,7 +76,7 @@ export default function UcrFilingStatePage({ params }) {
       name: `Where do ${stateName} truckers file UCR?`,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: `${stateName} is a non-participating UCR state. If you're based in ${stateName} but run in interstate commerce, you still must register for UCR. You file through the UCR Plan (typically selecting a neighboring participating state as your base state for fee payment). QuickTruckTax can help you complete your UCR filing regardless of your base state.`,
+        text: `${stateName} is a non-participating UCR state. If you're based in ${stateName} but run in interstate commerce, you still must register for UCR. You file through the UCR Plan (typically selecting a neighboring participating state as your base state for fee payment). easyucr.com can help you complete your UCR filing regardless of your base state.`,
       },
     });
   }
@@ -283,7 +283,7 @@ export default function UcrFilingStatePage({ params }) {
                 <div className="flex items-center justify-between space-x-2 mb-1">
                   <h4 className="font-bold text-slate-900 text-lg">Verify Fleet Bracket</h4>
                 </div>
-                <p className="text-slate-600 text-sm">Confirm that your truck count matches your MCS-150. Our software will automatically assign you to the correct fee tier.</p>
+                <p className="text-slate-600 text-sm">Confirm that your truck count matches your DOT records. Our software will automatically assign you to the correct fee tier.</p>
               </div>
             </div>
             {/* Step 3 */}

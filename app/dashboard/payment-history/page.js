@@ -53,19 +53,19 @@ export default function PaymentHistoryPage() {
           </style>
         </head>
         <body>
-          <h1>QuickTruckTax</h1>
+          <h1>easyucr.com</h1>
           <p class="meta">
             <strong>Vendax Systems LLC</strong><br/>
             28 Geary St STE 650<br/>
             San Francisco, CA 94108<br/>
-            support@quicktrucktax.com<br/>
+            support@vendaxsystemlabs.com<br/>
             +1 (347) 801-8631<br/>
             <br/>
             Official Service Receipt
           </p>
           <table>
             <tr><th>Date</th><td>${date}</td></tr>
-            <tr><th>Description</th><td>${payment.description || (payment.type?.startsWith('ucr_') || payment.filingType === 'ucr' ? 'UCR Registration Renewal' : 'IRS Form 2290')}</td></tr>
+            <tr><th>Description</th><td>${payment.description || (payment.type?.startsWith('ucr_') || payment.filingType === 'ucr' ? 'UCR Registration Renewal' : 'UCR Filing')}</td></tr>
             <tr><th>Amount</th><td>$${Number(payment.amount || 0).toLocaleString()}</td></tr>
             <tr><th>Status</th><td>${payment.status || 'paid'}</td></tr>
             ${payment.filingId ? `<tr><th>Filing</th><td>${payment.filingId}</td></tr>` : ''}
@@ -256,7 +256,7 @@ export default function PaymentHistoryPage() {
                       </div>
                       <div>
                         <div className="font-bold text-slate-900">{formatDate(payment.createdAt || payment.date)}</div>
-                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{payment.filingType || 'Standard 2290'}</div>
+                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{payment.filingType || 'UCR'}</div>
                       </div>
                     </div>
                     <div className="flex flex-col items-end">

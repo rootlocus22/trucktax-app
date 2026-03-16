@@ -72,7 +72,7 @@ export default function FeaturesPage() {
                         Everything You Need to Manage Fleet Taxes
                     </h1>
                     <p className="text-lg sm:text-xl lg:text-[1.375rem] text-white/90 max-w-3xl mx-auto mb-10 leading-relaxed">
-                        From single owner-operators to large fleets, QuickTruckTax provides all the tools to stay compliant with the IRS and FMCSA.
+                        From single owner-operators to large fleets, easyucr.com provides all the tools to stay compliant with the IRS and FMCSA.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
@@ -128,7 +128,7 @@ export default function FeaturesPage() {
                             File from Anywhere, on Any Device
                         </h2>
                         <p className="text-lg text-[var(--color-muted)] mb-8 leading-relaxed">
-                            You're not always at a desk, so your tax software shouldn't be either. QuickTruckTax is fully optimized for mobile phones and tablets.
+                            You're not always at a desk, so your tax software shouldn't be either. easyucr.com is fully optimized for mobile phones and tablets.
                         </p>
                         <ul className="space-y-4 mb-10">
                             <li className="flex items-center gap-3">

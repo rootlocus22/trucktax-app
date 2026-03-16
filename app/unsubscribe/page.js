@@ -42,13 +42,13 @@ export default function UnsubscribePage() {
             <h1 className="text-2xl font-bold text-gray-900 mb-2">You're unsubscribed</h1>
             <p className="text-gray-600 mb-6">{message}</p>
             <p className="text-sm text-gray-500">
-              You will no longer receive marketing emails from QuickTruckTax. You may still receive important emails about your filings and account.
+              You will no longer receive marketing emails from easyucr.com. You may still receive important emails about your filings and account.
             </p>
             <Link
               href="/"
               className="inline-block mt-6 text-orange-600 font-semibold hover:underline"
             >
-              Return to QuickTruckTax
+              Return to easyucr.com
             </Link>
           </>
         )}
@@ -57,15 +57,15 @@ export default function UnsubscribePage() {
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Unable to unsubscribe</h1>
             <p className="text-gray-600 mb-6">{message}</p>
             <p className="text-sm text-gray-500">
-              Use the unsubscribe link from a recent QuickTruckTax email, or contact us at{' '}
-              <a href="mailto:support@quicktrucktax.com" className="text-orange-600 hover:underline">support@quicktrucktax.com</a>
+              Use the unsubscribe link from a recent easyucr.com email, or contact us at{' '}
+              <a href="mailto:support@vendaxsystemlabs.com" className="text-orange-600 hover:underline">support@vendaxsystemlabs.com</a>
               {' '}or <a href="tel:+13478018631" className="text-orange-600 hover:underline">+1 (347) 801-8631</a>.
             </p>
             <Link
               href="/"
               className="inline-block mt-6 text-orange-600 font-semibold hover:underline"
             >
-              Return to QuickTruckTax
+              Return to easyucr.com
             </Link>
           </>
         )}
@@ -73,18 +73,18 @@ export default function UnsubscribePage() {
           <>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Unsubscribe from emails</h1>
             <p className="text-gray-600 mb-6">
-              To unsubscribe from marketing emails, use the unsubscribe link at the bottom of any QuickTruckTax email.
+              To unsubscribe from marketing emails, use the unsubscribe link at the bottom of any easyucr.com email.
             </p>
             <p className="text-sm text-gray-500">
               If you need help, contact us at{' '}
-              <a href="mailto:support@quicktrucktax.com" className="text-orange-600 hover:underline">support@quicktrucktax.com</a>
+              <a href="mailto:support@vendaxsystemlabs.com" className="text-orange-600 hover:underline">support@vendaxsystemlabs.com</a>
               {' '}or <a href="tel:+13478018631" className="text-orange-600 hover:underline">+1 (347) 801-8631</a>.
             </p>
             <Link
               href="/"
               className="inline-block mt-6 text-orange-600 font-semibold hover:underline"
             >
-              Return to QuickTruckTax
+              Return to easyucr.com
             </Link>
           </>
         )}

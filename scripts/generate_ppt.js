@@ -25,12 +25,12 @@ const SLATE = 'F8FAFC';
         fontSize: 36, color: WHITE, bold: true, fontFace: 'Arial'
     });
 
-    slide.addText('Unlocking High-Intent Markets with QuickTruckTax.com', {
+    slide.addText('Unlocking High-Intent Markets with easyucr.com.com', {
         x: 0.5, y: 3.5, w: 5, h: 1,
         fontSize: 18, color: WHITE, fontFace: 'Arial', italic: true
     });
 
-    slide.addText('Presented by: [Your Name] | QuickTruckTax', {
+    slide.addText('Presented by: [Your Name] | easyucr.com', {
         x: 0.5, y: 4.8, w: 5, h: 0.5,
         fontSize: 12, color: WHITE, fontFace: 'Arial'
     });
@@ -100,7 +100,7 @@ const SLATE = 'F8FAFC';
     const risks = [
         { title: 'Risk: Financial Liability?', text: 'Reality: No. You are not liable for individual trucker taxes. Operational integrity is managed by our PTIN expert.' },
         { title: 'Risk: Compliance Errors?', text: 'Reality: Our in-house PTIN holder anchors the technical filing. You act as the "Gatekeeper" with power to pause operations.' },
-        { title: 'Risk: Software Errors?', text: 'Reality: Signed Indemnification Agreement. QuickTruckTax assumes all technical and software liability.' }
+        { title: 'Risk: Software Errors?', text: 'Reality: Signed Indemnification Agreement. easyucr.com assumes all technical and software liability.' }
     ];
 
     risks.forEach((r, i) => {
@@ -135,10 +135,10 @@ const SLATE = 'F8FAFC';
 
     const steps = [
         'Identity Verification: Create account on IRS e-Services (via ID.me).',
-        'Application Link: I list QuickTruckTax; you accept the invite as the RO.',
+        'Application Link: I list easyucr.com; you accept the invite as the RO.',
         'Suitability: IRS conducts a background check (~45 days).',
         'EFIN Issuance: IRS grants the license to the firm.',
-        'Launch: We flip the switch on QuickTruckTax.com and start generating revenue.'
+        'Launch: We flip the switch on easyucr.com.com and start generating revenue.'
     ];
 
     steps.forEach((step, i) => {
@@ -168,6 +168,6 @@ const SLATE = 'F8FAFC';
     });
 }
 
-pres.writeFile({ fileName: 'QuickTruckTax_Partnership_Deck.pptx' }).then(fileName => {
+pres.writeFile({ fileName: 'easyucr.com_Partnership_Deck.pptx' }).then(fileName => {
     console.log(`Created file: ${fileName}`);
 });

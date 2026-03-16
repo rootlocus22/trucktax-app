@@ -121,7 +121,7 @@ export async function POST(request) {
             currency: 'usd',
             product_data: {
               name: planName || 'UCR Filing Service',
-              description: 'QuickTruckTax UCR registration filing service and compliance record.',
+              description: 'easyucr.com UCR registration filing service and compliance record.',
               images: [],
             },
             unit_amount: amount,

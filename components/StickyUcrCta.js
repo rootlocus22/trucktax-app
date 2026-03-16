@@ -43,7 +43,7 @@ export default function StickyUcrCta() {
         </div>
         <Link
           href="/ucr/file"
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[52px] bg-[var(--color-orange)] !text-white hover:bg-[#e66a15] font-bold px-8 py-3 rounded-xl transition-all shadow-xl shadow-orange-500/20 active:scale-95 text-sm sm:text-base group uppercase tracking-tight"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[52px] bg-[var(--color-orange)] !text-white hover:bg-[var(--color-orange-hover)] font-bold px-8 py-3 rounded-xl transition-all shadow-xl shadow-orange-500/25 active:scale-95 text-sm sm:text-base group uppercase tracking-tight"
         >
           File 2026 UCR Now
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

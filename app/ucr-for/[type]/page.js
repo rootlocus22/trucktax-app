@@ -11,16 +11,16 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }) {
   const op = UCR_OPERATOR_TYPES.find((t) => t.slug === params.type);
-  if (!op) return { title: 'UCR Registration Services | QuickTruckTax' };
+  if (!op) return { title: 'UCR Registration Services | easyucr.com' };
 
   return {
-    title: `UCR Registration for ${op.title} – ${UCR_REGISTRATION_YEAR} Federal Rules | QuickTruckTax`,
+    title: `UCR Registration for ${op.title} – ${UCR_REGISTRATION_YEAR} Federal Rules | easyucr.com`,
     description: `Complete ${UCR_REGISTRATION_YEAR} UCR compliance guide for ${op.title}. Understand your specific tier fee, the Dec 31st deadline, and process your federal registration online.`,
-    alternates: { canonical: `https://www.quicktrucktax.com/ucr-for/${op.slug}` },
+    alternates: { canonical: `https://www.easyucr.com/ucr-for/${op.slug}` },
     openGraph: {
       title: `The ${op.title} Guide to UCR Registration (${UCR_REGISTRATION_YEAR})`,
       description: `Do ${op.title.toLowerCase()} need a UCR? Discover your exact ${UCR_REGISTRATION_YEAR} federal fee bracket and avoid heavy DOT non-compliance penalties.`,
-      url: `https://www.quicktrucktax.com/ucr-for/${op.slug}`,
+      url: `https://www.easyucr.com/ucr-for/${op.slug}`,
     },
   };
 }
@@ -59,7 +59,7 @@ export default function UcrForTypePage({ params }) {
         name: `What is the exact ${UCR_REGISTRATION_YEAR} UCR fee for ${op.title.toLowerCase()}?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: isFlatFeeType ? `The ${UCR_REGISTRATION_YEAR} UCR fee for ${op.title.toLowerCase()} is $46.00 (Tier 1 flat rate). This is a fixed fee regardless of how much revenue you generate. Using QuickTruckTax's expedited service adds a small processing fee for instant database syncing.` : `UCR fees for ${op.title.toLowerCase()} depend entirely on the number of commercial power units operated in interstate commerce over the last year. The fees range from $46 for 0-2 power units up to thousands for massive fleets.`,
+          text: isFlatFeeType ? `The ${UCR_REGISTRATION_YEAR} UCR fee for ${op.title.toLowerCase()} is $46.00 (Tier 1 flat rate). This is a fixed fee regardless of how much revenue you generate. Using easyucr.com's expedited service adds a small processing fee for instant database syncing.` : `UCR fees for ${op.title.toLowerCase()} depend entirely on the number of commercial power units operated in interstate commerce over the last year. The fees range from $46 for 0-2 power units up to thousands for massive fleets.`,
         },
       },
       {
@@ -280,7 +280,7 @@ export default function UcrForTypePage({ params }) {
             <div className="mb-8 sm:mb-0 sm:pr-8">
               <h2 className="text-3xl font-bold mb-3">Execute Your {UCR_REGISTRATION_YEAR} Filing</h2>
               <p className="text-blue-200 text-lg max-w-lg">
-                Use QuickTruckTax's authorized third-party portal to securely sync your data with FMCSA databases.
+                Use easyucr.com's authorized third-party portal to securely sync your data with FMCSA databases.
               </p>
             </div>
             <div className="shrink-0">

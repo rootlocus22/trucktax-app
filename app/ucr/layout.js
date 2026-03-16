@@ -1,13 +1,13 @@
 export const metadata = {
-  title: 'File UCR Online | UCR Renewal & Registration – QuickTruckTax',
+  title: 'UCR Filing Service — File Online $79, Pay After | EasyUCR',
   description:
-    'File UCR online in minutes. Unified Carrier Registration renewal and new registration. Calculate fee, submit, and get confirmation. $79 filing service.',
-  alternates: { canonical: 'https://www.quicktrucktax.com/ucr/file' },
+    'File your 2026 UCR registration in under 10 minutes. $79 service fee, $0 upfront. Pay only when your certificate is ready. UCR renewal 2026.',
+  alternates: { canonical: 'https://www.easyucr.com/ucr/file' },
   openGraph: {
-    title: 'File UCR Online | UCR Renewal & Registration – QuickTruckTax',
+    title: 'UCR Filing Service — $79, Pay After Filing | EasyUCR',
     description:
-      'File UCR online in minutes. UCR renewal and new registration. $79 filing service.',
-    url: 'https://www.quicktrucktax.com/ucr/file',
+      'File your 2026 UCR in under 10 minutes. $79 service fee, $0 upfront. Pay when your certificate is ready.',
+    url: 'https://www.easyucr.com/ucr/file',
   },
 };
 

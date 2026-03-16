@@ -1,5 +1,5 @@
-# robots.txt for QuickTruckTax
-# https://www.quicktrucktax.com
+# robots.txt for easyucr.com
+# https://www.easyucr.com
 
 User-agent: *
 Allow: /
@@ -30,8 +30,7 @@ Allow: /*.jpeg$
 Allow: /*.webp$
 
 # Sitemap locations
-Sitemap: https://www.quicktrucktax.com/sitemap.xml
-Sitemap: https://www.quicktrucktax.com/sitemap-twotwoninezero.xml
+Sitemap: https://www.easyucr.com/sitemap.xml
 
 # Note: Crawl-delay removed — Google ignores it; it can slow other crawlers and indexing.
 

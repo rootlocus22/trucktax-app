@@ -11,7 +11,7 @@ export default function PrivacyPolicyPage() {
                 <section>
                     <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Introduction</h2>
                     <p>
-                        QuickTruckTax ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our tax filing services.
+                        easyucr.com ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our tax filing services.
                     </p>
                 </section>
 
@@ -30,7 +30,7 @@ export default function PrivacyPolicyPage() {
                     <h2 className="text-xl font-semibold text-gray-900 mb-3">3. How We Use Your Information</h2>
                     <p>We use your information to:</p>
                     <ul className="list-disc pl-5 space-y-2 mt-2">
-                        <li>Prepare and file your IRS Form 2290.</li>
+                        <li>Prepare and file your UCR registration.</li>
                         <li>Communicate with you about your filing status.</li>
                         <li>Process payments and refunds.</li>
                         <li>Comply with IRS regulations and legal obligations.</li>
@@ -55,7 +55,7 @@ export default function PrivacyPolicyPage() {
                     <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Contact Us</h2>
                     <p>
                         If you have questions about this Privacy Policy, please contact us at{' '}
-                        <a href="mailto:support@quicktrucktax.com" className="text-[var(--color-navy)] hover:underline">support@quicktrucktax.com</a>
+                        <a href="mailto:support@vendaxsystemlabs.com" className="text-[var(--color-navy)] hover:underline">support@vendaxsystemlabs.com</a>
                         {' '}or call us at <a href="tel:+13478018631" className="text-[var(--color-navy)] hover:underline">+1 (347) 801-8631</a>.
                     </p>
                 </section>

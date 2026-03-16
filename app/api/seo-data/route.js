@@ -5,29 +5,18 @@ import { errorCodes } from '@/lib/error-codes';
 
 /**
  * GET /api/seo-data
- * Returns aggregated SEO data for all content pages
+ * Returns aggregated SEO data for all content pages (UCR-only)
  */
 export async function GET() {
-    const baseUrl = 'https://www.quicktrucktax.com';
+    const baseUrl = 'https://www.easyucr.com';
 
-    // Core/Service pages with metadata
     const corePages = [
-        { url: '/', title: 'QuickTruckTax - Form 2290 E-Filing & HVUT Compliance', description: 'E-file Form 2290 online and get your stamped Schedule 1 in minutes. HVUT compliance made simple for truckers.', type: 'core', keywords: ['form 2290', 'hvut', 'trucking tax'] },
-        { url: '/services/form-2290-filing', title: 'Form 2290 Guide', description: 'Learn about Form 2290 (HVUT): deadlines, rates, how to e-file. We file UCR, not 2290.', type: 'service', keywords: ['form 2290', 'hvut', '2290 due date', '2290 guide'] },
-        { url: '/services/vin-correction', title: 'VIN Correction Service', description: 'Fix VIN errors on your Form 2290 quickly and easily.', type: 'service', keywords: ['vin correction', 'form 2290 vin fix'] },
-        { url: '/services/suspended-vehicle', title: 'Suspended Vehicle Filing', description: 'File for suspended vehicle status if under 5,000 miles.', type: 'service', keywords: ['suspended vehicle', 'form 2290 suspension'] },
-        { url: '/services/agricultural-logging', title: 'Agricultural & Logging Vehicles', description: 'Special HVUT rules for agricultural and logging vehicles.', type: 'service', keywords: ['agricultural vehicle', 'logging truck tax'] },
-        { url: '/services/mcs-150-update', title: 'MCS-150 Biennial Update', description: 'Keep your DOT number active with timely MCS-150 updates.', type: 'service', keywords: ['mcs-150', 'biennial update', 'dot number'] },
+        { url: '/', title: 'easyucr.com - UCR Filing & Compliance', description: 'File UCR online in under 10 minutes. $79 service fee, pay only after confirmation.', type: 'core', keywords: ['ucr filing', 'ucr registration', 'trucking compliance'] },
         { url: '/services/ucr-registration', title: 'UCR Registration', description: 'Unified Carrier Registration made simple.', type: 'service', keywords: ['ucr registration', 'unified carrier'] },
-        { url: '/services/form-8849-refund', title: 'Form 8849 Refund Claims', description: 'Claim refunds for sold, destroyed, or low-mileage vehicles.', type: 'service', keywords: ['form 8849', 'hvut refund'] },
-        { url: '/services/ifta-irp', title: 'IFTA & IRP Services', description: 'Fuel tax and apportioned plate compliance.', type: 'service', keywords: ['ifta filing', 'irp registration'] },
-        { url: '/pricing', title: 'Pricing - QuickTruckTax', description: 'Transparent pricing for Form 2290 e-filing and compliance services.', type: 'core', keywords: ['pricing', 'form 2290 cost'] },
-        { url: '/tools/hvut-calculator', title: 'HVUT Calculator', description: 'Calculate your Heavy Vehicle Use Tax instantly.', type: 'tool', keywords: ['hvut calculator', 'form 2290 tax calculator'] },
-        { url: '/tools/ifta-calculator', title: 'IFTA Calculator', description: 'Calculate your IFTA fuel tax by state.', type: 'tool', keywords: ['ifta calculator', 'fuel tax calculator'] },
-        { url: '/comparisons/vs-express-truck-tax', title: 'QuickTruckTax vs ExpressTruckTax', description: 'Compare features and pricing with ExpressTruckTax.', type: 'comparison', keywords: ['expresstrucktax alternative', 'form 2290 comparison'] },
+        { url: '/pricing', title: 'Pricing - easyucr.com', description: 'Transparent UCR filing pricing. $79 flat service fee.', type: 'core', keywords: ['pricing', 'ucr cost'] },
+        { url: '/tools/ucr-calculator', title: 'UCR Fee Calculator', description: 'Calculate your UCR fee by fleet size.', type: 'tool', keywords: ['ucr calculator', 'ucr fee'] },
     ];
 
-    // Blog posts
     const blogPages = blogPosts.map(post => ({
         url: `/blog/${post.id}`,
         title: post.title,
@@ -38,7 +27,6 @@ export async function GET() {
         date: post.dateISO,
     }));
 
-    // Compliance guides from insights
     const guidePages = complianceGuides.map(guide => ({
         url: `/insights/${guide.slug}`,
         title: guide.title,
@@ -49,16 +37,14 @@ export async function GET() {
         updatedAt: guide.updatedAt,
     }));
 
-    // Error code pages
     const errorPages = (errorCodes || []).map(error => ({
         url: `/error-codes/${error.code}`,
-        title: `IRS Error Code ${error.code} - ${error.title || 'Fix Guide'}`,
-        description: error.description || `How to fix IRS rejection code ${error.code} on Form 2290.`,
-        keywords: [`error ${error.code}`, 'irs rejection', 'form 2290 error'],
+        title: `Error Code ${error.code} - ${error.title || 'Fix Guide'}`,
+        description: error.description || `How to fix error ${error.code} on UCR filing.`,
+        keywords: [`error ${error.code}`, 'ucr rejection', 'ucr error'],
         type: 'error-code',
     }));
 
-    // pSEO routes (summarized by pattern type)
     const pseoRoutes = getPseoRoutes();
     const pseoSummary = {
         deadline: pseoRoutes.filter(r => r.type === 'deadline').length,
@@ -69,7 +55,6 @@ export async function GET() {
         'state-type': pseoRoutes.filter(r => r.type === 'state-type').length,
     };
 
-    // Sample pSEO pages for the table (first few of each type)
     const pseoSample = [];
     const pseoTypes = ['deadline', 'calculator', 'vin', 'state-deadline'];
     pseoTypes.forEach(type => {
@@ -86,7 +71,6 @@ export async function GET() {
         });
     });
 
-    // Combine all pages
     const allPages = [
         ...corePages,
         ...blogPages,
@@ -111,13 +95,13 @@ export async function GET() {
 function generatePseoTitle(route) {
     switch (route.type) {
         case 'deadline':
-            return `Filing Form 2290 in ${capitalize(route.params.month)} ${route.params.year}`;
+            return `UCR Filing in ${capitalize(route.params?.month || '')} ${route.params?.year || ''}`;
         case 'calculator':
-            return `2290 Tax for ${route.params.weight} lb ${route.params.type.replace(/-/g, ' ')}`;
+            return `UCR Fee for ${route.params?.weight || ''} lb ${(route.params?.type || '').replace(/-/g, ' ')}`;
         case 'vin':
-            return `${capitalize(route.params.make)} VIN Decoding Guide`;
+            return `${capitalize(route.params?.make || '')} VIN Decoding Guide`;
         case 'state-deadline':
-            return `Filing Form 2290 in ${route.params.state}`;
+            return `UCR Filing in ${route.params?.state || ''}`;
         default:
             return route.url;
     }
@@ -126,18 +110,18 @@ function generatePseoTitle(route) {
 function generatePseoDescription(route) {
     switch (route.type) {
         case 'deadline':
-            return `Complete guide to filing Form 2290 for vehicles first used in ${capitalize(route.params.month)} ${route.params.year}.`;
+            return `UCR filing guide for ${capitalize(route.params?.month || '')} ${route.params?.year || ''}.`;
         case 'calculator':
-            return `Calculate the HVUT tax for a ${route.params.weight} lb ${route.params.type.replace(/-/g, ' ')}.`;
+            return `UCR fee for ${route.params?.weight || ''} lb ${(route.params?.type || '').replace(/-/g, ' ')}.`;
         case 'vin':
-            return `Decode your ${capitalize(route.params.make)} truck VIN for Form 2290 filing.`;
+            return `Decode your ${capitalize(route.params?.make || '')} truck VIN for UCR filing.`;
         case 'state-deadline':
-            return `Step-by-step guide to filing Form 2290 if you're based in ${route.params.state}.`;
+            return `UCR filing guide if you're based in ${route.params?.state || ''}.`;
         default:
             return '';
     }
 }
 
 function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
+    return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
 }

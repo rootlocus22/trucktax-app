@@ -83,18 +83,18 @@ export async function generateMetadata({ params }) {
             const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1) : '';
             const year = data.year || '';
             const state = data.state ? ` in ${data.state.replace(/-/g, ' ')}` : '';
-            return `Form 2290 ${month} ${year}${state} | Deadline & Rates | QuickTruckTax`;
+            return `Form 2290 ${month} ${year}${state} | Deadline & Rates | easyucr.com`;
         }
 
         // For vehicle type pages
         if (data.type === "state-type") {
             const vehicle = data.vehicle_type ? data.vehicle_type.replace(/-/g, ' ') : '';
             const state = data.state ? ` in ${data.state.replace(/-/g, ' ')}` : '';
-            return `Form 2290 for ${vehicle}${state} | Guide & E-File Info | QuickTruckTax`;
+            return `Form 2290 for ${vehicle}${state} | Guide & E-File Info | easyucr.com`;
         }
 
         // Default: guide-focused (we don't file 2290)
-        return `${slugWords.charAt(0).toUpperCase() + slugWords.slice(1)} | Form 2290 Guide | QuickTruckTax`;
+        return `${slugWords.charAt(0).toUpperCase() + slugWords.slice(1)} | Form 2290 Guide | easyucr.com`;
     };
 
     const generateOptimizedDescription = (slug, data) => {
@@ -112,7 +112,7 @@ export async function generateMetadata({ params }) {
         if (data.type === "deadline" || data.type === "state-deadline") {
             const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1) : '';
             const year = data.year || '';
-            return `Form 2290 deadlines for ${month} ${year}. Learn prorated rates and how to e-file. QuickTruckTax focuses on UCR filing.`;
+            return `Form 2290 deadlines for ${month} ${year}. Learn prorated rates and how to e-file. easyucr.com focuses on UCR filing.`;
         }
 
         return `Guide for ${slugWords}. Form 2290 deadlines, rates, and e-file options. We file UCR—see our Form 2290 guide for HVUT.`;
@@ -125,14 +125,14 @@ export async function generateMetadata({ params }) {
     const ogData = {
         title,
         description,
-        url: `https://www.quicktrucktax.com/${slug}`,
-        siteName: 'QuickTruckTax',
+        url: `https://www.easyucr.com/${slug}`,
+        siteName: 'easyucr.com',
         locale: 'en_US',
         type: 'article',
     }
 
     // Base Metadata
-    const baseUrl = 'https://www.quicktrucktax.com';
+    const baseUrl = 'https://www.easyucr.com';
     const currentUrl = `${baseUrl}/${slug}`;
 
     // Breadcrumb Schema
@@ -175,7 +175,7 @@ export async function generateMetadata({ params }) {
         return {
             ...commonMeta,
             title: dbMeta.meta_title || `Filing Form 2290 in ${month} ${data.year}: Deadlines & Prorated Rates`,
-            description: dbMeta.meta_description || `Need to file Form 2290 in ${month} ${data.year}? Learn about prorated tax amounts, deadlines, and how to get your Schedule 1 instantly with QuickTruckTax.`,
+            description: dbMeta.meta_description || `Need to file Form 2290 in ${month} ${data.year}? Learn about prorated tax amounts, deadlines, and how to get your Schedule 1 instantly with easyucr.com.`,
         };
     }
 
@@ -200,7 +200,7 @@ export async function generateMetadata({ params }) {
     if (data.type === "state-deadline") {
         return {
             ...commonMeta,
-            title: dbMeta.meta_title || `Filing Form 2290 in ${data.state} | QuickTruckTax`,
+            title: dbMeta.meta_title || `Filing Form 2290 in ${data.state} | easyucr.com`,
             description: dbMeta.meta_description || `Complete guide for ${data.state} truckers on filing IRS Form 2290, paying HVUT, and registering vehicles with the local DMV/DOT.`,
         }
     }
@@ -361,7 +361,7 @@ export default async function PseoPage({ params }) {
                         "@type": "Service",
                         "name": `Form 2290 Filing for ${type}`,
                         "description": `E-file Form 2290 for a ${type} (${weightNum} lbs).`,
-                        "provider": { "@type": "Organization", "name": "QuickTruckTax" }
+                        "provider": { "@type": "Organization", "name": "easyucr.com" }
                     })
                 }} />
 
@@ -433,7 +433,7 @@ export default async function PseoPage({ params }) {
                         <header className="mb-8">
                             <span className="text-sm font-bold text-purple-600 tracking-wide uppercase">VIN Decoder</span>
                             <h1 className="text-4xl sm:text-5xl font-extrabold text-[#0f172a] mt-2 leading-tight">
-                                <span className="text-[#f97316]">{make}</span> VIN Decoding for Form 2290
+                                <span className="text-[#f97316]">{make}</span> VIN Decoding for UCR
                             </h1>
                             <p className="text-xl text-slate-600 mt-4">
                                 Accurate VIN reporting is critical for avoiding IRS rejection code R0000-058.
@@ -499,7 +499,7 @@ export default async function PseoPage({ params }) {
             <div className="max-w-7xl mx-auto py-12 px-6">
                 <div className="grid lg:grid-cols-12 gap-12">
                     <article className="lg:col-span-8 order-2 lg:order-1">
-                        <h1 className="text-4xl font-extrabold mb-6 text-[#0f172a]">Filing 2290 in <span className="text-red-600">{stateName}</span></h1>
+                        <h1 className="text-4xl font-extrabold mb-6 text-[#0f172a]">UCR Filing in <span className="text-red-600">{stateName}</span></h1>
                         <div className="prose prose-lg prose-slate max-w-none mb-12" dangerouslySetInnerHTML={{ __html: contentWithIds }} />
                         <div className="grid md:grid-cols-2 gap-6">
                             {displayData.faq?.map((f, i) => (
@@ -552,8 +552,8 @@ export default async function PseoPage({ params }) {
                         <div className="bg-[#0f172a] text-white p-6 rounded-2xl text-center">
                             <p className="text-sm opacity-70 mb-2">Estimated Tax</p>
                             <p className="text-4xl font-black">${(weightNum >= 75000 ? 550 : 100 + ((weightNum - 55000) / 1000) * 22).toFixed(2)}</p>
-                            <Link href="/services/form-2290-filing" className="mt-4 block bg-[#f97316] text-white font-bold py-3 rounded-lg hover:bg-orange-600">
-                                Form 2290 guide
+                            <Link href="/ucr/file" className="mt-4 block bg-[#f97316] text-white font-bold py-3 rounded-lg hover:bg-orange-600">
+                                Start UCR Filing
                             </Link>
                         </div>
                         <UcrCtaBox />
@@ -683,9 +683,9 @@ function RelatedGuides({ currentSlug, data }) {
     // Strategic internal linking based on page type
     const getRelatedGuides = () => {
         const baseGuides = [
-            { label: "Form 2290 Guide", href: "/services/form-2290-filing", icon: "file", priority: true },
-            { label: "HVUT Tax Calculator", href: "/tools/hvut-calculator", icon: "calculator", priority: true },
-            { label: "Form 2290 Ultimate Guide", href: "/insights/form-2290-ultimate-guide", icon: "guide", priority: true },
+            { label: "UCR Filing", href: "/ucr/file", icon: "file", priority: true },
+            { label: "UCR Fee Calculator", href: "/tools/ucr-calculator", icon: "calculator", priority: true },
+            { label: "UCR Renewal Guide", href: "/insights/ucr-renewal-guide", icon: "guide", priority: true },
         ];
 
         // Add context-specific guides based on page type
@@ -693,25 +693,9 @@ function RelatedGuides({ currentSlug, data }) {
             const state = data.state?.replace(/-/g, ' ');
             if (state) {
                 baseGuides.push(
-                    { label: `Form 2290 in ${state}`, href: `/filing-2290-in-${data.state}`, icon: "map", priority: false },
-                    { label: `${state} Tax Guide`, href: `/insights/state/${data.state}`, icon: "map", priority: false }
+                    { label: `UCR in ${state}`, href: `/states/${data.state}`, icon: "map", priority: false },
+                    { label: `${state} UCR Guide`, href: `/insights/state/${data.state}`, icon: "map", priority: false }
                 );
-            }
-        }
-
-        if (data?.type === "calculator" || data?.type === "state-calculator") {
-            const weight = data.weight ? parseInt(data.weight) : null;
-            if (weight) {
-                // Add nearby weight guides
-                const nearbyWeights = [weight - 5000, weight + 5000].filter(w => w >= 55000 && w <= 80000);
-                nearbyWeights.forEach(w => {
-                    baseGuides.push({
-                        label: `Form 2290 for ${w.toLocaleString()} lb Truck`,
-                        href: `/2290-tax-for-${w}-lb-truck${data.state ? `-in-${data.state}` : ''}`,
-                        icon: "truck",
-                        priority: false
-                    });
-                });
             }
         }
 
@@ -726,8 +710,8 @@ function RelatedGuides({ currentSlug, data }) {
         popularStates.forEach(state => {
             if (!currentSlug.includes(state.slug)) {
                 baseGuides.push({
-                    label: `${state.name} Tax Guide`,
-                    href: `/filing-2290-in-${state.slug}`,
+                    label: `${state.name} UCR Guide`,
+                    href: `/states/${state.slug}`,
                     icon: "map",
                     priority: false
                 });
@@ -779,8 +763,8 @@ function RelatedGuides({ currentSlug, data }) {
                 ))}
             </div>
             <div className="mt-6 text-center relative z-10">
-                <Link href="/services/form-2290-filing" className="text-xs font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors flex items-center justify-center gap-1">
-                    Form 2290 guide <ArrowRight className="w-3 h-3" />
+                <Link href="/ucr/file" className="text-xs font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors flex items-center justify-center gap-1">
+                    Start UCR Filing <ArrowRight className="w-3 h-3" />
                 </Link>
             </div>
         </div>

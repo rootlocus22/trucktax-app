@@ -1,11 +1,11 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Refund Policy | QuickTruckTax',
-  description: 'Refund and cancellation policy for QuickTruckTax services.',
+  title: 'Refund Policy | easyucr.com',
+  description: 'Refund and cancellation policy for easyucr.com services.',
 };
 
-const CONTACT_EMAIL = 'support@quicktrucktax.com';
+const CONTACT_EMAIL = 'support@vendaxsystemlabs.com';
 const CONTACT_PHONE = '+1 (347) 801-8631';
 const CONTACT_PHONE_TEL = 'tel:+13478018631';
 const ADDRESS = '28 Geary St STE 650 Suite #500, San Francisco, California 94108, United States';
@@ -24,7 +24,7 @@ export default function RefundPolicyPage() {
           <section>
             <h2 className="text-xl font-bold text-slate-900 mb-4">Refunds</h2>
             <p className="mb-4">
-              QuickTruckTax offers refunds for UCR services purchased within 30 days of payment under specific conditions.
+              easyucr.com offers refunds for UCR services purchased within 30 days of payment under specific conditions.
             </p>
             <ul className="list-disc pl-5 mb-4 space-y-2">
               <li><strong>Eligible for Refund:</strong> Filing has not yet been submitted/processed by us, it was a duplicate filing made in error, or there was an obvious clerical mistake on our end.</li>
@@ -44,10 +44,10 @@ export default function RefundPolicyPage() {
           <section>
             <h2 className="text-xl font-bold text-slate-900 mb-4">Cancellations</h2>
             <p>
-              The Customer has the right to cancel any Order within thirty (30) days of placement, provided the service has not been accessed or used and the filing has not been initiated or completed. QuickTruckTax will send an email confirmation upon fulfillment and completion of the Order. No refunds will be issued after QuickTruckTax has sent this confirmation. If the confirmation has not been sent and the Customer cancels within thirty (30) days of placing the Order, and the service has not been accessed or used, a refund will be issued within ten business days of receiving a written cancellation notice.
+              The Customer has the right to cancel any Order within thirty (30) days of placement, provided the service has not been accessed or used and the filing has not been initiated or completed. easyucr.com will send an email confirmation upon fulfillment and completion of the Order. No refunds will be issued after easyucr.com has sent this confirmation. If the confirmation has not been sent and the Customer cancels within thirty (30) days of placing the Order, and the service has not been accessed or used, a refund will be issued within ten business days of receiving a written cancellation notice.
             </p>
             <p className="mt-4">
-              To cancel an Order, the Customer must email QuickTruckTax at <a href={`mailto:${CONTACT_EMAIL}`} className="text-[var(--color-navy)] hover:underline">{CONTACT_EMAIL}</a> by midnight of the third (3rd) day following the Order placement.
+              To cancel an Order, the Customer must email easyucr.com at <a href={`mailto:${CONTACT_EMAIL}`} className="text-[var(--color-navy)] hover:underline">{CONTACT_EMAIL}</a> by midnight of the third (3rd) day following the Order placement.
             </p>
             <p className="mt-4">
               For cancellations requested before the service has been provided, a partial refund may be available. No refund will be granted if the service has already been delivered. If we request additional information and more than 30 days have passed since the order, no refund will be issued. Once a service has been initiated or processed, orders cannot be adjusted or canceled. In the event of cancellation or dispute after payment, you will be responsible for reimbursing us for all fees incurred during service preparation, including the original quoted cost and sales tax.
@@ -65,7 +65,7 @@ export default function RefundPolicyPage() {
             <h2 className="text-xl font-bold text-slate-900 mb-4">Contact Us</h2>
             <p>For any questions or concerns about refunds or cancellations, please contact us:</p>
             <address className="mt-4 not-italic bg-slate-100 p-4 rounded-lg text-sm">
-              <strong>QuickTruckTax</strong><br />
+              <strong>easyucr.com</strong><br />
               {ADDRESS}<br />
               Email: <a href={`mailto:${CONTACT_EMAIL}`} className="text-[var(--color-navy)] hover:underline">{CONTACT_EMAIL}</a><br />
               Phone: <a href={CONTACT_PHONE_TEL} className="text-[var(--color-navy)] hover:underline">{CONTACT_PHONE}</a>
@@ -75,9 +75,9 @@ export default function RefundPolicyPage() {
 
         {/* Footer disclaimer */}
         <div className="mt-12 pt-8 border-t border-slate-200 text-xs text-slate-500 space-y-2">
-          <p>The information and images on this website are the property of QuickTruckTax and may not be reproduced, reused, or appropriated without the express written consent of the owner.</p>
-          <p>QuickTruckTax is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement. We are not a government agency and are not affiliated with any government authority such as the UCR Board, IRS, USDOT, or FMCSA.</p>
-          <p className="pt-2">&copy; 2026 QuickTruckTax, All Rights Reserved.</p>
+          <p>The information and images on this website are the property of easyucr.com and may not be reproduced, reused, or appropriated without the express written consent of the owner.</p>
+          <p>easyucr.com is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement. We are not a government agency and are not affiliated with any government authority such as the UCR Board, IRS, USDOT, or FMCSA.</p>
+          <p className="pt-2">&copy; 2026 easyucr.com, All Rights Reserved.</p>
         </div>
         <div className="mt-4 flex flex-wrap gap-4 text-sm">
           <Link href="/terms" className="text-[var(--color-navy)] hover:underline">Terms &amp; Conditions</Link>

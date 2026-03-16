@@ -1,14 +1,14 @@
 export default function GeneralFaq() {
     const faqs = [
-        { q: "What is a Stamped Schedule 1?", a: "It is the official proof of payment for the Heavy Vehicle Use Tax (HVUT). You need this document to register your vehicle with the DMV." },
-        { q: "When is Form 2290 due?", a: "For the annual tax period (July 1 - June 30), it is due by August 31st. For newly purchased vehicles, it is due by the end of the month following the month of first use." },
+        { q: "What is a UCR confirmation?", a: "It is the official proof of your Unified Carrier Registration. You need this document to operate legally in interstate commerce." },
+        { q: "When is UCR due?", a: "UCR must be filed by December 31 each year for the following calendar year. The registration window opens October 1." },
         { q: "Can I pay by credit card?", a: "Yes, you can pay the IRS directly using a credit card, debit card, or EFTPS. Bank account withdrawal is also an option." },
-        { q: "What if I suspended my vehicle?", a: "If you expect to drive less than 5,000 miles (7,500 for agriculture), you can file as 'Suspended' and pay $0 tax. However, you must still file Form 2290." }
+        { q: "Who needs to file UCR?", a: "Anyone operating commercial motor vehicles in interstate commerce with a USDOT number must file UCR annually." }
     ];
 
     return (
         <div className="my-12">
-            <h3 className="font-bold text-2xl text-[#0f172a] mb-6">Common Questions About Form 2290</h3>
+            <h3 className="font-bold text-2xl text-[#0f172a] mb-6">Common Questions About UCR</h3>
             <div className="space-y-4">
                 {faqs.map((f, i) => (
                     <details key={i} className="group bg-white border border-slate-200 rounded-xl overflow-hidden p-2">

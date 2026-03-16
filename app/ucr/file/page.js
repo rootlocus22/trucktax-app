@@ -530,7 +530,7 @@ function UcrFileContent() {
       {/* Header with step-by-step stepper */}
       <div className="bg-[var(--color-midnight)] text-white py-6 px-4 pt-safe">
         <div className="max-w-3xl mx-auto">
-          <Link href="/" className="text-white/80 hover:text-white text-sm mb-4 inline-block touch-manipulation min-h-[44px] flex items-center">← QuickTruckTax</Link>
+          <Link href="/" className="text-white/80 hover:text-white text-sm mb-4 inline-block touch-manipulation min-h-[44px] flex items-center">← easyucr.com</Link>
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold">UCR Filing Wizard</h1>
@@ -915,7 +915,7 @@ function UcrFileContent() {
                           <label className="flex items-start gap-3 cursor-pointer">
                             <input type="checkbox" checked={consentGiven} onChange={(e) => setConsentGiven(e.target.checked)} className="mt-1 w-5 h-5 rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]" />
                             <span className="text-sm text-slate-700 leading-snug">
-                              <strong>Authorization & Consent:</strong> I authorize QuickTruckTax to pay the federal UCR fee on my behalf using the funds provided today. I understand that QuickTruckTax is an independent third-party filing service and is not affiliated with the government.
+                              <strong>Authorization & Consent:</strong> I authorize easyucr.com to pay the federal UCR fee on my behalf using the funds provided today. I understand that easyucr.com is an independent third-party filing service and is not affiliated with the government.
                             </span>
                           </label>
                         </div>
@@ -993,7 +993,7 @@ function UcrFileContent() {
                           <label className="flex items-start gap-3 cursor-pointer">
                             <input type="checkbox" checked={achConsent} onChange={(e) => setAchConsent(e.target.checked)} className="mt-1 w-5 h-5 rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]" />
                             <span className="text-sm text-slate-700 leading-snug">
-                              <strong>I agree to the terms described below.</strong> I hereby authorize UCR to electronically debit my account (and, if necessary, electronically credit my account) using the account details listed above. I understand that the ACH transactions I authorize comply with all applicable law. I understand that this authorization will remain in full force and effect unless I notify UCR that I wish to revoke it. I understand that if I revoke the authorization, UCR may be limited in its ability to accept payment for or authorize a refund for my UCR registration, if applicable. I also authorize QuickTruckTax to provide my billing and bank information to our filing agent so that my UCR registration can be submitted and paid on UCR.gov.
+                              <strong>I agree to the terms described below.</strong> I hereby authorize UCR to electronically debit my account (and, if necessary, electronically credit my account) using the account details listed above. I understand that the ACH transactions I authorize comply with all applicable law. I understand that this authorization will remain in full force and effect unless I notify UCR that I wish to revoke it. I understand that if I revoke the authorization, UCR may be limited in its ability to accept payment for or authorize a refund for my UCR registration, if applicable. I also authorize easyucr.com to provide my billing and bank information to our filing agent so that my UCR registration can be submitted and paid on UCR.gov.
                             </span>
                           </label>
                         </div>

@@ -10,10 +10,15 @@ import Logo from '@/components/Logo';
 
 const FILING_ROUTES = ['/ucr/file', '/login', '/signup'];
 const DASHBOARD_ROUTES = ['/dashboard'];
+const AUTH_ROUTES = ['/login', '/signup'];
 
 function isMinimalHeader(pathname) {
   if (!pathname) return false;
   return FILING_ROUTES.some(r => pathname.startsWith(r)) || DASHBOARD_ROUTES.some(r => pathname.startsWith(r));
+}
+
+function isAuthPage(pathname) {
+  return AUTH_ROUTES.some(r => pathname?.startsWith(r));
 }
 
 export default function Header() {
@@ -27,6 +32,7 @@ export default function Header() {
   const router = useRouter();
   const { user, userData, loading: authLoading, signOut } = useAuth();
   const minimal = isMinimalHeader(pathname);
+  const isAuth = isAuthPage(pathname);
 
   useEffect(() => {
     setMounted(true);
@@ -73,120 +79,119 @@ export default function Header() {
   ];
 
   const quickLinks = [
-    { href: '/services/form-2290-filing', label: 'Form 2290 Guide', icon: FileText },
-    { href: '/services/mcs-150-update', label: 'MCS-150 Update', icon: Truck },
     { href: '/services/ucr-registration', label: 'UCR Registration', icon: ShieldCheck },
-    { href: '/insights/trucking-compliance-calendar', label: 'Compliance Calendar', icon: Calendar },
+    { href: '/insights/ucr-renewal-guide', label: 'UCR Renewal Guide', icon: FileText },
   ];
 
   const redirectQuery = pathname?.startsWith('/ucr') ? '?redirect=' + encodeURIComponent(pathname || '/ucr/file') : '';
 
   // ----- Minimal header (filing / login / signup / dashboard)
+  // Auth pages (login/signup): two-column layout so logo aligns with hero, CTAs with form panel
   if (minimal) {
+    const authHeader = isAuth;
+    const ctaBlock = (
+      <div className="flex items-center gap-2 shrink-0">
+        {!authLoading && (
+          user ? (
+            <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className={`inline-flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm font-semibold transition border ${authHeader ? 'text-white hover:bg-white/10 border-white/20' : 'text-slate-700 hover:bg-slate-100 border-slate-200'}`}
+              >
+                {(userData?.photoURL || user?.photoURL) ? (
+                  <img
+                    src={userData?.photoURL || user?.photoURL}
+                    alt=""
+                    className="w-7 h-7 rounded-full object-cover bg-slate-200"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling?.classList.remove('hidden'); }}
+                  />
+                ) : null}
+                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${(userData?.photoURL || user?.photoURL) ? 'hidden' : ''} ${authHeader ? 'bg-white/20 !text-white' : 'bg-[var(--color-navy)] !text-white'}`}>
+                  {(userData?.displayName || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+                </span>
+                <span className={`hidden sm:inline max-w-[120px] truncate ${authHeader ? 'text-white' : ''}`}>{userData?.displayName || user?.email?.split('@')[0] || 'Account'}</span>
+                <ChevronDown className={`w-4 h-4 transition ${userDropdownOpen ? 'rotate-180' : ''} ${authHeader ? 'text-white/70' : 'text-slate-500'}`} />
+              </button>
+              {userDropdownOpen && (
+                <div className="absolute right-0 top-full mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
+                  <Link href="/dashboard" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-slate-700 hover:bg-slate-50 touch-manipulation">
+                    <LayoutDashboard className="w-4 h-4" /> Dashboard
+                  </Link>
+                  <Link href="/dashboard/filings" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-slate-700 hover:bg-slate-50 touch-manipulation">
+                    <FileText className="w-4 h-4" /> Filings
+                  </Link>
+                  <Link href="/dashboard/profile" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-slate-700 hover:bg-slate-50 touch-manipulation">
+                    <User className="w-4 h-4" /> Profile
+                  </Link>
+                  <Link href="/dashboard/payment-history" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-slate-700 hover:bg-slate-50 touch-manipulation">
+                    <CreditCard className="w-4 h-4" /> Payment History
+                  </Link>
+                  <hr className="my-1 border-slate-100" />
+                  <button onClick={handleSignOut} className="flex w-full items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-red-600 hover:bg-red-50 touch-manipulation text-left">
+                    <LogOut className="w-4 h-4" /> Log out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link href={`/login${redirectQuery}`} className={`inline-flex items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-lg text-sm font-semibold transition touch-manipulation items-center ${authHeader ? 'bg-white/15 border border-white/60 !text-white hover:bg-white/25 hover:border-white/80' : 'text-slate-600 hover:bg-slate-100'}`}>
+                <LogIn className="w-4 h-4" /> Log in
+              </Link>
+              <Link href={`/signup${redirectQuery}`} className={`inline-flex items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-lg text-sm font-semibold transition touch-manipulation items-center ${authHeader ? 'bg-[var(--color-orange)] !text-white hover:bg-[var(--color-orange-hover)]' : 'bg-[var(--color-navy)] !text-white hover:bg-[var(--color-navy-soft)]'}`}>
+                <UserPlus className="w-4 h-4" /> Sign up
+              </Link>
+            </>
+          )
+        )}
+      </div>
+    );
+
     return (
       <>
-        <header className="sticky top-0 z-50 bg-white border-b border-slate-200 py-2 shadow-sm">
-          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between gap-4 min-h-[44px]">
-              <div className="flex items-center gap-3 min-w-0">
+        <header className={`sticky top-0 z-50 py-2 ${authHeader ? 'bg-[var(--color-midnight)] border-b border-white/10' : 'bg-white border-b border-slate-200 shadow-sm'}`}>
+          {authHeader ? (
+            <div className="w-full flex lg:grid lg:grid-cols-2 items-center justify-between lg:justify-stretch min-h-[44px]">
+              <div className="flex items-center min-h-[44px] px-4 sm:px-6 lg:pl-10 lg:pr-4">
                 <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2 shrink-0">
-                  <Logo dark={false} compact />
+                  <Logo dark compact />
                 </Link>
                 {!authLoading && user && (
-                  <nav className="hidden sm:flex items-center gap-1" aria-label="Dashboard navigation">
-                    <Link
-                      href="/dashboard"
-                      aria-current={pathname === '/dashboard' ? 'page' : undefined}
-                      className={`inline-flex items-center min-h-[36px] px-2.5 py-1 rounded-md text-xs font-semibold transition ${pathname === '/dashboard' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
-                    >
-                      Dashboard
-                    </Link>
-                    <Link
-                      href="/dashboard/filings"
-                      aria-current={isActive('/dashboard/filings') ? 'page' : undefined}
-                      className={`inline-flex items-center min-h-[36px] px-2.5 py-1 rounded-md text-xs font-semibold transition ${isActive('/dashboard/filings') ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
-                    >
-                      Filings
-                    </Link>
+                  <nav className="hidden sm:flex items-center gap-1 ml-4" aria-label="Dashboard navigation">
+                    <Link href="/dashboard" aria-current={pathname === '/dashboard' ? 'page' : undefined} className={`inline-flex items-center min-h-[36px] px-2.5 py-1 rounded-md text-xs font-semibold transition ${pathname === '/dashboard' ? 'bg-white/20 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}>Dashboard</Link>
+                    <Link href="/dashboard/filings" aria-current={isActive('/dashboard/filings') ? 'page' : undefined} className={`inline-flex items-center min-h-[36px] px-2.5 py-1 rounded-md text-xs font-semibold transition ${isActive('/dashboard/filings') ? 'bg-white/20 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}>Filings</Link>
                   </nav>
                 )}
               </div>
-              <div className="flex items-center gap-2">
-                {!authLoading && (
-                  user ? (
-                    <div className="relative" ref={userMenuRef}>
-                      <button
-                        onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                        className="inline-flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100 transition border border-slate-200"
-                      >
-                        {(userData?.photoURL || user?.photoURL) ? (
-                          <img
-                            src={userData?.photoURL || user?.photoURL}
-                            alt=""
-                            className="w-7 h-7 rounded-full object-cover bg-slate-200"
-                            referrerPolicy="no-referrer"
-                            onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling?.classList.remove('hidden'); }}
-                          />
-                        ) : null}
-                        <span className={`w-7 h-7 rounded-full bg-[var(--color-navy)] !text-white flex items-center justify-center text-xs font-bold shrink-0 ${(userData?.photoURL || user?.photoURL) ? 'hidden' : ''}`}>
-                          {(userData?.displayName || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
-                        </span>
-                        <span className="hidden sm:inline max-w-[120px] truncate">{userData?.displayName || user?.email?.split('@')[0] || 'Account'}</span>
-                        <ChevronDown className={`w-4 h-4 text-slate-500 transition ${userDropdownOpen ? 'rotate-180' : ''}`} />
-                      </button>
-                      {userDropdownOpen && (
-                        <div className="absolute right-0 top-full mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
-                          <Link href="/dashboard" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-slate-700 hover:bg-slate-50 touch-manipulation">
-                            <LayoutDashboard className="w-4 h-4" /> Dashboard
-                          </Link>
-                          <Link href="/dashboard/filings" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-slate-700 hover:bg-slate-50 touch-manipulation">
-                            <FileText className="w-4 h-4" /> Filings
-                          </Link>
-                          <Link href="/dashboard/profile" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-slate-700 hover:bg-slate-50 touch-manipulation">
-                            <User className="w-4 h-4" /> Profile
-                          </Link>
-                          <Link href="/dashboard/payment-history" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-slate-700 hover:bg-slate-50 touch-manipulation">
-                            <CreditCard className="w-4 h-4" /> Payment History
-                          </Link>
-                          <hr className="my-1 border-slate-100" />
-                          <button onClick={handleSignOut} className="flex w-full items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium text-red-600 hover:bg-red-50 touch-manipulation text-left">
-                            <LogOut className="w-4 h-4" /> Log out
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <>
-                      <Link href={`/login${redirectQuery}`} className="inline-flex items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100 transition touch-manipulation items-center">
-                        <LogIn className="w-4 h-4" /> Log in
-                      </Link>
-                      <Link href={`/signup${redirectQuery}`} className="inline-flex items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-lg text-sm font-semibold bg-[var(--color-navy)] !text-white hover:bg-[var(--color-navy-soft)] transition touch-manipulation items-center">
-                        <UserPlus className="w-4 h-4" /> Sign up
-                      </Link>
-                    </>
-                  )
-                )}
+              <div className="flex items-center justify-end min-h-[44px] px-4 sm:px-6 lg:pl-4 lg:pr-12 shrink-0">
+                {ctaBlock}
               </div>
             </div>
-            {!authLoading && user && (
-              <nav className="sm:hidden flex items-center gap-2 pb-1 pt-1" aria-label="Dashboard quick links">
-                <Link
-                  href="/dashboard"
-                  aria-current={pathname === '/dashboard' ? 'page' : undefined}
-                  className={`inline-flex items-center min-h-[36px] px-2.5 py-1 rounded-md text-xs font-semibold transition ${pathname === '/dashboard' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/dashboard/filings"
-                  aria-current={isActive('/dashboard/filings') ? 'page' : undefined}
-                  className={`inline-flex items-center min-h-[36px] px-2.5 py-1 rounded-md text-xs font-semibold transition ${isActive('/dashboard/filings') ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
-                >
-                  Filings
-                </Link>
-              </nav>
-            )}
-          </div>
+          ) : (
+            <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between gap-4 min-h-[44px]">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2 shrink-0">
+                    <Logo dark={false} compact />
+                  </Link>
+                  {!authLoading && user && (
+                    <nav className="hidden sm:flex items-center gap-1" aria-label="Dashboard navigation">
+                      <Link href="/dashboard" aria-current={pathname === '/dashboard' ? 'page' : undefined} className={`inline-flex items-center min-h-[36px] px-2.5 py-1 rounded-md text-xs font-semibold transition ${pathname === '/dashboard' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}>Dashboard</Link>
+                      <Link href="/dashboard/filings" aria-current={isActive('/dashboard/filings') ? 'page' : undefined} className={`inline-flex items-center min-h-[36px] px-2.5 py-1 rounded-md text-xs font-semibold transition ${isActive('/dashboard/filings') ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}>Filings</Link>
+                    </nav>
+                  )}
+                </div>
+                {ctaBlock}
+              </div>
+            </div>
+          )}
+          {!authLoading && user && (
+            <nav className="sm:hidden flex items-center gap-2 pb-1 pt-1 px-4 sm:px-6 lg:px-8" aria-label="Dashboard quick links">
+              <Link href="/dashboard" aria-current={pathname === '/dashboard' ? 'page' : undefined} className={`inline-flex items-center min-h-[36px] px-2.5 py-1 rounded-md text-xs font-semibold transition ${pathname === '/dashboard' ? (authHeader ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-900') : (authHeader ? 'text-white/80 hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')}`}>Dashboard</Link>
+              <Link href="/dashboard/filings" aria-current={isActive('/dashboard/filings') ? 'page' : undefined} className={`inline-flex items-center min-h-[36px] px-2.5 py-1 rounded-md text-xs font-semibold transition ${isActive('/dashboard/filings') ? (authHeader ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-900') : (authHeader ? 'text-white/80 hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')}`}>Filings</Link>
+            </nav>
+          )}
         </header>
       </>
     );

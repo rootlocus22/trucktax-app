@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ArrowLeft, CheckCircle, HelpCircle, AlertTriangle, ChevronRight } from 'lucide-react';
 
 export const metadata = {
-    title: 'Who Exactly Needs a Unified Carrier Registration (UCR)? | QuickTruckTax',
+    title: 'Who Exactly Needs a Unified Carrier Registration (UCR)? | easyucr.com',
     description: 'Unsure if you need a UCR? Discover exactly who needs to file for Unified Carrier Registration, including rules for brokers, freight forwarders, and intrastate carriers.',
 };
 
@@ -36,7 +36,7 @@ export default function WhoNeedsUcrGuide() {
                         <div className="prose prose-slate prose-lg max-w-none text-slate-600 prose-headings:text-slate-900 prose-headings:font-bold prose-a:text-[var(--color-navy)] hover:prose-a:text-blue-700">
 
                             <p className="lead text-xl text-slate-500 mb-8 border-l-4 border-emerald-500 pl-4">
-                                The most common question we receive at QuickTruckTax is: <em>"Does my business actually need to file a UCR?"</em> The short answer is: If you operate commercial motor vehicles in interstate commerce (across state lines), yes. But let's look at the specific requirements.
+                                The most common question we receive at easyucr.com is: <em>"Does my business actually need to file a UCR?"</em> The short answer is: If you operate commercial motor vehicles in interstate commerce (across state lines), yes. But let's look at the specific requirements.
                             </p>
 
                             <h2>The Basic Rule of Thumb</h2>
@@ -105,7 +105,7 @@ export default function WhoNeedsUcrGuide() {
                             <div className="bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-accent)] text-white rounded-2xl p-8 sm:p-10 my-10 shadow-lg relative overflow-hidden">
                                 <h3 className="text-white mt-0 mb-4 h3">Ready to Handle Your Registration?</h3>
                                 <p className="text-blue-100 mb-6 text-lg">
-                                    If you fall into any of the required categories, you need to secure your 2026 UCR before the deadline to avoid steep roadside fines. QuickTruckTax can process your UCR instantly.
+                                    If you fall into any of the required categories, you need to secure your 2026 UCR before the deadline to avoid steep roadside fines. easyucr.com can process your UCR instantly.
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-4">
                                     <Link href="/ucr/file" className="inline-flex items-center justify-center bg-[var(--color-orange)] !text-white hover:!text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66a15] transition shadow-lg no-underline group">
@@ -120,7 +120,7 @@ export default function WhoNeedsUcrGuide() {
 
                             <h2>Still have questions?</h2>
                             <p>
-                                Compliance can be confusing. If you are still unsure whether your specific operation requires a UCR, or if you need to know how it interacts with other federal taxes, check out our <Link href="/insights/complete-guide-ucr-filing-2026">Complete Guide to UCR Filing</Link> or understand the difference in our <Link href="/insights/form-2290-vs-ucr-difference">UCR vs Form 2290 Breakdown</Link>.
+                                Compliance can be confusing. If you are still unsure whether your specific operation requires a UCR, check out our <Link href="/insights/complete-guide-ucr-filing-2026">Complete Guide to UCR Filing</Link> or our <Link href="/learn/do-i-need-ucr">Do I Need UCR?</Link> checklist.
                             </p>
 
                         </div>

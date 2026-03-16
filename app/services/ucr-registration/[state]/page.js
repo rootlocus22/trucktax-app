@@ -38,14 +38,14 @@ export async function generateMetadata({ params }) {
 
     if (isNonParticipating) {
         title = `UCR Registration Guide for ${stateName} Motor Carriers (2026)`;
-        description = `Even though ${stateName} is a non-participating base state, interstate carriers must still file UCR. Learn the rules and file online securely with QuickTruckTax.`;
+        description = `Even though ${stateName} is a non-participating base state, interstate carriers must still file UCR. Learn the rules and file online securely with easyucr.com.`;
     }
 
     return {
         title,
         description,
         alternates: {
-            canonical: `https://www.quicktrucktax.com/services/ucr-registration/${normalizedState}`,
+            canonical: `https://www.easyucr.com/services/ucr-registration/${normalizedState}`,
         },
     };
 }
@@ -76,7 +76,7 @@ export default async function UcrStatePage({ params }) {
         },
         {
             question: "Do I have to pay upfront?",
-            answer: "No. QuickTruckTax provides a 'File First, Pay Later' service. You can submit your filing without any upfront service charge. You only pay when your official UCR certificate is securely uploaded to your dashboard."
+            answer: "No. easyucr.com provides a 'File First, Pay Later' service. You can submit your filing without any upfront service charge. You only pay when your official UCR certificate is securely uploaded to your dashboard."
         },
     ];
 

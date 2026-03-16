@@ -1,64 +1,24 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Truck, FileText, BadgeCheck, DollarSign, Map, Calculator, ShieldCheck, Zap, CheckCircle } from 'lucide-react';
+import { ArrowRight, Calculator, ShieldCheck, Zap, CheckCircle } from 'lucide-react';
 
 export const metadata = {
     title: 'UCR Registration Services | File UCR Online',
-    description: 'Federal-compliant UCR registration and comprehensive trucking compliance guides including Form 2290 and IFTA filing.',
-    keywords: 'trucking services, form 2290 filing, ucr registration, ifta filing, trucking compliance',
+    description: 'Federal-compliant UCR registration. File UCR online with $0 upfront.',
+    keywords: 'ucr registration, ucr filing, ucr renewal, trucking compliance',
     alternates: {
-        canonical: 'https://www.quicktrucktax.com/services',
+        canonical: 'https://www.easyucr.com/services',
     },
     openGraph: {
-        title: "UCR Registration Services | QuickTruckTax",
-        description:
-            "Federal-compliant UCR registration and comprehensive trucking compliance guides including Form 2290 and IFTA filing.",
-        url: "https://www.quicktrucktax.com/services",
-        siteName: "QuickTruckTax",
+        title: "UCR Registration Services | easyucr.com",
+        description: "Federal-compliant UCR registration. File UCR online with $0 upfront.",
+        url: "https://www.easyucr.com/services",
+        siteName: "easyucr.com",
         type: "website",
-        images: [
-            {
-                url: "https://www.quicktrucktax.com/quicktrucktax-logo-new.png",
-                width: 1280,
-                height: 720,
-                alt: "QuickTruckTax Resources",
-            },
-        ],
     },
 };
 
 export default function ServicesPage() {
-    const upcomingServices = [
-        {
-            title: "Form 2290 Filing",
-            description: "A comprehensive guide to Heavy Vehicle Use Tax (HVUT). Learn rates, deadlines, and how to file.",
-            icon: <Truck className="w-8 h-8 text-orange-500" />,
-            link: "/blog",
-            color: "orange"
-        },
-        {
-            title: "MCS-150 Biennial Update",
-            description: "Understand the requirements to keep your USDOT number active and avoid FMCSA deactivation.",
-            icon: <BadgeCheck className="w-8 h-8 text-teal-500" />,
-            link: "/blog",
-            color: "teal"
-        },
-        {
-            title: "IFTA Fuel Tax Filing",
-            description: "International Fuel Tax Agreement overview. Learn how to calculate and report your quarterly fuel tax.",
-            icon: <Map className="w-8 h-8 text-purple-500" />,
-            link: "/blog",
-            color: "purple"
-        },
-        {
-            title: "Form 8849 Refund",
-            description: "Read our guide on how to claim a refund for sold, stolen, or destroyed vehicles.",
-            icon: <DollarSign className="w-8 h-8 text-green-500" />,
-            link: "/blog",
-            color: "green"
-        }
-    ];
-
     return (
         <div className="min-h-screen bg-slate-50">
             {/* HER0 - UCR Focused */}
@@ -129,40 +89,6 @@ export default function ServicesPage() {
                                 </ul>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Compliance Guides & Future Tools Section */}
-            <div className="py-24 px-6 relative">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold text-[var(--color-navy)] mb-4">Compliance Guides & Future Tools</h2>
-                        <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                            While our engineers are actively building out our suite of automated e-filing tools, explore our comprehensive educational resources to master compliance.
-                        </p>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {upcomingServices.map((service, index) => (
-                            <div key={index} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col group">
-                                <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-5 bg-${service.color}-50 group-hover:bg-${service.color}-100 transition`}>
-                                    {service.icon}
-                                </div>
-
-                                <div className="mb-4 flex-1">
-                                    <h3 className="text-xl font-bold text-slate-900 mb-2">{service.title}</h3>
-                                    <p className="text-slate-600 text-sm leading-relaxed">{service.description}</p>
-                                </div>
-
-                                    <Link
-                                        href={service.link}
-                                    className={`text-${service.color}-600 font-bold text-sm bg-${service.color}-50 hover:bg-${service.color}-100 px-4 py-2 rounded-lg text-center transition-colors`}
-                                    >
-                                    Read Overview Guide
-                                    </Link>
-                            </div>
-                        ))}
                     </div>
                 </div>
             </div>

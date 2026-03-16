@@ -10,7 +10,7 @@ export async function generateMetadata({ params }) {
     if (!error) return {};
 
     return {
-        title: `How to Fix IRS Error Code ${code} | QuickTruckTax`,
+        title: `How to Fix IRS Error Code ${code} | easyucr.com`,
         description: `IRS Rejection ${code}: ${error.shortDesc}. Learn the 2-minute fix and resubmit your Form 2290 instantly.`,
     };
 }
@@ -70,7 +70,7 @@ export default async function ErrorCodePage({ params }) {
                 <div className="relative z-10 max-w-2xl mx-auto">
                     <h2 className="text-3xl font-bold mb-4">Struggling with repeated rejections?</h2>
                     <p className="text-lg text-slate-300 mb-8">
-                        Competitor services often leave you in the dark with cryptic errors. Switch to QuickTruckTax for a guaranteed error-free transmission. Our system catches these mistakes <strong>before</strong> you file.
+                        Competitor services often leave you in the dark with cryptic errors. Switch to easyucr.com for a guaranteed error-free transmission. Our system catches these mistakes <strong>before</strong> you file.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">

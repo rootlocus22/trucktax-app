@@ -2,9 +2,9 @@ import Link from 'next/link';
 import { ArrowLeft, CheckCircle, Calculator, ChevronRight, FileText } from 'lucide-react';
 
 export const metadata = {
-    title: 'The Complete Guide to UCR Filing (2026 Registration Year) | QuickTruckTax',
+    title: 'The Complete Guide to UCR Filing (2026 Registration Year) | easyucr.com',
     description: 'Everything you need to know about Unified Carrier Registration (UCR) for 2026. Deadlines, fees, who must file, and how to file UCR online. $0 upfront.',
-    alternates: { canonical: 'https://www.quicktrucktax.com/insights/complete-guide-ucr-filing-2026' },
+    alternates: { canonical: 'https://www.easyucr.com/insights/complete-guide-ucr-filing-2026' },
 };
 
 export default function CompleteUcrGuide() {
@@ -118,7 +118,7 @@ export default function CompleteUcrGuide() {
 
                             <h2>How to the File Your 2026 UCR Today</h2>
                             <p>
-                                Filing your UCR doesn't have to be a headache. While you can navigate the state systems manually, third-party assistance services like QuickTruckTax streamline the process, verify your DOT records, and ensure you get confirmation instantly.
+                                Filing your UCR doesn't have to be a headache. While you can navigate the state systems manually, third-party assistance services like easyucr.com streamline the process, verify your DOT records, and ensure you get confirmation instantly.
                             </p>
 
                             <div className="bg-gradient-to-br from-[var(--color-navy)] to-slate-800 text-white rounded-2xl p-8 sm:p-10 my-10 shadow-xl relative overflow-hidden">
@@ -145,7 +145,7 @@ export default function CompleteUcrGuide() {
                                 <div>
                                     <h4 className="text-lg font-bold">What is the difference between UCR and Form 2290?</h4>
                                     <p className="text-base text-slate-600 mt-2">
-                                        UCR is an active registration required for crossing state lines based on fleet count. Form 2290 (Heavy Vehicle Use Tax) is an IRS tax required for operating very heavy vehicles (55,000 lbs+) on public highways, regardless of whether you cross state lines. <Link href="/insights/form-2290-vs-ucr-difference">Learn the difference here.</Link>
+                                        UCR is an active registration required for crossing state lines based on fleet count. It is separate from other federal taxes like the Heavy Vehicle Use Tax (HVUT). UCR focuses on interstate motor carrier registration and fees.
                                     </p>
                                 </div>
                                 <div>

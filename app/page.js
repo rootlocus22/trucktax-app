@@ -3,23 +3,25 @@ import Link from "next/link";
 import { complianceGuides } from "@/lib/guides";
 import { ShieldCheck, ChevronRight, Calculator, CheckCircle, Lock, Award, FileText, Download, Clock, Edit3, Users, LayoutGrid, ArrowRight, Search, MessageSquare, Calendar, AlertTriangle, Globe } from "lucide-react";
 import HomepageUcrCalculator from "@/components/HomepageUcrCalculator";
+import { ComparisonTable } from "@/components/ComparisonTable";
+import { EmailCapture } from "@/components/EmailCapture";
 import RedirectLoggedInToDashboard from "@/components/RedirectLoggedInToDashboard";
 import UcrDeadlineBanner from "@/components/UcrDeadlineBanner";
 
 export const metadata = {
-  title: "UCR Filing & Renewal – $0 Upfront | QuickTruckTax",
-  description: "File your 2026 UCR registration online with $0 upfront. We complete your filing first, then you pay when your UCR certificate is ready.",
-  alternates: { canonical: "https://www.quicktrucktax.com" },
+  title: "UCR Filing Service — $79 Flat, Pay After Filing | EasyUCR",
+  description: "Cheapest UCR filing service in the US. $79 service fee, no upfront payment. File your 2026 unified carrier registration in under 10 minutes.",
+  alternates: { canonical: "https://www.easyucr.com" },
   openGraph: {
-    title: "UCR Filing & Renewal – $0 Upfront | QuickTruckTax",
-    description: "File your 2026 UCR registration online with $0 upfront. We complete your filing first; pay when your certificate is ready.",
-    url: "https://www.quicktrucktax.com",
+    title: "EasyUCR — File UCR for $79, Pay After Filing",
+    description: "No upfront fees. Flat $79 service fee. We file your UCR and you only pay after it is confirmed.",
+    url: "https://www.easyucr.com",
   },
 };
 
 const spotlightSlugs = [
   "ucr-renewal-guide",
-  "trucking-compliance-calendar"
+  "ucr-registration-opens-october-1"
 ];
 
 export default function Home() {
@@ -30,24 +32,36 @@ export default function Home() {
   const organizationJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'QuickTruckTax',
-    url: 'https://www.quicktrucktax.com',
-    logo: 'https://www.quicktrucktax.com/quicktrucktax-logo-new.png',
-    image: 'https://www.quicktrucktax.com/quicktrucktax-logo-new.png',
-    description: 'QuickTruckTax helps carriers, owner-operators, and brokers stay compliant with their annual UCR filings.',
+    name: 'easyucr.com',
+    url: 'https://www.easyucr.com',
+    logo: 'https://www.easyucr.com/quicktrucktax-logo-new.png',
+    image: 'https://www.easyucr.com/quicktrucktax-logo-new.png',
+    description: 'easyucr.com helps carriers, owner-operators, and brokers stay compliant with their annual UCR filings.',
   };
 
   const productJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
-    name: 'QuickTruckTax UCR Filing Service',
-    url: 'https://www.quicktrucktax.com',
+    name: 'easyucr.com UCR Filing Service',
+    url: 'https://www.easyucr.com',
     description: 'Fast, easy UCR registration and renewals for the trucking industry.',
     brand: {
       '@type': 'Brand',
-      name: 'QuickTruckTax'
+      name: 'easyucr.com'
     },
     applicationCategory: 'BusinessApplication',
+  };
+
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'EasyUCR',
+    url: 'https://www.easyucr.com',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: { '@type': 'EntryPoint', urlTemplate: 'https://www.easyucr.com/ucr/file?q={search_term_string}' },
+      'query-input': 'required name=search_term_string',
+    },
   };
 
   const faqJsonLd = {
@@ -56,7 +70,7 @@ export default function Home() {
     mainEntity: [
       {
         '@type': 'Question',
-        name: 'What is UCR Filing?',
+        name: 'What is UCR registration?',
         acceptedAnswer: {
           '@type': 'Answer',
           text: 'UCR (Unified Carrier Registration) is a federally-mandated program that requires individuals and companies that operate commercial motor vehicles in interstate commerce to register their business and pay an annual fee based on their fleet size.'
@@ -64,42 +78,58 @@ export default function Home() {
       },
       {
         '@type': 'Question',
-        name: 'Do I need to file UCR for my trucking business?',
+        name: 'Who needs to file UCR?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'If you operate a commercial motor vehicle in interstate or international commerce, you must register for the UCR and pay the annual fee. This includes motor carriers, brokers, freight forwarders, and leasing companies.'
+          text: 'Motor carriers, brokers, freight forwarders, and leasing companies operating in interstate commerce must register for UCR and pay the annual fee.'
         }
       },
       {
         '@type': 'Question',
-        name: 'What is the 2026 UCR filing deadline?',
+        name: 'How much does UCR cost in 2026?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'The registration period for the 2026 UCR typically opens on October 1st, 2025. The official deadline to be compliant for the 2026 calendar year is December 31st, 2025. Filing early ensures you avoid state-level penalties and roadside enforcement issues.'
+          text: 'UCR fees are set by fleet size, from $46 (0–2 trucks) up to $44,836 (1001+ trucks). Use our UCR Fee Calculator to see your exact cost. EasyUCR adds a flat $79 service fee.'
         }
       },
       {
         '@type': 'Question',
-        name: 'How much does UCR registration cost?',
+        name: 'What is the UCR deadline for 2026?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'UCR fees are determined by the total number of commercial motor vehicles (power units) in your fleet. Fees are set annually by the UCR Board and approved by the FMCSA. You can use our UCR Fee Calculator to determine your exact cost for 2026.'
+          text: 'The 2026 UCR filing deadline is December 31, 2025. Enforcement starts January 1, 2026. File early to avoid penalties.'
         }
       },
       {
         '@type': 'Question',
-        name: 'What happens if I don\'t file my UCR?',
+        name: 'What happens if I don\'t file UCR?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Failure to register for UCR can result in significant fines and penalties from state enforcement agencies. Additionally, your trucks may be detained or placed out-of-service during roadside inspections if your UCR status is not active.'
+          text: 'Failure to register for UCR can result in fines, roadside detentions, and out-of-service orders. State enforcement is active from January 1.'
         }
       },
       {
         '@type': 'Question',
-        name: 'Is the UCR different from a USDOT number?',
+        name: 'Is EasyUCR affiliated with the government?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes. A USDOT number is an identifier for your company, while UCR is a registration program you must pay into annually using your USDOT information. You must have an active USDOT number to file for UCR.'
+          text: 'No. EasyUCR is an independent filing service. We submit your UCR to the correct state on your behalf. We are not a government agency.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'Why do I pay after filing and not before?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'We file your UCR first. You pay only when your confirmation number is issued. If filing fails, you owe nothing. This removes risk and ensures you only pay for successful service.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'Can I file UCR myself for free?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'You still pay the government UCR fee. You can file directly through your state\'s UCR portal, but it can be confusing. EasyUCR handles the process for $79 and you pay only after confirmation.'
         }
       }
     ]
@@ -110,7 +140,7 @@ export default function Home() {
       <>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, productJsonLd, faqJsonLd]) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, productJsonLd, websiteJsonLd, faqJsonLd]) }}
         />
 
         <div className="flex flex-col gap-0">
@@ -118,7 +148,7 @@ export default function Home() {
             <div className="absolute inset-0 z-0">
               <Image
                 src="/quicktruck-hero.webp"
-                alt="QuickTruckTax Hero Background"
+                alt="easyucr.com Hero Background"
                 fill
                 priority
                 fetchPriority="high"
@@ -126,54 +156,70 @@ export default function Home() {
                 className="object-cover"
                 sizes="100vw"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)]/90 via-[var(--color-midnight)]/70 to-transparent" />
+              {/* Trust & Road: layered gradient for depth */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0d2137] via-[#0d2137]/95 to-[#153a5e]/90" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-midnight)]/95 via-[var(--color-midnight)]/75 to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-midnight)] via-transparent to-transparent" />
+              {/* Subtle road lines pattern */}
+              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 80px, white 80px, white 82px)' }} />
             </div>
 
             <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 grid gap-12 lg:grid-cols-2 items-center">
               <div className="space-y-6 sm:space-y-8">
                 <div className="inline-flex items-center gap-2 rounded-full bg-orange-600/20 border border-orange-400/30 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white-300">
-                  The Fastest Way to File Your 2026 UCR
+                  Cheapest UCR Filing in the US
                 </div>
                 <h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl text-white">
-                  Get Your <span className="text-[var(--color-orange)]">2026 UCR</span> <span className="block text-blue-200">Done in Minutes</span>
+                  File Your UCR Registration — <span className="text-[var(--color-orange)]">$79 Service Fee</span>, <span className="block text-blue-200">Pay After Filing</span>
                 </h1>
                 <p className="text-lg leading-8 text-slate-300 max-w-xl">
-                  File your UCR with zero hassle. Ensure your fleet is compliant with the FMCSA today. We complete your filing first—pay only when your certificate is ready.
+                  Cheapest UCR filing service in the US. We file, you pay only after it&apos;s confirmed.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 sm:items-center">
                   <Link
                     href="/ucr/file"
-                    className="group inline-flex items-center justify-between gap-3 min-h-[54px] sm:min-h-[50px] rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#ff8b3d] to-[#f07a2d] px-5 sm:px-6 py-3.5 sm:py-3 text-white shadow-[0_8px_22px_rgba(255,139,61,0.32)] transition-all duration-300 hover:brightness-110 hover:shadow-[0_8px_28px_rgba(255,139,61,0.4)] touch-manipulation w-full sm:w-auto overflow-hidden relative"
+                    className="group inline-flex items-center justify-between gap-3 min-h-[54px] sm:min-h-[50px] rounded-xl sm:rounded-2xl bg-[var(--color-orange)] px-5 sm:px-6 py-3.5 sm:py-3 text-white shadow-[0_8px_24px_rgba(255,122,46,0.4)] transition-all duration-300 hover:bg-[var(--color-orange-hover)] hover:shadow-[0_10px_32px_rgba(255,122,46,0.45)] touch-manipulation w-full sm:w-auto overflow-hidden relative"
                   >
                     <span className="flex items-center gap-2.5 leading-tight z-10">
-                      <span className="text-base sm:text-[15px] font-bold text-white tracking-tight">Start UCR Filing</span>
+                      <span className="text-base sm:text-[15px] font-bold text-white tracking-tight">File Now →</span>
                     </span>
                     <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 ring-1 ring-white/30 text-white z-10">
                       <ChevronRight className="w-4 h-4" />
                     </span>
                   </Link>
+                  <a
+                    href="#calculator"
+                    className="inline-flex items-center justify-center gap-2 min-h-[54px] sm:min-h-[50px] rounded-xl sm:rounded-2xl border border-white/30 bg-white/10 backdrop-blur px-5 sm:px-6 py-3.5 sm:py-3 text-white font-medium hover:bg-white/20 transition w-full sm:w-auto"
+                  >
+                    <Calculator className="w-5 h-5" />
+                    Calculate Your Fee
+                  </a>
                 </div>
 
                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-xs sm:text-sm font-medium text-slate-300 pt-2 sm:pt-4">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-white-400" /> Instant Pricing
+                    <CheckCircle className="w-5 h-5 text-white-400" /> No upfront fees
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-white-400" /> Fast processing
+                    <CheckCircle className="w-5 h-5 text-white-400" /> Filed in under 10 min
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-white-400" /> Direct download
+                    <CheckCircle className="w-5 h-5 text-white-400" /> Confirmation number provided
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-white-400" /> 100% compliance rate
                   </div>
                 </div>
               </div>
 
-              <div className="hidden lg:block relative max-w-md">
-                <HomepageUcrCalculator />
-              </div>
-              <div className="lg:hidden mt-8 max-w-sm mx-auto">
-                <HomepageUcrCalculator />
+              <div id="calculator" className="relative">
+                <div className="hidden lg:block max-w-md">
+                  <HomepageUcrCalculator />
+                </div>
+                <div className="lg:hidden mt-8 max-w-sm mx-auto">
+                  <HomepageUcrCalculator />
+                </div>
               </div>
             </div>
           </section>
@@ -181,9 +227,9 @@ export default function Home() {
           <UcrDeadlineBanner />
 
           {/* Security Bar - Compact & Integrated */}
-          <section className="bg-white py-8 border-b border-slate-50">
+          <section className="bg-[var(--color-page)] py-8 border-b border-slate-100">
             <div className="max-w-5xl mx-auto px-6">
-              <div className="relative rounded-xl bg-slate-50/40 backdrop-blur-sm border border-slate-100/30 p-4 shadow-[0_4px_20px_rgb(0,0,0,0.01)]">
+              <div className="relative rounded-xl bg-white border border-slate-100 p-4 shadow-card">
                 <div className="flex flex-col sm:flex-row items-center justify-around gap-8 sm:gap-4">
                   <div className="flex items-center gap-4 group transition-all duration-300 w-full sm:w-auto justify-start sm:justify-start">
                     <div className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-blue-500/80 border border-slate-100 shrink-0">
@@ -224,7 +270,7 @@ export default function Home() {
           </section>
 
           {/* 3 Simple Steps - Light Background */}
-          <section className="relative py-20 bg-slate-50">
+          <section className="relative py-20 bg-[var(--color-page)]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="relative text-center max-w-3xl mx-auto mb-16">
                 <h2 className="text-3xl font-bold text-[var(--color-text)] sm:text-4xl mb-4">Get UCR Compliant in 3 Simple Steps</h2>
@@ -240,14 +286,11 @@ export default function Home() {
                   <div
                     key={idx}
                     className="relative flex flex-col items-center text-center bg-white p-8 rounded-2xl 
-                    border border-slate-100
+                    border border-slate-100 shadow-card shadow-card-hover
                     transform transition-transform duration-500 ease-out
                     hover:-translate-y-2
                     group cursor-default"
                   >
-                    <div className="absolute inset-0 rounded-2xl shadow-xl opacity-0 
-                    transition-opacity duration-500 ease-out 
-                    group-hover:opacity-100 -z-10"></div>
 
                     <div className="w-20 h-20 rounded-2xl bg-orange-50/50 flex items-center justify-center mb-8 text-[var(--color-orange)] 
                     transition-transform transition-colors duration-500 ease-out 
@@ -345,7 +388,7 @@ export default function Home() {
                     <div className="mt-12 p-6 rounded-2xl bg-slate-50 border border-slate-100/50">
                       <p className="text-sm text-slate-600 flex items-center gap-2">
                         <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                        QuickTruckTax ensures 100% compliance accuracy.
+                        easyucr.com ensures 100% compliance accuracy.
                       </p>
                     </div>
                   </div>
@@ -355,7 +398,7 @@ export default function Home() {
           </section>
 
           {/* Risks of Non-Compliance - Light Background */}
-          <section className="py-24 bg-slate-50 border-y border-slate-100">
+          <section className="py-24 bg-[var(--color-page)] border-y border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid lg:grid-cols-12 gap-12 items-start">
                 <div className="lg:col-span-5 space-y-8">
@@ -476,8 +519,21 @@ export default function Home() {
             </div>
           </section>
 
+          {/* UCR Service Comparison - Light Background */}
+          <section className="py-24 bg-white border-t border-slate-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-slate-900 mb-4">Compare UCR Filing Services</h2>
+                <p className="text-lg text-slate-600 max-w-2xl mx-auto">See why EasyUCR is the cheapest with $79 service fee and pay-after-filing.</p>
+              </div>
+              <div className="max-w-4xl mx-auto rounded-xl overflow-hidden shadow-card">
+                <ComparisonTable />
+              </div>
+            </div>
+          </section>
+
           {/* Trucking Guides - Light Background */}
-          <section className="py-24 bg-slate-50 border-t border-slate-100">
+          <section className="py-24 bg-[var(--color-page)] border-t border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-10 sm:mb-12">
                 <div>
@@ -499,7 +555,7 @@ export default function Home() {
                 {spotlightGuides.map((guide) => (
                   <article
                     key={guide.slug}
-                    className="flex h-full flex-col justify-between rounded-xl sm:rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:border-[var(--color-orange)]/50 group"
+                    className="flex h-full flex-col justify-between rounded-xl sm:rounded-2xl border border-slate-100 bg-white p-6 shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover hover:border-[var(--color-orange)]/50 group"
                   >
                     <div className="space-y-4">
                       <h3 className="text-xl font-bold text-[var(--color-text)] group-hover:text-[var(--color-orange)] transition-colors line-clamp-2">
@@ -519,6 +575,13 @@ export default function Home() {
                   </article>
                 ))}
               </div>
+            </div>
+          </section>
+
+          {/* Email Capture - Reminder for 2027 */}
+          <section className="py-16 bg-slate-100 border border-slate-200">
+            <div className="max-w-2xl mx-auto px-4">
+              <EmailCapture />
             </div>
           </section>
 
@@ -565,7 +628,7 @@ export default function Home() {
             <div className="absolute inset-0 z-0">
               <Image
                 src="/ucr-filing.webp"
-                alt="QuickTruckTax UCR Filing background"
+                alt="easyucr.com UCR Filing background"
                 fill
                 className="object-cover opacity-30"
               />
@@ -576,12 +639,12 @@ export default function Home() {
                 Ready to Simplify Your UCR Compliance?
               </h2>
               <p className="text-base sm:text-lg lg:text-xl text-slate-200 mb-8 sm:mb-10 leading-relaxed">
-                Join thousands of truckers who trust QuickTruckTax.
+                Join thousands of truckers who trust easyucr.com.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
                 <Link
                   href="/ucr/file"
-                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--color-orange)] to-[var(--color-orange-hover)] px-8 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-medium !text-white shadow-[0_10px_30px_rgba(255,139,61,0.32)] transition-all duration-300 hover:brightness-110 hover:shadow-[0_12px_40px_rgba(255,139,61,0.4)] hover:-translate-y-1 active:scale-95 transform touch-manipulation min-h-[48px] sm:min-h-[56px]"
+                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-orange)] px-8 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-medium !text-white shadow-[0_10px_30px_rgba(255,122,46,0.35)] transition-all duration-300 hover:bg-[var(--color-orange-hover)] hover:shadow-[0_12px_40px_rgba(255,122,46,0.45)] hover:-translate-y-1 active:scale-95 transform touch-manipulation min-h-[48px] sm:min-h-[56px]"
                 >
                   Start Filing Now
                   <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:translate-x-1 transition-transform" />

@@ -1,33 +1,27 @@
 import Link from "next/link";
 import Script from "next/script";
 import FirebaseAnalytics from "./components/FirebaseAnalytics";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
-  display: "swap", // Prevent FOIT (Flash of Invisible Text)
+  display: "swap",
   preload: true,
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-  preload: false, // Not critical for initial render
-});
-
 export const metadata = {
-  metadataBase: new URL("https://www.quicktrucktax.com"),
+  metadataBase: new URL("https://www.easyucr.com"),
   title: {
-    default: "QuickTruckTax – The Smart UCR Filing & Compliance Platform for Truckers",
-    template: "%s | QuickTruckTax",
+    default: "easyucr.com – Simple UCR Filing for Truckers",
+    template: "%s | easyucr.com",
   },
   description:
-    "Simple. Fast. Smart UCR filing. Calculate your fee, file in minutes, and stay compliant. The best UCR-focused platform for truckers.",
+    "Simple UCR filing. Calculate your fee, file in minutes, and stay compliant. File with $0 upfront.",
   keywords: [
+    "ucr filing service",
     "ucr filing",
     "ucr registration",
     "ucr renewal 2026",
@@ -35,26 +29,18 @@ export const metadata = {
     "ucr filing in texas",
     "ucr for brokers",
     "ucr penalty",
-    "form 2290 guides",
-    "e-file form 2290",
-    "HVUT tax help",
-    "reactivate usdot number",
-    "ifta reporting",
-    "mcs-150 biennial update",
-    "heavy vehicle use tax",
-    "irs form 2290 deadline",
-    "schedule 1 proof of payment",
+    "unified carrier registration",
   ],
-  authors: [{ name: "QuickTruckTax Team" }],
-  creator: "QuickTruckTax",
-  publisher: "QuickTruckTax",
+  authors: [{ name: "easyucr.com" }],
+  creator: "easyucr.com",
+  publisher: "easyucr.com",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
   alternates: {
-    canonical: "https://www.quicktrucktax.com",
+    canonical: "https://www.easyucr.com",
   },
   robots: {
     index: true,
@@ -69,39 +55,27 @@ export const metadata = {
     },
   },
   icons: {
-    icon: "/quicktrucktax-favicon.png",
-    shortcut: "/quicktrucktax-favicon.png",
-    apple: "/quicktrucktax-favicon.png",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
   },
   verification: {
     google: "-95Bq4XHD66PIeHdHG3cDSad9_yp6kTmOVeUtUKUIc0",
   },
   openGraph: {
-    title: "Form 2290 Guides & Resources | QuickTruckTax",
+    title: "UCR Filing | easyucr.com",
     description:
-      "Free Form 2290 guides, checklists, and HVUT resources for trucking compliance.",
-    url: "https://www.quicktrucktax.com",
-    siteName: "QuickTruckTax",
+      "Simple UCR filing. File with $0 upfront. Calculate your fee and stay compliant.",
+    url: "https://www.easyucr.com",
+    siteName: "easyucr.com",
     type: "website",
     locale: "en_US",
-    images: [
-      {
-        url: "https://www.quicktrucktax.com/quicktrucktax-logo-new.png",
-        width: 1280,
-        height: 720,
-        alt: "QuickTruckTax - Trucking Tax Compliance Guide",
-        type: "image/png",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
-    site: "@quicktrucktax",
-    creator: "@quicktrucktax",
-    title: "Form 2290 Guides & Resources | QuickTruckTax",
+    title: "UCR Filing | easyucr.com",
     description:
-      "Free Form 2290 guides, checklists, and HVUT resources for trucking compliance.",
-    images: ["https://www.quicktrucktax.com/quicktrucktax-logo-new.png"],
+      "Simple UCR filing. File with $0 upfront. Calculate your fee and stay compliant.",
   },
 };
 
@@ -113,12 +87,12 @@ import Providers from "@/components/Providers";
 const websiteJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  "name": "QuickTruckTax",
-  "url": "https://www.quicktrucktax.com",
-  "description": "File Form 2290 in 2 minutes. Get IRS Schedule 1 instantly. $34.99 flat fee. Free VIN corrections. Trusted by 10,000+ truckers.",
+  "name": "easyucr.com",
+  "url": "https://www.easyucr.com",
+  "description": "Simple UCR filing. File with $0 upfront. Calculate your fee and stay compliant.",
   "publisher": {
     "@type": "Organization",
-    "name": "QuickTruckTax"
+    "name": "easyucr.com"
   }
 };
 
@@ -143,7 +117,7 @@ export default function RootLayout({ children }) {
         </Script>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-[var(--color-page)] text-[var(--color-text)] antialiased`}
+        className={`${inter.variable} font-sans min-h-screen bg-[var(--color-page)] text-[var(--color-text)] antialiased`}
       >
         <Providers>
           <div className="flex min-h-screen flex-col">
@@ -161,12 +135,12 @@ export default function RootLayout({ children }) {
                   {/* Brand */}
                   <div className="space-y-4 md:col-span-3 lg:col-span-1">
                     <div>
-                      <span className="text-xl font-bold tracking-tight text-white">QuickTruckTax</span>
-                      <p className="text-xs text-blue-200 uppercase tracking-widest mt-1">Guides &amp; Resources</p>
+                      <span className="text-xl font-bold tracking-tight text-white">easyucr.com</span>
+                      <p className="text-xs text-blue-200 uppercase tracking-widest mt-1">UCR Filing</p>
                     </div>
                     <div className="text-sm text-slate-300 leading-relaxed">
                       <p>
-                        This site provides educational content about Form 2290, HVUT, and trucking compliance. We are not the IRS, FMCSA, or any government agency.
+                        This site provides UCR filing for truckers. We are not the IRS, FMCSA, or any government agency.
                       </p>
                     </div>
                   </div>
@@ -184,14 +158,8 @@ export default function RootLayout({ children }) {
                       <Link href="/ucr/dispatcher" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
                         File UCR for Multiple Trucks
                       </Link>
-                      <Link href="/insights/trucking-compliance-calendar" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
-                        Compliance Calendar
-                      </Link>
-                      <Link href="/insights/form-2290-checklist-download" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
-                        Form 2290 Checklist
-                      </Link>
-                      <Link href="/resources/2290-tax-directory" className="text-sm text-[#f97316] hover:text-[#fbbf24] transition flex items-center gap-2 font-bold min-h-[44px] py-2 touch-manipulation">
-                        Tax Guide Directory <span className="text-[10px] bg-white/10 px-1 rounded">NEW</span>
+                      <Link href="/insights/ucr-renewal-guide" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
+                        UCR Renewal Guide
                       </Link>
                     </div>
                   </div>
@@ -207,12 +175,12 @@ export default function RootLayout({ children }) {
                 {/* Disclaimer & copyright */}
                 <div className="space-y-4 mb-8">
                   <div className="text-sm text-slate-300 leading-relaxed space-y-2">
-                    <p>The information and images on this website are the property of QuickTruckTax and may not be reproduced, reused, or appropriated without the express written consent of the owner.</p>
-                    <p>QuickTruckTax is a private third-party provider offering services for a fee. This website serves as a commercial solicitation and advertisement. We are not affiliated with any government authority such as the IRS, USDOT, or FMCSA.</p>
+                    <p>The information and images on this website are the property of easyucr.com and may not be reproduced, reused, or appropriated without the express written consent of the owner.</p>
+                    <p>easyucr.com is a private third-party provider offering UCR filing services for a fee. We are not affiliated with any government authority.</p>
                   </div>
                 </div>
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-400">
-                  <p>&copy; 2026 QuickTruckTax, All Rights Reserved.</p>
+                  <p>&copy; 2026 easyucr.com, All Rights Reserved.</p>
                   <div className="flex gap-6">
                     <Link href="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link>
                     <Link href="/terms" className="hover:text-white transition">Terms of Service</Link>
