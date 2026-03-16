@@ -55,9 +55,9 @@ export const metadata = {
     },
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    icon: "/easyucr-logo-mark.png",
+    shortcut: "/easyucr-logo-mark.png",
+    apple: "/easyucr-logo-mark.png",
   },
   verification: {
     google: "-95Bq4XHD66PIeHdHG3cDSad9_yp6kTmOVeUtUKUIc0",

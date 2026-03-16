@@ -3,7 +3,7 @@
 import Image from 'next/image';
 
 /**
- * Logo: mark + "easyucr.com". Use in header for consistent branding.
+ * Logo: mark + "EasyUCR". Brand name only — never .com in header.
  * @param {boolean} dark - when true, use light text (for dark header)
  * @param {boolean} compact - when true, hide tagline and use smaller text
  * @param {string} size - 'sm' | 'md' | 'lg' - logo scale (lg for auth/hero)
@@ -19,8 +19,8 @@ export default function Logo({ dark = false, compact = false, size = 'md', class
     <span className={`inline-flex items-center gap-2 sm:gap-3 ${className}`}>
       <span className={`flex-shrink-0 ${markSize} rounded-xl overflow-hidden shadow-md bg-white flex items-center justify-center ring-2 ring-white/20`}>
         <Image
-          src="/quicktrucktax-logo-mark.png"
-          alt="easyucr.com"
+          src="/easyucr-logo-mark.png"
+          alt="EasyUCR"
           width={imgSize}
           height={imgSize}
           className="w-full h-full object-contain"
@@ -28,7 +28,7 @@ export default function Logo({ dark = false, compact = false, size = 'md', class
       </span>
       <span className="flex flex-col leading-tight">
         <span className={`font-bold tracking-tight ${textSize} ${textClass}`}>
-          easyucr.com
+          EasyUCR
         </span>
         {!compact && (
           <span className={`${taglineSize} font-semibold uppercase tracking-widest ${muteClass}`}>

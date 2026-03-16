@@ -59,7 +59,7 @@ export function Header() {
             <Link href="/" className="flex items-center space-x-2 group">
             <div className="flex flex-col">
                 <span className="text-xl font-black tracking-tight text-white group-hover:text-[var(--color-orange)] transition-colors">
-                  easyucr.com
+                  EasyUCR
               </span>
                 <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/50 group-hover:text-white/80 transition-colors">
                   UCR Filing Service
@@ -204,7 +204,7 @@ export function Header() {
         {/* Mobile Header */}
         <div className="lg:hidden flex items-center justify-between h-16">
             <Link href="/" className="flex flex-col">
-            <span className="text-lg font-black tracking-tight text-white">easyucr.com</span>
+            <span className="text-lg font-black tracking-tight text-white">EasyUCR</span>
             </Link>
 
           <div className="flex items-center gap-3">

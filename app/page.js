@@ -34,8 +34,8 @@ export default function Home() {
     '@type': 'Organization',
     name: 'easyucr.com',
     url: 'https://www.easyucr.com',
-    logo: 'https://www.easyucr.com/quicktrucktax-logo-new.png',
-    image: 'https://www.easyucr.com/quicktrucktax-logo-new.png',
+    logo: 'https://www.easyucr.com/easyucr-logo.png',
+    image: 'https://www.easyucr.com/easyucr-logo.png',
     description: 'easyucr.com helps carriers, owner-operators, and brokers stay compliant with their annual UCR filings.',
   };
 
