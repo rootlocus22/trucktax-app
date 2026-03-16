@@ -1,8 +1,6 @@
 import { complianceGuides } from "@/lib/guides";
 import { blogPosts } from "./blog/blogData";
 import usStates from '@/data/us-states.json';
-import { getPseoRoutes } from "@/lib/pseo/data";
-import { errorCodes } from "@/lib/error-codes";
 import { UCR_STATE_SLUGS, UCR_FLEET_SIZES, UCR_OPERATOR_TYPES } from "@/lib/ucr-seo-data";
 import { UCR_STATES } from "@/lib/states";
 
@@ -36,7 +34,6 @@ export default function sitemap() {
     { path: "/terms", priority: 0.7, changeFrequency: "monthly" },
     { path: "/refund-policy", priority: 0.7, changeFrequency: "monthly" },
     { path: "/privacy-policy", priority: 0.7, changeFrequency: "monthly" },
-    { path: "/error-codes", priority: 0.8, changeFrequency: "weekly" },
   ].map(({ path, priority, changeFrequency }) => ({
     url: `${baseUrl}${path || "/"}`,
     lastModified: now,
@@ -66,22 +63,6 @@ export default function sitemap() {
     lastModified: new Date(post.dateISO).toISOString(),
     changeFrequency: "monthly",
     priority: 0.8,
-  }));
-
-  // Error Code Pages
-  const errorRoutes = errorCodes.map((error) => ({
-    url: `${baseUrl}/error-codes/${error.code}`,
-    lastModified: now, // Should probably track update time in data, but now is fine for MVP
-    changeFrequency: "monthly",
-    priority: 0.8,
-  }));
-
-  // pSEO Routes (Dynamic Variable Strategy)
-  const pseoRoutes = getPseoRoutes().map((route) => ({
-    url: `${baseUrl}${route.url}`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.7,
   }));
 
   // UCR programmatic SEO: state pages (ucr-filing/texas, etc.)
@@ -141,7 +122,5 @@ export default function sitemap() {
     ...ucrOperatorRoutes,
     ...guideRoutes,
     ...blogRoutes,
-    ...errorRoutes,
-    ...pseoRoutes,
   ];
 }
