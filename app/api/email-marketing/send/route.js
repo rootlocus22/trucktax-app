@@ -4,6 +4,9 @@ import { getEmailMarketingAllowedEmails, isEmailAllowed } from '@/lib/emailMarke
 import { sendEmail } from '@/lib/ses';
 import { getCampaignById, getDefaultCampaignId } from '@/lib/emailCampaigns';
 import { isUnsubscribed } from '@/lib/unsubscribedEmails';
+import { createUnsubscribeToken } from '@/lib/unsubscribeToken';
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.easyucr.com';
 
 function parseCustomerData(raw) {
   if (!raw || typeof raw !== 'object') return null;
@@ -73,7 +76,9 @@ export async function POST(req) {
 
     const { subject, html, plainText } = campaign.getTemplate(customer);
 
-    await sendEmail(customer.email, subject, html, plainText || undefined);
+    const unsubToken = createUnsubscribeToken(customer.email);
+    const listUnsubscribe = `${BASE_URL}/unsubscribe?token=${encodeURIComponent(unsubToken)}`;
+    await sendEmail(customer.email, subject, html, plainText || undefined, { listUnsubscribe });
 
     return NextResponse.json({ ok: true, sent: true, sentTo: customer.email, subject, campaignId: campaign.id });
   } catch (err) {

@@ -4,6 +4,9 @@ import { getEmailMarketingAllowedEmails, isEmailAllowed } from '@/lib/emailMarke
 import { sendEmail } from '@/lib/ses';
 import { getCampaignById } from '@/lib/emailCampaigns';
 import { isUnsubscribed } from '@/lib/unsubscribedEmails';
+import { createUnsubscribeToken } from '@/lib/unsubscribeToken';
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.easyucr.com';
 
 async function verifyAccess(req) {
   const authHeader = req.headers.get('authorization');
@@ -99,7 +102,12 @@ export async function POST(req, { params }) {
           state: contact.state || '',
         });
 
-        await sendEmail(email, subject, html, plainText || undefined, { bcc: bcc.length ? bcc : undefined });
+        const unsubToken = createUnsubscribeToken(email);
+        const listUnsubscribe = `${BASE_URL}/unsubscribe?token=${encodeURIComponent(unsubToken)}`;
+        await sendEmail(email, subject, html, plainText || undefined, {
+          bcc: bcc.length ? bcc : undefined,
+          listUnsubscribe,
+        });
         await doc.ref.update({ status: 'sent', sentAt: now, updatedAt: now });
         sent++;
       } catch (err) {
