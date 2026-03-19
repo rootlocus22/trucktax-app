@@ -4,8 +4,8 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { getUcrFee, UCR_ENTITY_TYPES, CARRIER_ENTITY_TYPES, FLAT_FEE_ENTITY_TYPES, UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
-import DiscountedPrice from '@/components/DiscountedPrice';
+import { getUcrFee, getServiceFee, UCR_ENTITY_TYPES, CARRIER_ENTITY_TYPES, FLAT_FEE_ENTITY_TYPES } from '@/lib/ucr-fees';
+import { US_STATES, getStateName } from '@/lib/us-states';
 import { deleteDraftFiling } from '@/lib/draftHelpers';
 import { trackEvent } from '@/lib/analytics';
 import {
@@ -293,9 +293,11 @@ function UcrFileContent() {
   // Determine if any carrier type is selected (for showing fleet count)
   const hasCarrierType = form.entityTypes.some(t => CARRIER_ENTITY_TYPES.includes(t));
 
-  const { fee: ucrFee } = getUcrFee(Number(form.powerUnits) || 0, form.entityTypes);
-  const servicePrice = UCR_SERVICE_PLANS[form.plan]?.price ?? 79;
-  const total = ucrFee + servicePrice;
+  const powerUnitsNum = Number(form.powerUnits) || 0;
+  const { fee: ucrFee } = getUcrFee(powerUnitsNum, form.entityTypes);
+  const { fee: servicePrice, tier: serviceTier } = getServiceFee(hasCarrierType ? powerUnitsNum : 0);
+  const total = servicePrice != null ? ucrFee + servicePrice : null;
+  const isContactUsTier = servicePrice == null;
 
   const registrantFullName = [form.registrantFirstName, form.registrantLastName].filter(Boolean).join(' ');
 
@@ -314,7 +316,8 @@ function UcrFileContent() {
       return (
         form.entityTypes.length > 0 &&
         form.filingYear &&
-        (!hasCarrierType || (form.powerUnits && Number(form.powerUnits) >= 0))
+        (!hasCarrierType || (form.powerUnits && Number(form.powerUnits) >= 0)) &&
+        !isContactUsTier
       );
     }
     if (step === 3) return form.state?.length === 2;
@@ -438,7 +441,7 @@ function UcrFileContent() {
 
   // Stripe Checkout: redirect customer to Stripe for full payment
   const handleStripeCheckout = async () => {
-    if (!user) return;
+    if (!user || total == null) return;
     setSubmittingFiling(true);
     setLookupError('');
 
@@ -840,17 +843,19 @@ function UcrFileContent() {
                     </div>
                   )}
 
-                  {/* Service plan */}
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--color-text)] mb-2">Service plan</label>
-                    <div className="space-y-2">
-                      {Object.entries(UCR_SERVICE_PLANS).map(([key, p]) => (
-                        <label key={key} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
-                          <input type="radio" name="plan" value={key} checked={form.plan === key} onChange={() => setForm({ ...form, plan: key })} className="text-[var(--color-orange)]" />
-                          <span className="font-medium">{p.name} – ${p.price}</span>
-                        </label>
-                      ))}
-                    </div>
+                  {/* Service fee (tier-based) */}
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="text-sm font-medium text-slate-600 mb-1">Service fee (based on fleet size)</div>
+                    {isContactUsTier ? (
+                      <div className="text-amber-700 font-semibold">
+                        Fleets of 100+ power units — <a href="mailto:support@vendaxsystemlabs.com" className="text-[var(--color-orange)] underline">Contact us</a> for a custom quote.
+                      </div>
+                    ) : (
+                      <div className="text-xl font-bold text-indigo-600">${servicePrice?.toFixed(2)}</div>
+                    )}
+                    {serviceTier && !isContactUsTier && (
+                      <p className="text-xs text-slate-500 mt-1">{serviceTier.label} power units tier</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -867,8 +872,8 @@ function UcrFileContent() {
                   className="w-full rounded-xl border border-slate-200 px-4 py-3 text-lg"
                 >
                   <option value="">Select state</option>
-                  {['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'].map((s) => (
-                    <option key={s} value={s}>{s}</option>
+                  {US_STATES.map((s) => (
+                    <option key={s.code} value={s.code}>{s.code} — {s.name}</option>
                   ))}
                 </select>
               </div>
@@ -903,15 +908,15 @@ function UcrFileContent() {
                       </dd>
                     </div>
                   )}
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">UCR Base State</dt><dd className="font-semibold sm:text-right">{form.state}</dd></div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">UCR Base State</dt><dd className="font-semibold sm:text-right">{form.state ? `${form.state} — ${getStateName(form.state)}` : '—'}</dd></div>
                   <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Email</dt><dd className="font-semibold sm:text-right">{form.email || user?.email || '—'}</dd></div>
                   <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Phone</dt><dd className="font-semibold sm:text-right">{form.phone || '—'}</dd></div>
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Plan</dt><dd className="font-semibold sm:text-right text-indigo-600">{UCR_SERVICE_PLANS[form.plan]?.name}</dd></div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Service fee tier</dt><dd className="font-semibold sm:text-right text-indigo-600">{serviceTier?.label} power units — ${servicePrice?.toFixed(2) ?? 'Contact us'}</dd></div>
                 </dl>
                 <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
                   <div className="flex justify-between text-slate-600 mb-2 font-medium"><span>{form.filingYear} UCR Registration Fee</span><span>${ucrFee.toLocaleString()}</span></div>
-                  <div className="flex justify-between text-slate-600 mb-4 font-medium"><span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice}`}</span></div>
-                  <div className="flex justify-between font-bold text-xl pt-4 border-t border-slate-200 text-[var(--color-navy)]"><span>Total</span><span>${total.toLocaleString()}</span></div>
+                  <div className="flex justify-between text-slate-600 mb-4 font-medium"><span>Service fee ({serviceTier?.label} tier)</span><span>${servicePrice?.toFixed(2) ?? 'Contact us'}</span></div>
+                  <div className="flex justify-between font-bold text-xl pt-4 border-t border-slate-200 text-[var(--color-navy)]"><span>Total</span><span>{total != null ? `$${total.toLocaleString()}` : 'Contact us for quote'}</span></div>
                 </div>
                 <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
                   <p className="text-sm text-emerald-800">
@@ -941,12 +946,12 @@ function UcrFileContent() {
                           <span>${ucrFee.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-slate-600">
-                          <span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span>
-                          <span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice}`}</span>
+                          <span>Service fee ({serviceTier?.label} tier)</span>
+                          <span>${servicePrice?.toFixed(2) ?? 'Contact us'}</span>
                         </div>
                         <div className="flex justify-between font-bold text-lg pt-3 border-t border-slate-200 text-[var(--color-navy)]">
                           <span>Total</span>
-                          <span>${total.toLocaleString()}</span>
+                          <span>{total != null ? `$${total.toLocaleString()}` : 'Contact us'}</span>
                         </div>
                       </div>
                     </div>
@@ -983,7 +988,7 @@ function UcrFileContent() {
                     <button
                       type="button"
                       onClick={handleStripeCheckout}
-                      disabled={submittingFiling}
+                      disabled={submittingFiling || total == null}
                       className="mt-2 w-full bg-[var(--color-navy)] text-white py-4 min-h-[52px] rounded-xl font-bold touch-manipulation flex items-center justify-center gap-2 disabled:opacity-50 transition-all hover:opacity-90"
                     >
                       {submittingFiling ? (

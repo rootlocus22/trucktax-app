@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { slugToState, UCR_STATE_SLUGS } from '@/lib/ucr-seo-data';
-import { getUcrFee, UCR_FEE_BRACKETS_2026, UCR_REGISTRATION_YEAR, UCR_DEADLINE_DEC, UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
+import { getUcrFee, getServiceFee, UCR_FEE_BRACKETS_2026, UCR_REGISTRATION_YEAR, UCR_DEADLINE_DEC } from '@/lib/ucr-fees';
 import { ShieldCheck, Calculator, FileText, AlertTriangle, CheckCircle, MapPin, Truck, ArrowRight, Clock, ShieldAlert } from 'lucide-react';
 import Image from 'next/image';
 
@@ -33,7 +33,7 @@ export default function UcrFilingStatePage({ params }) {
   const stateName = stateInfo.name;
   const participates = ["Alaska", "Arizona", "DC", "Florida", "Hawaii", "Maryland", "Nevada", "New Jersey", "Oregon", "Vermont", "Wyoming"].includes(stateName) ? false : true;
   const oneTruckFee = getUcrFee(1, 'carrier').fee;
-  const servicePrice = UCR_SERVICE_PLANS.filing.price;
+  const servicePrice = getServiceFee(1).fee ?? 79;
   const exampleTotal = oneTruckFee + servicePrice;
 
   const faqBase = [

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Calculator, ShieldCheck, Zap, CheckCircle } from 'lucide-react';
+import { UCR_SERVICE_FEE_TIERS } from '@/lib/ucr-fees';
 
 export const metadata = {
     title: 'UCR Registration Services | File UCR Online',
@@ -90,6 +91,43 @@ export default function ServicesPage() {
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            {/* Pricing Section */}
+            <div className="py-16 px-6 bg-white">
+                <div className="max-w-4xl mx-auto">
+                    <h2 className="text-3xl font-bold text-[var(--color-text)] mb-2 text-center">Transparent Pricing</h2>
+                    <p className="text-slate-600 text-center mb-10 max-w-2xl mx-auto">
+                        Our service fee is based on your fleet size. The federal UCR fee is set by the government and added to your total. No hidden costs.
+                    </p>
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-lg">
+                        <table className="w-full">
+                            <thead className="bg-[var(--color-navy)] text-white">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold">Number of Vehicles Owned or Operated</th>
+                                    <th className="px-6 py-4 text-right text-sm font-semibold">Fee per Entity (Carrier or Forwarder)</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200">
+                                {UCR_SERVICE_FEE_TIERS.filter(t => t.fee != null).map((tier) => (
+                                    <tr key={tier.label} className="hover:bg-slate-50">
+                                        <td className="px-6 py-4 text-slate-700 font-medium">{tier.label} power units</td>
+                                        <td className="px-6 py-4 text-right font-bold text-[var(--color-navy)]">${tier.fee.toFixed(2)}</td>
+                                    </tr>
+                                ))}
+                                <tr className="bg-amber-50">
+                                    <td className="px-6 py-4 text-slate-700 font-medium">100+ power units</td>
+                                    <td className="px-6 py-4 text-right font-semibold text-amber-700">
+                                        <a href="mailto:support@vendaxsystemlabs.com" className="hover:underline">Contact Us</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p className="text-sm text-slate-500 mt-6 text-center">
+                        Plus the official UCR government fee (set by FMCSA). Total = Service fee + Government fee. $0 upfront — pay when your certificate is ready.
+                    </p>
                 </div>
             </div>
 

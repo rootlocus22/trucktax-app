@@ -2,19 +2,20 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { getUcrFee, UCR_FEE_BRACKETS_2026, UCR_ENTITY_TYPES, UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
-import DiscountedPrice from '@/components/DiscountedPrice';
+import { getUcrFee, getServiceFee, UCR_FEE_BRACKETS_2026, UCR_ENTITY_TYPES } from '@/lib/ucr-fees';
 import { Calculator, ArrowRight, Truck, Building2 } from 'lucide-react';
 
+const CARRIER_TYPES = ['motor_carrier', 'private_carrier'];
+
 export default function UcrCalculatorClient() {
-  const [entityType, setEntityType] = useState('carrier');
+  const [entityType, setEntityType] = useState('motor_carrier');
   const [powerUnits, setPowerUnits] = useState('');
-  const [plan, setPlan] = useState('filing');
 
   const unitsNum = Math.max(0, Math.floor(Number(powerUnits) || 0));
+  const isCarrier = CARRIER_TYPES.includes(entityType);
   const { fee: ucrFee } = getUcrFee(unitsNum, entityType);
-  const servicePrice = UCR_SERVICE_PLANS[plan]?.price ?? 79;
-  const total = ucrFee + servicePrice;
+  const { fee: servicePrice, tier: serviceTier } = getServiceFee(isCarrier ? unitsNum : 0);
+  const total = servicePrice != null ? ucrFee + servicePrice : null;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
@@ -39,7 +40,7 @@ export default function UcrCalculatorClient() {
             ))}
           </select>
 
-          {(entityType === 'carrier') && (
+          {isCarrier && (
             <>
               <label className="block text-sm font-medium text-[var(--color-text)] mb-2">Number of power units (commercial motor vehicles)</label>
               <input
@@ -53,14 +54,14 @@ export default function UcrCalculatorClient() {
             </>
           )}
 
-          <label className="block text-sm font-medium text-[var(--color-text)] mb-2">Service plan</label>
-          <div className="space-y-3">
-            {Object.entries(UCR_SERVICE_PLANS).map(([key, p]) => (
-              <label key={key} className="flex items-center gap-3 p-3 rounded-xl border border-[var(--color-border)] cursor-pointer hover:bg-slate-50">
-                <input type="radio" name="plan" value={key} checked={plan === key} onChange={() => setPlan(key)} className="text-[var(--color-orange)]" />
-                <span className="font-medium text-[var(--color-text)]">{p.name} – {p.originalPrice != null ? <DiscountedPrice price={p.price} originalPrice={p.originalPrice} /> : `$${p.price}`}</span>
-              </label>
-            ))}
+          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Service fee (by fleet size)</label>
+            <p className="text-lg font-bold text-indigo-600">
+              {servicePrice != null ? `$${servicePrice.toFixed(2)}` : 'Contact us (100+ vehicles)'}
+            </p>
+            {serviceTier && servicePrice != null && (
+              <p className="text-xs text-slate-500 mt-1">{serviceTier.label} power units tier</p>
+            )}
           </div>
         </div>
 
@@ -75,12 +76,12 @@ export default function UcrCalculatorClient() {
               <span className="font-semibold text-white">${ucrFee.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-white/90 items-center">
-              <span>{UCR_SERVICE_PLANS[plan]?.name}</span>
-              <span className="font-semibold text-white">{UCR_SERVICE_PLANS[plan]?.originalPrice != null ? <DiscountedPrice price={servicePrice} originalPrice={UCR_SERVICE_PLANS[plan].originalPrice} className="[&_.line-through]:text-white/60 [&_.text-slate-400]:text-white/60 [&_.text-emerald-600]:text-[var(--color-orange)] [&_.bg-emerald-50]:bg-white/20" /> : `$${servicePrice}`}</span>
+              <span>Service fee ({serviceTier?.label} tier)</span>
+              <span className="font-semibold text-white">{servicePrice != null ? `$${servicePrice.toFixed(2)}` : 'Contact us'}</span>
             </div>
             <div className="border-t border-white/20 pt-4 flex justify-between text-lg">
               <span>Total</span>
-              <span className="font-bold text-[var(--color-orange)]">${total.toLocaleString()}</span>
+              <span className="font-bold text-[var(--color-orange)]">{total != null ? `$${total.toLocaleString()}` : 'Contact us'}</span>
             </div>
           </div>
           <Link

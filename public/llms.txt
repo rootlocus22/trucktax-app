@@ -171,6 +171,6 @@ No. UCR is separate from and in addition to your USDOT number (FMCSA), IRP (Inte
 
 - Website: https://easyucr.com
 - Filing portal: https://easyucr.com
-- Support: support@easyucr.com
+- Support: support@vendaxsystemlabs.com
 - For direct government filing: https://www.ucr.gov (National Registration System)
 - For UCR questions: 1-833-UCR-PLAN (1-833-827-7526)

@@ -2,21 +2,23 @@
 
 import { useState, useId } from 'react';
 import Link from 'next/link';
-import { getUcrFee, UCR_ENTITY_TYPES, UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
-import DiscountedPrice from '@/components/DiscountedPrice';
+import { getUcrFee, getServiceFee, UCR_ENTITY_TYPES } from '@/lib/ucr-fees';
+import { US_STATES, getStateSlug } from '@/lib/us-states';
 import { Calculator, ArrowRight } from 'lucide-react';
 
-const SERVICE_PRICE = 79;
+const CARRIER_TYPES = ['motor_carrier', 'private_carrier'];
 
 export default function HomepageUcrCalculator() {
   const formId = useId();
-  const [entityType, setEntityType] = useState('carrier');
+  const [entityType, setEntityType] = useState('motor_carrier');
   const [powerUnits, setPowerUnits] = useState('');
   const [state, setState] = useState('');
 
   const unitsNum = Math.max(0, Math.floor(Number(powerUnits) || 0));
+  const isCarrier = CARRIER_TYPES.includes(entityType);
   const { fee: ucrFee } = getUcrFee(unitsNum, entityType);
-  const total = ucrFee + SERVICE_PRICE;
+  const { fee: servicePrice } = getServiceFee(isCarrier ? unitsNum : 0);
+  const total = servicePrice != null ? ucrFee + servicePrice : null;
 
   return (
     <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
@@ -45,7 +47,7 @@ export default function HomepageUcrCalculator() {
           </select>
         </div>
 
-        {entityType === 'carrier' && (
+        {isCarrier && (
           <div className="animate-in fade-in slide-in-from-top-2 duration-300">
             <label htmlFor={`${formId}-powerUnits`} className="block text-xs font-bold text-white/70 mb-1.5 uppercase tracking-wider">Number of Power Units</label>
             <input
@@ -83,20 +85,17 @@ export default function HomepageUcrCalculator() {
         </div>
         <div className="flex justify-between items-center text-sm">
           <span className="text-white/60">Filing Service:</span>
-          <div className="flex items-center gap-2">
-            <span className="text-white/30 line-through text-xs font-mono">$99</span>
-            <span className="text-[var(--color-orange)] font-mono">$79</span>
-          </div>
+          <span className="text-[var(--color-orange)] font-mono">{servicePrice != null ? `$${servicePrice.toFixed(2)}` : 'Contact us'}</span>
         </div>
         <div className="h-px bg-white/10 my-2" />
         <div className="flex justify-between items-center">
           <span className="text-white font-bold uppercase tracking-widest text-xs">Total to File:</span>
-          <span className="text-white text-xl font-black font-mono">${total.toLocaleString()}</span>
+          <span className="text-white text-xl font-black font-mono">{total != null ? `$${total.toLocaleString()}` : 'Contact us'}</span>
         </div>
       </div>
 
       <Link
-        href={state ? `/ucr-filing/${state}` : '/ucr-filing/new'}
+        href={state ? `/ucr-filing/${getStateSlug(state) || 'new'}` : '/ucr-filing/new'}
         className="mt-4 flex items-center justify-center gap-2 w-full min-h-[56px] bg-[var(--color-orange)] hover:bg-[var(--color-orange-hover)] text-white font-bold rounded-xl transition-all shadow-xl shadow-orange-500/25 active:scale-95 group uppercase tracking-tight"
       >
         File 2026 UCR Now
