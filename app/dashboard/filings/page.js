@@ -88,6 +88,8 @@ export default function FilingsListPage() {
         return { color: 'text-amber-700', bg: 'bg-amber-50/50', border: 'border-amber-100', icon: RotateCcw, label: 'Processing' };
       case 'pending_payment':
         return { color: 'text-[#ff8b3d]', bg: 'bg-orange-50/50', border: 'border-orange-100', icon: CreditCard, label: 'Pay Now' };
+      case 'pending_ach':
+        return { color: 'text-indigo-700', bg: 'bg-indigo-50/50', border: 'border-indigo-100', icon: Clock, label: 'Submitted (ACH)' };
       case 'awaiting_schedule_1':
         return { color: 'text-blue-700', bg: 'bg-blue-50/50', border: 'border-blue-100', icon: FileCheck, label: 'Reviewing' };
       case 'action_required':

@@ -44,7 +44,7 @@ export default function AgentDashboard() {
   const stats = {
     total: allFilings.length,
     completed: allFilings.filter(f => f.status === 'completed').length,
-    inProgress: allFilings.filter(f => f.status === 'processing' || f.status === 'submitted').length,
+    inProgress: allFilings.filter(f => f.status === 'processing' || f.status === 'submitted' || f.status === 'pending_ach').length,
     actionRequired: allFilings.filter(f => f.status === 'action_required').length,
     totalEarnings: allFilings.filter(f => f.status === 'completed').length * EARNINGS_PER_FILING,
     thisMonth: allFilings.filter(f => {
@@ -82,6 +82,15 @@ export default function AgentDashboard() {
           text: 'text-amber-700',
           border: 'border-amber-200',
           iconColor: 'text-amber-600',
+        };
+      case 'pending_ach':
+        return {
+          label: 'Pending ACH',
+          icon: FileText,
+          bg: 'bg-blue-50',
+          text: 'text-blue-700',
+          border: 'border-blue-200',
+          iconColor: 'text-blue-600',
         };
       case 'submitted':
         return {

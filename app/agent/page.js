@@ -31,7 +31,7 @@ export default function AgentQueuePage() {
 
   useEffect(() => {
     if (filings.length > 0) {
-      const newHighPriority = filings.find(f => f.priority === 'high' && f.status === 'submitted');
+      const newHighPriority = filings.find(f => f.priority === 'high' && (f.status === 'submitted' || f.status === 'pending_ach'));
       if (newHighPriority && (!alarm || alarm.id !== newHighPriority.id)) {
         setAlarm(newHighPriority);
         // Reset alarm after 10 seconds
@@ -65,6 +65,14 @@ export default function AgentQueuePage() {
 
   const getStatusConfig = (status) => {
     switch (status) {
+      case 'pending_ach':
+        return {
+          label: 'Pending ACH',
+          icon: FileText,
+          bg: 'bg-blue-50',
+          text: 'text-blue-700',
+          border: 'border-blue-200',
+        };
       case 'submitted':
         return {
           label: 'Submitted',
@@ -328,7 +336,7 @@ export default function AgentQueuePage() {
                         </td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex items-center gap-2 justify-center">
-                            {filing.status === 'submitted' && (
+                            {(filing.status === 'submitted' || filing.status === 'pending_ach') && (
                               <button
                                 onClick={async () => {
                                   const { updateFiling } = require('@/lib/db');
