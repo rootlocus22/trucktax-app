@@ -107,10 +107,15 @@ export async function POST(request) {
         filingType: 'ucr',
         status: 'submitted',
         priority: 'high',
+        paymentStatus: 'paid',
       },
       amountCents: amount,
       createdAt: new Date(),
     });
+
+    const filingYear = filingPayload.filingYear || 2026;
+    const legalName = filingPayload.legalName || '';
+    const dotNumber = filingPayload.dotNumber || '';
 
     session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -120,8 +125,8 @@ export async function POST(request) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: planName || 'UCR Filing Service',
-              description: 'easyucr.com UCR registration filing service and compliance record.',
+              name: planName || `UCR ${filingYear} Registration — ${legalName}`,
+              description: `UCR ${filingYear} registration fee + filing service for USDOT ${dotNumber}. easyucr.com files on your behalf and pays the government fee from our corporate account.`,
               images: [],
             },
             unit_amount: amount,

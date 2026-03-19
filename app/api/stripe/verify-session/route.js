@@ -111,9 +111,7 @@ export async function POST(request) {
     const { filingPayload, amountCents } = pendingSnap.data();
     const payload = { ...filingPayload };
     const userId = payload.userId;
-    // For UCR split-payments, the amount paid upfront is the government fee
-    const amountPaidUpfront = amountCents / 100;
-    const servicePrice = payload.servicePrice ?? 0;
+    const amountPaid = amountCents / 100;
     const total = payload.total ?? 0;
 
     const now = new Date();
@@ -123,9 +121,10 @@ export async function POST(request) {
     await filingIdRef.set({
       ...payload,
       stripeSessionId: sessionId,
-      status: 'submitted', // Update status from pending_payment to submitted now that govt fee is paid
-      paymentStatus: 'partial', // Mark as partial since service fee is still owed
-      amountPaid: amountPaidUpfront,
+      status: 'submitted',
+      paymentStatus: 'paid',
+      paymentRequiredAtDownload: false,
+      amountPaid,
       paidAt: now,
       createdAt: now,
       updatedAt: now,
@@ -134,9 +133,9 @@ export async function POST(request) {
     await db.collection('payments').add({
       userId,
       filingId,
-      type: 'ucr_filing_govt_fee', // Clarified payment type
-      description: `UCR Government Fee – ${payload.legalName || 'Carrier'} (USDOT: ${payload.dotNumber})`,
-      amount: amountPaidUpfront,
+      type: 'ucr_filing_full_payment',
+      description: `UCR ${payload.filingYear || 2026} Registration — ${payload.legalName || 'Carrier'} (USDOT: ${payload.dotNumber})`,
+      amount: amountPaid,
       total,
       currency: 'USD',
       stripeSessionId: sessionId,

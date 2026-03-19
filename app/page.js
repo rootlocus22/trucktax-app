@@ -9,12 +9,12 @@ import RedirectLoggedInToDashboard from "@/components/RedirectLoggedInToDashboar
 import UcrDeadlineBanner from "@/components/UcrDeadlineBanner";
 
 export const metadata = {
-  title: "UCR Filing Service — $79 Flat, Pay After Filing | EasyUCR",
-  description: "Cheapest UCR filing service in the US. $79 service fee, no upfront payment. File your 2026 unified carrier registration in under 10 minutes.",
+  title: "UCR Filing Service — $79 All-Inclusive, Government Fee Included | EasyUCR",
+  description: "Cheapest UCR filing service in the US. $79 all-inclusive, government fee included. File your 2026 unified carrier registration in under 10 minutes.",
   alternates: { canonical: "https://www.easyucr.com" },
   openGraph: {
-    title: "EasyUCR — File UCR for $79, Pay After Filing",
-    description: "No upfront fees. Flat $79 service fee. We file your UCR and you only pay after it is confirmed.",
+    title: "EasyUCR — All-Inclusive UCR Filing for $79, Government Fee Included",
+    description: "All-inclusive pricing. One payment covers everything — government fee included. We file your UCR and handle the rest.",
     url: "https://www.easyucr.com",
   },
 };
@@ -118,10 +118,10 @@ export default function Home() {
       },
       {
         '@type': 'Question',
-        name: 'Why do I pay after filing and not before?',
+        name: 'What does all-inclusive UCR filing mean?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'We file your UCR first. You pay only when your confirmation number is issued. If filing fails, you owe nothing. This removes risk and ensures you only pay for successful service.'
+          text: 'One payment covers everything — our $79 service fee plus the government UCR fee. We pay the government fee on your behalf and handle the entire filing process. No surprise charges.'
         }
       },
       {
@@ -129,7 +129,7 @@ export default function Home() {
         name: 'Can I file UCR myself for free?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'You still pay the government UCR fee. You can file directly through your state\'s UCR portal, but it can be confusing. EasyUCR handles the process for $79 and you pay only after confirmation.'
+          text: 'You still pay the government UCR fee. You can file directly through your state\'s UCR portal, but it can be confusing. EasyUCR handles the process for $79 all-inclusive — government fee included.'
         }
       }
     ]
@@ -170,10 +170,10 @@ export default function Home() {
                   Cheapest UCR Filing in the US
                 </div>
                 <h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl text-white">
-                  File Your UCR Registration — <span className="text-[var(--color-orange)]">$79 Service Fee</span>, <span className="block text-blue-200">Pay After Filing</span>
+                  File Your UCR Registration — <span className="text-[var(--color-orange)]">$79 All-Inclusive</span>, <span className="block text-blue-200">Government Fee Included</span>
                 </h1>
                 <p className="text-lg leading-8 text-slate-300 max-w-xl">
-                  Cheapest UCR filing service in the US. We file, you pay only after it&apos;s confirmed.
+                  All-inclusive UCR filing. One payment covers everything — we pay the government fee on your behalf.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 sm:items-center">
@@ -199,7 +199,7 @@ export default function Home() {
 
                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-xs sm:text-sm font-medium text-slate-300 pt-2 sm:pt-4">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-white-400" /> No upfront fees
+                    <CheckCircle className="w-5 h-5 text-white-400" /> All-inclusive pricing
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-5 h-5 text-white-400" /> Filed in under 10 min
@@ -281,7 +281,7 @@ export default function Home() {
                 {[
                   { title: "1. Basic DOT Info", desc: "Start by entering your USDOT number.", icon: Search },
                   { title: "2. Verify Fleet Size", desc: "Confirm your fleet details for accurate FMCSA fee calculation.", icon: Calculator },
-                  { title: "3. Direct Download", desc: "Download the UCR certificate instantly once the payment gets finalized.", icon: Download }
+                  { title: "3. Direct Download", desc: "Download your UCR certificate instantly. One payment covers everything.", icon: Download }
                 ].map((step, idx) => (
                   <div
                     key={idx}
@@ -524,7 +524,7 @@ export default function Home() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold text-slate-900 mb-4">Compare UCR Filing Services</h2>
-                <p className="text-lg text-slate-600 max-w-2xl mx-auto">See why EasyUCR is the cheapest with $79 service fee and pay-after-filing.</p>
+                <p className="text-lg text-slate-600 max-w-2xl mx-auto">See why EasyUCR is the best value — $79 all-inclusive, government fee included.</p>
               </div>
               <div className="max-w-4xl mx-auto rounded-xl overflow-hidden shadow-card">
                 <ComparisonTable />

@@ -13,13 +13,13 @@ import {
 export const metadata = {
   title: 'File UCR for Multiple Trucks | Dispatcher & Fleet Bulk UCR Filing',
   description:
-    'File UCR for multiple clients or your fleet. How dispatchers and fleet managers handle bulk UCR filing for 3–20+ trucks. $0 upfront.',
+    'File UCR for multiple clients or your fleet. How dispatchers and fleet managers handle bulk UCR filing for 3–20+ trucks. All-inclusive pricing, government fee included.',
   alternates: {
     canonical: 'https://www.easyucr.com/ucr/dispatcher',
   },
   openGraph: {
     title: 'File UCR for Multiple Trucks | Dispatcher & Bulk UCR',
-    description: 'Bulk UCR filing for dispatchers and fleets. File for multiple clients or trucks. $0 upfront.',
+    description: 'Bulk UCR filing for dispatchers and fleets. File for multiple clients or trucks. All-inclusive pricing, government fee included.',
     url: 'https://www.easyucr.com/ucr/dispatcher',
   },
 };
@@ -37,7 +37,7 @@ export default function UcrDispatcherPage() {
             File UCR for Multiple Trucks or Clients
           </h1>
           <p className="text-lg text-blue-100 max-w-2xl mx-auto mb-8">
-            One registration per carrier—but if you manage multiple carriers or a fleet, we make it simple. File each UCR in minutes with $0 upfront. Pay only when each certificate is ready.
+            One registration per carrier—but if you manage multiple carriers or a fleet, we make it simple. File each UCR in minutes with all-inclusive pricing — government fee included.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -94,7 +94,7 @@ export default function UcrDispatcherPage() {
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-navy)] text-white font-bold">2</span>
               <div>
                 <h3 className="font-semibold text-slate-800">Use our wizard for each</h3>
-                <p className="text-slate-600 text-sm mt-1">Start a new UCR filing for each carrier. Enter their legal name, USDOT, and fee bracket (based on fleet size). No upfront payment—you or the carrier pays only when the UCR certificate is ready to download.</p>
+                <p className="text-slate-600 text-sm mt-1">Start a new UCR filing for each carrier. Enter their legal name, USDOT, and fee bracket (based on fleet size). All-inclusive pricing — one payment covers everything, government fee included.</p>
               </div>
             </div>
             <div className="flex gap-4 p-4 rounded-xl bg-white border border-slate-200">
@@ -115,7 +115,7 @@ export default function UcrDispatcherPage() {
           </h2>
           <div className="prose prose-slate max-w-none text-slate-600">
             <p>
-              UCR fees are set by the UCR Plan and your state—they vary by <strong>number of power units</strong> (trucks) in the fleet. There is no “bulk discount” from the government; each carrier pays the fee that matches their bracket. easyucr.com does not charge upfront: you file, we process, and the carrier (or you on their behalf) pays only when the certificate is ready.
+              UCR fees are set by the UCR Plan and your state—they vary by <strong>number of power units</strong> (trucks) in the fleet. There is no &ldquo;bulk discount&rdquo; from the government; each carrier pays the fee that matches their bracket. easyucr.com offers all-inclusive pricing: you file, we process, and one payment covers both the service fee and government fee — we pay the government on your behalf.
             </p>
             <p>
               For <strong>3–5 trucks</strong>, the typical fee bracket is in the lower tier; for <strong>6–20 trucks</strong>, a higher bracket applies. Use our <Link href="/tools/ucr-calculator" className="text-[var(--color-navy)] font-semibold hover:underline">UCR Fee Calculator</Link> to see the exact amount for each client. Filing multiple carriers is simple: run through the wizard once per carrier and keep a list of USDOT numbers and fee brackets so you can batch your workflow.
@@ -131,10 +131,10 @@ export default function UcrDispatcherPage() {
           </h2>
           <div className="prose prose-slate max-w-none text-slate-600">
             <p>
-              Many owner-operators confuse UCR with state registration. In short: <strong>UCR is the annual Unified Carrier Registration</strong> required for anyone operating in interstate commerce. It’s due by December 31 each year; the registration year runs January 1–December 31. If they have a USDOT number and run across state lines, they almost certainly need UCR.
+              Many owner-operators confuse UCR with state registration. In short: <strong>UCR is the annual Unified Carrier Registration</strong> required for anyone operating in interstate commerce. It&rsquo;s due by December 31 each year; the registration year runs January 1–December 31. If they have a USDOT number and run across state lines, they almost certainly need UCR.
             </p>
             <p>
-              You can tell them: “We’ll get your UCR filed so you’re legal—no upfront cost; you pay when your certificate is ready.” Point them to our <Link href="/ucr/guides" className="text-[var(--color-navy)] font-semibold hover:underline">UCR guides</Link> if they want to read more about who must file and deadlines.
+              You can tell them: &ldquo;We&apos;ll get your UCR filed so you&apos;re legal &mdash; all-inclusive pricing, one payment covers everything.&rdquo; Point them to our <Link href="/ucr/guides" className="text-[var(--color-navy)] font-semibold hover:underline">UCR guides</Link> if they want to read more about who must file and deadlines.
             </p>
           </div>
         </section>
@@ -153,7 +153,7 @@ export default function UcrDispatcherPage() {
               <li className="flex items-start gap-3">
                 <CheckCircle className="w-6 h-6 text-emerald-500 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-slate-800">UCR</strong> — Due by December 31. One registration per carrier (legal entity). File at <Link href="/ucr/file" className="text-[var(--color-navy)] font-semibold hover:underline">easyucr.com UCR</Link> with $0 upfront.
+                  <strong className="text-slate-800">UCR</strong> — Due by December 31. One registration per carrier (legal entity). File at <Link href="/ucr/file" className="text-[var(--color-navy)] font-semibold hover:underline">easyucr.com UCR</Link> — all-inclusive pricing, government fee included.
                 </div>
               </li>
             </ul>
@@ -165,7 +165,7 @@ export default function UcrDispatcherPage() {
           <ShieldCheck className="w-12 h-12 mx-auto mb-4 text-[var(--color-orange)]" />
           <h2 className="text-2xl font-bold mb-2">Ready to file UCR for your clients or fleet?</h2>
           <p className="text-blue-100 mb-6 max-w-xl mx-auto">
-            $0 upfront. Pay only when each certificate is ready. File in minutes per carrier.
+            All-inclusive pricing — government fee included. Pay once, we handle everything. File in minutes per carrier.
           </p>
           <Link
             href="/ucr/file"

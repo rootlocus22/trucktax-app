@@ -217,7 +217,7 @@ export default function UcrFilingStatePage({ params }) {
           <div className="not-prose my-6 rounded-xl bg-teal-50 border border-teal-200 p-5">
             <p className="font-semibold text-slate-800 m-0 mb-1">Example total cost</p>
             <p className="text-slate-600 m-0 text-sm">
-              A {stateName} carrier with 1 truck: ${oneTruckFee} UCR fee + ${servicePrice} filing service = <strong>${exampleTotal} total</strong>. File with $0 upfront—pay when your certificate is ready.
+              A {stateName} carrier with 1 truck: ${oneTruckFee} UCR fee + ${servicePrice} filing service = <strong>${exampleTotal} total</strong>. All-inclusive pricing—one payment, we handle everything.
             </p>
           </div>
         </div>

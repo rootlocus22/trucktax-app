@@ -92,8 +92,8 @@ function SignupContent() {
   const benefits = [
     {
       icon: ShieldCheck,
-      title: 'File First, Pay Later',
-      description: 'Start your UCR filing with $0 upfront and pay only when your certificate is ready.'
+      title: 'All-Inclusive UCR Filing',
+      description: 'One payment covers everything — government fee included. Pay once, we handle the rest.'
     },
     {
       icon: Zap,
@@ -139,7 +139,7 @@ function SignupContent() {
               Start Your <span className="text-[var(--color-orange)]">UCR Compliance</span> Journey
             </h2>
             <p className="text-base text-white/90 leading-relaxed">
-              The easiest way to file UCR without upfront stress: submit first, then pay once your certificate is available.
+              The easiest way to file UCR with all-inclusive pricing: one payment covers everything, government fee included.
             </p>
           </div>
 

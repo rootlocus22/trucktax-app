@@ -4,7 +4,7 @@ import SchemaMarkup from '@/components/seo/SchemaMarkup';
 
 export const metadata = {
     title: 'UCR Registration & Renewal Guide | Unified Carrier Registration',
-    description: 'Learn how to file your annual UCR registration online with $0 upfront. We file first, then you pay when your UCR certificate is ready.',
+    description: 'Learn how to file your annual UCR registration online. All-inclusive pricing—one payment, we handle everything.',
     keywords: 'ucr registration guide, ucr renewal, unified carrier registration, file ucr online instructions, interstate carrier registration info',
     alternates: {
         canonical: 'https://www.easyucr.com/services/ucr-registration',
@@ -31,7 +31,7 @@ export default function UCRServicePage() {
         },
         {
             question: "Do I have to pay before my filing is submitted?",
-            answer: "No. With our file-first model, you can submit your UCR filing with no upfront service charge. You pay later when your certificate is uploaded and ready for full download in your dashboard."
+            answer: "We offer all-inclusive pricing—one payment covers everything. Submit your UCR filing and your certificate will be uploaded and ready for download in your dashboard."
         },
         {
             question: "Do I need UCR if I only drive in one state?",
@@ -77,14 +77,14 @@ export default function UCRServicePage() {
                             Unified Carrier Registration (UCR) <span className="text-indigo-400">Renewal</span>
                         </h1>
                         <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                            Mandatory annual registration for all carriers crossing state lines. Submit first with $0 upfront and pay only when your UCR certificate is ready. Nationwide support for all 50 states.
+                            Mandatory annual registration for all carriers crossing state lines. All-inclusive pricing—one payment, we handle everything. Nationwide support for all 50 states.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
                                 href="/ucr/file"
                                 className="bg-indigo-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-indigo-600 transition shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2"
                             >
-                                Start UCR Filing ($0 Upfront) <ArrowRight className="w-5 h-5" />
+                                Start UCR Filing — All-Inclusive Pricing <ArrowRight className="w-5 h-5" />
                             </Link>
                         </div>
                         <div className="mt-8 flex items-center gap-6 text-sm text-blue-200">
@@ -159,8 +159,8 @@ export default function UCRServicePage() {
                     </div>
                     <p className="text-center text-slate-400 text-xs mt-8">* Official UCR Plan government fees. easyucr.com service filing fees apply separately.</p>
                     <div className="mt-8 p-6 bg-indigo-50 rounded-xl border border-indigo-100 max-w-3xl mx-auto text-center">
-                        <h3 className="font-bold text-[var(--color-navy)] mb-2">Why wait to pay?</h3>
-                        <p className="text-slate-600 text-sm">We process your Unified Carrier Registration without any upfront service charge. You only pay for our service when your official UCR certificate is securely processed and ready for download.</p>
+                        <h3 className="font-bold text-[var(--color-navy)] mb-2">All-Inclusive Pricing</h3>
+                        <p className="text-slate-600 text-sm">We process your Unified Carrier Registration with all-inclusive pricing. One payment covers everything—your official UCR certificate is securely processed and ready for download.</p>
                     </div>
                 </div>
             </div>
@@ -226,7 +226,7 @@ export default function UCRServicePage() {
                             href="/ucr/file"
                             className="inline-flex bg-indigo-500 text-white px-10 py-5 rounded-full font-bold text-xl hover:bg-indigo-600 transition shadow-xl shadow-indigo-900/50 items-center gap-2 transform hover:-translate-y-1"
                         >
-                            Start Filing Now ($0 Upfront) <ArrowRight className="w-5 h-5" />
+                            Start Filing Now — All-Inclusive Pricing <ArrowRight className="w-5 h-5" />
                         </Link>
                     </div>
                 </div>

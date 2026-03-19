@@ -3,14 +3,14 @@ import { CTABanner } from '@/components/CTABanner';
 import { FAQAccordion } from '@/components/FAQAccordion';
 
 export const metadata = {
-  title: 'UCR Filing with No Upfront Fee — How EasyUCR Works | EasyUCR',
-  description: 'Only EasyUCR charges you after your UCR is filed. No upfront payment, no risk. Pay $79 only when you have your confirmation number.',
+  title: 'All-Inclusive UCR Filing — Transparent Pricing | EasyUCR',
+  description: 'EasyUCR offers all-inclusive UCR filing. One payment covers everything — government fee included. Pay $79 and we handle the rest.',
 };
 
 const FAQ = [
-  { question: 'How does pay-after-filing work?', answer: 'You enter your DOT number and fleet info. We file your UCR with the government. Only when your confirmation number is issued do we charge you the $79 service fee plus government fee.' },
-  { question: 'What if my filing fails?', answer: 'If filing fails for any reason, you pay nothing. Ever. We only charge when your UCR is successfully filed and you have your confirmation number.' },
-  { question: 'Do other UCR services offer this?', answer: 'No. EasyUCR is the only UCR filing service that charges you after filing. All others require upfront payment.' },
+  { question: 'What does all-inclusive UCR filing mean?', answer: 'You enter your DOT number and fleet info. We file your UCR with the government and pay the government fee on your behalf. One payment of $79 covers our service fee and the government UCR fee — no separate charges.' },
+  { question: 'Are there any hidden fees?', answer: 'No. Your $79 payment covers everything — our service fee plus the government UCR fee. We pay the government on your behalf. That is the full cost.' },
+  { question: 'How does EasyUCR pricing compare to other services?', answer: 'EasyUCR offers all-inclusive pricing at $79. Many other services charge their service fee separately on top of the government fee, making their true cost higher.' },
 ];
 
 export default function UCRFilingNoUpfrontFee() {
@@ -20,18 +20,18 @@ export default function UCRFilingNoUpfrontFee() {
         <nav className="text-sm text-slate-600 mb-8">
           <Link href="/compare" className="hover:text-[var(--color-orange)]">Compare</Link>
           <span className="mx-2">/</span>
-          <span className="text-slate-900">UCR Filing No Upfront Fee</span>
+          <span className="text-slate-900">UCR Filing All-Inclusive Pricing</span>
         </nav>
         <CTABanner />
-        <h1 className="text-3xl font-bold text-slate-900 mt-12 mb-6">UCR Filing with No Upfront Fee</h1>
+        <h1 className="text-3xl font-bold text-slate-900 mt-12 mb-6">All-Inclusive UCR Filing — Transparent Pricing</h1>
         <p className="text-lg text-slate-600 mb-8">
-          Only EasyUCR charges you after your UCR is filed. No upfront payment, no risk. Pay $79 only when you have your confirmation number.
+          EasyUCR offers all-inclusive pricing. One payment of $79 covers everything — government fee included. Pay once, we handle the rest.
         </p>
         <h2 className="text-xl font-bold text-slate-900 mb-4">How It Works</h2>
         <ol className="list-decimal pl-6 space-y-4 text-slate-600 mb-12">
           <li>Enter your DOT number and fleet info (2 minutes)</li>
           <li>We file your UCR with the government using AI automation</li>
-          <li>Pay $79 service fee only after your confirmation number is issued</li>
+          <li>One payment of $79 covers everything — we pay the government fee on your behalf</li>
         </ol>
         <FAQAccordion faqs={FAQ} />
         <div className="mt-12"><CTABanner /></div>

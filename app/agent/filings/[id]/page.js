@@ -1573,10 +1573,14 @@ export default function AgentWorkStationPage() {
                           <span className="text-[var(--color-muted)] min-w-[120px]">Power units:</span>
                           <span className="text-[var(--color-text)] font-semibold">{filing.powerUnits != null ? Number(filing.powerUnits) : '—'}</span>
                         </div>
-                        {filing.entityType != null && filing.entityType !== '' && (
+                        {(filing.entityTypes || filing.entityType) && (
                           <div className="flex items-start justify-between gap-2">
-                            <span className="text-[var(--color-muted)] min-w-[120px]">Entity type:</span>
-                            <span className="text-[var(--color-text)] font-medium capitalize">{String(filing.entityType).replace(/_/g, ' ')}</span>
+                            <span className="text-[var(--color-muted)] min-w-[120px]">Classifications:</span>
+                            <span className="text-[var(--color-text)] font-medium capitalize">
+                              {Array.isArray(filing.entityTypes)
+                                ? filing.entityTypes.map(t => String(t).replace(/_/g, ' ')).join(', ')
+                                : String(filing.entityType || '').replace(/_/g, ' ')}
+                            </span>
                           </div>
                         )}
                       </div>

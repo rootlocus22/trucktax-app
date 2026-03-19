@@ -27,7 +27,7 @@ export async function generateMetadata({ params }) {
 
     return {
         title: `2026 UCR Registration for ${entityData.name} | Avoid Fines`,
-        description: `Mandatory Unified Carrier Registration (UCR) guide for ${entityData.name.toLowerCase()}. File your 2026 UCR online instantly with $0 upfront. Pay later when certificate is ready.`,
+        description: `Mandatory Unified Carrier Registration (UCR) guide for ${entityData.name.toLowerCase()}. File your 2026 UCR online instantly. All-inclusive pricing—one payment, we handle everything.`,
         alternates: {
             canonical: `https://www.easyucr.com/services/ucr-for/${normalizedEntity}`,
         },
@@ -86,7 +86,7 @@ export default async function UcrEntityPage({ params }) {
                             UCR Registration for <span className="text-emerald-400">{entityData.name}</span>
                         </h1>
                         <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                            {entityData.desc} Streamline your Unified Carrier Registration. Submit your details today for $0 upfront and stay DOT compliant.
+                            {entityData.desc} Streamline your Unified Carrier Registration. All-inclusive pricing—one payment, we handle everything to keep you DOT compliant.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
@@ -98,7 +98,7 @@ export default async function UcrEntityPage({ params }) {
                         </div>
                         <div className="mt-8 flex items-center gap-6 text-sm text-blue-200">
                             <div className="flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-indigo-400" /> Pay Only on Delivery
+                                <CheckCircle className="w-4 h-4 text-indigo-400" /> All-Inclusive Pricing
                             </div>
                             <div className="flex items-center gap-2">
                                 <ShieldCheck className="w-4 h-4 text-indigo-400" /> Full DOT Compliance
@@ -131,7 +131,7 @@ export default async function UcrEntityPage({ params }) {
                     <div className="bg-emerald-50 border-l-4 border-emerald-500 p-6 my-6 rounded-r-xl">
                         <h4 className="font-bold text-emerald-900 mb-2">2026 Tier 1 Fee Structure:</h4>
                         <p className="text-emerald-800 font-medium">
-                            The official 2026 UCR government fee for the 0-2 vehicle bracket is exactly <strong>$46.00</strong>. This flat fee applies to the vast majority of non-asset-based {entityData.name.toLowerCase()}. easyucr.com adds a standard processing fee, allowing you to submit your registration today and defer payment until the official certificate is delivered to your dashboard.
+                            The official 2026 UCR government fee for the 0-2 vehicle bracket is exactly <strong>$46.00</strong>. This flat fee applies to the vast majority of non-asset-based {entityData.name.toLowerCase()}. easyucr.com adds a standard processing fee with all-inclusive pricing—one payment, we handle everything until your official certificate is delivered to your dashboard.
                         </p>
                     </div>
 
@@ -171,7 +171,7 @@ export default async function UcrEntityPage({ params }) {
                         href="/ucr/file"
                         className="inline-flex bg-emerald-500 text-white px-10 py-5 rounded-full font-bold text-xl hover:bg-emerald-600 transition shadow-xl items-center gap-2"
                     >
-                        Start UCR Filing ($0 Upfront) <ArrowRight className="w-5 h-5" />
+                        Start UCR Filing — All-Inclusive Pricing <ArrowRight className="w-5 h-5" />
                     </Link>
                 </div>
             </div>

@@ -74,7 +74,7 @@ export default function ToolsIndex() {
               Calculate & <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20]">Stay Compliant</span>
             </h1>
             <p className="text-lg leading-relaxed text-blue-100/90 max-w-2xl">
-              Use our UCR fee calculator to see your total cost before you file. File with $0 upfront.
+              Use our UCR fee calculator to see your total cost before you file. All-inclusive pricing—one payment, we handle everything.
             </p>
           </div>
         </div>
@@ -94,7 +94,7 @@ export default function ToolsIndex() {
                     Managing UCR compliance starts with knowing your fee. Our calculator uses official 2026 brackets to show your exact cost.
                   </p>
                   <p>
-                    File with $0 upfront—you pay when your certificate is ready.
+                    All-inclusive pricing—one payment, we handle everything.
                   </p>
                 </div>
               </div>

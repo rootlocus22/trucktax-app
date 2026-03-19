@@ -9,7 +9,7 @@ export const metadata = {
 
 const FAQ = [
   { question: 'What are the penalties for late UCR filing?', answer: 'States can assess fines from $100 to $5,000 per violation. Vehicles may be placed out of service until proof of UCR payment is provided.' },
-  { question: 'Can I still file UCR after the deadline?', answer: 'Yes. File as soon as possible to get back in compliance. EasyUCR processes filings in under 10 minutes. You pay only after confirmation.' },
+  { question: 'Can I still file UCR after the deadline?', answer: 'Yes. File as soon as possible to get back in compliance. EasyUCR processes filings in under 10 minutes with all-inclusive pricing—one payment, we handle everything.' },
   { question: 'Will I get a confirmation number if I file late?', answer: 'Yes. Once your UCR is filed and paid, you receive a confirmation number. Keep proof of payment for roadside inspections.' },
 ];
 
@@ -27,7 +27,7 @@ export default function LateUCRFiling() {
 
         <h1 className="text-3xl font-bold text-slate-900 mt-12 mb-6">Late UCR Filing — Penalties & How to Fix It</h1>
         <p className="text-lg text-slate-600 leading-relaxed mb-8">
-          Missed the UCR deadline? You can still file. Learn the penalties for late UCR filing and how to get back in compliance. EasyUCR files same day—you pay only after your confirmation number is issued.
+          Missed the UCR deadline? You can still file. Learn the penalties for late UCR filing and how to get back in compliance. EasyUCR files same day with all-inclusive pricing—one payment, we handle everything.
         </p>
 
         <h2 className="text-xl font-bold text-slate-900 mt-8 mb-4">Penalties for Late UCR</h2>
@@ -37,7 +37,7 @@ export default function LateUCRFiling() {
 
         <h2 className="text-xl font-bold text-slate-900 mt-8 mb-4">How to Fix It</h2>
         <p className="text-slate-600 mb-8">
-          File your UCR immediately. EasyUCR processes filings in under 10 minutes. No upfront payment—you pay $79 only when your confirmation number is issued. Once you have proof, you are back in compliance.
+          File your UCR immediately. EasyUCR processes filings in under 10 minutes. All-inclusive pricing—one payment of $79 covers everything. Once you have proof, you are back in compliance.
         </p>
 
         <h2 className="text-xl font-bold text-slate-900 mt-8 mb-4">Frequently Asked Questions</h2>

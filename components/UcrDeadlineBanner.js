@@ -39,16 +39,16 @@ export default function UcrDeadlineBanner({ className = '' }) {
             {showBanner ? (
               isDecember && (isLastWeek || daysLeft <= 14) ? (
                 <>
-                  🚛 <strong>Last chance</strong> to file UCR before the December 31 deadline. $0 upfront — pay when your certificate is ready.
+                  🚛 <strong>Last chance</strong> to file UCR before the December 31 deadline. All-inclusive pricing — one payment, we handle everything.
                 </>
               ) : (
                 <>
-                  🚛 <strong>{daysLeft > 0 ? `${daysLeft} days left` : 'Deadline today'}</strong> to file UCR for {registrationYear} — Dec 31 deadline. $0 upfront.
+                  🚛 <strong>{daysLeft > 0 ? `${daysLeft} days left` : 'Deadline today'}</strong> to file UCR for {registrationYear} — Dec 31 deadline. All-inclusive pricing.
                 </>
               )
             ) : (
               <>
-                UCR registration is open. File before Dec 31 with $0 upfront — pay when your certificate is ready.
+                UCR registration is open. File before Dec 31 — all-inclusive pricing, one payment covers everything.
               </>
             )}
           </span>

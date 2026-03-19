@@ -4,12 +4,10 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { getUcrFee, UCR_ENTITY_TYPES, UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
+import { getUcrFee, UCR_ENTITY_TYPES, CARRIER_ENTITY_TYPES, FLAT_FEE_ENTITY_TYPES, UCR_SERVICE_PLANS } from '@/lib/ucr-fees';
 import DiscountedPrice from '@/components/DiscountedPrice';
-import { createFiling } from '@/lib/db';
 import { deleteDraftFiling } from '@/lib/draftHelpers';
 import { trackEvent } from '@/lib/analytics';
-import { getUcrSubmittedPayLaterEmailTemplate } from '@/lib/ucrEmailTemplates';
 import {
   ChevronRight,
   ChevronLeft,
@@ -24,6 +22,7 @@ import {
   ShieldCheck,
   Lock,
   Award,
+  CreditCard,
 } from 'lucide-react';
 
 const UCR_VISIT_KEY = 'ucr_visit_session_id';
@@ -31,6 +30,8 @@ const UCR_VISIT_USER_ID = 'ucr_visit_user_id';
 const UCR_VISIT_EMAIL = 'ucr_visit_email';
 const UCR_VISIT_STEP = 'ucr_visit_step';
 const UCR_VISIT_COMPLETED = 'ucr_visit_completed';
+
+const AVAILABLE_YEARS = [2026, 2025];
 
 function getSessionId() {
   if (typeof window === 'undefined') return null;
@@ -56,10 +57,10 @@ function recordUcrVisit(body) {
 
 const STEPS = [
   { id: 1, title: 'Business details', icon: Building2 },
-  { id: 2, title: 'Fleet count', icon: Truck },
+  { id: 2, title: 'Fleet & type', icon: Truck },
   { id: 3, title: 'State', icon: MapPin },
   { id: 4, title: 'Review', icon: FileCheck },
-  { id: 5, title: 'Submit', icon: CheckCircle },
+  { id: 5, title: 'Payment', icon: CreditCard },
   { id: 6, title: 'Confirmation', icon: CheckCircle },
 ];
 
@@ -68,12 +69,12 @@ function UcrFileContent() {
   const { user, loading: authLoading } = useAuth();
   const [step, setStep] = useState(1);
   const [submittingFiling, setSubmittingFiling] = useState(false);
-  const [confirmationData, setConfirmationData] = useState(null); // { filingId, legalName, dotNumber, email, total }
+  const [confirmationData, setConfirmationData] = useState(null);
   const [form, setForm] = useState({
     legalName: '',
     dba: '',
     dotNumber: '',
-    entityType: 'carrier',
+    entityTypes: [], // multi-select: array of entity type values
     powerUnits: '',
     state: '',
     email: '',
@@ -81,21 +82,16 @@ function UcrFileContent() {
     plan: 'filing',
     fleetOption: 'manual', // 'auto' | 'manual'
     isAuthorized: false,
-    registrantName: '',
+    registrantFirstName: '',
+    registrantLastName: '',
     filingYear: 2026,
   });
   const [draftId, setDraftId] = useState(null);
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState('');
-  const [fmcsaLookup, setFmcsaLookup] = useState(null); // { name, dba, address: { street, city, state, zip } } after successful lookup
-  const [consentGiven, setConsentGiven] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('card');
-  const [billing, setBilling] = useState({ name: '', address: '', city: '', state: '', postalCode: '' });
-  const [ach, setAch] = useState({ accountType: 'personal', routingNumber: '', accountNumber: '', accountNumberConfirm: '' });
-  const [achConsent, setAchConsent] = useState(false);
+  const [fmcsaLookup, setFmcsaLookup] = useState(null);
   const [hasTrackedStart, setHasTrackedStart] = useState(false);
   const hasRecordedVisit = useRef(false);
-  const verificationAttempted = useRef(false);
 
   // Ensure UCR visit session id exists and persist user/email/step for abandon tracking
   useEffect(() => {
@@ -139,7 +135,7 @@ function UcrFileContent() {
 
   // Record step progress for analytics and abandon context
   useEffect(() => {
-    if (!user || step === 1) return; // step 1 already recorded on visit
+    if (!user || step === 1) return;
     const sessionId = sessionStorage.getItem(UCR_VISIT_KEY);
     if (!sessionId) return;
     fetch('/api/analytics/ucr-visit', {
@@ -196,8 +192,12 @@ function UcrFileContent() {
           setForm(prev => ({
             ...prev,
             ...draft,
-            // Ensure step is set from draft if saved
-            powerUnits: draft.powerUnits?.toString() || prev.powerUnits
+            // Migrate old single entityType to multi-select
+            entityTypes: draft.entityTypes || (draft.entityType ? [draft.entityType === 'carrier' ? 'motor_carrier' : draft.entityType] : prev.entityTypes),
+            // Migrate old registrantName to split fields
+            registrantFirstName: draft.registrantFirstName || draft.registrantName?.split(' ')[0] || prev.registrantFirstName,
+            registrantLastName: draft.registrantLastName || draft.registrantName?.split(' ').slice(1).join(' ') || prev.registrantLastName,
+            powerUnits: draft.powerUnits?.toString() || prev.powerUnits,
           }));
           if (draft.currentStep) setStep(draft.currentStep);
         }
@@ -205,7 +205,7 @@ function UcrFileContent() {
     }
   }, []);
 
-  // Conversion funnel: no transactions without login — redirect to login and return here after
+  // Conversion funnel: no transactions without login
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -213,6 +213,58 @@ function UcrFileContent() {
       router.push('/login?redirect=' + encodeURIComponent(returnPath));
     }
   }, [user, authLoading, router]);
+
+  // Handle Stripe success redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('success');
+    const sessionId = params.get('session_id');
+    if (success === '1' && sessionId) {
+      setSubmittingFiling(true);
+      fetch('/api/stripe/verify-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            setLookupError(data.error);
+            setSubmittingFiling(false);
+          } else {
+            setConfirmationData({
+              filingId: data.filingId,
+              legalName: data.legalName,
+              dotNumber: data.dotNumber,
+              email: data.email,
+              total: data.total,
+            });
+            setStep(6);
+            sessionStorage.setItem(UCR_VISIT_COMPLETED, '1');
+            sessionStorage.setItem('ucr_filing_confirmation', JSON.stringify({
+              filingId: data.filingId,
+              legalName: data.legalName,
+              dotNumber: data.dotNumber,
+              email: data.email,
+              total: data.total,
+            }));
+            // Clean URL
+            window.history.replaceState({}, '', '/ucr/file');
+          }
+        })
+        .catch(err => {
+          setLookupError('Payment verification failed. Please contact support.');
+          setSubmittingFiling(false);
+        });
+    }
+    // Handle canceled
+    if (params.get('canceled') === '1') {
+      const stepParam = params.get('step');
+      if (stepParam) setStep(parseInt(stepParam, 10));
+      setLookupError('Payment was canceled. You can try again when ready.');
+      window.history.replaceState({}, '', '/ucr/file');
+    }
+  }, []);
 
   // Restore confirmation page from session
   useEffect(() => {
@@ -229,86 +281,42 @@ function UcrFileContent() {
     }
   }, []);
 
-  // Handle Stripe Success Callback
-  useEffect(() => {
-    if (!user || verificationAttempted.current) return;
-    const params = new URLSearchParams(window.location.search);
-    const success = params.get('success');
-    const sessionId = params.get('session_id');
-
-    if (success === '1' && sessionId) {
-      verificationAttempted.current = true;
-      setSubmittingFiling(true);
-      fetch('/api/stripe/verify-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: sessionId })
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) throw new Error(data.error);
-
-          // Remove draft if present
-          if (draftId) {
-            try {
-              const { deleteDraftFiling } = require('@/lib/draftHelpers');
-              deleteDraftFiling(draftId);
-            } catch (e) { }
-          }
-
-          const donePayload = {
-            filingId: data.filingId,
-            legalName: data.legalName,
-            dotNumber: data.dotNumber,
-            email: data.email,
-            total: data.total,
-            amountDueLater: form.plan === 'filing' ? 79 : 0
-          };
-
-          setConfirmationData(donePayload);
-          try {
-            sessionStorage.setItem('ucr_filing_confirmation', JSON.stringify(donePayload));
-            sessionStorage.setItem(UCR_VISIT_COMPLETED, '1');
-          } catch (e) { }
-
-          recordUcrVisit({ email: data.email || user.email, step: 6, completed: true });
-
-          fetch('/api/email/filing-status', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filingId: data.filingId, status: 'submitted' }),
-          }).catch(() => { });
-
-          window.history.replaceState({}, '', '/ucr/file');
-          setStep(6);
-        })
-        .catch(err => {
-          console.error('Verify session error:', err);
-          setLookupError('Failed to verify payment. Please contact support.');
-          setStep(5);
-        })
-        .finally(() => {
-          setSubmittingFiling(false);
-        });
-    }
-  }, [user, draftId, form.plan]);
-
   useEffect(() => {
     if (hasTrackedStart) return;
     trackEvent('ucr_filing_started', {
       source: typeof window !== 'undefined' ? window.location.pathname : '/ucr/file',
-      model: 'pay_later',
+      model: 'stripe_checkout',
     });
     setHasTrackedStart(true);
   }, [hasTrackedStart]);
 
-  const { fee: ucrFee } = getUcrFee(Number(form.powerUnits) || 0, form.entityType);
+  // Determine if any carrier type is selected (for showing fleet count)
+  const hasCarrierType = form.entityTypes.some(t => CARRIER_ENTITY_TYPES.includes(t));
+
+  const { fee: ucrFee } = getUcrFee(Number(form.powerUnits) || 0, form.entityTypes);
   const servicePrice = UCR_SERVICE_PLANS[form.plan]?.price ?? 79;
   const total = ucrFee + servicePrice;
 
+  const registrantFullName = [form.registrantFirstName, form.registrantLastName].filter(Boolean).join(' ');
+
   const canProceed = () => {
-    if (step === 1) return form.legalName.trim() && form.dotNumber.trim() && form.registrantName.trim() && form.isAuthorized;
-    if (step === 2) return form.entityType && (['broker', 'freight_forwarder', 'leasing'].includes(form.entityType) || (form.powerUnits && Number(form.powerUnits) >= 0));
+    if (step === 1) {
+      return (
+        form.legalName.trim() &&
+        form.dotNumber.trim() &&
+        form.registrantFirstName.trim() &&
+        form.registrantLastName.trim() &&
+        form.phone.trim() &&
+        form.isAuthorized
+      );
+    }
+    if (step === 2) {
+      return (
+        form.entityTypes.length > 0 &&
+        form.filingYear &&
+        (!hasCarrierType || (form.powerUnits && Number(form.powerUnits) >= 0))
+      );
+    }
     if (step === 3) return form.state?.length === 2;
     return true;
   };
@@ -327,18 +335,30 @@ function UcrFileContent() {
       if (data.error) {
         setLookupError(data.error);
       } else {
-        setForm({
-          ...form,
-          legalName: data.name || '',
-          dba: data.dba || '',
-          state: data.address?.state || '',
-          powerUnits: data.totalUnits || '',
-          fleetOption: 'auto'
-        });
+        setForm(prev => ({
+          ...prev,
+          legalName: data.name || prev.legalName,
+          dba: data.dba || prev.dba,
+          state: data.address?.state || prev.state,
+          powerUnits: data.totalUnits || prev.powerUnits,
+          phone: data.phone || prev.phone,
+          fleetOption: 'auto',
+        }));
         setFmcsaLookup({
           name: data.name || '',
           dba: data.dba || '',
-          address: data.address ? { street: data.address.street || '', city: data.address.city || '', state: data.address.state || '', zip: data.address.zip || '' } : null,
+          phone: data.phone || '',
+          ein: data.ein || '',
+          mcNumber: data.mcNumber || '',
+          status: data.status || '',
+          type: data.type || '',
+          totalUnits: data.totalUnits || 0,
+          address: data.address ? {
+            street: data.address.street || '',
+            city: data.address.city || '',
+            state: data.address.state || '',
+            zip: data.address.zip || '',
+          } : null,
         });
       }
     } catch (err) {
@@ -365,36 +385,35 @@ function UcrFileContent() {
   };
 
   const handleFileAnother = () => {
-    // Clear all UCR session storage to start fresh
     sessionStorage.removeItem('ucr_filing_confirmation');
     sessionStorage.removeItem(UCR_VISIT_KEY);
     sessionStorage.removeItem(UCR_VISIT_STEP);
     sessionStorage.removeItem(UCR_VISIT_COMPLETED);
 
-    // Reset local state to step 1
     setConfirmationData(null);
     setDraftId(null);
-    setConsentGiven(false);
     setSubmittingFiling(false);
     setLookupError('');
     setFmcsaLookup(null);
     setForm({
-      ...form, // Keep non-filing specific state if needed, but best to clear fields
       legalName: '',
       dba: '',
       dotNumber: '',
-      entityType: 'carrier',
+      entityTypes: [],
       powerUnits: '',
       state: '',
+      email: '',
+      phone: '',
+      plan: 'filing',
       fleetOption: 'manual',
       isAuthorized: false,
-      registrantName: '',
+      registrantFirstName: '',
+      registrantLastName: '',
+      filingYear: 2026,
     });
     setStep(1);
-    hasRecordedVisit.current = false; // allow recording a new visit
+    hasRecordedVisit.current = false;
     setHasTrackedStart(false);
-
-    // Remove query params silently
     window.history.replaceState({}, '', '/ucr/file');
   };
 
@@ -408,110 +427,64 @@ function UcrFileContent() {
 
   const handleBack = () => { if (step > 1) setStep(step - 1); };
 
-  const handleSubmitFiling = async () => {
+  const toggleEntityType = (value) => {
+    setForm(prev => ({
+      ...prev,
+      entityTypes: prev.entityTypes.includes(value)
+        ? prev.entityTypes.filter(t => t !== value)
+        : [...prev.entityTypes, value],
+    }));
+  };
+
+  // Stripe Checkout: redirect customer to Stripe for full payment
+  const handleStripeCheckout = async () => {
     if (!user) return;
-    if (paymentMethod === 'card' && !consentGiven) return;
-    if (paymentMethod === 'ach' && !achConsent) return;
     setSubmittingFiling(true);
     setLookupError('');
 
-    const payload = {
+    const filingPayload = {
       userId: user.uid,
       filingType: 'ucr',
       filingYear: form.filingYear || 2026,
-      status: paymentMethod === 'ach' ? 'pending_ach' : 'pending_payment',
+      status: 'pending_payment',
       priority: 'high',
       dotNumber: form.dotNumber,
       legalName: form.legalName,
       dba: form.dba,
-      entityType: form.entityType,
+      entityTypes: form.entityTypes,
       powerUnits: Number(form.powerUnits) || 0,
       state: form.state,
       plan: form.plan,
-      registrantName: form.registrantName,
+      registrantFirstName: form.registrantFirstName,
+      registrantLastName: form.registrantLastName,
+      registrantName: registrantFullName,
       email: form.email || user.email,
       phone: form.phone,
       ucrFee,
       servicePrice,
       total,
-      paymentStatus: 'pending',
-      paymentRequiredAtDownload: true,
-      amountDueOnCertificateDownload: servicePrice,
     };
 
     try {
-      if (paymentMethod === 'ach') {
-        if (ach.accountNumber !== ach.accountNumberConfirm) {
-          setLookupError('Account numbers do not match.');
-          setSubmittingFiling(false);
-          return;
-        }
-        const res = await fetch('/api/ucr/submit-ach', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: user.uid,
-            filingPayload: payload,
-            billing: {
-              name: billing.name,
-              address: billing.address,
-              city: billing.city,
-              state: billing.state,
-              postalCode: billing.postalCode,
-            },
-            ach: {
-              accountType: ach.accountType,
-              routingNumber: ach.routingNumber.replace(/\D/g, ''),
-              accountNumber: ach.accountNumber.replace(/\s/g, ''),
-            },
-            consentGiven: achConsent,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'ACH submission failed');
-        setConfirmationData({
-          filingId: data.filingId,
-          legalName: data.legalName,
-          dotNumber: data.dotNumber,
-          email: data.email,
-          total: data.total,
-          amountDueLater: data.amountDueLater,
-        });
-        setStep(6);
-      } else {
-        const res = await fetch('/api/stripe/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: user.uid,
-            amountCents: ucrFee * 100,
-            planName: `2026 UCR Government Fee (${form.powerUnits} power units)`,
-            filingPayload: payload,
-            mode: 'ucr_filing'
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to initialize checkout');
-        window.location.href = data.url;
-      }
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          amountCents: Math.round(total * 100),
+          planName: `UCR ${form.filingYear} Registration — ${form.legalName} (USDOT: ${form.dotNumber})`,
+          filingPayload,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Checkout failed');
+      // Redirect to Stripe
+      window.location.href = data.url;
     } catch (err) {
-      console.error('UCR submit error:', err);
-      setLookupError(err.message || (paymentMethod === 'ach' ? 'Submission failed. Please try again.' : 'Payment initialization failed. Please try again.'));
+      console.error('Stripe checkout error:', err);
+      setLookupError(err.message || 'Payment failed. Please try again.');
       setSubmittingFiling(false);
     }
-  };
-
-  const applyMcs150AddressToBilling = (type) => {
-    if (!fmcsaLookup?.address) return;
-    const a = fmcsaLookup.address;
-    setBilling(prev => ({
-      ...prev,
-      address: a.street || prev.address,
-      city: a.city || prev.city,
-      state: a.state || prev.state,
-      postalCode: a.zip || prev.postalCode,
-      name: form.registrantName || form.legalName || prev.name,
-    }));
   };
 
   if (authLoading || !user) {
@@ -544,7 +517,7 @@ function UcrFileContent() {
           <p className="text-white/60 text-xs mt-2 max-w-2xl">
             Not affiliated with FMCSA or DOT — independent filing service.
           </p>
-          {/* Visual stepper: one after another, only completed/current clickable */}
+          {/* Visual stepper */}
           <div className="mt-6 flex items-center justify-between gap-0 overflow-x-auto no-scrollbar">
             {STEPS.map((s, idx) => {
               const isCompleted = s.id < step;
@@ -580,20 +553,13 @@ function UcrFileContent() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-8 sm:py-10 pb-24 sm:pb-10">
-        {/* Trust strip — Phase 2 E-E-A-T */}
+        {/* Trust strip */}
         <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-slate-500 text-sm mb-6">
           <span className="flex items-center gap-2"><ShieldCheck className="w-5 h-5" /> McAfee SECURE</span>
           <span className="flex items-center gap-2"><Lock className="w-5 h-5" /> 256-Bit SSL</span>
           <span className="flex items-center gap-2"><Award className="w-5 h-5" /> Expert review</span>
         </div>
-        {verificationAttempted.current && submittingFiling ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 shadow-sm text-center mt-8">
-            <Loader2 className="w-12 h-12 text-[var(--color-navy)] animate-spin mx-auto mb-6" />
-            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-text)] mb-4">Verifying Payment...</h2>
-            <p className="text-lg text-slate-600">Please wait while we confirm your federal fee payment with Stripe.</p>
-          </div>
-        ) : (
-          <>
+        <>
             {/* Step 1: Business details */}
             {step === 1 && (
               <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
@@ -643,25 +609,54 @@ function UcrFileContent() {
                       {lookupLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Look up from FMCSA'}
                     </button>
                   </div>
-                  <p className="text-xs text-slate-500">Optional: Look up fills legal name, DBA, state, and fleet count from FMCSA. If it doesn’t work, enter your details below.</p>
+                  <p className="text-xs text-slate-500">Optional: Look up fills legal name, DBA, state, and fleet count from FMCSA. If it doesn't work, enter your details below.</p>
                   {lookupError && (
                     <div className="flex items-start gap-2 text-amber-800 text-sm bg-amber-50 p-3 rounded-xl border border-amber-200">
                       <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                       <span>{lookupError}</span>
                     </div>
                   )}
+                  {/* FMCSA Lookup Result with MCS-150 data */}
                   {fmcsaLookup && (fmcsaLookup.name || fmcsaLookup.address) && (
                     <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-4">
-                      <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide">From FMCSA</h3>
-                      {fmcsaLookup.name ? (
+                      <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide">From FMCSA (MCS-150)</h3>
+                      {fmcsaLookup.name && (
                         <div>
                           <p className="text-xs text-slate-500 mb-0.5">Legal Name</p>
                           <p className="font-bold text-[var(--color-text)]">{fmcsaLookup.name}</p>
                         </div>
-                      ) : null}
-                      <div>
-                        <p className="text-xs text-slate-500 mb-0.5">DBA</p>
-                        <p className="font-bold text-[var(--color-text)]">{fmcsaLookup.dba || '—'}</p>
+                      )}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-xs text-slate-500 mb-0.5">DBA</p>
+                          <p className="font-semibold text-[var(--color-text)]">{fmcsaLookup.dba || '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-0.5">Status</p>
+                          <p className={`font-semibold ${fmcsaLookup.status === 'Active' ? 'text-emerald-600' : 'text-red-600'}`}>
+                            {fmcsaLookup.status || '—'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-0.5">Operation Type</p>
+                          <p className="font-semibold text-[var(--color-text)]">{fmcsaLookup.type || '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-0.5">Total Vehicles</p>
+                          <p className="font-semibold text-[var(--color-text)]">{fmcsaLookup.totalUnits || '—'}</p>
+                        </div>
+                        {fmcsaLookup.mcNumber && (
+                          <div>
+                            <p className="text-xs text-slate-500 mb-0.5">MC Number</p>
+                            <p className="font-semibold text-[var(--color-text)]">{fmcsaLookup.mcNumber}</p>
+                          </div>
+                        )}
+                        {fmcsaLookup.ein && (
+                          <div>
+                            <p className="text-xs text-slate-500 mb-0.5">EIN</p>
+                            <p className="font-semibold text-[var(--color-text)]">{fmcsaLookup.ein}</p>
+                          </div>
+                        )}
                       </div>
                       {fmcsaLookup.address && (fmcsaLookup.address.street || fmcsaLookup.address.city || fmcsaLookup.address.state) && (
                         <div>
@@ -685,7 +680,7 @@ function UcrFileContent() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Phone</label>
+                      <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Phone *</label>
                       <input
                         type="tel"
                         value={form.phone}
@@ -696,53 +691,103 @@ function UcrFileContent() {
                     </div>
                   </div>
                   <div className="pt-4 border-t border-slate-100">
-                    <h3 className="text-sm font-bold text-[var(--color-text)] mb-4">Registrant Information</h3>
-                    <div className="space-y-4">
+                    <h3 className="text-sm font-bold text-[var(--color-text)] mb-4">Company Official / Registrant</h3>
+                    <p className="text-xs text-slate-500 mb-3">Enter the first and last name of the person authorized to complete UCR registration for USDOT-{form.dotNumber || '___'}.</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Full Name of Person Filing *</label>
+                        <label className="block text-sm font-medium text-[var(--color-text)] mb-1">First Name *</label>
                         <input
                           type="text"
-                          value={form.registrantName}
-                          onChange={(e) => setForm({ ...form, registrantName: e.target.value })}
-                          placeholder="Your regular name"
+                          value={form.registrantFirstName}
+                          onChange={(e) => setForm({ ...form, registrantFirstName: e.target.value })}
+                          placeholder="First name"
                           className="w-full rounded-xl border border-slate-200 px-4 py-3"
                         />
                       </div>
-                      <label className="flex gap-3 p-4 min-h-[44px] rounded-xl border border-slate-200 bg-slate-50 cursor-pointer group touch-manipulation items-start sm:items-center">
+                      <div>
+                        <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Last Name *</label>
                         <input
-                          type="checkbox"
-                          checked={form.isAuthorized}
-                          onChange={(e) => setForm({ ...form, isAuthorized: e.target.checked })}
-                          className="mt-1.5 sm:mt-0 w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
+                          type="text"
+                          value={form.registrantLastName}
+                          onChange={(e) => setForm({ ...form, registrantLastName: e.target.value })}
+                          placeholder="Last name"
+                          className="w-full rounded-xl border border-slate-200 px-4 py-3"
                         />
-                        <span className="text-sm text-slate-600 leading-relaxed">
-                          I certify that I am authorized to file this registration on behalf of the USDOT number listed above. I understand that providing false information is subject to penalties.
-                        </span>
-                      </label>
+                      </div>
                     </div>
+                    <label className="flex gap-3 p-4 min-h-[44px] rounded-xl border border-slate-200 bg-slate-50 cursor-pointer group touch-manipulation items-start sm:items-center mt-4">
+                      <input
+                        type="checkbox"
+                        checked={form.isAuthorized}
+                        onChange={(e) => setForm({ ...form, isAuthorized: e.target.checked })}
+                        className="mt-1.5 sm:mt-0 w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
+                      />
+                      <span className="text-sm text-slate-600 leading-relaxed">
+                        I certify that I am authorized to file this registration on behalf of the USDOT number listed above. I understand that providing false information is subject to penalties.
+                      </span>
+                    </label>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Step 2: Fleet count */}
+            {/* Step 2: Fleet count & Entity Type (multi-select) + Registration Year */}
             {step === 2 && (
               <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-                <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Fleet size & entity type</h2>
-                <div className="space-y-4">
+                <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Fleet size, classifications & registration year</h2>
+                <div className="space-y-6">
+                  {/* Registration Year */}
                   <div>
-                    <label className="block text-sm font-medium text-[var(--color-text)] mb-2">Entity type</label>
+                    <label className="block text-sm font-medium text-[var(--color-text)] mb-2">Registration Year *</label>
                     <select
-                      value={form.entityType}
-                      onChange={(e) => setForm({ ...form, entityType: e.target.value })}
+                      value={form.filingYear}
+                      onChange={(e) => setForm({ ...form, filingYear: Number(e.target.value) })}
                       className="w-full rounded-xl border border-slate-200 px-4 py-3"
                     >
-                      {UCR_ENTITY_TYPES.map((t) => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
+                      {AVAILABLE_YEARS.map(y => (
+                        <option key={y} value={y}>{y}</option>
                       ))}
                     </select>
+                    <p className="text-xs text-slate-500 mt-1">
+                      You are filing your UCR for {form.filingYear}. Completing this filing is the best way to stay FMCSA compliant.
+                    </p>
                   </div>
-                  {form.entityType === 'carrier' && (
+
+                  {/* Entity Type - Multi-select checkboxes */}
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text)] mb-2">Carrier Classifications (check all that apply) *</label>
+                    <div className="space-y-2">
+                      {UCR_ENTITY_TYPES.map((t) => (
+                        <label
+                          key={t.value}
+                          className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition touch-manipulation ${
+                            form.entityTypes.includes(t.value)
+                              ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500'
+                              : 'border-slate-200 hover:bg-slate-50'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={form.entityTypes.includes(t.value)}
+                            onChange={() => toggleEntityType(t.value)}
+                            className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
+                          />
+                          <div>
+                            <span className="font-semibold text-sm text-[var(--color-text)]">{t.label}</span>
+                            <p className="text-xs text-slate-500">{t.description}</p>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                    {form.entityTypes.length === 0 && (
+                      <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> Select at least one classification
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Fleet count - only shown if carrier type selected */}
+                  {hasCarrierType && (
                     <div className="space-y-4">
                       <label className="block text-sm font-medium text-[var(--color-text)]">Fleet count source</label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -794,6 +839,8 @@ function UcrFileContent() {
                       )}
                     </div>
                   )}
+
+                  {/* Service plan */}
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text)] mb-2">Service plan</label>
                     <div className="space-y-2">
@@ -835,36 +882,49 @@ function UcrFileContent() {
                   <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Legal name</dt><dd className="font-semibold sm:text-right">{form.legalName || '—'}</dd></div>
                   {form.dba && <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">DBA</dt><dd className="font-semibold sm:text-right">{form.dba}</dd></div>}
                   <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">USDOT</dt><dd className="font-semibold sm:text-right">{form.dotNumber || '—'}</dd></div>
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Registrant</dt><dd className="font-semibold sm:text-right">{form.registrantName || '—'}</dd></div>
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Entity</dt><dd className="font-semibold sm:text-right">{UCR_ENTITY_TYPES.find(e => e.value === form.entityType)?.label}</dd></div>
-                  {form.entityType === 'carrier' && (
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Registration Year</dt><dd className="font-semibold sm:text-right">{form.filingYear}</dd></div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2">
+                    <dt className="text-slate-500">Company Official</dt>
+                    <dd className="font-semibold sm:text-right">{registrantFullName || '—'}</dd>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2">
+                    <dt className="text-slate-500">Classifications</dt>
+                    <dd className="font-semibold sm:text-right">
+                      {form.entityTypes.length > 0
+                        ? form.entityTypes.map(t => UCR_ENTITY_TYPES.find(e => e.value === t)?.label || t).join(', ')
+                        : '—'}
+                    </dd>
+                  </div>
+                  {hasCarrierType && (
                     <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2">
-                      <dt className="text-slate-500">Power units</dt>
+                      <dt className="text-slate-500">Total number of vehicles</dt>
                       <dd className="font-semibold sm:text-right">
-                        {form.powerUnits} ({form.fleetOption === 'auto' ? 'Auto-filled' : 'Manual'})
+                        {form.powerUnits} ({form.fleetOption === 'auto' ? 'Auto-filled from FMCSA' : 'Manual'})
                       </dd>
                     </div>
                   )}
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">State</dt><dd className="font-semibold sm:text-right">{form.state}</dd></div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">UCR Base State</dt><dd className="font-semibold sm:text-right">{form.state}</dd></div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Email</dt><dd className="font-semibold sm:text-right">{form.email || user?.email || '—'}</dd></div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Phone</dt><dd className="font-semibold sm:text-right">{form.phone || '—'}</dd></div>
                   <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-3 sm:py-2"><dt className="text-slate-500">Plan</dt><dd className="font-semibold sm:text-right text-indigo-600">{UCR_SERVICE_PLANS[form.plan]?.name}</dd></div>
                 </dl>
                 <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-                  <div className="flex justify-between text-slate-600 mb-2 font-medium"><span>Official UCR fee (2026)</span><span>${ucrFee.toLocaleString()}</span></div>
+                  <div className="flex justify-between text-slate-600 mb-2 font-medium"><span>{form.filingYear} UCR Registration Fee</span><span>${ucrFee.toLocaleString()}</span></div>
                   <div className="flex justify-between text-slate-600 mb-4 font-medium"><span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice}`}</span></div>
-                  <div className="flex justify-between font-bold text-xl pt-4 border-t border-slate-200 text-[var(--color-navy)]"><span>Total payable</span><span>${total.toLocaleString()}</span></div>
+                  <div className="flex justify-between font-bold text-xl pt-4 border-t border-slate-200 text-[var(--color-navy)]"><span>Total</span><span>${total.toLocaleString()}</span></div>
                 </div>
                 <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
                   <p className="text-sm text-emerald-800">
-                    <strong>Split-Payment Model:</strong> To ensure prompt processing with the government, you only pay the official federal fee today. We only charge our service fee after your UCR certificate is generated and ready for full download.
+                    <strong>Secure Payment:</strong> You will be redirected to Stripe's secure checkout to pay the total amount. We file your UCR registration and pay the government fee on your behalf using our corporate account. Your card details are never stored on our servers.
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Step 5: Submit filing — Card (we collect & file) or ACH (UCR.gov debits) */}
+            {/* Step 5: Payment — Stripe Checkout */}
             {step === 5 && (
               <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-                <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Payment & Submit</h2>
+                <h2 className="text-xl font-bold text-[var(--color-text)] mb-6">Secure Payment</h2>
                 {!user ? (
                   <div className="text-center py-6">
                     <p className="text-slate-600 mb-4">Sign in or create an account to complete your UCR filing.</p>
@@ -872,142 +932,72 @@ function UcrFileContent() {
                   </div>
                 ) : (
                   <>
-                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
-                      <div className="flex justify-between text-slate-600 mb-2"><span>UCR official fee (2026)</span><span>${ucrFee.toLocaleString()}</span></div>
-                      <div className="flex justify-between text-slate-600 mb-2"><span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice}`}</span></div>
-                      <div className="flex justify-between font-bold text-lg pt-2 border-t border-slate-200 text-[var(--color-navy)]"><span>Due today (Govt Fee)</span><span>${ucrFee.toLocaleString()}</span></div>
-                      <div className="flex justify-between text-sm text-slate-600 mt-2"><span>Pay service fee on download</span><span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice.toLocaleString()}`}</span></div>
-                    </div>
-
-                    <div className="mb-6">
-                      <p className="text-sm font-semibold text-[var(--color-text)] mb-3">How do you want to pay the federal UCR fee?</p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMethod('card')}
-                          className={`p-4 rounded-xl border-2 text-left transition ${paymentMethod === 'card' ? 'border-[var(--color-navy)] bg-blue-50 ring-1 ring-[var(--color-navy)]' : 'border-slate-200 hover:bg-slate-50'}`}
-                        >
-                          <div className="font-bold text-[var(--color-text)]">Credit / Debit Card</div>
-                          <div className="text-xs text-slate-600 mt-1">We collect the fee and file for you. Pay now, then we submit to UCR.</div>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPaymentMethod('ach');
-                            if (!billing.name) setBilling(prev => ({ ...prev, name: form.registrantName || form.legalName || prev.name }));
-                          }}
-                          className={`p-4 rounded-xl border-2 text-left transition ${paymentMethod === 'ach' ? 'border-[var(--color-navy)] bg-blue-50 ring-1 ring-[var(--color-navy)]' : 'border-slate-200 hover:bg-slate-50'}`}
-                        >
-                          <div className="font-bold text-[var(--color-text)]">ACH / eCheck</div>
-                          <div className="text-xs text-slate-600 mt-1">Provide bank details; we send them to UCR so they can debit your account directly.</div>
-                        </button>
+                    {/* Payment summary */}
+                    <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 mb-6">
+                      <h3 className="text-sm font-bold text-[var(--color-text)] mb-3">Payment Summary</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between text-slate-600">
+                          <span>{form.filingYear} UCR Registration Fee</span>
+                          <span>${ucrFee.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-600">
+                          <span>Service fee ({UCR_SERVICE_PLANS[form.plan]?.name})</span>
+                          <span>{form.plan === 'filing' && servicePrice === 79 ? <DiscountedPrice price={79} originalPrice={99} /> : `$${servicePrice}`}</span>
+                        </div>
+                        <div className="flex justify-between font-bold text-lg pt-3 border-t border-slate-200 text-[var(--color-navy)]">
+                          <span>Total</span>
+                          <span>${total.toLocaleString()}</span>
+                        </div>
                       </div>
                     </div>
 
-                    {paymentMethod === 'card' && (
-                      <>
-                        <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
-                          <p className="text-sm text-blue-800">
-                            <strong>Split-Payment Model:</strong> The government fee is paid upfront by card. <strong>You do not pay our service fee</strong> until your certificate is ready for download.
-                          </p>
-                        </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
-                          <label className="flex items-start gap-3 cursor-pointer">
-                            <input type="checkbox" checked={consentGiven} onChange={(e) => setConsentGiven(e.target.checked)} className="mt-1 w-5 h-5 rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]" />
-                            <span className="text-sm text-slate-700 leading-snug">
-                              <strong>Authorization & Consent:</strong> I authorize easyucr.com to pay the federal UCR fee on my behalf using the funds provided today. I understand that easyucr.com is an independent third-party filing service and is not affiliated with the government.
-                            </span>
-                          </label>
-                        </div>
-                        <button type="button" onClick={handleSubmitFiling} disabled={submittingFiling || !consentGiven} className="mt-2 w-full bg-[var(--color-navy)] text-white py-4 min-h-[52px] rounded-xl font-bold touch-manipulation flex items-center justify-center gap-2 disabled:opacity-50 transition-all">
-                          {submittingFiling ? <>Proceeding to checkout… <Loader2 className="w-5 h-5 animate-spin" /></> : <>Proceed to Payment (${ucrFee.toLocaleString()})</>}
-                        </button>
-                      </>
+                    {/* How it works */}
+                    <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-5">
+                      <h3 className="text-sm font-bold text-blue-900 mb-3">How it works</h3>
+                      <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
+                        <li>You pay the total amount securely via Stripe (credit/debit card)</li>
+                        <li>We file your UCR registration on ucr.gov using our corporate account</li>
+                        <li>Your UCR certificate is uploaded to your dashboard when ready</li>
+                      </ol>
+                    </div>
+
+                    {/* Security badges */}
+                    <div className="mb-6 flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                      <span className="flex items-center gap-1"><Lock className="w-4 h-4" /> PCI DSS Compliant</span>
+                      <span className="flex items-center gap-1"><ShieldCheck className="w-4 h-4" /> Powered by Stripe</span>
+                      <span className="flex items-center gap-1"><CreditCard className="w-4 h-4" /> Visa, Mastercard, Amex</span>
+                    </div>
+
+                    <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                      <p className="text-sm text-amber-800">
+                        <strong>Your card info is safe.</strong> You'll be redirected to Stripe's secure payment page. Your credit/debit card details are handled entirely by Stripe and never touch our servers. We are PCI SAQ A compliant.
+                      </p>
+                    </div>
+
+                    {lookupError && (
+                      <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-xl border border-red-100 mb-4">
+                        <AlertCircle className="w-4 h-4" /> {lookupError}
+                      </div>
                     )}
 
-                    {paymentMethod === 'ach' && (
-                      <>
-                        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                          <p className="text-sm text-amber-800">
-                            We will collect your billing and bank information and provide it to our filing agent so that UCR can debit the ${ucrFee.toLocaleString()} federal fee directly from your account. No card charge today.
-                          </p>
-                        </div>
-
-                        <h3 className="text-sm font-bold text-[var(--color-text)] mb-3">Billing information (name on receipt)</h3>
-                        {fmcsaLookup?.address && (
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            <button type="button" onClick={() => applyMcs150AddressToBilling('principal')} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-50">Use Principal Address from MCS-150</button>
-                            <button type="button" onClick={() => applyMcs150AddressToBilling('mailing')} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-50">Use Mailing Address from MCS-150</button>
-                          </div>
-                        )}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                          <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Name (on receipt) *</label>
-                            <input type="text" value={billing.name} onChange={(e) => setBilling(prev => ({ ...prev, name: e.target.value }))} placeholder="ARTHUR J KENYON" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" />
-                          </div>
-                          <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Address *</label>
-                            <input type="text" value={billing.address} onChange={(e) => setBilling(prev => ({ ...prev, address: e.target.value }))} placeholder="628 ADAMS STREET" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">City *</label>
-                            <input type="text" value={billing.city} onChange={(e) => setBilling(prev => ({ ...prev, city: e.target.value }))} placeholder="KETCHIKAN" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">State *</label>
-                            <input type="text" value={billing.state} onChange={(e) => setBilling(prev => ({ ...prev, state: e.target.value.toUpperCase().slice(0, 2) }))} placeholder="AK" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" maxLength={2} />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Postal Code *</label>
-                            <input type="text" value={billing.postalCode} onChange={(e) => setBilling(prev => ({ ...prev, postalCode: e.target.value.replace(/\D/g, '').slice(0, 10) }))} placeholder="99901" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" />
-                          </div>
-                        </div>
-
-                        <h3 className="text-sm font-bold text-[var(--color-text)] mb-3">Bank account (ACH / eCheck)</h3>
-                        <div className="flex gap-4 mb-4">
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="achType" checked={ach.accountType === 'personal'} onChange={() => setAch(prev => ({ ...prev, accountType: 'personal' }))} className="text-[var(--color-navy)]" />
-                            <span className="text-sm font-medium">Personal ACH</span>
-                          </label>
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="achType" checked={ach.accountType === 'company'} onChange={() => setAch(prev => ({ ...prev, accountType: 'company' }))} className="text-[var(--color-navy)]" />
-                            <span className="text-sm font-medium">Company ACH</span>
-                          </label>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Routing # *</label>
-                            <input type="text" inputMode="numeric" value={ach.routingNumber} onChange={(e) => setAch(prev => ({ ...prev, routingNumber: e.target.value.replace(/\D/g, '').slice(0, 9) }))} placeholder="9 digits" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" maxLength={9} />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Account # *</label>
-                            <input type="text" inputMode="numeric" value={ach.accountNumber} onChange={(e) => setAch(prev => ({ ...prev, accountNumber: e.target.value }))} placeholder="Account number" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" />
-                          </div>
-                          <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Re-type Account # *</label>
-                            <input type="text" inputMode="numeric" value={ach.accountNumberConfirm} onChange={(e) => setAch(prev => ({ ...prev, accountNumberConfirm: e.target.value }))} placeholder="Re-enter account number" className="w-full rounded-xl border border-slate-200 px-4 py-3 min-h-[44px]" />
-                          </div>
-                        </div>
-
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
-                          <label className="flex items-start gap-3 cursor-pointer">
-                            <input type="checkbox" checked={achConsent} onChange={(e) => setAchConsent(e.target.checked)} className="mt-1 w-5 h-5 rounded border-slate-300 text-[var(--color-navy)] focus:ring-[var(--color-navy)]" />
-                            <span className="text-sm text-slate-700 leading-snug">
-                              <strong>I agree to the terms described below.</strong> I hereby authorize UCR to electronically debit my account (and, if necessary, electronically credit my account) using the account details listed above. I understand that the ACH transactions I authorize comply with all applicable law. I understand that this authorization will remain in full force and effect unless I notify UCR that I wish to revoke it. I understand that if I revoke the authorization, UCR may be limited in its ability to accept payment for or authorize a refund for my UCR registration, if applicable. I also authorize easyucr.com to provide my billing and bank information to our filing agent so that my UCR registration can be submitted and paid on UCR.gov.
-                            </span>
-                          </label>
-                        </div>
-
-                        {lookupError && (
-                          <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-xl border border-red-100 mb-4">
-                            <AlertCircle className="w-4 h-4" /> {lookupError}
-                          </div>
-                        )}
-                        <button type="button" onClick={handleSubmitFiling} disabled={submittingFiling || !achConsent} className="mt-2 w-full bg-[var(--color-navy)] text-white py-4 min-h-[52px] rounded-xl font-bold touch-manipulation flex items-center justify-center gap-2 disabled:opacity-50 transition-all">
-                          {submittingFiling ? <>Submitting… <Loader2 className="w-5 h-5 animate-spin" /></> : <>Submit with ACH (${ucrFee.toLocaleString()} debited by UCR)</>}
-                        </button>
-                      </>
-                    )}
+                    <button
+                      type="button"
+                      onClick={handleStripeCheckout}
+                      disabled={submittingFiling}
+                      className="mt-2 w-full bg-[var(--color-navy)] text-white py-4 min-h-[52px] rounded-xl font-bold touch-manipulation flex items-center justify-center gap-2 disabled:opacity-50 transition-all hover:opacity-90"
+                    >
+                      {submittingFiling ? (
+                        <>Processing… <Loader2 className="w-5 h-5 animate-spin" /></>
+                      ) : (
+                        <>
+                          <CreditCard className="w-5 h-5" />
+                          Pay ${total.toLocaleString()} — Secure Checkout
+                        </>
+                      )}
+                    </button>
+                    <p className="text-xs text-center text-slate-500 mt-3">
+                      By proceeding, you authorize easyucr.com to charge ${total.toLocaleString()} and file your UCR registration on your behalf.
+                    </p>
                   </>
                 )}
               </div>
@@ -1019,8 +1009,8 @@ function UcrFileContent() {
                 <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
                   <CheckCircle className="w-14 h-14 text-emerald-600" />
                 </div>
-                <h1 className="text-3xl font-bold text-[var(--color-text)] mb-2">Your UCR filing is submitted</h1>
-                <p className="text-lg text-slate-600 mb-6">No upfront charge. You’ll pay only when your certificate is ready to download.</p>
+                <h1 className="text-3xl font-bold text-[var(--color-text)] mb-2">Payment received — UCR filing submitted!</h1>
+                <p className="text-lg text-slate-600 mb-6">Your payment has been processed. We'll file your UCR registration and upload your certificate to your dashboard.</p>
                 <div className="max-w-md mx-auto p-6 bg-slate-50 rounded-2xl border border-slate-200 text-left mb-8">
                   <p className="text-sm text-slate-600 mb-2">
                     <strong className="text-[var(--color-text)]">Registration:</strong>{' '}
@@ -1029,25 +1019,20 @@ function UcrFileContent() {
                   <p className="text-sm text-slate-600 mb-2">
                     <strong className="text-[var(--color-text)]">Confirmation email:</strong> {confirmationData?.email || form.email || user?.email}
                   </p>
-                  {confirmationData?.amountDueLater != null && (
+                  {confirmationData?.total != null && (
                     <p className="text-sm text-slate-600">
-                      <strong className="text-[var(--color-text)]">Pay later amount:</strong>{' '}
-                      {Number(confirmationData.amountDueLater) === 79 ? (
-                        <DiscountedPrice price={79} originalPrice={99} />
-                      ) : (
-                        `$${Number(confirmationData.amountDueLater).toLocaleString()}`
-                      )}
-                    </p>
-                  )}
-                  {confirmationData?.emailSubject && (
-                    <p className="text-sm text-slate-600 mt-2">
-                      <strong className="text-[var(--color-text)]">Email subject preview:</strong> {confirmationData.emailSubject}
+                      <strong className="text-[var(--color-text)]">Amount paid:</strong> ${Number(confirmationData.total).toLocaleString()}
                     </p>
                   )}
                 </div>
-                <p className="text-slate-600 mb-8 max-w-lg mx-auto leading-relaxed">
-                  Our team will process your filing with the UCR board. Once your certificate is uploaded, you can preview it in your dashboard and unlock full download in one click.
-                </p>
+                <div className="max-w-md mx-auto mb-8">
+                  <h3 className="text-sm font-bold text-[var(--color-text)] mb-3 text-left">What happens next?</h3>
+                  <ol className="text-sm text-slate-600 text-left space-y-2 list-decimal list-inside">
+                    <li>Our team files your UCR registration on ucr.gov</li>
+                    <li>Your official UCR certificate is uploaded to your dashboard</li>
+                    <li>You'll receive an email notification when it's ready</li>
+                  </ol>
+                </div>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
                   <button type="button" onClick={handleFileAnother} className="inline-flex items-center justify-center min-h-[48px] bg-[var(--color-navy)] !text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-navy-200/50 transition touch-manipulation w-full sm:w-auto">File Another UCR</button>
                   <Link href="/dashboard/filings" className="inline-flex items-center justify-center min-h-[48px] bg-[var(--color-orange)] !text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66a15] transition touch-manipulation w-full sm:w-auto">View my filings</Link>
@@ -1056,12 +1041,12 @@ function UcrFileContent() {
               </div>
             )}
 
-            {/* Nav buttons - full-width primary on mobile for conversion */}
+            {/* Nav buttons */}
             {step < 6 && step !== 5 && (
               <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 mt-8">
                 <button type="button" onClick={handleBack} className="min-h-[48px] px-6 py-3 rounded-xl border border-slate-200 font-medium text-[var(--color-text)] touch-manipulation w-full sm:w-auto">Back</button>
                 <button type="button" onClick={handleNext} disabled={!canProceed()} className="flex-1 min-h-[52px] px-8 py-3 rounded-xl bg-[var(--color-orange)] text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation w-full sm:w-auto">
-                  {step === 4 ? 'Proceed to submit' : 'Next'} <ChevronRight className="w-5 h-5" />
+                  {step === 4 ? 'Proceed to payment' : 'Next'} <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
             )}
@@ -1071,7 +1056,6 @@ function UcrFileContent() {
               </div>
             )}
           </>
-        )}
       </div>
     </div>
   );

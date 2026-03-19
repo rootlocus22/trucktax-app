@@ -4,14 +4,14 @@ import { CTABanner } from '@/components/CTABanner';
 
 export const metadata = {
   title: 'UCR Filing Service Comparison — EasyUCR vs Competitors | EasyUCR',
-  description: 'Compare UCR filing services: EasyUCR vs JJ Keller, Foley, CNS. See why EasyUCR is the cheapest with $79 service fee and pay-after-filing.',
+  description: 'Compare UCR filing services: EasyUCR vs JJ Keller, Foley, CNS. See why EasyUCR offers the best value — $79 all-inclusive, government fee included.',
 };
 
 const comparePages = [
   { slug: 'easyucr-vs-jj-keller', title: 'EasyUCR vs JJ Keller' },
   { slug: 'easyucr-vs-foley', title: 'EasyUCR vs Foley' },
   { slug: 'cheapest-ucr-filing-service', title: 'Cheapest UCR Filing Service' },
-  { slug: 'ucr-filing-no-upfront-fee', title: 'UCR Filing with No Upfront Fee' },
+  { slug: 'ucr-filing-no-upfront-fee', title: 'UCR Filing with All-Inclusive Pricing' },
 ];
 
 export default function ComparePage() {
@@ -25,7 +25,7 @@ export default function ComparePage() {
         </nav>
         <h1 className="text-3xl font-bold text-slate-900 mb-6">UCR Service Comparison</h1>
         <p className="text-lg text-slate-600 mb-12">
-          Compare EasyUCR to other UCR filing services. We offer the lowest service fee ($79) and the only pay-after-filing model.
+          Compare EasyUCR to other UCR filing services. We offer the lowest all-inclusive price ($79 — government fee included) and transparent pricing.
         </p>
         <div className="mb-12">
           <ComparisonTable />

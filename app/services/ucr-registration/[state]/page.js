@@ -34,7 +34,7 @@ export async function generateMetadata({ params }) {
     const isNonParticipating = nonParticipatingStates.includes(normalizedState);
 
     let title = `${stateName} UCR Registration & Renewal 2026 | Unified Carrier Registration`;
-    let description = `Register your ${stateName}-based commercial vehicles for the 2026 UCR. File first with $0 upfront and pay only when your UCR certificate is ready.`;
+    let description = `Register your ${stateName}-based commercial vehicles for the 2026 UCR. All-inclusive pricing—one payment, we handle everything.`;
 
     if (isNonParticipating) {
         title = `UCR Registration Guide for ${stateName} Motor Carriers (2026)`;
@@ -75,8 +75,8 @@ export default async function UcrStatePage({ params }) {
             answer: "UCR government fees are based strictly on the number of commercial motor vehicles in your fleet operating interstate. Brackets range from 0-2 vehicles up to 1,001+ vehicles."
         },
         {
-            question: "Do I have to pay upfront?",
-            answer: "No. easyucr.com provides a 'File First, Pay Later' service. You can submit your filing without any upfront service charge. You only pay when your official UCR certificate is securely uploaded to your dashboard."
+            question: "How does payment work?",
+            answer: "easyucr.com offers an all-inclusive filing service. One payment covers everything—your official UCR certificate is securely uploaded to your dashboard once processed."
         },
     ];
 
@@ -106,7 +106,7 @@ export default async function UcrStatePage({ params }) {
                         <p className="text-xl text-blue-100 mb-8 leading-relaxed">
                             {isNonParticipating
                                 ? `Important: Although ${stateName} does not serve as a UCR base state, motor carriers based here who cross into participating states are strictly required to file. We handle your out-of-state base registration instantly.`
-                                : `Mandatory 2026 Unified Carrier Registration for ${stateName} interstate carriers. Submit your fleet details with $0 upfront and pay only when your certificate is ready.`
+                                : `Mandatory 2026 Unified Carrier Registration for ${stateName} interstate carriers. All-inclusive pricing—one payment, we handle everything until your certificate is ready.`
                             }
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
@@ -114,7 +114,7 @@ export default async function UcrStatePage({ params }) {
                                 href={`/ucr/file?state=${isNonParticipating ? '' : encodeURIComponent(stateName)}`}
                                 className="bg-indigo-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-indigo-600 transition shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2"
                             >
-                                Start UCR Filing ($0 Upfront) <ArrowRight className="w-5 h-5" />
+                                Start UCR Filing — All-Inclusive Pricing <ArrowRight className="w-5 h-5" />
                             </Link>
                         </div>
                         <div className="mt-8 flex items-center gap-6 text-sm text-blue-200">
@@ -246,13 +246,13 @@ export default async function UcrStatePage({ params }) {
                 <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at center, #fff 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
                 <div className="relative z-10">
                     <h2 className="text-3xl font-bold mb-4">Secure your {stateName} UCR today</h2>
-                    <p className="text-lg text-slate-300 mb-10 max-w-xl mx-auto">Get it done in 3 minutes. File now, pay only when your certificate is in hand.</p>
+                    <p className="text-lg text-slate-300 mb-10 max-w-xl mx-auto">Get it done in 3 minutes. All-inclusive pricing—one payment, we handle everything.</p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                         <Link
                             href="/ucr/file"
                             className="inline-flex bg-indigo-500 text-white px-10 py-5 rounded-full font-bold text-xl hover:bg-indigo-600 transition shadow-xl shadow-indigo-900/50 items-center gap-2 transform hover:-translate-y-1"
                         >
-                            Get Started ($0 Upfront) <ArrowRight className="w-5 h-5" />
+                            Get Started — All-Inclusive Pricing <ArrowRight className="w-5 h-5" />
                         </Link>
                     </div>
                 </div>

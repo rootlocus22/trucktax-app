@@ -481,7 +481,7 @@ export default function DashboardPage() {
                                 )}
                               </div>
                               <p className="text-sm text-slate-600 leading-relaxed mt-1">Annual registration required for interstate motor carriers.</p>
-                              <p className="text-xs text-emerald-700 font-semibold mt-2">File first with $0 upfront. Pay only when your certificate is ready.</p>
+                              <p className="text-xs text-emerald-700 font-semibold mt-2">All-inclusive pricing — one payment covers everything, government fee included.</p>
                               <div className="flex flex-wrap items-center gap-4 mt-3">
                                 <span className="flex items-center gap-1.5 text-xs text-slate-500">
                                   <Calendar className="w-4 h-4 text-slate-400" /> Year: 2026
@@ -499,7 +499,7 @@ export default function DashboardPage() {
                                   href={`/dashboard/filings/${activeUcr.id}`}
                                   className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 py-3 bg-[var(--color-navy)] !text-white rounded-xl text-sm font-semibold hover:bg-[var(--color-navy-soft)] transition active:scale-[0.98] touch-manipulation shadow-sm"
                                 >
-                                  View Certificate & Pay Later
+                                  View & Download Certificate
                                 </Link>
                               ) : (
                                 <button
@@ -513,7 +513,7 @@ export default function DashboardPage() {
                             ) : isSubmittedOrProcessing ? (
                               <div className="flex flex-col gap-4 min-w-0 max-w-sm">
                                 <p className="text-sm text-slate-600 leading-relaxed">
-                                  An agent is processing your filing. No upfront charge was taken. You’ll pay only when your certificate is ready to unlock.
+                                  An agent is processing your filing. Your all-inclusive payment will be collected when your certificate is ready to download.
                                 </p>
                                 <Link
                                   href={`/dashboard/filings/${activeUcr.id}`}

@@ -15,7 +15,7 @@ export async function generateMetadata({ params }) {
   if (!state) return { title: 'State Not Found | EasyUCR' };
   return {
     title: `UCR Registration for ${state.name} Carriers — File Online | EasyUCR`,
-    description: `${state.name} motor carriers: file your 2026 UCR registration online. $79 service fee, no upfront payment. Fast, easy, guaranteed.`,
+    description: `${state.name} motor carriers: file your 2026 UCR registration online. $79 all-inclusive service fee. Fast, easy, guaranteed.`,
   };
 }
 
@@ -52,7 +52,7 @@ export default function StatePage({ params }) {
         </h1>
         <p className="text-lg text-slate-600 mb-6">
           {state.participates
-            ? `${state.name} participates in the UCR program. File your 2026 UCR registration online. $79 service fee, no upfront payment.`
+            ? `${state.name} participates in the UCR program. File your 2026 UCR registration online. $79 all-inclusive service fee.`
             : `${state.name} does not participate in UCR. If you operate in interstate commerce, you still must file—register through a neighboring participating state. EasyUCR handles this for you.`}
         </p>
         {!state.participates && (

@@ -6,16 +6,16 @@ import SchemaMarkup from '@/components/seo/SchemaMarkup';
 const UCR_RENEWAL_FAQ = [
     { question: "What is the UCR renewal cost?", answer: "UCR renewal cost depends on fleet size. For 2026: 0–2 vehicles $46, 3–5 vehicles $138, 6–20 vehicles $276, 21–100 vehicles $963, 101–1,000 vehicles $4,592, 1,001+ vehicles $44,836. easyucr.com charges a $79 filing fee plus the official UCR fee." },
     { question: "When is the UCR renewal deadline?", answer: "You must renew UCR by December 31st of the preceding year. For 2026 UCR, the deadline is December 31, 2025. Registration opens October 1 each year." },
-    { question: "How do I renew my UCR registration online?", answer: "Enter your DOT or MC number at easyucr.com, verify your fleet size and fee bracket, pay securely, and receive your proof of payment instantly. File with $0 upfront—you pay when your certificate is ready." },
+    { question: "How do I renew my UCR registration online?", answer: "Enter your DOT or MC number at easyucr.com, verify your fleet size and fee bracket, pay securely, and receive your proof of payment instantly. All-inclusive pricing—one payment, we handle everything." },
 ];
 
 export const metadata = {
     title: 'UCR Renewal 2026: Cost, Deadline & How to Renew UCR Registration Online',
-    description: 'UCR renewal opens Oct 1. See 2026 UCR renewal cost by fleet size, December 31 deadline, and how to renew UCR registration online in minutes. $0 upfront.',
+    description: 'UCR renewal opens Oct 1. See 2026 UCR renewal cost by fleet size, December 31 deadline, and how to renew UCR registration online in minutes. All-inclusive pricing.',
     alternates: { canonical: 'https://www.easyucr.com/insights/ucr-renewal-guide' },
     openGraph: {
         title: 'UCR Renewal 2026: Cost, Deadline & How to Renew Online | easyucr.com',
-        description: 'Renew your UCR registration for 2026. Fee brackets, deadline, and step-by-step renewal. File with $0 upfront.',
+        description: 'Renew your UCR registration for 2026. Fee brackets, deadline, and step-by-step renewal. All-inclusive pricing.',
         url: 'https://www.easyucr.com/insights/ucr-renewal-guide',
     },
 };
@@ -51,12 +51,12 @@ export default function UcrRenewalGuide() {
                             <p className="text-lg text-blue-100 max-w-2xl mx-auto mb-4 font-medium">
                                 Step-by-step instructions on how to renew your Unified Carrier Registration, update fleet info, and navigate the latest pricing brackets.
                             </p>
-                            <p className="text-blue-200/90 text-sm mb-6">We&apos;re your UCR filing partner—file with $0 upfront, pay when your certificate is ready.</p>
+                            <p className="text-blue-200/90 text-sm mb-6">We&apos;re your UCR filing partner—all-inclusive pricing, one payment, we handle everything.</p>
                             <Link
                                 href="/ucr/file"
                                 className="inline-flex items-center gap-2 bg-[var(--color-orange)] text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-95 transition shadow-lg"
                             >
-                                Renew UCR Now – $0 Upfront <ChevronRight className="w-5 h-5" />
+                                Renew UCR Now — All-Inclusive Pricing <ChevronRight className="w-5 h-5" />
                             </Link>
                         </div>
                         {/* Wavy bottom edge */}

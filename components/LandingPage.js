@@ -809,7 +809,7 @@ export function LandingPage() {
                   </div>
 
                   <h2 className="text-3xl font-bold text-[var(--color-text)] mb-2">Simple Pricing</h2>
-                  <p className="text-[var(--color-muted)] mb-8">No hidden fees. Pay only when you file.</p>
+                  <p className="text-[var(--color-muted)] mb-8">All-inclusive pricing. One payment, we handle everything.</p>
 
                   <div className="flex items-baseline gap-2 mb-8">
                     <span className="text-7xl font-bold text-[var(--color-navy)] tracking-tight">$24.99</span>

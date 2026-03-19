@@ -429,7 +429,7 @@ export default function FilingDetailPage() {
                 ? 'We need additional information. Please check the notes below.'
                   : filing.status === 'completed'
                   ? (filing.filingType === 'ucr' && isUcrCertificateLocked
-                    ? 'Your filing is complete. Preview your certificate below and unlock download when ready.'
+                    ? 'Your filing is complete. Your certificate is ready to download below.'
                     : 'Your filing has been accepted and documents are available below.')
                   : 'Sit back and relax. We are preparing your return for IRS submission.'}
             </p>
@@ -881,10 +881,14 @@ export default function FilingDetailPage() {
                     <span className="text-[var(--color-muted)] min-w-[120px]">Power units:</span>
                     <span className="text-[var(--color-text)] font-semibold">{filing.powerUnits != null ? Number(filing.powerUnits) : '—'}</span>
                   </div>
-                  {filing.entityType != null && filing.entityType !== '' && (
+                  {(filing.entityTypes || filing.entityType) && (
                     <div className="flex items-start justify-between gap-2">
-                      <span className="text-[var(--color-muted)] min-w-[120px]">Entity type:</span>
-                      <span className="text-[var(--color-text)] font-medium capitalize">{String(filing.entityType).replace(/_/g, ' ')}</span>
+                      <span className="text-[var(--color-muted)] min-w-[120px]">Classifications:</span>
+                      <span className="text-[var(--color-text)] font-medium capitalize">
+                        {Array.isArray(filing.entityTypes)
+                          ? filing.entityTypes.map(t => String(t).replace(/_/g, ' ')).join(', ')
+                          : String(filing.entityType).replace(/_/g, ' ')}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -993,7 +997,7 @@ export default function FilingDetailPage() {
                   {isUcrCertificateLocked ? (
                     <div className="space-y-3">
                       <p className="text-sm text-slate-700">
-                        We file first to earn your trust. Your certificate is ready — unlock full-quality download for {ucrUnlockPrice === 79 ? <strong><span className="text-slate-400 line-through">$99</span> <span className="text-[var(--color-orange)]">$79</span></strong> : <strong>${ucrUnlockPrice.toFixed(2)}</strong>}.
+                        Your certificate is ready — complete your all-inclusive payment for {ucrUnlockPrice === 79 ? <strong><span className="text-slate-400 line-through">$99</span> <span className="text-[var(--color-orange)]">$79</span></strong> : <strong>${ucrUnlockPrice.toFixed(2)}</strong>} and download your certificate.
                       </p>
                       <button
                         type="button"

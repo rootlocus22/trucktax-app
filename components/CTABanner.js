@@ -17,10 +17,10 @@ export function CTABanner({ variant = 'default' }) {
         </p>
       )}
       <h3 className="font-semibold text-lg mb-1">
-        File Your UCR for $79 — Pay After Filing
+        File Your UCR for $79 — All-Inclusive, Government Fee Included
       </h3>
       <p className="text-slate-600 text-sm mb-4">
-        No upfront payment. Confirmation number or you owe nothing.
+        One payment covers everything. Pay once, we handle the rest.
       </p>
       <Link
         href={FILING_URL}
