@@ -4,13 +4,13 @@ import { CTABanner } from '@/components/CTABanner';
 
 export const metadata = {
   title: 'UCR Filing Service Comparison — EasyUCR vs Competitors | EasyUCR',
-  description: 'Compare UCR filing services: EasyUCR vs JJ Keller, Foley, CNS. $79 service fee + official government UCR fee — one payment, transparent pricing.',
+  description: 'Compare UCR filing services on speed, transparency, and guided filing. EasyUCR: tiered service fees from $79 + official government UCR fee, one clear payment.',
 };
 
 const comparePages = [
   { slug: 'easyucr-vs-jj-keller', title: 'EasyUCR vs JJ Keller' },
   { slug: 'easyucr-vs-foley', title: 'EasyUCR vs Foley' },
-  { slug: 'cheapest-ucr-filing-service', title: 'Cheapest UCR Filing Service' },
+  { slug: 'cheapest-ucr-filing-service', title: 'UCR filing cost comparison' },
   { slug: 'ucr-filing-no-upfront-fee', title: 'UCR Filing with All-Inclusive Pricing' },
 ];
 
@@ -25,7 +25,7 @@ export default function ComparePage() {
         </nav>
         <h1 className="text-3xl font-bold text-slate-900 mb-6">UCR Service Comparison</h1>
         <p className="text-lg text-slate-600 mb-12">
-          Compare EasyUCR to other UCR filing services. We offer a flat $79 service fee — one of the lowest in the industry. Combined with the official government UCR fee into one payment.
+          Compare EasyUCR to other UCR filing services on outcomes—not only the sticker price. We pair official government fees with a tiered service fee (from $79 for small fleets), show the full total before you pay, and keep your proof of registration in one place.
         </p>
         <div className="mb-12">
           <ComparisonTable />

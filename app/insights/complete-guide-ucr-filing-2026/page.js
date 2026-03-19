@@ -3,7 +3,7 @@ import { ArrowLeft, CheckCircle, Calculator, ChevronRight, FileText } from 'luci
 
 export const metadata = {
     title: 'The Complete Guide to UCR Filing (2026 Registration Year) | easyucr.com',
-    description: 'Everything you need to know about Unified Carrier Registration (UCR) for 2026. Deadlines, fees, who must file, and how to file UCR online. $0 upfront.',
+    description: 'Everything you need to know about Unified Carrier Registration (UCR) for 2026. Deadlines, fees, who must file, and how to file UCR online—with transparent tiered service pricing.',
     alternates: { canonical: 'https://www.easyucr.com/insights/complete-guide-ucr-filing-2026' },
 };
 

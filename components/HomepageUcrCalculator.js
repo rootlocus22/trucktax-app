@@ -24,7 +24,7 @@ export default function HomepageUcrCalculator() {
     <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
       {/* Absolute Badge */}
       <div className="absolute top-0 right-0 bg-[var(--color-orange)] text-white text-[10px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-wider shadow-lg">
-        $0 Upfront
+        See total first
       </div>
 
       <div className="flex items-center gap-2 text-white font-semibold mb-4">

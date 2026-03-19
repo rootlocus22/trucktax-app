@@ -155,7 +155,7 @@ export default async function GuidePage({ params }) {
       <section className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-lg sm:p-8">
         <h2 className="text-lg font-semibold text-[var(--color-text)] mb-3">Staying compliant?</h2>
         <p className="text-[var(--color-muted)] text-sm mb-4">
-          Renew your UCR registration for 2026 and file with $0 upfront.
+          Renew your UCR for 2026 with guided filing—see your full total before you pay.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link

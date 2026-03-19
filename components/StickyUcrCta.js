@@ -38,7 +38,7 @@ export default function StickyUcrCta() {
           </div>
           <div className="min-w-0">
             <p className="font-medium text-sm sm:text-lg tracking-tight text-white">Need to file your 2026 UCR?</p>
-            <p className="text-xs text-white/50 font-medium">Simple. Fast. <span className="text-[var(--color-orange)] font-bold">$0 Upfront.</span></p>
+            <p className="text-xs text-white/50 font-medium">Guided filing. <span className="text-[var(--color-orange)] font-bold">See your full total first.</span></p>
           </div>
         </div>
         <Link

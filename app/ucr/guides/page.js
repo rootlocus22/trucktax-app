@@ -6,14 +6,14 @@ import { FileText, Calculator, ArrowRight, BookOpen, ShieldCheck, Lock, Award, E
 export const metadata = {
   title: 'UCR Filing Guides & Deadlines | easyucr.com',
   description:
-    'Expert guides on Unified Carrier Registration: who must file, 2026 deadlines, fees, renewal, and how to file UCR online. File with $0 upfront.',
+    'Expert guides on Unified Carrier Registration: who must file, 2026 deadlines, fees, renewal, and how to file UCR online. Guided filing with transparent tiered pricing.',
   alternates: {
     canonical: 'https://www.easyucr.com/ucr/guides',
   },
   openGraph: {
     title: 'UCR Filing Guides & Deadlines | easyucr.com',
     description:
-      'Guides on UCR registration, deadlines, fees, and renewal. File UCR online with $0 upfront.',
+      'Guides on UCR registration, deadlines, fees, and renewal. File UCR online with clear totals before you pay.',
     url: 'https://www.easyucr.com/ucr/guides',
   },
 };
@@ -37,7 +37,7 @@ export default function UcrGuidesPage() {
               UCR Filing Guides &amp; <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-orange)] to-[#ff7a20]">Deadlines</span>
             </h1>
             <p className="text-lg leading-relaxed text-blue-100/90 max-w-2xl">
-              Everything you need to know about Unified Carrier Registration—who must file, 2026 fees, and how to stay compliant. File with us for $0 upfront.
+              Everything you need to know about Unified Carrier Registration—who must file, 2026 fees, and how to stay compliant. When you file with us, you get guided steps and your certificate in one dashboard.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Link
@@ -122,7 +122,7 @@ export default function UcrGuidesPage() {
           <div className="max-w-xl space-y-3">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Ready to secure your 2026 UCR?</h2>
             <p className="text-blue-100/80 text-lg leading-relaxed">
-              $0 upfront—pay only when your certificate is ready. Join over 10,000 carriers who trust easyucr.com.
+              See government + service fee before you pay, then keep proof of registration in your dashboard. Join carriers who trust easyucr.com for UCR season.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 shrink-0">

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { getUCRFee, SERVICE_FEE } from '@/lib/ucr-fees-spec';
+import { getUcrFee, getServiceFee } from '@/lib/ucr-fees';
 
 const FILING_PRODUCT_URL = process.env.NEXT_PUBLIC_FILING_APP_URL || '/ucr/file';
 
@@ -10,12 +10,17 @@ export function UCRFeeCalculator() {
   const [fleetSize, setFleetSize] = useState(1);
   const [carrierType, setCarrierType] = useState('motor_carrier');
 
-  const govFee = carrierType === 'broker' ? 46 : getUCRFee(fleetSize);
-  const total = govFee + SERVICE_FEE;
+  const isBroker = carrierType === 'broker';
+  const powerUnits = isBroker ? 0 : fleetSize;
+  const entityTypes = isBroker ? ['broker'] : ['motor_carrier'];
+
+  const { fee: govFee } = getUcrFee(powerUnits, entityTypes);
+  const { fee: serviceFee, tier: serviceTier } = getServiceFee(powerUnits);
+  const total = serviceFee != null ? govFee + serviceFee : null;
 
   return (
     <div className="border border-slate-100 rounded-xl p-6 bg-white shadow-card">
-      <h3 className="font-semibold text-lg mb-4">Calculate Your UCR Fee</h3>
+      <h3 className="font-semibold text-lg mb-4">Calculate your UCR fee</h3>
 
       <div className="space-y-4">
         <div>
@@ -43,6 +48,7 @@ export function UCRFeeCalculator() {
               onChange={(e) => setFleetSize(Number(e.target.value))}
               className="w-full mt-1"
             />
+            <p className="text-xs text-slate-500 mt-1">100+ vehicles: use the full calculator or contact us for a quote.</p>
           </div>
         )}
 
@@ -53,23 +59,41 @@ export function UCRFeeCalculator() {
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-slate-600">easyucr.com service fee</span>
-            <span>$79.00</span>
+            <span>
+              {serviceFee != null
+                ? `$${serviceFee.toLocaleString()}.00`
+                : 'Contact us'}
+            </span>
           </div>
+          {serviceTier && serviceFee != null && (
+            <p className="text-xs text-slate-500">{serviceTier.label} power units tier</p>
+          )}
           <div className="flex justify-between font-semibold border-t border-slate-200 pt-2">
-            <span>Total (paid after filing)</span>
-            <span>${total.toLocaleString()}.00</span>
+            <span>Estimated total</span>
+            <span>
+              {total != null ? `$${total.toLocaleString()}.00` : '—'}
+            </span>
           </div>
         </div>
 
-        <Link
-          href={`${FILING_PRODUCT_URL}?fleet=${fleetSize}&type=${carrierType}`}
-          className="block w-full bg-[var(--color-orange)] text-white text-center py-3 rounded-lg font-medium hover:bg-[var(--color-orange-hover)] transition"
-        >
-          File for ${total.toLocaleString()} — Pay After Filing →
-        </Link>
+        {total != null ? (
+          <Link
+            href={`${FILING_PRODUCT_URL}?fleet=${fleetSize}&type=${carrierType}`}
+            className="block w-full bg-[var(--color-orange)] text-white text-center py-3 rounded-lg font-medium hover:bg-[var(--color-orange-hover)] transition"
+          >
+            Start filing — ${total.toLocaleString()} estimated →
+          </Link>
+        ) : (
+          <Link
+            href="mailto:support@vendaxsystemlabs.com"
+            className="block w-full bg-[var(--color-navy)] text-white text-center py-3 rounded-lg font-medium hover:opacity-90 transition"
+          >
+            Contact us for a custom quote →
+          </Link>
+        )}
 
         <p className="text-xs text-slate-500 text-center">
-          No charge until your UCR confirmation number is issued
+          Full breakdown shown before checkout; pay when your filing is confirmed.
         </p>
       </div>
     </div>

@@ -4,15 +4,17 @@ import { ArrowRight, Calculator, ShieldCheck, Zap, CheckCircle } from 'lucide-re
 import { UCR_SERVICE_FEE_TIERS } from '@/lib/ucr-fees';
 
 export const metadata = {
-    title: 'UCR Registration Services | File UCR Online',
-    description: 'Federal-compliant UCR registration. File UCR online with $0 upfront.',
+    title: 'UCR Registration Services | Guided Filing & Compliance | EasyUCR',
+    description:
+        'Guided UCR registration for carriers and brokers: USDOT verification, correct federal fee brackets, and certificate delivery. Transparent pricing—no upfront surprise.',
     keywords: 'ucr registration, ucr filing, ucr renewal, trucking compliance',
     alternates: {
         canonical: 'https://www.easyucr.com/services',
     },
     openGraph: {
         title: "UCR Registration Services | easyucr.com",
-        description: "Federal-compliant UCR registration. File UCR online with $0 upfront.",
+        description:
+            "Guided UCR registration with FMCSA-aligned fee calculation and clear pricing. Complete your filing online with confidence.",
         url: "https://www.easyucr.com/services",
         siteName: "easyucr.com",
         type: "website",
@@ -54,7 +56,7 @@ export default function ServicesPage() {
                                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                             </Link>
                             <Link href="/tools/ucr-calculator" className="inline-flex justify-center items-center bg-white/10 hover:bg-white/20 text-white border border-white/30 px-6 py-4 rounded-xl font-medium transition text-lg">
-                                <Calculator className="w-5 h-5 mr-2" /> Calculate UCR Fee
+                                <Calculator className="w-5 h-5 mr-2" /> Estimate your total
                             </Link>
                         </div>
                     </div>
@@ -94,12 +96,39 @@ export default function ServicesPage() {
                 </div>
             </div>
 
+            {/* Value before price */}
+            <div className="py-16 px-6 bg-slate-50 border-y border-slate-100">
+                <div className="max-w-4xl mx-auto text-center">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-text)] mb-4">Why carriers choose EasyUCR</h2>
+                    <p className="text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+                        UCR is about staying legal at weigh stations and keeping your authority clean—not about hunting down the right form.
+                        We combine <strong className="text-[var(--color-text)]">accurate fee brackets</strong>,{' '}
+                        <strong className="text-[var(--color-text)]">guided steps</strong>, and{' '}
+                        <strong className="text-[var(--color-text)]">support</strong> so you spend less time on compliance paperwork and more time moving freight.
+                    </p>
+                    <ul className="grid sm:grid-cols-3 gap-6 text-left max-w-3xl mx-auto">
+                        <li className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                            <p className="font-bold text-[var(--color-text)] mb-1">Fewer mistakes</p>
+                            <p className="text-sm text-slate-600">Fleet size and entity type drive the right government tier—we show it before you pay.</p>
+                        </li>
+                        <li className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                            <p className="font-bold text-[var(--color-text)] mb-1">Faster completion</p>
+                            <p className="text-sm text-slate-600">Most filings finish in minutes, not days of back-and-forth.</p>
+                        </li>
+                        <li className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                            <p className="font-bold text-[var(--color-text)] mb-1">Proof you can use</p>
+                            <p className="text-sm text-slate-600">Track status and access your certificate from your dashboard.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
             {/* Pricing Section */}
             <div className="py-16 px-6 bg-white">
                 <div className="max-w-4xl mx-auto">
-                    <h2 className="text-3xl font-bold text-[var(--color-text)] mb-2 text-center">Transparent Pricing</h2>
+                    <h2 className="text-3xl font-bold text-[var(--color-text)] mb-2 text-center">Straightforward pricing</h2>
                     <p className="text-slate-600 text-center mb-10 max-w-2xl mx-auto">
-                        Our service fee is based on your fleet size. The federal UCR fee is set by the government and added to your total. No hidden costs.
+                        Service fees scale with fleet size so larger operations pay fairly. The federal UCR fee is set by the government—you always see both line items before you commit. No hidden costs.
                     </p>
                     <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-lg">
                         <table className="w-full">
@@ -126,7 +155,7 @@ export default function ServicesPage() {
                         </table>
                     </div>
                     <p className="text-sm text-slate-500 mt-6 text-center">
-                        Plus the official UCR government fee (set by FMCSA). Total = Service fee + Government fee. $0 upfront — pay when your certificate is ready.
+                        Plus the official UCR government fee (set by FMCSA). Total = Service fee + Government fee. Pay when your certificate is ready—no deposit to start.
                     </p>
                 </div>
             </div>

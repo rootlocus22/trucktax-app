@@ -6,7 +6,7 @@ import { ArrowRight, Calendar } from 'lucide-react';
 
 /**
  * Phase 3: Persistent UCR CTA on compliance guides and service pages.
- * Sticky bottom bar — "UCR Filing Due by December 31" / "File in minutes. $0 upfront."
+ * Sticky bottom bar — deadline + value line (transparent total, pay when ready).
  * Mobile-friendly, appears after scroll.
  */
 export default function UcrCtaBanner() {
@@ -36,7 +36,7 @@ export default function UcrCtaBanner() {
               </div>
               <div className="space-y-0.5">
                 <p className="font-bold text-sm sm:text-lg tracking-tight">Need to file your 2026 UCR?</p>
-                <p className="text-xs sm:text-sm text-white/50 font-medium tracking-wide">Get it done in minutes. <span className="text-[var(--color-orange)] font-bold">$0 Upfront to start.</span></p>
+                <p className="text-xs sm:text-sm text-white/50 font-medium tracking-wide">Fast workflow. <span className="text-[var(--color-orange)] font-bold">Know the full cost before you pay.</span></p>
               </div>
             </div>
             <div className="flex items-center gap-3 w-full sm:w-auto">

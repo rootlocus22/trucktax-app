@@ -20,7 +20,7 @@ export async function generateMetadata({ params }) {
 
     return {
         title: `UCR Filing in ${name} | easyucr.com`,
-        description: `File UCR for ${name} with $0 upfront. UCR registration for ${name} truckers and fleets.`,
+        description: `Guided UCR filing for ${name} carriers: accurate brackets, clear total before you pay, and certificate access in your dashboard.`,
         keywords: `ucr filing ${name}, ucr registration ${name}, ${name} ucr`,
         alternates: {
             canonical: `https://www.easyucr.com/insights/state/${state}`,
@@ -42,7 +42,7 @@ export default async function StateCompliancePage({ params }) {
     const faqData = [
         {
             question: `Do ${name} truckers need UCR?`,
-            answer: `Yes. If you operate in interstate commerce (cross state lines), you must register for UCR regardless of your base state. File by December 31. easyucr.com helps you file UCR for ${name} with $0 upfront.`
+            answer: `Yes. If you operate in interstate commerce (cross state lines), you must register for UCR regardless of your base state. File by December 31. easyucr.com walks you through an FMCSA-aligned filing so your bracket and proof of compliance are right.`
         },
         {
             question: `When is UCR due for ${name} carriers?`,
@@ -50,7 +50,7 @@ export default async function StateCompliancePage({ params }) {
         },
         {
             question: `How much does UCR cost for ${name} fleets?`,
-            answer: `UCR fees are based on fleet size (0–2 vehicles: $46, up to 1,001+: $44,836). easyucr.com charges a $79 filing fee plus the official UCR fee. File with $0 upfront.`
+            answer: `Government UCR fees depend on fleet size (0–2 vehicles: $46, up to 1,001+: $44,836). easyucr.com adds a tiered service fee (from $79 for small fleets) for guided filing and certificate access—you see the full total before you pay.`
         },
     ];
 
@@ -60,9 +60,9 @@ export default async function StateCompliancePage({ params }) {
                 type="Service"
                 data={{
                     name: `${name} UCR Filing`,
-                    description: `UCR filing for ${name} carriers. File UCR with $0 upfront.`,
+                    description: `Guided UCR filing for ${name} carriers: accurate brackets, fast workflow, and dashboard access to your certificate.`,
                     catalogName: `easyucr.com`,
-                    offers: [{ name: "UCR Filing", price: "79" }]
+                    offers: [{ name: "UCR Filing (service from)", price: "79" }]
                 }}
             />
             <SchemaMarkup type="FAQPage" data={faqData} />
@@ -77,7 +77,7 @@ export default async function StateCompliancePage({ params }) {
                             UCR Filing in <span className="text-[var(--color-orange)]">{name}</span>
                         </h1>
                         <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                            File UCR for {name} with $0 upfront. We focus on UCR filing only.
+                            Accurate UCR registration for interstate carriers based in or running through {name}. Guided steps, clear pricing, and your proof of compliance in one place.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link

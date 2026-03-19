@@ -78,8 +78,8 @@ function LoginContent() {
   const features = [
     {
       icon: ShieldCheck,
-      title: 'All-Inclusive UCR Filing',
-      description: '$79 service fee + official government UCR fee — one payment, we pay the government on your behalf.'
+      title: 'Guided UCR filing',
+      description: 'USDOT-aligned steps, correct federal fee tier, and one place to track your filing—not a dozen PDFs and portals.'
     },
     {
       icon: FileCheck,
@@ -120,7 +120,7 @@ function LoginContent() {
               Welcome to Your <span className="text-[var(--color-orange)]">UCR Compliance</span> Hub
             </h2>
             <p className="text-base text-white/90 leading-relaxed">
-              Continue managing your UCR filings with transparent pricing. $79 service fee + official government UCR fee — one payment, we handle the rest.
+              Pick up where you left off: compliance status, certificates, and filings in one hub. Pricing is tiered by fleet size and shown clearly before you pay—plus the official government UCR fee.
             </p>
           </div>
 

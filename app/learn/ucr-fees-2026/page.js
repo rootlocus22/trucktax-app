@@ -12,7 +12,7 @@ export const metadata = {
 const FAQ = [
   { question: 'What are the UCR fees for 2026?', answer: 'Official 2026 fees: 0–2 vehicles $46, 3–5 $138, 6–20 $276, 21–100 $963, 101–1,000 $4,592, 1,001+ $44,836. Brokers and freight forwarders pay $46.' },
   { question: 'Do UCR fees change every year?', answer: 'UCR fees are set by the UCR Board and have remained unchanged for 2025 and 2026. They may be adjusted in future years.' },
-  { question: 'What is the EasyUCR service fee?', answer: 'EasyUCR charges a flat $79 service fee plus the official government UCR fee. You pay only after your filing is confirmed.' },
+  { question: 'What is the EasyUCR service fee?', answer: 'EasyUCR charges a tiered service fee by fleet size (from $79 for 0–2 power units) plus the official government UCR fee. You see the full breakdown before you pay—see /ucr/pricing for the schedule.' },
 ];
 
 export default function UCRFees2026() {

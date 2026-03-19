@@ -90,7 +90,7 @@ export default function InsightsIndex() {
                 UCR Filing Due by December 31
               </h2>
               <p className="text-blue-100/80 text-base leading-relaxed">
-                All guides, deadlines, and fees in one place. File with $0 upfront and stay compliant with FMCSA regulations.
+                All guides, deadlines, and fees in one place. File with guided UCR checkout—full cost shown before you pay—and stay aligned with FMCSA expectations.
               </p>
             </div>
             <div className="flex flex-wrap gap-4">

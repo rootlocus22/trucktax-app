@@ -19,7 +19,7 @@ export const metadata = {
     template: "%s | easyucr.com",
   },
   description:
-    "Simple UCR filing. Calculate your fee, file in minutes, and stay compliant. File with $0 upfront.",
+    "Guided UCR filing for interstate carriers: accurate brackets, a clear total before you pay, and your certificate in one dashboard. Transparent tiered pricing from $79 for small fleets.",
   keywords: [
     "ucr filing service",
     "ucr filing",
@@ -65,7 +65,7 @@ export const metadata = {
   openGraph: {
     title: "UCR Filing | easyucr.com",
     description:
-      "Simple UCR filing. File with $0 upfront. Calculate your fee and stay compliant.",
+      "File UCR with confidence—guided steps, full cost breakdown, pay when your certificate is ready. Estimate fees anytime.",
     url: "https://www.easyucr.com",
     siteName: "easyucr.com",
     type: "website",
@@ -75,7 +75,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "UCR Filing | easyucr.com",
     description:
-      "Simple UCR filing. File with $0 upfront. Calculate your fee and stay compliant.",
+      "File UCR with confidence—guided steps, full cost breakdown, pay when your certificate is ready. Estimate fees anytime.",
   },
 };
 
@@ -89,7 +89,7 @@ const websiteJsonLd = {
   "@type": "WebSite",
   "name": "easyucr.com",
   "url": "https://www.easyucr.com",
-  "description": "Simple UCR filing. File with $0 upfront. Calculate your fee and stay compliant.",
+  "description": "Guided UCR filing with transparent pricing: see government + service fee before you pay, certificate in your dashboard.",
   "publisher": {
     "@type": "Organization",
     "name": "easyucr.com"

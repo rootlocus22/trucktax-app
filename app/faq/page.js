@@ -41,7 +41,7 @@ export default function FAQPage() {
       questions: [
         {
           q: 'How much does UCR cost?',
-          a: 'UCR fees are set by fleet size: 0–2 trucks $46, 3–5 trucks $138, 6–20 trucks $276, 21–100 trucks $963, 101–1,000 trucks $4,592, 1,001+ trucks $44,836. EasyUCR adds a flat $79 service fee.'
+          a: 'Government UCR fees are set by fleet size: 0–2 trucks $46, 3–5 $138, 6–20 $276, 21–100 $963, 101–1,000 $4,592, 1,001+ $44,836. EasyUCR adds a tiered service fee (from $79 for small fleets) for guided filing—see easyucr.com/ucr/pricing for the full table.'
         },
         {
           q: 'Do brokers pay the same fee?',
@@ -49,7 +49,7 @@ export default function FAQPage() {
         },
         {
           q: 'Are there hidden fees?',
-          a: 'No. You pay the government UCR fee (by fleet size) plus our $79 service fee. No setup fees, no annual membership. You pay only after your filing is confirmed.'
+          a: 'No. You pay the official government UCR fee plus our tiered service fee—both are shown before you complete payment. No setup fees, no annual membership. You pay when your filing is confirmed.'
         },
         {
           q: 'What if my filing fails?',

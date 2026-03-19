@@ -9,12 +9,14 @@ import RedirectLoggedInToDashboard from "@/components/RedirectLoggedInToDashboar
 import UcrDeadlineBanner from "@/components/UcrDeadlineBanner";
 
 export const metadata = {
-  title: "UCR Filing Service — $79 Service Fee + Government Fee | EasyUCR",
-  description: "Cheapest UCR filing service in the US. $79 service fee + official government UCR fee. We pay the government fee on your behalf. File your 2026 registration in under 10 minutes.",
+  title: "EasyUCR — Fast UCR Filing for Carriers & Brokers | 2026 Compliance",
+  description:
+    "Stay FMCSA-compliant with guided UCR registration: USDOT verification, correct fee brackets, and your certificate in your dashboard. Transparent pricing from $79 + official government fee. File in minutes.",
   alternates: { canonical: "https://www.easyucr.com" },
   openGraph: {
-    title: "EasyUCR — UCR Filing Service, $79 + Government Fee",
-    description: "One payment covers our $79 service fee + the official UCR government fee. We file and pay the government fee on your behalf.",
+    title: "EasyUCR — UCR Compliance Without the Guesswork",
+    description:
+      "Accurate UCR filing backed by FMCSA-aligned fee calculation, secure checkout, and support when you need it. See clear pricing before you commit.",
     url: "https://www.easyucr.com",
   },
 };
@@ -36,7 +38,8 @@ export default function Home() {
     url: 'https://www.easyucr.com',
     logo: 'https://www.easyucr.com/easyucr-logo.png',
     image: 'https://www.easyucr.com/easyucr-logo.png',
-    description: 'easyucr.com helps carriers, owner-operators, and brokers stay compliant with their annual UCR filings.',
+    description:
+      'easyucr.com helps carriers, owner-operators, and brokers complete accurate annual UCR registration with guided filing, USDOT-aligned fee calculation, and certificate delivery.',
   };
 
   const productJsonLd = {
@@ -44,7 +47,8 @@ export default function Home() {
     '@type': 'WebApplication',
     name: 'easyucr.com UCR Filing Service',
     url: 'https://www.easyucr.com',
-    description: 'Fast, easy UCR registration and renewals for the trucking industry.',
+    description:
+      'Guided UCR registration and renewals: verify DOT data, apply the right fee tier, and keep proof of compliance in one place.',
     brand: {
       '@type': 'Brand',
       name: 'easyucr.com'
@@ -89,7 +93,7 @@ export default function Home() {
         name: 'How much does UCR cost in 2026?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'UCR fees are set by fleet size, from $46 (0–2 trucks) up to $44,836 (1001+ trucks). Use our UCR Fee Calculator to see your exact cost. EasyUCR adds a flat $79 service fee.'
+          text: 'Government UCR fees are set by fleet size, from $46 (0–2 trucks) up to $44,836 (1001+ trucks). EasyUCR’s service fee is tiered by fleet size starting at $79 for the smallest carriers. Use our calculator for a full estimate—no surprises before you pay.'
         }
       },
       {
@@ -121,7 +125,7 @@ export default function Home() {
         name: 'What does all-inclusive UCR filing mean?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'EasyUCR charges a flat $79 service fee. On top of that, there is the official government UCR fee which varies by fleet size (starting at $46 for 0-2 trucks). Both are combined into one payment — we pay the government fee on your behalf. No surprise charges.'
+          text: 'You get guided filing, fee verification against official brackets, and handling of the government portion so you are not juggling multiple portals. Service fees scale with fleet size (from $79 for small fleets) plus the official UCR fee. Your total is shown clearly before checkout—no hidden line items.'
         }
       },
       {
@@ -129,7 +133,7 @@ export default function Home() {
         name: 'Can I file UCR myself for free?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'You can file directly at ucr.gov, but you still pay the government fee there. EasyUCR charges a $79 service fee and handles the entire filing for you — we pay the government fee on your behalf so you only deal with one payment.'
+          text: 'You can file directly at ucr.gov and pay only the government fee. EasyUCR is for carriers who want the process handled end-to-end—DOT-aligned data checks, correct bracket application, and one place to track status and certificates—plus transparent tiered service pricing.'
         }
       }
     ]
@@ -167,13 +171,14 @@ export default function Home() {
             <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 grid gap-12 lg:grid-cols-2 items-center">
               <div className="space-y-6 sm:space-y-8">
                 <div className="inline-flex items-center gap-2 rounded-full bg-orange-600/20 border border-orange-400/30 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white-300">
-                  Cheapest UCR Filing in the US
+                  FMCSA-Aligned UCR Filing
                 </div>
                 <h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl text-white">
-                  File Your UCR Registration — <span className="text-[var(--color-orange)]">$79 Service Fee</span> <span className="block text-blue-200">+ We Pay the Government Fee</span>
+                  UCR Compliance <span className="text-[var(--color-orange)]">Without the Guesswork</span>
+                  <span className="block text-blue-200 text-2xl sm:text-3xl lg:text-4xl font-bold mt-3">Accurate brackets · Fast filing · Proof in your dashboard</span>
                 </h1>
                 <p className="text-lg leading-8 text-slate-300 max-w-xl">
-                  Our $79 service fee + the official government UCR fee, in one payment. We file and pay the government fee on your behalf.
+                  We verify your USDOT and fleet data against official UCR rules, walk you through each step, and keep your certificate where you can find it. <span className="text-white font-semibold">Transparent pricing</span> from $79 for small fleets plus the government fee—see your total before you pay.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 sm:items-center">
@@ -193,13 +198,13 @@ export default function Home() {
                     className="inline-flex items-center justify-center gap-2 min-h-[54px] sm:min-h-[50px] rounded-xl sm:rounded-2xl border border-white/30 bg-white/10 backdrop-blur px-5 sm:px-6 py-3.5 sm:py-3 text-white font-medium hover:bg-white/20 transition w-full sm:w-auto"
                   >
                     <Calculator className="w-5 h-5" />
-                    Calculate Your Fee
+                    Estimate total cost
                   </a>
                 </div>
 
                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-xs sm:text-sm font-medium text-slate-300 pt-2 sm:pt-4">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-white-400" /> All-inclusive pricing
+                    <CheckCircle className="w-5 h-5 text-white-400" /> Clear pricing before checkout
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-5 h-5 text-white-400" /> Filed in under 10 min
@@ -524,7 +529,9 @@ export default function Home() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold text-slate-900 mb-4">Compare UCR Filing Services</h2>
-                <p className="text-lg text-slate-600 max-w-2xl mx-auto">See why EasyUCR is the best value — $79 service fee + government fee, one payment, we handle everything.</p>
+                <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                  Speed, transparency, and how you pay matter as much as the line item. EasyUCR is built for carriers who want fewer portals, faster turnaround, and pricing you can see upfront.
+                </p>
               </div>
               <div className="max-w-4xl mx-auto rounded-xl overflow-hidden shadow-card">
                 <ComparisonTable />

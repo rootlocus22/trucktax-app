@@ -669,7 +669,7 @@ function UcrCtaBox() {
                     DOT Compliance
                 </span>
                 <h4 className="font-bold text-lg mb-2">Need your 2026 UCR?</h4>
-                <p className="text-indigo-200 text-sm mb-6">Avoid fines. File now with $0 upfront.</p>
+                <p className="text-indigo-200 text-sm mb-6">Avoid fines—file with a clear total before you pay.</p>
                 <Link href="/services/ucr-registration" className="block w-full bg-white text-indigo-600 font-bold py-3 rounded-lg transition-colors hover:bg-slate-50 border border-indigo-100 shadow-sm flex items-center justify-center gap-2">
                     Get UCR <ArrowRight className="w-4 h-4" />
                 </Link>
