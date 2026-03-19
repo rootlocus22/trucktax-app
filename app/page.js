@@ -9,12 +9,12 @@ import RedirectLoggedInToDashboard from "@/components/RedirectLoggedInToDashboar
 import UcrDeadlineBanner from "@/components/UcrDeadlineBanner";
 
 export const metadata = {
-  title: "UCR Filing Service — $79 All-Inclusive, Government Fee Included | EasyUCR",
-  description: "Cheapest UCR filing service in the US. $79 all-inclusive, government fee included. File your 2026 unified carrier registration in under 10 minutes.",
+  title: "UCR Filing Service — $79 Service Fee + Government Fee | EasyUCR",
+  description: "Cheapest UCR filing service in the US. $79 service fee + official government UCR fee. We pay the government fee on your behalf. File your 2026 registration in under 10 minutes.",
   alternates: { canonical: "https://www.easyucr.com" },
   openGraph: {
-    title: "EasyUCR — All-Inclusive UCR Filing for $79, Government Fee Included",
-    description: "All-inclusive pricing. One payment covers everything — government fee included. We file your UCR and handle the rest.",
+    title: "EasyUCR — UCR Filing Service, $79 + Government Fee",
+    description: "One payment covers our $79 service fee + the official UCR government fee. We file and pay the government fee on your behalf.",
     url: "https://www.easyucr.com",
   },
 };
@@ -121,7 +121,7 @@ export default function Home() {
         name: 'What does all-inclusive UCR filing mean?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'One payment covers everything — our $79 service fee plus the government UCR fee. We pay the government fee on your behalf and handle the entire filing process. No surprise charges.'
+          text: 'EasyUCR charges a flat $79 service fee. On top of that, there is the official government UCR fee which varies by fleet size (starting at $46 for 0-2 trucks). Both are combined into one payment — we pay the government fee on your behalf. No surprise charges.'
         }
       },
       {
@@ -129,7 +129,7 @@ export default function Home() {
         name: 'Can I file UCR myself for free?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'You still pay the government UCR fee. You can file directly through your state\'s UCR portal, but it can be confusing. EasyUCR handles the process for $79 all-inclusive — government fee included.'
+          text: 'You can file directly at ucr.gov, but you still pay the government fee there. EasyUCR charges a $79 service fee and handles the entire filing for you — we pay the government fee on your behalf so you only deal with one payment.'
         }
       }
     ]
@@ -170,10 +170,10 @@ export default function Home() {
                   Cheapest UCR Filing in the US
                 </div>
                 <h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl text-white">
-                  File Your UCR Registration — <span className="text-[var(--color-orange)]">$79 All-Inclusive</span>, <span className="block text-blue-200">Government Fee Included</span>
+                  File Your UCR Registration — <span className="text-[var(--color-orange)]">$79 Service Fee</span> <span className="block text-blue-200">+ We Pay the Government Fee</span>
                 </h1>
                 <p className="text-lg leading-8 text-slate-300 max-w-xl">
-                  All-inclusive UCR filing. One payment covers everything — we pay the government fee on your behalf.
+                  Our $79 service fee + the official government UCR fee, in one payment. We file and pay the government fee on your behalf.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 sm:items-center">
@@ -524,7 +524,7 @@ export default function Home() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold text-slate-900 mb-4">Compare UCR Filing Services</h2>
-                <p className="text-lg text-slate-600 max-w-2xl mx-auto">See why EasyUCR is the best value — $79 all-inclusive, government fee included.</p>
+                <p className="text-lg text-slate-600 max-w-2xl mx-auto">See why EasyUCR is the best value — $79 service fee + government fee, one payment, we handle everything.</p>
               </div>
               <div className="max-w-4xl mx-auto rounded-xl overflow-hidden shadow-card">
                 <ComparisonTable />

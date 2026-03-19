@@ -481,7 +481,7 @@ export default function DashboardPage() {
                                 )}
                               </div>
                               <p className="text-sm text-slate-600 leading-relaxed mt-1">Annual registration required for interstate motor carriers.</p>
-                              <p className="text-xs text-emerald-700 font-semibold mt-2">All-inclusive pricing — one payment covers everything, government fee included.</p>
+                              <p className="text-xs text-emerald-700 font-semibold mt-2">$79 service fee + official government UCR fee — one payment, we handle the rest.</p>
                               <div className="flex flex-wrap items-center gap-4 mt-3">
                                 <span className="flex items-center gap-1.5 text-xs text-slate-500">
                                   <Calendar className="w-4 h-4 text-slate-400" /> Year: 2026

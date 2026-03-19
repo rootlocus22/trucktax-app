@@ -5,13 +5,13 @@ import { FAQAccordion } from '@/components/FAQAccordion';
 
 export const metadata = {
   title: 'Cheapest UCR Filing Service 2026 — Price Comparison | EasyUCR',
-  description: 'Compare UCR filing service fees: EasyUCR ($79 all-inclusive, government fee included) vs JJ Keller, Foley, CNS, and others. See why EasyUCR offers the best value.',
+  description: 'Compare UCR filing service fees: EasyUCR ($79 service fee + government UCR fee) vs JJ Keller, Foley, CNS, and others. See why EasyUCR offers the best value.',
 };
 
 const FAQ = [
-  { question: 'What is the cheapest UCR filing service?', answer: 'EasyUCR offers the best value at $79 all-inclusive — government fee included. One payment covers everything. We pay the government fee on your behalf.' },
-  { question: 'Why does EasyUCR cost less?', answer: 'We use AI automation to file UCR efficiently. Our all-inclusive pricing means no surprise charges — your $79 covers both our service fee and the government UCR fee.' },
-  { question: 'Are there hidden fees with EasyUCR?', answer: 'No. Your $79 all-inclusive payment covers everything — our service fee and the government UCR fee. Nothing else. We pay the government on your behalf.' },
+  { question: 'What is the cheapest UCR filing service?', answer: 'EasyUCR charges a flat $79 service fee — one of the lowest in the industry. You also pay the official government UCR fee (starting at $46), which every carrier must pay regardless of which service they use. Both are combined into one Stripe payment.' },
+  { question: 'Why does EasyUCR cost less?', answer: 'We use AI automation to file UCR efficiently. Our $79 service fee is among the lowest available. You pay the government UCR fee separately (starting at $46), but both charges are combined into a single payment — no separate transactions or surprises.' },
+  { question: 'Are there hidden fees with EasyUCR?', answer: 'No. Your payment covers two things: our $79 service fee and the official government UCR fee based on your fleet size. Both are combined into one Stripe checkout. We pay the government fee on your behalf.' },
 ];
 
 export default function CheapestUCRFilingService() {
@@ -26,12 +26,12 @@ export default function CheapestUCRFilingService() {
         <CTABanner />
         <h1 className="text-3xl font-bold text-slate-900 mt-12 mb-6">Cheapest UCR Filing Service 2026</h1>
         <p className="text-lg text-slate-600 mb-8">
-          EasyUCR is the best-value UCR filing service in the US. $79 all-inclusive — government fee included. Compare us to JJ Keller, Foley, CNS, and others.
+          EasyUCR is the best-value UCR filing service in the US. $79 service fee + official government UCR fee — one payment, we handle the rest. Compare us to JJ Keller, Foley, CNS, and others.
         </p>
         <div className="mb-12"><ComparisonTable /></div>
         <h2 className="text-xl font-bold text-slate-900 mb-4">Why Does EasyUCR Cost Less?</h2>
         <p className="text-slate-600 mb-8">
-          We use AI automation to file UCR in under 10 minutes. Our all-inclusive pricing — government fee included — means no surprise charges and the best value for your filing.
+          We use AI automation to file UCR in under 10 minutes. Our flat $79 service fee is one of the lowest in the industry — and we combine it with the government UCR fee into one simple payment, so there are no surprises.
         </p>
         <FAQAccordion faqs={FAQ} />
         <div className="mt-12"><CTABanner /></div>

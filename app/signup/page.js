@@ -93,7 +93,7 @@ function SignupContent() {
     {
       icon: ShieldCheck,
       title: 'All-Inclusive UCR Filing',
-      description: 'One payment covers everything — government fee included. Pay once, we handle the rest.'
+      description: '$79 service fee + official government UCR fee — one payment, we pay the government on your behalf.'
     },
     {
       icon: Zap,
@@ -139,7 +139,7 @@ function SignupContent() {
               Start Your <span className="text-[var(--color-orange)]">UCR Compliance</span> Journey
             </h2>
             <p className="text-base text-white/90 leading-relaxed">
-              The easiest way to file UCR with all-inclusive pricing: one payment covers everything, government fee included.
+              The easiest way to file UCR. $79 service fee + official government UCR fee — one payment, we handle the rest.
             </p>
           </div>
 

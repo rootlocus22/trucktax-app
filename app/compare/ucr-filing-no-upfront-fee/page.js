@@ -4,13 +4,13 @@ import { FAQAccordion } from '@/components/FAQAccordion';
 
 export const metadata = {
   title: 'All-Inclusive UCR Filing — Transparent Pricing | EasyUCR',
-  description: 'EasyUCR offers all-inclusive UCR filing. One payment covers everything — government fee included. Pay $79 and we handle the rest.',
+  description: 'EasyUCR offers transparent UCR filing. $79 service fee + official government UCR fee — one payment, we pay the government fee on your behalf.',
 };
 
 const FAQ = [
-  { question: 'What does all-inclusive UCR filing mean?', answer: 'You enter your DOT number and fleet info. We file your UCR with the government and pay the government fee on your behalf. One payment of $79 covers our service fee and the government UCR fee — no separate charges.' },
-  { question: 'Are there any hidden fees?', answer: 'No. Your $79 payment covers everything — our service fee plus the government UCR fee. We pay the government on your behalf. That is the full cost.' },
-  { question: 'How does EasyUCR pricing compare to other services?', answer: 'EasyUCR offers all-inclusive pricing at $79. Many other services charge their service fee separately on top of the government fee, making their true cost higher.' },
+  { question: 'What does all-inclusive UCR filing mean?', answer: 'You enter your DOT number and fleet info. We file your UCR and pay the government fee on your behalf. One payment covers our $79 service fee plus the official government UCR fee (which varies by fleet size, starting at $46). No separate charges or surprises.' },
+  { question: 'Are there any hidden fees?', answer: 'No. Your payment covers two things: our $79 service fee and the official government UCR fee based on your fleet size. Both are combined into one Stripe checkout. We pay the government fee on your behalf.' },
+  { question: 'How does EasyUCR pricing compare to other services?', answer: 'EasyUCR charges a flat $79 service fee — one of the lowest in the industry. You also pay the government UCR fee (starting at $46), which every carrier must pay regardless of which service they use.' },
 ];
 
 export default function UCRFilingNoUpfrontFee() {
@@ -25,7 +25,7 @@ export default function UCRFilingNoUpfrontFee() {
         <CTABanner />
         <h1 className="text-3xl font-bold text-slate-900 mt-12 mb-6">All-Inclusive UCR Filing — Transparent Pricing</h1>
         <p className="text-lg text-slate-600 mb-8">
-          EasyUCR offers all-inclusive pricing. One payment of $79 covers everything — government fee included. Pay once, we handle the rest.
+          EasyUCR offers all-inclusive pricing. One payment covers our $79 service fee plus the official government UCR fee (starting at $46 based on fleet size). Pay once, we handle the rest.
         </p>
         <h2 className="text-xl font-bold text-slate-900 mb-4">How It Works</h2>
         <ol className="list-decimal pl-6 space-y-4 text-slate-600 mb-12">

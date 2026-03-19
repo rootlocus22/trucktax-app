@@ -13,13 +13,13 @@ import {
 export const metadata = {
   title: 'File UCR for Multiple Trucks | Dispatcher & Fleet Bulk UCR Filing',
   description:
-    'File UCR for multiple clients or your fleet. How dispatchers and fleet managers handle bulk UCR filing for 3–20+ trucks. All-inclusive pricing, government fee included.',
+    'File UCR for multiple clients or your fleet. How dispatchers and fleet managers handle bulk UCR filing for 3–20+ trucks. $79 service fee + official government UCR fee — one payment.',
   alternates: {
     canonical: 'https://www.easyucr.com/ucr/dispatcher',
   },
   openGraph: {
     title: 'File UCR for Multiple Trucks | Dispatcher & Bulk UCR',
-    description: 'Bulk UCR filing for dispatchers and fleets. File for multiple clients or trucks. All-inclusive pricing, government fee included.',
+    description: 'Bulk UCR filing for dispatchers and fleets. File for multiple clients or trucks. $79 service fee + official government UCR fee — one payment.',
     url: 'https://www.easyucr.com/ucr/dispatcher',
   },
 };
@@ -37,7 +37,7 @@ export default function UcrDispatcherPage() {
             File UCR for Multiple Trucks or Clients
           </h1>
           <p className="text-lg text-blue-100 max-w-2xl mx-auto mb-8">
-            One registration per carrier—but if you manage multiple carriers or a fleet, we make it simple. File each UCR in minutes with all-inclusive pricing — government fee included.
+            One registration per carrier&mdash;but if you manage multiple carriers or a fleet, we make it simple. File each UCR in minutes. $79 service fee + official government UCR fee, combined in one payment.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -94,7 +94,7 @@ export default function UcrDispatcherPage() {
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-navy)] text-white font-bold">2</span>
               <div>
                 <h3 className="font-semibold text-slate-800">Use our wizard for each</h3>
-                <p className="text-slate-600 text-sm mt-1">Start a new UCR filing for each carrier. Enter their legal name, USDOT, and fee bracket (based on fleet size). All-inclusive pricing — one payment covers everything, government fee included.</p>
+                <p className="text-slate-600 text-sm mt-1">Start a new UCR filing for each carrier. Enter their legal name, USDOT, and fee bracket (based on fleet size). $79 service fee + official government UCR fee — one payment, we handle the rest.</p>
               </div>
             </div>
             <div className="flex gap-4 p-4 rounded-xl bg-white border border-slate-200">
@@ -153,7 +153,7 @@ export default function UcrDispatcherPage() {
               <li className="flex items-start gap-3">
                 <CheckCircle className="w-6 h-6 text-emerald-500 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-slate-800">UCR</strong> — Due by December 31. One registration per carrier (legal entity). File at <Link href="/ucr/file" className="text-[var(--color-navy)] font-semibold hover:underline">easyucr.com UCR</Link> — all-inclusive pricing, government fee included.
+                  <strong className="text-slate-800">UCR</strong> — Due by December 31. One registration per carrier (legal entity). File at <Link href="/ucr/file" className="text-[var(--color-navy)] font-semibold hover:underline">easyucr.com UCR</Link> — $79 service fee + official government UCR fee, one payment.
                 </div>
               </li>
             </ul>
@@ -165,7 +165,7 @@ export default function UcrDispatcherPage() {
           <ShieldCheck className="w-12 h-12 mx-auto mb-4 text-[var(--color-orange)]" />
           <h2 className="text-2xl font-bold mb-2">Ready to file UCR for your clients or fleet?</h2>
           <p className="text-blue-100 mb-6 max-w-xl mx-auto">
-            All-inclusive pricing — government fee included. Pay once, we handle everything. File in minutes per carrier.
+            $79 service fee + official government UCR fee — one payment, we handle everything. File in minutes per carrier.
           </p>
           <Link
             href="/ucr/file"

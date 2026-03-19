@@ -79,7 +79,7 @@ function LoginContent() {
     {
       icon: ShieldCheck,
       title: 'All-Inclusive UCR Filing',
-      description: 'One payment covers everything — government fee included. Pay once, we handle the rest.'
+      description: '$79 service fee + official government UCR fee — one payment, we pay the government on your behalf.'
     },
     {
       icon: FileCheck,
@@ -120,7 +120,7 @@ function LoginContent() {
               Welcome to Your <span className="text-[var(--color-orange)]">UCR Compliance</span> Hub
             </h2>
             <p className="text-base text-white/90 leading-relaxed">
-              Continue managing your UCR filings with transparent all-inclusive pricing. One payment covers everything — government fee included.
+              Continue managing your UCR filings with transparent pricing. $79 service fee + official government UCR fee — one payment, we handle the rest.
             </p>
           </div>
 
