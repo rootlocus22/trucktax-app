@@ -5,6 +5,7 @@ import { FAQAccordion } from '@/components/FAQAccordion';
 export const metadata = {
   title: 'All-Inclusive UCR Filing — Transparent Pricing | EasyUCR',
   description: 'One payment covers EasyUCR’s tiered service fee plus the official government UCR fee—itemized before checkout. Guided filing, pay when your certificate is ready.',
+  alternates: { canonical: 'https://www.easyucr.com/compare/ucr-filing-no-upfront-fee' },
 };
 
 const FAQ = [

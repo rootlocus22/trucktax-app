@@ -39,9 +39,10 @@ export const metadata = {
     address: false,
     telephone: false,
   },
-  alternates: {
-    canonical: "https://www.easyucr.com",
-  },
+  // Do NOT set a global canonical here — it was inherited by every page without
+  // an explicit canonical, causing Google to treat /blog, /learn/*, /states/*, etc.
+  // as duplicates of the homepage ("Discovered – currently not indexed").
+  // Per Next.js, canonical + og:url are derived from metadataBase + pathname when omitted.
   robots: {
     index: true,
     follow: true,
@@ -62,20 +63,15 @@ export const metadata = {
   verification: {
     google: "-95Bq4XHD66PIeHdHG3cDSad9_yp6kTmOVeUtUKUIc0",
   },
+  // Homepage-specific og/twitter live on app/page.js. Avoid url/title/description here
+  // so child routes don't inherit the wrong Open Graph URL.
   openGraph: {
-    title: "UCR Filing | easyucr.com",
-    description:
-      "File UCR with confidence—guided steps, full cost breakdown, pay when your certificate is ready. Estimate fees anytime.",
-    url: "https://www.easyucr.com",
     siteName: "easyucr.com",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "UCR Filing | easyucr.com",
-    description:
-      "File UCR with confidence—guided steps, full cost breakdown, pay when your certificate is ready. Estimate fees anytime.",
   },
 };
 
@@ -152,6 +148,24 @@ export default function RootLayout({ children }) {
                       <Link href="/ucr/file" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 font-medium min-h-[44px] py-2 touch-manipulation">
                         UCR Filing
                       </Link>
+                      <Link href="/learn" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
+                        UCR Education (Learn)
+                      </Link>
+                      <Link href="/blog" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
+                        Blog
+                      </Link>
+                      <Link href="/insights" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
+                        Guides &amp; Insights
+                      </Link>
+                      <Link href="/states" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
+                        UCR by State
+                      </Link>
+                      <Link href="/compare" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
+                        Compare Services
+                      </Link>
+                      <Link href="/pricing" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
+                        Pricing
+                      </Link>
                       <Link href="/tools/ucr-calculator" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
                         UCR Fee Calculator
                       </Link>
@@ -161,6 +175,15 @@ export default function RootLayout({ children }) {
                       <Link href="/insights/ucr-renewal-guide" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
                         UCR Renewal Guide
                       </Link>
+                      <Link href="/faq" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
+                        FAQ
+                      </Link>
+                      <Link href="/how-it-works" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
+                        How it Works
+                      </Link>
+                      <a href="/sitemap.xml" className="text-sm text-slate-300 hover:text-white transition flex items-center gap-2 min-h-[44px] py-2 touch-manipulation">
+                        XML Sitemap
+                      </a>
                     </div>
                   </div>
                   <div className="space-y-4">

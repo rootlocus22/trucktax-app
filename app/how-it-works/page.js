@@ -5,6 +5,7 @@ import { CTABanner } from '@/components/CTABanner';
 export const metadata = {
   title: 'How EasyUCR Works — File UCR in 3 Steps | EasyUCR',
   description: 'File your UCR in under 10 minutes. Enter DOT number, we file with the government, one all-inclusive payment covers everything.',
+  alternates: { canonical: 'https://www.easyucr.com/how-it-works' },
 };
 
 const howToSchema = {

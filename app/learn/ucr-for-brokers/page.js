@@ -6,6 +6,7 @@ import { UCRFeeCalculator } from '@/components/UCRFeeCalculator';
 export const metadata = {
   title: 'UCR for Brokers — Do Brokers Need UCR? | EasyUCR',
   description: 'Freight brokers must register for UCR. Brokers pay the minimum $46 fee. File in 10 minutes with EasyUCR.',
+  alternates: { canonical: 'https://www.easyucr.com/learn/ucr-for-brokers' },
 };
 
 const FAQ = [

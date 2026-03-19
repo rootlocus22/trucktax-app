@@ -5,6 +5,7 @@ import { FAQAccordion } from '@/components/FAQAccordion';
 export const metadata = {
   title: 'UCR Deadline 2026 — Filing Dates, Enforcement & Late Penalties | EasyUCR',
   description: 'UCR 2026 filing deadline is December 31, 2025. Enforcement starts January 1, 2026. Learn what happens if you miss the deadline and how to fix it.',
+  alternates: { canonical: 'https://www.easyucr.com/learn/ucr-deadline-2026' },
 };
 
 const FAQ = [

@@ -3,6 +3,7 @@ import Link from 'next/link';
 export const metadata = {
   title: 'UCR Guides & Education | easyucr.com',
   description: 'Learn about UCR registration, fees, deadlines, and who needs to file. Complete guides for motor carriers, brokers, and owner-operators.',
+  alternates: { canonical: 'https://www.easyucr.com/learn' },
 };
 
 const LEARN_PAGES = [

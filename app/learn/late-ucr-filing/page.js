@@ -5,6 +5,7 @@ import { FAQAccordion } from '@/components/FAQAccordion';
 export const metadata = {
   title: 'Late UCR Filing — Penalties, Fines & How to Fix It | EasyUCR',
   description: 'Missed the UCR deadline? Learn the penalties for late UCR filing and how to file now to get back in compliance. EasyUCR files same day.',
+  alternates: { canonical: 'https://www.easyucr.com/learn/late-ucr-filing' },
 };
 
 const FAQ = [

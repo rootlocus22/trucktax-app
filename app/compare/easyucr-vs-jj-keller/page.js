@@ -7,6 +7,7 @@ export const metadata = {
   title: 'EasyUCR vs JJ Keller — UCR Filing Comparison 2026 | EasyUCR',
   description:
     'Compare speed, pay timing, and transparency for UCR filing. EasyUCR focuses on fast, guided registration with pricing you see upfront; JJ Keller is a broad compliance suite.',
+  alternates: { canonical: 'https://www.easyucr.com/compare/easyucr-vs-jj-keller' },
 };
 
 const FAQ = [

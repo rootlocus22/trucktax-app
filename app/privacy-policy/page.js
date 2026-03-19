@@ -3,6 +3,7 @@ import Link from 'next/link';
 export const metadata = {
     title: 'Privacy Policy | easyucr.com',
     description: 'How we collect, use, and protect your data.',
+    alternates: { canonical: 'https://www.easyucr.com/privacy-policy' },
 };
 
 const CONTACT_EMAIL = 'support@vendaxsystemlabs.com';

@@ -9,7 +9,9 @@ Disallow: /_next/static/chunks/
 Disallow: /_next/webpack/
 Disallow: /_next/hmr/
 Disallow: /api/
-Disallow: /*.json$
+
+# Do not disallow "*.json" — it is unnecessary for HTML routes and can confuse
+# some crawlers when paired with Allow rules.
 
 # Block development files
 Disallow: /_error

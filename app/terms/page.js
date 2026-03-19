@@ -3,6 +3,7 @@ import Link from 'next/link';
 export const metadata = {
   title: 'Terms & Conditions | easyucr.com',
   description: 'Terms and conditions for using easyucr.com website and services.',
+  alternates: { canonical: 'https://www.easyucr.com/terms' },
 };
 
 const CONTACT_EMAIL = 'support@vendaxsystemlabs.com';

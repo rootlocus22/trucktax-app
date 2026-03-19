@@ -6,6 +6,7 @@ import { UCRFeeCalculator } from '@/components/UCRFeeCalculator';
 export const metadata = {
   title: 'What is UCR Registration? Complete 2026 Guide | EasyUCR',
   description: 'UCR (Unified Carrier Registration) explained: who needs it, what it costs, and how to file. Complete guide for motor carriers, brokers, and freight forwarders.',
+  alternates: { canonical: 'https://www.easyucr.com/learn/what-is-ucr' },
 };
 
 const FAQ = [

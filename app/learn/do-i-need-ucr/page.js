@@ -5,6 +5,7 @@ import { FAQAccordion } from '@/components/FAQAccordion';
 export const metadata = {
   title: 'Do I Need UCR? Quick Checklist | EasyUCR',
   description: 'Not sure if you need UCR? Use our quick checklist. Motor carriers, brokers, and freight forwarders in interstate commerce must file.',
+  alternates: { canonical: 'https://www.easyucr.com/learn/do-i-need-ucr' },
 };
 
 const FAQ = [

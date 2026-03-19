@@ -6,6 +6,7 @@ import { NON_PARTICIPATING_STATES } from '@/lib/states';
 export const metadata = {
   title: 'Non-UCR States — What to Do If Your State Does Not Participate | EasyUCR',
   description: 'Florida, New Jersey, Oregon, Hawaii do not participate in UCR. You still need UCR if you cross state lines. File through a neighboring state.',
+  alternates: { canonical: 'https://www.easyucr.com/learn/non-ucr-states' },
 };
 
 const FAQ = [

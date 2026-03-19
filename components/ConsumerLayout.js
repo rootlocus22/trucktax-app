@@ -93,9 +93,16 @@ export function ConsumerLayout({ children }) {
               <div>
                 <h3 className="font-semibold mb-4">Resources</h3>
                 <ul className="space-y-2 text-sm text-white/70">
-                  <li><Link href="/insights/ucr-registration-opens-october-1" className="hover:text-white transition">UCR Calendar</Link></li>
-                  <li><Link href="/insights/ucr-renewal-guide" className="hover:text-white transition">UCR Renewal Guide</Link></li>
-                  <li><Link href="/tools/ucr-calculator" className="hover:text-white transition">UCR Calculator</Link></li>
+                  <li><Link href="/learn" className="hover:text-white transition">UCR Education</Link></li>
+                  <li><Link href="/blog" className="hover:text-white transition">Blog</Link></li>
+                  <li><Link href="/insights" className="hover:text-white transition">Guides &amp; insights</Link></li>
+                  <li><Link href="/states" className="hover:text-white transition">UCR by state</Link></li>
+                  <li><Link href="/compare" className="hover:text-white transition">Compare services</Link></li>
+                  <li><Link href="/pricing" className="hover:text-white transition">Pricing</Link></li>
+                  <li><Link href="/insights/ucr-registration-opens-october-1" className="hover:text-white transition">UCR calendar</Link></li>
+                  <li><Link href="/insights/ucr-renewal-guide" className="hover:text-white transition">UCR renewal guide</Link></li>
+                  <li><Link href="/tools/ucr-calculator" className="hover:text-white transition">UCR calculator</Link></li>
+                  <li><a href="/sitemap.xml" className="hover:text-white transition">XML sitemap</a></li>
                 </ul>
               </div>
               <div>

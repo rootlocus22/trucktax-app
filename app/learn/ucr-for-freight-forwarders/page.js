@@ -5,6 +5,7 @@ import { FAQAccordion } from '@/components/FAQAccordion';
 export const metadata = {
   title: 'UCR for Freight Forwarders | EasyUCR',
   description: 'Freight forwarders must register for UCR. Pay the minimum $46 fee. File in 10 minutes with EasyUCR.',
+  alternates: { canonical: 'https://www.easyucr.com/learn/ucr-for-freight-forwarders' },
 };
 
 const FAQ = [

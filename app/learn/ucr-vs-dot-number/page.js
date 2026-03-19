@@ -5,6 +5,7 @@ import { FAQAccordion } from '@/components/FAQAccordion';
 export const metadata = {
   title: 'UCR vs DOT Number — Understanding the Difference | EasyUCR',
   description: 'UCR and DOT number are different. Learn what each is, when you need both, and how they work together for trucking compliance.',
+  alternates: { canonical: 'https://www.easyucr.com/learn/ucr-vs-dot-number' },
 };
 
 const FAQ = [

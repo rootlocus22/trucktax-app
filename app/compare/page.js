@@ -5,6 +5,7 @@ import { CTABanner } from '@/components/CTABanner';
 export const metadata = {
   title: 'UCR Filing Service Comparison — EasyUCR vs Competitors | EasyUCR',
   description: 'Compare UCR filing services on speed, transparency, and guided filing. EasyUCR: tiered service fees from $79 + official government UCR fee, one clear payment.',
+  alternates: { canonical: 'https://www.easyucr.com/compare' },
 };
 
 const comparePages = [

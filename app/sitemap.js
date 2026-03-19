@@ -34,6 +34,10 @@ export default function sitemap() {
     { path: "/terms", priority: 0.7, changeFrequency: "monthly" },
     { path: "/refund-policy", priority: 0.7, changeFrequency: "monthly" },
     { path: "/privacy-policy", priority: 0.7, changeFrequency: "monthly" },
+    { path: "/how-it-works", priority: 0.85, changeFrequency: "monthly" },
+    { path: "/faq", priority: 0.85, changeFrequency: "weekly" },
+    { path: "/features", priority: 0.75, changeFrequency: "monthly" },
+    { path: "/services", priority: 0.85, changeFrequency: "weekly" },
   ].map(({ path, priority, changeFrequency }) => ({
     url: `${baseUrl}${path || "/"}`,
     lastModified: now,

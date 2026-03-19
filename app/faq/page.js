@@ -5,6 +5,7 @@ export const metadata = {
   title: 'UCR FAQ - Complete Guide for Truckers | easyucr.com',
   description: 'Comprehensive FAQ about UCR registration. Get answers about fees, deadlines, who needs to file, and how to stay compliant.',
   keywords: ['ucr faq', 'ucr questions', 'ucr registration help', 'unified carrier registration'],
+  alternates: { canonical: 'https://www.easyucr.com/faq' },
 };
 
 export default function FAQPage() {

@@ -6,6 +6,7 @@ import { UCRFeeCalculator } from '@/components/UCRFeeCalculator';
 export const metadata = {
   title: 'UCR for Owner Operators — Do You Need It? | EasyUCR',
   description: 'Owner operators: do you need UCR? If you cross state lines with a USDOT number, yes. See the $46 fee for 1–2 trucks and how to file in 10 minutes.',
+  alternates: { canonical: 'https://www.easyucr.com/learn/ucr-for-owner-operators' },
 };
 
 const FAQ = [

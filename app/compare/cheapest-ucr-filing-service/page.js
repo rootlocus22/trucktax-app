@@ -6,6 +6,7 @@ import { FAQAccordion } from '@/components/FAQAccordion';
 export const metadata = {
   title: 'UCR Filing Cost Comparison 2026 — Fees & Value | EasyUCR',
   description: 'Compare UCR filing on speed, transparency, and pay-when-ready workflow—not just sticker price. EasyUCR tiered service fees from $79 + official government UCR fee.',
+  alternates: { canonical: 'https://www.easyucr.com/compare/cheapest-ucr-filing-service' },
 };
 
 const FAQ = [

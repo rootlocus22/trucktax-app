@@ -3,6 +3,7 @@ import Link from 'next/link';
 export const metadata = {
   title: 'Refund Policy | easyucr.com',
   description: 'Refund and cancellation policy for easyucr.com services.',
+  alternates: { canonical: 'https://www.easyucr.com/refund-policy' },
 };
 
 const CONTACT_EMAIL = 'support@vendaxsystemlabs.com';

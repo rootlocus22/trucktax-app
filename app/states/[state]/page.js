@@ -15,7 +15,10 @@ export async function generateMetadata({ params }) {
   if (!state) return { title: 'State Not Found | EasyUCR' };
   return {
     title: `UCR Registration for ${state.name} Carriers — File Online | EasyUCR`,
-    description: `${state.name} motor carriers: file your 2026 UCR registration online. $79 service fee + government UCR fee. Fast, easy, guaranteed.`,
+    description: `${state.name} motor carriers: file your 2026 UCR registration online. Tiered service fee from $79 + official government UCR fee. Fast, guided filing.`,
+    alternates: {
+      canonical: `https://www.easyucr.com/states/${params.state}`,
+    },
   };
 }
 

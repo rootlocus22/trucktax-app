@@ -7,6 +7,7 @@ import { UCR_BRACKETS } from '@/lib/ucr-fees-spec';
 export const metadata = {
   title: 'UCR Fees 2026 — Complete Fee Schedule by Fleet Size | EasyUCR',
   description: 'Official UCR fee schedule for 2026. See exact fees by fleet size from $46 to $44,836. Includes interactive fee calculator.',
+  alternates: { canonical: 'https://www.easyucr.com/learn/ucr-fees-2026' },
 };
 
 const FAQ = [

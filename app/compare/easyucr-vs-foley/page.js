@@ -6,6 +6,7 @@ import { FAQAccordion } from '@/components/FAQAccordion';
 export const metadata = {
   title: 'EasyUCR vs Foley — UCR Filing Comparison 2026 | EasyUCR',
   description: 'Compare EasyUCR and Foley for UCR filing. EasyUCR: $79, pay after filing. Foley: ~$100, pay upfront.',
+  alternates: { canonical: 'https://www.easyucr.com/compare/easyucr-vs-foley' },
 };
 
 const FAQ = [

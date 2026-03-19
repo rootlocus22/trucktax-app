@@ -5,7 +5,9 @@ import { CTABanner } from '@/components/CTABanner';
 
 export const metadata = {
   title: 'UCR Registration by State — All 41 States | EasyUCR',
-  description: 'File UCR for your state. 41 participating states plus non-participating (FL, NJ, OR, HI). $79 service fee, pay after filing.',
+  description:
+    'File UCR for your state. 41 participating states plus non-participating (FL, NJ, OR, HI). Tiered service fees from $79 + government fee—see totals before you pay.',
+  alternates: { canonical: 'https://www.easyucr.com/states' },
 };
 
 export default function StatesPage() {
