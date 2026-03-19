@@ -13,6 +13,14 @@ function parseCustomerData(raw) {
     registrantName: raw.registrantName ? String(raw.registrantName).trim() : '',
     displayName: raw.displayName ? String(raw.displayName).trim() : '',
     daysLeft: raw.daysLeft != null ? Number(raw.daysLeft) : undefined,
+    // FMCSA outreach fields
+    companyName: raw.companyName ? String(raw.companyName).trim() : '',
+    contactName: raw.contactName ? String(raw.contactName).trim() : '',
+    dotNumber: raw.dotNumber ? String(raw.dotNumber).trim() : '',
+    fleetBracket: raw.fleetBracket ? String(raw.fleetBracket).trim() : '',
+    govFee: raw.govFee ? String(raw.govFee).trim() : '',
+    totalCost: raw.totalCost ? String(raw.totalCost).trim() : '',
+    state: raw.state ? String(raw.state).trim() : '',
   };
 }
 

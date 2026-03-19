@@ -7,8 +7,67 @@ import Link from 'next/link';
 import {
   Send, Mail, User, Building2, AlertCircle, Loader2, CheckCircle, FileText,
   Copy, RefreshCw, ChevronRight, Inbox, Code, Eye, Check, Upload, Users,
-  BarChart2, MessageSquare, TrendingUp, XCircle, ArrowLeft, Megaphone, Database,
+  BarChart2, MessageSquare, TrendingUp, XCircle, ArrowLeft, Megaphone, Database, X,
 } from 'lucide-react';
+
+// ─── Sample data for template preview ───────────────────────────────────────
+const SAMPLE_FMCSA_DATA = {
+  email: 'preview@example.com',
+  companyName: 'ACME TRUCKING LLC',
+  contactName: 'John Smith',
+  dotNumber: '1234567',
+  fleetBracket: '3 to 5',
+  govFee: '$96',
+  totalCost: '$175',
+  state: 'TX',
+};
+
+// ─── Preview Modal ────────────────────────────────────────────────────────────
+function PreviewModal({ modal, onClose }) {
+  if (!modal.open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between gap-4 px-5 py-4 border-b border-slate-200 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <Eye className="w-5 h-5 text-[var(--color-navy)] shrink-0" />
+            <h2 className="font-bold text-slate-800 truncate">Email Preview</h2>
+            {modal.loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400 shrink-0" />}
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition shrink-0">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        {modal.error ? (
+          <div className="p-6 text-red-600 text-sm flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 shrink-0" />{modal.error}
+          </div>
+        ) : (
+          <div className="flex flex-col flex-1 overflow-hidden">
+            {modal.subject && (
+              <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 shrink-0">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Subject line</p>
+                <p className="text-sm font-semibold text-slate-800">{modal.subject}</p>
+              </div>
+            )}
+            <div className="flex-1 overflow-hidden min-h-[400px]">
+              {modal.loading ? (
+                <div className="flex items-center justify-center h-full text-slate-400 text-sm gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />Loading preview…
+                </div>
+              ) : modal.html ? (
+                <iframe title="Email preview" srcDoc={modal.html} className="w-full h-full border-0" sandbox="allow-same-origin" style={{ minHeight: 460 }} />
+              ) : null}
+            </div>
+            <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 shrink-0">
+              <p className="text-xs text-slate-400">This is a sample preview using demo carrier data. Actual emails will use each carrier&rsquo;s real DOT number, fleet size, and fees from your CSV.</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const ROUTE_NAME = 'email-marketing';
 const BCC_DEFAULT = 'support@vendaxsystemlabs.com';
@@ -155,6 +214,29 @@ function EmailMarketingContent() {
   const [fmcsaProgress, setFmcsaProgress] = useState(null); // { sent, failed, remaining, done }
   const [fmcsaError, setFmcsaError] = useState('');
   const pumpRef = useRef(null);
+
+  // ── Preview modal ─────────────────────────────────────────────────────────
+  const [previewModal, setPreviewModal] = useState({ open: false, subject: '', html: '', loading: false, error: null });
+
+  const openPreviewModal = useCallback(async (campaignId, sampleData) => {
+    setPreviewModal({ open: true, subject: '', html: '', loading: true, error: null });
+    try {
+      const token = await user.getIdToken(true);
+      const res = await fetch('/api/email-marketing/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ campaignId, customerData: sampleData }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setPreviewModal((p) => ({ ...p, loading: false, error: data.error || 'Preview failed' }));
+      } else {
+        setPreviewModal({ open: true, subject: data.subject || '', html: data.html || '', loading: false, error: null });
+      }
+    } catch (err) {
+      setPreviewModal((p) => ({ ...p, loading: false, error: err.message || 'Preview failed' }));
+    }
+  }, [user]);
 
   // ── CRM ──────────────────────────────────────────────────────────────────
   const [outreachCampaigns, setOutreachCampaigns] = useState([]);
@@ -487,6 +569,7 @@ function EmailMarketingContent() {
 
   return (
     <div className="min-h-screen bg-slate-100">
+      <PreviewModal modal={previewModal} onClose={() => setPreviewModal((p) => ({ ...p, open: false }))} />
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -715,6 +798,15 @@ function EmailMarketingContent() {
                   <div className="mt-5 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
                     <strong>How emails are personalized:</strong> The UCR Outreach template uses each carrier&rsquo;s <code className="bg-amber-100 px-1 rounded">UCR_Fleet_Bracket</code>, <code className="bg-amber-100 px-1 rounded">UCR_Gov_Fee_2026</code>, and <code className="bg-amber-100 px-1 rounded">EasyUCR_Total_2026</code> columns to show their exact cost — e.g. &ldquo;Your fleet of 3–5 trucks means your 2026 UCR fee is $96. Total with EasyUCR: $175.&rdquo;
                   </div>
+                  <div className="mt-4">
+                    <button
+                      onClick={() => openPreviewModal(fmcsaCampaignId, SAMPLE_FMCSA_DATA)}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-[var(--color-navy)] text-[var(--color-navy)] font-semibold text-sm hover:bg-[var(--color-navy)] hover:text-white transition"
+                    >
+                      <Eye className="w-4 h-4" /> Preview Email Template
+                    </button>
+                    <p className="text-xs text-slate-400 mt-1.5">Shows a sample with demo carrier data (ACME TRUCKING LLC, TX, fleet 3–5)</p>
+                  </div>
                 </div>
               </section>
             </div>
@@ -818,7 +910,15 @@ function EmailMarketingContent() {
               <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2"><Users className="w-5 h-5 text-[var(--color-navy)]" /><h2 className="font-bold text-slate-800">Contact Preview</h2></div>
-                  {contacts.length > 0 && <span className="text-xs font-semibold text-slate-500">{contacts.length}</span>}
+                  <div className="flex items-center gap-2">
+                    {contacts.length > 0 && <span className="text-xs font-semibold text-slate-500">{contacts.length}</span>}
+                    <button
+                      onClick={() => openPreviewModal(outreachCampaignId, contacts.length > 0 ? { ...contacts[0], email: contacts[0].email || 'preview@example.com' } : SAMPLE_FMCSA_DATA)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition"
+                    >
+                      <Eye className="w-3.5 h-3.5" /> Preview
+                    </button>
+                  </div>
                 </div>
                 <div className="overflow-auto max-h-[600px]">
                   {contacts.length === 0 ? (
