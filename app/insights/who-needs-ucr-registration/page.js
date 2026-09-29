@@ -96,7 +96,7 @@ export default function WhoNeedsUcrGuide() {
                             <h3>Non-Participating States</h3>
                             <p>
                                 Currently, 41 states participate in the UCR program. The non-participating states are:
-                                <strong> Arizona, Florida, Hawaii, Maryland, Nevada, New Jersey, Oregon, Wyoming, and the District of Columbia.</strong>
+                                <strong> Arizona, Florida, Hawaii, Maryland, Nevada, New Jersey, Oregon, Vermont, Wyoming, and the District of Columbia.</strong>
                             </p>
                             <p>
                                 <strong>However, read carefully:</strong> If your business is based in a non-participating state (like Florida), but you drive your commercial vehicle into a participating state (like Georgia), <strong>you still need a UCR</strong>. You just have to select a neighboring participating state as your "Base State" for filing purposes.

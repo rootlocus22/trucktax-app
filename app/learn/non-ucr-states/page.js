@@ -5,12 +5,12 @@ import { NON_PARTICIPATING_STATES } from '@/lib/states';
 
 export const metadata = {
   title: 'Non-UCR States — What to Do If Your State Does Not Participate | EasyUCR',
-  description: 'Florida, New Jersey, Oregon, Hawaii do not participate in UCR. You still need UCR if you cross state lines. File through a neighboring state.',
+  description: 'Arizona, Florida, Hawaii, Maryland, Nevada, New Jersey, Oregon, Vermont, Wyoming and DC do not participate in UCR. You still need UCR if you cross state lines. File through a neighboring state.',
   alternates: { canonical: 'https://www.easyucr.com/learn/non-ucr-states' },
 };
 
 const FAQ = [
-  { question: 'What are the non-participating UCR states?', answer: 'Florida, New Jersey, Oregon, and Hawaii do not participate in UCR. Carriers based there must file through a participating state.' },
+  { question: 'What are the non-participating UCR states?', answer: 'Arizona, Florida, Hawaii, Maryland, Nevada, New Jersey, Oregon, Vermont, Wyoming, and the District of Columbia do not participate in UCR. Carriers based there must file through a participating state.' },
   { question: 'Do I still need UCR if I am in a non-participating state?', answer: 'Yes. If you operate in interstate commerce, you must register for UCR regardless of your base state. File through a neighboring participating state.' },
   { question: 'How do I file UCR from a non-participating state?', answer: 'Use a participating state where you have operations or a registered agent. EasyUCR handles this—you just enter your DOT number and we file with the correct state.' },
 ];
@@ -31,7 +31,7 @@ export default function NonUCRStates() {
         </p>
         <h2 className="text-xl font-bold text-slate-900 mb-4">Non-Participating States</h2>
         <p className="text-slate-600 mb-4">
-          {NON_PARTICIPATING_STATES.map((s) => s.name).join(', ')}. Carriers in these states file through a participating state (e.g., Georgia for Florida-based carriers).
+          {NON_PARTICIPATING_STATES.map((s) => s.name).join(', ')}, and the District of Columbia. Carriers in these states file through a participating state (e.g., Georgia for Florida-based carriers).
         </p>
         <FAQAccordion faqs={FAQ} />
         <div className="mt-12"><CTABanner /></div>

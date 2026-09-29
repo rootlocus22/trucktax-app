@@ -31,7 +31,7 @@ export default function UcrFilingStatePage({ params }) {
   if (!stateInfo) notFound();
 
   const stateName = stateInfo.name;
-  const participates = ["Alaska", "Arizona", "DC", "Florida", "Hawaii", "Maryland", "Nevada", "New Jersey", "Oregon", "Vermont", "Wyoming"].includes(stateName) ? false : true;
+  const participates = ["Arizona", "DC", "Florida", "Hawaii", "Maryland", "Nevada", "New Jersey", "Oregon", "Vermont", "Wyoming"].includes(stateName) ? false : true;
   const oneTruckFee = getUcrFee(1, 'carrier').fee;
   const servicePrice = getServiceFee(1).fee ?? 79;
   const exampleTotal = oneTruckFee + servicePrice;

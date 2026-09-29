@@ -90,11 +90,18 @@ UCR is NOT prorated. If you register mid-year, you pay the full annual fee. New 
 
 These states do not participate in UCR but carriers based there who cross state lines MUST still file through a participating state:
 
+- Arizona (AZ)
+- District of Columbia (DC)
 - Florida (FL)
+- Hawaii (HI) — most carriers exempt; HHG movers must file
+- Maryland (MD)
+- Nevada (NV)
 - New Jersey (NJ)
 - Oregon (OR)
-- Hawaii (HI) — most carriers exempt; HHG movers must file
-- Arizona (AZ)
+- Vermont (VT)
+- Wyoming (WY)
+
+The other 41 states participate. Source: https://plan.ucr.gov/participating-states/
 
 ## How EasyUCR works
 

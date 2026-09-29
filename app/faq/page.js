@@ -71,7 +71,7 @@ export default function FAQPage() {
           a: 'We file your UCR first. You pay only when your confirmation number is issued. This removes risk—if filing fails, you owe nothing.'
         },
         {
-          q: 'What if I\'m in a non-participating state (Florida, NJ, Oregon, Hawaii)?',
+          q: 'What if I\'m in a non-participating state (AZ, FL, HI, MD, NV, NJ, OR, VT, WY, or DC)?',
           a: 'You still need UCR if you cross state lines. You file through a participating state. EasyUCR handles this automatically—just enter your DOT number.'
         },
         {
